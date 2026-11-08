@@ -61,7 +61,7 @@ export function ArchiveStrategyDialog({ open, onOpenChange, ticker, hasHoldings,
       </AlertDialog>
       {hasHoldings && (
         <p id={blockedId} className="basis-full text-xs text-muted-foreground">
-          보유 수량을 모두 매도한 뒤 보관할 수 있습니다.
+          보유 수량이 남아 있으면 보관할 수 없습니다.
         </p>
       )}
     </>

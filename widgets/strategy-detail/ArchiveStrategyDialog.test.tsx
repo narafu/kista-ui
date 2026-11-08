@@ -13,14 +13,14 @@ describe('ArchiveStrategyDialog', () => {
     const onOpenChange = renderDialog({ hasHoldings: false })
     fireEvent.click(screen.getByRole('button', { name: '보관' }))
     expect(onOpenChange).toHaveBeenCalledWith(true)
-    expect(screen.queryByText('보유 수량을 모두 매도한 뒤 보관할 수 있습니다.')).not.toBeInTheDocument()
+    expect(screen.queryByText('보유 수량이 남아 있으면 보관할 수 없습니다.')).not.toBeInTheDocument()
   })
 
   it('보유 수량이 있으면 aria-disabled로 막고 사유를 설명으로 연결한다', () => {
     const onOpenChange = renderDialog({ hasHoldings: true })
     const trigger = screen.getByRole('button', { name: '보관' })
     expect(trigger).toHaveAttribute('aria-disabled', 'true')
-    expect(trigger).toHaveAccessibleDescription('보유 수량을 모두 매도한 뒤 보관할 수 있습니다.')
+    expect(trigger).toHaveAccessibleDescription('보유 수량이 남아 있으면 보관할 수 없습니다.')
     fireEvent.click(trigger)
     expect(onOpenChange).not.toHaveBeenCalled()
   })
@@ -29,7 +29,7 @@ describe('ArchiveStrategyDialog', () => {
     const onOpenChange = renderDialog({ hasHoldings: false, disabled: true })
     fireEvent.click(screen.getByRole('button', { name: '보관' }))
     expect(onOpenChange).not.toHaveBeenCalled()
-    expect(screen.queryByText('보유 수량을 모두 매도한 뒤 보관할 수 있습니다.')).not.toBeInTheDocument()
+    expect(screen.queryByText('보유 수량이 남아 있으면 보관할 수 없습니다.')).not.toBeInTheDocument()
   })
 
   it('확인 문구에 종목과 되돌릴 수 없음을 안내한다', () => {

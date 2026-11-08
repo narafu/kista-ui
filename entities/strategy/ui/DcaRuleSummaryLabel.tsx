@@ -11,7 +11,7 @@ interface Props {
   size?: ComponentProps<typeof Badge>['size']
 }
 
-// 규칙의 방향을 배지로, 나머지 요약을 이어 쓴다 — 목록·상세·실행 이력 공용
+// 규칙의 방향을 배지로, 나머지 요약을 이어 쓴다 — 폼 목록·상세 공용
 export function DcaRuleSummaryLabel({ rule, labelOf, market, badgeClassName, size }: Props) {
   return (
     <>
