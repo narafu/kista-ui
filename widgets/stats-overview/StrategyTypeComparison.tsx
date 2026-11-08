@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -12,8 +13,22 @@ interface Props {
   byType: StrategyTypeStats[]
 }
 
+type SortKey = 'default' | 'type' | 'cycles' | 'avgReturnRate' | 'avgDurationDays' | 'realizedPnl' | 'unrealizedPnl'
+
 export function StrategyTypeComparison({ byType }: Props) {
   const { labelOf } = useMeta()
+  // 'default'는 헤더에 없는 키 — API 응답 순서 유지
+  const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
+  const sorted = sortKey === 'default' ? byType : [...byType].sort((a, b) => {
+    const dir = sortDirection === 'asc' ? 1 : -1
+    if (sortKey === 'type') return dir * labelOf('strategyTypes', a.type).localeCompare(labelOf('strategyTypes', b.type), 'ko')
+    const value = (t: StrategyTypeStats) => sortKey === 'cycles' ? t.closedCycleCount + t.activeCycleCount : t[sortKey]
+    const av = value(a), bv = value(b)
+    if (av == null) return bv == null ? 0 : 1 // null은 방향과 무관하게 맨 아래
+    if (bv == null) return -1
+    return dir * (av - bv)
+  })
+  const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -29,27 +44,25 @@ export function StrategyTypeComparison({ byType }: Props) {
               <table className="w-full text-sm 2xl:[&_td]:px-3 2xl:[&_th]:px-3">
                 <thead className="bg-muted/50">
                   <tr>
-                    <TableHeadCell>전략</TableHeadCell>
-                    <TableHeadCell numeric>사이클</TableHeadCell>
-                    <TableHeadCell numeric>평균 수익률</TableHeadCell>
-                    <TableHeadCell numeric>평균 소요일</TableHeadCell>
+                    <SortableHeadCell sortKey="type" {...head}>전략</SortableHeadCell>
+                    <SortableHeadCell sortKey="cycles" numeric {...head}>사이클</SortableHeadCell>
+                    <SortableHeadCell sortKey="avgReturnRate" numeric {...head}>평균 수익률</SortableHeadCell>
+                    <SortableHeadCell sortKey="avgDurationDays" numeric {...head}>평균 소요일</SortableHeadCell>
                     {/* 의도적으로 KPI(실현손익·미실현 평가손익)보다 짧게 — 6열 표 폭 때문에 '미실현'과 같은 방식으로 줄인다 */}
-                    <TableHeadCell numeric>실현손익</TableHeadCell>
-                    <TableHeadCell numeric>미실현</TableHeadCell>
+                    <SortableHeadCell sortKey="realizedPnl" numeric {...head}>실현손익</SortableHeadCell>
+                    <SortableHeadCell sortKey="unrealizedPnl" numeric {...head}>미실현</SortableHeadCell>
                   </tr>
                 </thead>
                 <tbody>
-                  {byType.map((t) => (
+                  {sorted.map((t) => (
                     <tr key={t.type} className="border-t hover:bg-muted/30 transition-colors">
                       <TableDataCell>
                         <Badge tone="brand" size="md">
                           {labelOf('strategyTypes', t.type)}
                         </Badge>
                       </TableDataCell>
-                      {/* 반쪽 폭(2xl 2단)에서는 "·" 뒤에서만 줄을 바꾼다 */}
-                      <TableDataCell className="text-right tabular-nums text-muted-foreground">
-                        <span className="whitespace-nowrap">종료 {t.closedCycleCount} ·</span>{' '}
-                        <span className="whitespace-nowrap">진행 {t.activeCycleCount}</span>
+                      <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">
+                        종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
                       </TableDataCell>
                       <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {fmtSignedPercent(t.avgReturnRate)}

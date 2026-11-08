@@ -56,7 +56,11 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
             <AlertDialogTitle>전략을 종료하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>{ticker} 전략을 보관할지 삭제할지 선택하세요. 둘 다 되돌릴 수 없습니다.</AlertDialogDescription>
+            <AlertDialogDescription>
+              {ticker} 전략을 보관할지 삭제할지 선택하세요.
+              <br />
+              둘 다 되돌릴 수 없습니다.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <RadioGroup value={choice} onValueChange={(v) => setPicked(v as CloseChoice)} aria-label="종료 방식" disabled={disabled}>
             <label className="flex items-start gap-3 rounded-[var(--r-md)] border border-border p-3 has-data-checked:border-primary has-data-disabled:opacity-60">
