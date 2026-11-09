@@ -1952,7 +1952,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/trading-cycles/{strategyId}/orders": {
+    "/api/trading-cycles/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 전략 다음 주문 미리보기 */
+        get: operations["preview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trading-cycles/{id}/orders": {
         parameters: {
             query?: never;
             header?: never;
@@ -1969,7 +1986,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/trading-cycles/{strategyId}/history": {
+    "/api/trading-cycles/{id}/history": {
         parameters: {
             query?: never;
             header?: never;
@@ -1978,23 +1995,6 @@ export interface paths {
         };
         /** 전략 거래 이력 조회 */
         get: operations["getStrategyHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/trading-cycles/{id}/preview": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 전략 다음 주문 미리보기 */
-        get: operations["preview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2206,6 +2206,23 @@ export interface paths {
          * @description 브로커 어댑터 경유(KIS: CTRP6504R+TTTC2101R 보정 / Toss: 보유종목+예수금 직접 산출) — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
          */
         get: operations["getPresentBalance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{accountId}/ledger-totals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 계좌 원장 합산 조회 */
+        get: operations["get_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2920,75 +2937,6 @@ export interface components {
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
             appSecret?: string;
         };
-        StrategyOrderItem: {
-            /**
-             * Format: uuid
-             * @description 주문 고유 ID
-             */
-            id?: string;
-            /**
-             * Format: date
-             * @description 매매일 (KST 기준)
-             */
-            tradeDate?: string;
-            /**
-             * @description 매수/매도 방향
-             * @example BUY
-             */
-            direction?: string;
-            /**
-             * @description 주문 유형
-             * @example LOC
-             */
-            orderType?: string;
-            /** @description 주문 수량 */
-            quantity?: number;
-            /** @description 주문 가격 */
-            price?: number;
-            /**
-             * @description 주문 상태
-             * @example PLACED
-             */
-            status?: string;
-            /** @description 체결 수량 (미체결이면 null) */
-            filledQuantity?: number;
-            /** @description 체결 가격 (미체결이면 null) */
-            filledPrice?: number;
-        };
-        StrategyOrdersResponse: {
-            /** @description 전략의 주문 목록 */
-            orders?: components["schemas"]["StrategyOrderItem"][];
-        };
-        CycleHistoryPageResponse: {
-            /** @description 거래내역 항목 목록 */
-            items?: components["schemas"]["CycleHistoryResponse"][];
-            /** @description 다음 페이지 조회용 커서 (마지막 페이지면 null) */
-            nextCursor?: string;
-            /** @description 다음 페이지 존재 여부 */
-            hasMore?: boolean;
-        };
-        CycleHistoryResponse: {
-            /** @description 기록 시각 (ISO-8601) */
-            createdAt?: string;
-            /**
-             * @description 종목 코드
-             * @example TQQQ
-             */
-            ticker?: string;
-            /**
-             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 usdDeposit이 항상 0
-             * @example INFINITE
-             */
-            strategyType?: string;
-            /** @description 보유 수량 */
-            holdings?: number;
-            /** @description 종가 (null 가능) */
-            closingPrice?: number;
-            /** @description 평균 매입 단가 (보유수량 0이면 null) */
-            avgPrice?: number;
-            /** @description 통합주문가능금액 */
-            usdDeposit?: number;
-        };
         AccountCashCheckSummary: {
             /** @description 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 차감) */
             availableUsd?: number;
@@ -3142,6 +3090,75 @@ export interface components {
              * @enum {string}
              */
             timing?: "AT_CLOSE" | "AT_OPEN";
+        };
+        StrategyOrderItem: {
+            /**
+             * Format: uuid
+             * @description 주문 고유 ID
+             */
+            id?: string;
+            /**
+             * Format: date
+             * @description 매매일 (KST 기준)
+             */
+            tradeDate?: string;
+            /**
+             * @description 매수/매도 방향
+             * @example BUY
+             */
+            direction?: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
+            orderType?: string;
+            /** @description 주문 수량 */
+            quantity?: number;
+            /** @description 주문 가격 */
+            price?: number;
+            /**
+             * @description 주문 상태
+             * @example PLACED
+             */
+            status?: string;
+            /** @description 체결 수량 (미체결이면 null) */
+            filledQuantity?: number;
+            /** @description 체결 가격 (미체결이면 null) */
+            filledPrice?: number;
+        };
+        StrategyOrdersResponse: {
+            /** @description 전략의 주문 목록 */
+            orders?: components["schemas"]["StrategyOrderItem"][];
+        };
+        CycleHistoryPageResponse: {
+            /** @description 거래내역 항목 목록 */
+            items?: components["schemas"]["CycleHistoryResponse"][];
+            /** @description 다음 페이지 조회용 커서 (마지막 페이지면 null) */
+            nextCursor?: string;
+            /** @description 다음 페이지 존재 여부 */
+            hasMore?: boolean;
+        };
+        CycleHistoryResponse: {
+            /** @description 기록 시각 (ISO-8601) */
+            createdAt?: string;
+            /**
+             * @description 종목 코드
+             * @example TQQQ
+             */
+            ticker?: string;
+            /**
+             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 usdDeposit이 항상 0
+             * @example INFINITE
+             */
+            strategyType?: string;
+            /** @description 보유 수량 */
+            holdings?: number;
+            /** @description 종가 (null 가능) */
+            closingPrice?: number;
+            /** @description 평균 매입 단가 (보유수량 0이면 null) */
+            avgPrice?: number;
+            /** @description 통합주문가능금액 */
+            usdDeposit?: number;
         };
         DcaExecutionItem: {
             ruleKey?: string;
@@ -3586,6 +3603,19 @@ export interface components {
              * @example AMEX
              */
             exchangeCode?: string;
+        };
+        AccountLedgerTotalsResponse: {
+            /**
+             * @description 계좌 통화
+             * @example USD
+             */
+            currency?: string;
+            /** @description 예수금 (전략 합산) — ARCHIVED 제외 전략들의 최신 원장 예수금 합 */
+            deposit?: number;
+            /** @description 평가금 (전략 합산) — 원장 보유 × 현재가 합 (시세 조회 실패·누락이면 null) */
+            evaluation?: number;
+            /** @description 미배정 현금 — 주문 가능 현금 − 원장 예수금 합 (모의계좌·조회 실패면 null) */
+            unassignedCash?: number;
         };
         CryptoPrice: {
             /**
@@ -8771,6 +8801,28 @@ export interface operations {
             };
         };
     };
+    preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["NextOrdersResponse"];
+                };
+            };
+        };
+    };
     getStrategyOrders: {
         parameters: {
             query?: {
@@ -8779,7 +8831,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                strategyId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -8806,7 +8858,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                strategyId: string;
+                id: string;
             };
             cookie?: never;
         };
@@ -8823,31 +8875,13 @@ export interface operations {
             };
         };
     };
-    preview: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["NextOrdersResponse"];
-                };
-            };
-        };
-    };
     listDcaExecutions: {
         parameters: {
             query?: {
+                from?: string;
+                to?: string;
+                direction?: "BUY" | "SELL";
+                ruleKey?: string;
                 page?: number;
                 size?: number;
             };
@@ -9216,6 +9250,46 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["PortfolioSummaryResponse"];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 (시세·잔고 조회 실패 필드는 null) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountLedgerTotalsResponse"];
+                };
+            };
+            /** @description 본인 계좌가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountLedgerTotalsResponse"];
+                };
+            };
+            /** @description 계좌 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountLedgerTotalsResponse"];
                 };
             };
         };
