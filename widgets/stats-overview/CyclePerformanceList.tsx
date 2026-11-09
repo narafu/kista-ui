@@ -103,6 +103,10 @@ export function CyclePerformanceList({ typeFilter }: Props) {
               <PaginationBar page={page} totalPages={data?.totalPages ?? 0} onPageChange={setPage} />
             </div>
           )}
+          {/* 요약·추이·전략 유형 비교는 모의계좌를 빼고 집계하므로, 이 목록과 숫자가 어긋나는 이유를 알린다 */}
+          <p className="border-t px-4 py-3 text-xs text-muted-foreground">
+            모의계좌 사이클도 포함합니다. 요약·추이·전략 유형 비교는 모의계좌를 제외합니다.
+          </p>
         </CardContent>
       </Card>
       <ArchivedStrategies strategies={archivedStrategies} accountsById={accountsById} />

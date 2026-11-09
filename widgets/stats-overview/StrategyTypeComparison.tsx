@@ -53,9 +53,9 @@ export function StrategyTypeComparison({ byType }: Props) {
           <EmptyState variant="text" message="비교할 전략 데이터가 없습니다." />
         ) : (
           <>
-            {/* 2xl에서는 사이클 성과 옆 반쪽 폭이라 셀 좌우 여백을 줄이고 헤더를 띄어쓰기에서 줄바꿈해 6열을 넣는다(값 셀은 한 줄 유지) */}
+            {/* 2xl에서는 사이클 성과 옆 반쪽 폭이라 셀 좌우 여백을 줄여 6열을 넣는다 */}
             <div className="hidden overflow-x-auto lg:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
-              <table className="w-full text-sm 2xl:[&_td]:px-2 2xl:[&_th]:px-2 2xl:[&_th]:whitespace-normal 2xl:[&_th]:break-keep">
+              <table className="w-full text-sm 2xl:[&_td]:px-2 2xl:[&_th]:px-2">
                 <thead className="bg-muted/50">
                   <tr>
                     <SortableHeadCell sortKey="type" {...head}>전략</SortableHeadCell>
