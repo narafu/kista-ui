@@ -13,7 +13,7 @@ import {
 
 const POINT: HousingBenchmarkPoint = {
   baseDate: '2026-07-01',
-  investmentIndexUsd: 184.2,
+  investmentIndex: 184.2,
   benchmarkIndex: 151.7,
   investmentPeriodReturn: 0.031,
   benchmarkPeriodReturn: -0.004,
@@ -35,14 +35,14 @@ describe('housing benchmark chart formatters', () => {
   })
 
   it('주별 포인트는 두 서버 지수와 각 주간수익률을 별도로 표시한다', () => {
-    expect(formatHousingBenchmarkTooltipValue(184.2, 'investmentIndexUsd', POINT, false))
+    expect(formatHousingBenchmarkTooltipValue(184.2, 'investmentIndex', POINT, false))
       .toBe('184.2 · +3.1% 주간')
     expect(formatHousingBenchmarkTooltipValue(151.7, 'benchmarkIndex', POINT, false))
       .toBe('151.7 · -0.4% 주간')
   })
 
   it('일별 포인트는 두 서버 지수와 각 일간수익률을 별도로 표시한다', () => {
-    expect(formatHousingBenchmarkTooltipValue(184.2, 'investmentIndexUsd', POINT, true))
+    expect(formatHousingBenchmarkTooltipValue(184.2, 'investmentIndex', POINT, true))
       .toBe('184.2 · +3.1% 일간')
     expect(formatHousingBenchmarkTooltipValue(151.7, 'benchmarkIndex', POINT, true))
       .toBe('151.7 · -0.4% 일간')

@@ -20,10 +20,11 @@ interface Props {
   points: HousingBenchmarkPoint[]
   investmentLabel: string
   benchmark: HousingBenchmark
+  investmentCurrency: string
   benchmarkCurrency: 'USD' | 'KRW'
 }
 
-export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benchmarkCurrency }: Props) {
+export function HousingBenchmarkChart({ points, investmentLabel, investmentCurrency, benchmark, benchmarkCurrency }: Props) {
   const benchmarkLabel = benchmark.label ?? '벤치마크'
   // ETF는 거래일별, 아파트는 KB Land 주간 조사일별 — 두 경우 모두 point.baseDate가 실제 일자라
   // 툴팁은 항상 연도 포함 전체 일자 포맷터를 쓴다. 축은 아파트 기본 조회 기간이 1~5년이라
@@ -45,7 +46,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-0.5 w-3.5 rounded-full bg-[var(--chart-1)]" />
-              {formatHousingBenchmarkSeriesLabel(investmentLabel, 'USD')}
+              {formatHousingBenchmarkSeriesLabel(investmentLabel, investmentCurrency)}
             </span>
             <span className="flex items-center gap-1.5">
               <span className="inline-block h-0 w-3.5 border-t-2 border-dashed border-[var(--chart-2)]" />
@@ -95,8 +96,8 @@ export function HousingBenchmarkChart({ points, investmentLabel, benchmark, benc
               />
               <Line
                 type="monotone"
-                dataKey="investmentIndexUsd"
-                name={formatHousingBenchmarkSeriesLabel(investmentLabel, 'USD')}
+                dataKey="investmentIndex"
+                name={formatHousingBenchmarkSeriesLabel(investmentLabel, investmentCurrency)}
                 stroke="var(--chart-1)"
                 strokeWidth={2.5}
                 dot={false}

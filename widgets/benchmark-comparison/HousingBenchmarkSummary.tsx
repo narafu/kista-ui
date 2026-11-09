@@ -9,6 +9,7 @@ interface Props {
   summary: HousingBenchmarkSummaryData
   investmentLabel: string
   benchmarkLabel: string
+  investmentCurrency: string
   benchmarkCurrency: 'USD' | 'KRW'
 }
 
@@ -34,7 +35,7 @@ const METRICS: {
   },
 ]
 
-export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLabel, benchmarkCurrency }: Props) {
+export function HousingBenchmarkSummary({ summary, investmentLabel, investmentCurrency, benchmarkLabel, benchmarkCurrency }: Props) {
   const annualizedUnavailable = summary.investmentAnnualizedReturn == null || summary.benchmarkAnnualizedReturn == null
 
   return (
@@ -58,8 +59,8 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, benchmarkLab
           )}>
             {fmtSignedPercent(summary.investmentCumulativeReturn)}
           </p>
-          <p className="mt-1 truncate text-xs text-muted-foreground" title={`${investmentLabel} · USD`}>
-            {investmentLabel} · USD
+          <p className="mt-1 truncate text-xs text-muted-foreground" title={`${investmentLabel} · ${investmentCurrency}`}>
+            {investmentLabel} · {investmentCurrency}
           </p>
         </div>
         <div className="min-w-0 p-4 sm:p-5">

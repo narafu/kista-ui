@@ -4665,7 +4665,7 @@ export interface components {
         HousingBenchmarkPoint: {
             /** Format: date */
             baseDate?: string;
-            investmentIndexUsd?: number;
+            investmentIndex?: number;
             benchmarkIndex?: number;
             investmentPeriodReturn?: number | null;
             benchmarkPeriodReturn?: number | null;

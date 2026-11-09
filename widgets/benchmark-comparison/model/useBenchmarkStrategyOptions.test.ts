@@ -22,8 +22,8 @@ vi.mock('@entities/account', () => ({
 }))
 
 describe('useBenchmarkStrategyOptions', () => {
-  it('모의·코인 계좌 전략은 벤치마크 선택지에서 뺀다', () => {
+  it('모의계좌 전략만 벤치마크 선택지에서 빼고 크립토 계좌 전략은 남긴다', () => {
     const { result } = renderHook(() => useBenchmarkStrategyOptions(true))
-    expect(result.current.strategies.map((s) => s.id)).toEqual(['s1'])
+    expect(result.current.strategies.map((s) => s.id)).toEqual(['s1', 's3'])
   })
 })

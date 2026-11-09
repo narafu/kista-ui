@@ -55,6 +55,8 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
   const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
+  // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·USDT·KRW), 전체 포트폴리오면 USD — 서버 quality가 SSOT
+  const investmentCurrency = data?.quality?.investmentCurrency ?? 'USD'
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)
   const investmentLabel = resolveInvestmentLabel(data, (type) => labelOf('strategyTypes', type))
@@ -97,6 +99,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
           query={query}
           activeAsset={activeAsset}
           investmentLabel={investmentLabel}
+          investmentCurrency={investmentCurrency}
           benchmarkLabel={benchmarkLabel}
           benchmarkCurrency={benchmarkCurrency}
           fallbackBenchmark={fallbackBenchmark}
@@ -124,7 +127,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
         <HousingBenchmarkInfo benchmark={data?.benchmark ?? fallbackBenchmark} notice={data?.quality?.notice} />
       ) : null}
 
-      {/* 아파트 비교는 USD 투자 vs KRW 지수라 환율 미반영 안내가 필요하다 — ETF는 위 안내 섹션이 같은 notice를 보여준다 */}
+      {/* 아파트 비교의 통화 기준(환율 미반영 또는 모두 KRW) 안내 — 문구는 서버가 투자 통화별로 만든다 — ETF는 위 안내 섹션이 같은 notice를 보여준다 */}
       {activeAsset === 'HOUSING' && canQuery && data?.benchmark?.assetType === 'HOUSING' && data.quality?.notice ? (
         <p className="text-xs leading-5 text-muted-foreground">{data.quality.notice}</p>
       ) : null}

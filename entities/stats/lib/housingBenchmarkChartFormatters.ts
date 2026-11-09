@@ -1,6 +1,6 @@
 import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '../model/types'
 
-export type HousingBenchmarkSeriesKey = 'investmentIndexUsd' | 'benchmarkIndex'
+export type HousingBenchmarkSeriesKey = 'investmentIndex' | 'benchmarkIndex'
 
 // 비교 차트는 ETF(일별)·아파트(KB Land 주간 조사일 기준 주별) 두 케이스뿐이다 — 월별 원본 시세는
 // 별도의 HousingBenchmarkQuintileTrendChart가 담당하므로 여기서는 등장하지 않는다.
@@ -10,7 +10,7 @@ export function housingBenchmarkChartNotice(isDaily: boolean) {
     : '주간 지수와 수익률은 서버 계산값입니다.'
 }
 
-export function formatHousingBenchmarkSeriesLabel(label: string, currency: 'USD' | 'KRW') {
+export function formatHousingBenchmarkSeriesLabel(label: string, currency: string) {
   return `${label} (${currency})`
 }
 
@@ -142,7 +142,7 @@ export function formatHousingBenchmarkTooltipValue(
   point: HousingBenchmarkPoint,
   isDaily: boolean,
 ) {
-  const periodReturn = seriesKey === 'investmentIndexUsd'
+  const periodReturn = seriesKey === 'investmentIndex'
     ? point.investmentPeriodReturn
     : point.benchmarkPeriodReturn
 

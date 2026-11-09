@@ -97,7 +97,7 @@ describe('stats api', () => {
       scope: 'PORTFOLIO',
       points: [{
         baseDate: '2026-07-01',
-        investmentIndexUsd: 103.2,
+        investmentIndex: 103.2,
         benchmarkIndex: 101.4,
         investmentPeriodReturn: 3.2,
         benchmarkPeriodReturn: 1.4,

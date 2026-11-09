@@ -36,6 +36,6 @@ describe('HousingBenchmarkInfo', () => {
   it('notice가 없으면 클라이언트 폴백 문구를 표시한다', () => {
     render(<HousingBenchmarkInfo benchmark={ETF_BENCHMARK} />)
 
-    expect(screen.getByText('전략 운용 기록 기반 근사치입니다. 투자와 ETF 벤치마크 모두 USD 기준이며 환율 변수가 없습니다.')).toBeInTheDocument()
+    expect(screen.getByText('전략 운용 기록 기반 근사치입니다. 투자 성과는 전략 계좌 통화, ETF 벤치마크는 USD 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.')).toBeInTheDocument()
   })
 })

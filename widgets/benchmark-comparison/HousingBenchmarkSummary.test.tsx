@@ -19,6 +19,7 @@ describe('HousingBenchmarkSummary', () => {
       <HousingBenchmarkSummary
         summary={BASE_SUMMARY}
         investmentLabel="전체 포트폴리오"
+        investmentCurrency="USD"
         benchmarkLabel="서울 아파트 매매가격지수"
         benchmarkCurrency="KRW"
       />,
@@ -32,11 +33,26 @@ describe('HousingBenchmarkSummary', () => {
       <HousingBenchmarkSummary
         summary={{ ...BASE_SUMMARY, investmentAnnualizedReturn: null, benchmarkAnnualizedReturn: null }}
         investmentLabel="전체 포트폴리오"
+        investmentCurrency="USD"
         benchmarkLabel="서울 아파트 매매가격지수"
         benchmarkCurrency="KRW"
       />,
     )
 
     expect(screen.getByText(/1년 미만/)).toBeInTheDocument()
+  })
+
+  it('투자 통화는 서버가 준 전략 계좌 통화로 표기한다', () => {
+    render(
+      <HousingBenchmarkSummary
+        summary={BASE_SUMMARY}
+        investmentLabel="DCA · ETH"
+        investmentCurrency="USDT"
+        benchmarkLabel="QQQ"
+        benchmarkCurrency="USD"
+      />,
+    )
+
+    expect(screen.getByText('DCA · ETH · USDT')).toBeInTheDocument()
   })
 })

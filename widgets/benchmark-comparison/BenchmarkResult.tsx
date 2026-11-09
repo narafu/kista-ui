@@ -12,6 +12,7 @@ interface Props {
   query: { isLoading: boolean; isError: boolean; data: HousingBenchmarkComparison | undefined }
   activeAsset: 'ETF' | 'HOUSING'
   investmentLabel: string
+  investmentCurrency: string
   benchmarkLabel: string
   benchmarkCurrency: 'USD' | 'KRW'
   fallbackBenchmark: HousingBenchmark
@@ -21,6 +22,7 @@ export function BenchmarkResult({
   query,
   activeAsset,
   investmentLabel,
+  investmentCurrency,
   benchmarkLabel,
   benchmarkCurrency,
   fallbackBenchmark,
@@ -41,12 +43,14 @@ export function BenchmarkResult({
         <HousingBenchmarkSummary
           summary={data.summary}
           investmentLabel={investmentLabel}
+          investmentCurrency={investmentCurrency}
           benchmarkLabel={benchmarkLabel}
           benchmarkCurrency={benchmarkCurrency}
         />
         <HousingBenchmarkChart
           points={data.points ?? []}
           investmentLabel={investmentLabel}
+          investmentCurrency={investmentCurrency}
           benchmark={data.benchmark ?? fallbackBenchmark}
           benchmarkCurrency={benchmarkCurrency}
         />

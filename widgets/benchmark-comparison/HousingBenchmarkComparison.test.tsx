@@ -98,14 +98,14 @@ const COMPARISON: HousingBenchmarkComparisonData = {
   points: [
     {
       baseDate: '2021-07-01',
-      investmentIndexUsd: 100,
+      investmentIndex: 100,
       benchmarkIndex: 100,
       investmentPeriodReturn: null,
       benchmarkPeriodReturn: null,
     },
     {
       baseDate: '2026-07-01',
-      investmentIndexUsd: 184.2,
+      investmentIndex: 184.2,
       benchmarkIndex: 151.7,
       investmentPeriodReturn: 0.031,
       benchmarkPeriodReturn: -0.004,
@@ -249,7 +249,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByText('+84.2%')).toBeInTheDocument()
     expect(screen.getByText('+51.7%')).toBeInTheDocument()
     expect(screen.getByRole('table', { name: '장기 성과 지표 비교' })).toBeInTheDocument()
-    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
+    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndex')).toBeInTheDocument()
     expect(screen.getByText('서울 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
     expect(screen.getByTestId('housing-benchmark-chart')).toHaveAttribute(
       'data-points',
@@ -384,7 +384,7 @@ describe('HousingBenchmarkComparison', () => {
 
     await pick(user, '전략', '없음 (벤치마크만 보기)')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.anything(), false)
-    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
+    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndex')).not.toBeInTheDocument()
 
     await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
@@ -435,14 +435,14 @@ describe('HousingBenchmarkComparison', () => {
     await user.click(screen.getByRole('button', { name: '아파트' }))
 
     await pick(user, '전략', '없음 (벤치마크만 보기)')
-    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
+    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndex')).not.toBeInTheDocument()
 
     await pick(user, '전략', '전체')
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ scope: 'PORTFOLIO' }), true,
     )
-    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
+    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndex')).toBeInTheDocument()
   })
 
   it('아파트 탭은 ETF 안내 박스 대신 통화·환율 기준 notice만 표시한다', async () => {
@@ -486,7 +486,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByRole('status', { name: '갱신 중' })).toBeInTheDocument()
     expect(screen.getByText('+32.5%p')).toBeInTheDocument()
     expect(screen.getByText('전체 포트폴리오 · USD')).toBeInTheDocument()
-    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndexUsd')).toBeInTheDocument()
+    expect(screen.getByText('전체 포트폴리오 (USD): investmentIndex')).toBeInTheDocument()
     expect(screen.getByText('서울 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
 
     strategyResult = {
@@ -499,7 +499,7 @@ describe('HousingBenchmarkComparison', () => {
     rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-18" />)
 
     expect(screen.getByText('INFINITE · SOXL · USD')).toBeInTheDocument()
-    expect(screen.getByText('INFINITE · SOXL (USD): investmentIndexUsd')).toBeInTheDocument()
+    expect(screen.getByText('INFINITE · SOXL (USD): investmentIndex')).toBeInTheDocument()
     expect(screen.getByText('강남구 아파트 매매가격지수 (KRW): benchmarkIndex')).toBeInTheDocument()
     expect(screen.queryByText('전체 포트폴리오 · USD')).not.toBeInTheDocument()
   })
@@ -519,6 +519,15 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.queryByText('QLD (ProShares Ultra QQQ (2x 레버리지)) (KRW)')).not.toBeInTheDocument()
   })
 
+  it('투자 쪽 요약·범례 통화는 서버 quality.investmentCurrency를 따른다', () => {
+    mockQuery({ ...QLD_STRATEGY_COMPARISON, quality: { ...QLD_STRATEGY_COMPARISON.quality, investmentCurrency: 'USDT' } })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByText('INFINITE · SOXL · USDT')).toBeInTheDocument()
+    expect(screen.getByText('INFINITE · SOXL (USDT): investmentIndex')).toBeInTheDocument()
+    expect(screen.queryByText('INFINITE · SOXL (USD): investmentIndex')).not.toBeInTheDocument()
+  })
+
   it("ETF 탭 전략 드롭다운에서 '전체'/'없음'/개별 전략을 전환하면 scope와 canQuery가 함께 바뀐다", async () => {
     const user = userEvent.setup()
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
@@ -531,7 +540,7 @@ describe('HousingBenchmarkComparison', () => {
 
     await pick(user, '전략', '없음 (벤치마크만 보기)')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(expect.anything(), false)
-    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndexUsd')).not.toBeInTheDocument()
+    expect(screen.queryByText('전체 포트폴리오 (USD): investmentIndex')).not.toBeInTheDocument()
 
     await pick(user, '전략', '[메인계좌] INFINITE · SOXL')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(

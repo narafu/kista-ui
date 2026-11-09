@@ -2,7 +2,7 @@ import type { EtfBenchmarkSymbol } from '@entities/stats'
 
 // ETF 벤치마크 안내: 서버 quality.notice가 누락된 경우에도 통화 기준 안내가 사라지지 않도록 하는 클라이언트 폴백
 export const ETF_BENCHMARK_CURRENCY_NOTICE_FALLBACK =
-  '전략 운용 기록 기반 근사치입니다. 투자와 ETF 벤치마크 모두 USD 기준이며 환율 변수가 없습니다.'
+  '전략 운용 기록 기반 근사치입니다. 투자 성과는 전략 계좌 통화, ETF 벤치마크는 USD 기준이며 현재 환율은 성과 계산에 반영하지 않습니다.'
 
 export interface EtfBenchmarkContent {
   symbol: EtfBenchmarkSymbol
