@@ -68,7 +68,7 @@ describe('market query freshness and error handling', () => {
     await expect(options.queryFn()).rejects.toThrow(failure)
   })
 
-  it('keeps fear and greed data fresh for six hours and propagates request failures', async () => {
+  it('keeps fear and greed data fresh for the 10-minute server max-age and propagates request failures', async () => {
     const failure = new Error('fear and greed request failed')
     getFearGreedClientMock.mockRejectedValueOnce(failure)
     useQueryMock.mockReturnValue({ data: undefined })
@@ -78,7 +78,7 @@ describe('market query freshness and error handling', () => {
     const options = useQueryMock.mock.calls.at(-1)?.[0]
     expect(options).toEqual(expect.objectContaining({
       queryKey: marketKeys.fearGreed(30),
-      staleTime: 21_600_000,
+      staleTime: 600_000,
     }))
     await expect(options.queryFn()).rejects.toThrow(failure)
   })

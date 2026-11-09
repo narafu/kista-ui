@@ -46,7 +46,7 @@ export function useFearGreedQuery(days: number) {
   return useQuery<FearGreed>({
     queryKey: marketKeys.fearGreed(days),
     queryFn: () => getFearGreedClient(days),
-    staleTime: 1000 * 60 * 60 * 6, // 6시간 — 서버 갱신 주기(KST 00:00/12:00, 12시간)의 절반
+    staleTime: 1000 * 60 * 10, // 10분 — 수집이 KST 07:00(확정값)·12:00(재수집)으로 간격이 고르지 않아 주기 기반으로 길게 잡지 않는다. 서버 max-age(10분)와 같은 값이지만 프록시는 Cache-Control을 전달하지 않아 이 staleTime이 유일한 클라이언트 캐시다
   })
 }
 
