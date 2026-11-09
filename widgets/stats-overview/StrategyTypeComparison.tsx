@@ -124,6 +124,10 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </li>
               ))}
             </ul>
+            {/* 6열 헤더에 넣으면 2xl 반쪽 폭에서 잘려 표 아래 보조문구로 둔다 */}
+            <p className="border-t px-4 py-3 text-xs text-muted-foreground">
+              평균 수익률은 종료 사이클별 수익률의 단순평균입니다(진행 중 매도분 제외). 사이클 중 추가·인출이 분모에 들어가 추가금은 수익률을 희석하고, VR은 롤오버 주기 구간을 사이클 하나로 셉니다.
+            </p>
           </>
         )}
       </CardContent>

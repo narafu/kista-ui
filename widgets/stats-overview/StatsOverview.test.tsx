@@ -105,6 +105,11 @@ describe('StatsOverview', () => {
       },
     )
     expect(screen.getAllByText('실현손익').length).toBeGreaterThan(0)
+    // CQ-68·CQ-70 정의 고지 — 실현은 진행 중 매도 포함, 원금은 개장 시가 기준, 평균 수익률 희석·VR 구간, 끝난 전략 손익
+    expect(screen.getByText('매도 확정분 · 진행 중 매도 포함 (VR 승계 보유분은 매도 전 미실현)')).toBeInTheDocument()
+    expect(screen.getByText('진행 중 사이클 개장 시가 평가 + 추가·인출')).toBeInTheDocument()
+    expect(screen.getByText(/평균 수익률은 종료 사이클별 수익률의 단순평균입니다\(진행 중 매도분 제외\)\. 사이클 중 추가·인출이 분모에 들어가 추가금은 수익률을 희석하고, VR은 롤오버 주기 구간을 사이클 하나로 셉니다\./)).toBeInTheDocument()
+    expect(screen.getByText(/끝난 전략은 자산에서 빠지고, 그 손익은 투입 원금에서 계속 뺍니다./)).toBeInTheDocument()
     expect(screen.queryByText('지수 대비 초과수익')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'SPY' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'QQQ' })).not.toBeInTheDocument()

@@ -8,7 +8,6 @@ interface Props {
 }
 
 export function StatsKpiRow({ summary }: Props) {
-  const closedCount = summary.byType.reduce((sum, t) => sum + t.closedCycleCount, 0)
   const activeCount = summary.byType.reduce((sum, t) => sum + t.activeCycleCount, 0)
 
   return (
@@ -16,7 +15,7 @@ export function StatsKpiRow({ summary }: Props) {
       <KpiCard
         label="실현손익"
         value={fmtSignedUsd(summary.totalRealizedPnl, 2, '$')}
-        sub={`${closedCount}개 종료 · 매도 확정분 (VR 승계분은 미실현)`}
+        sub="매도 확정분 · 진행 중 매도 포함 (VR 승계 보유분은 매도 전 미실현)"
         className="min-w-0 p-4 sm:p-5"
         valueClassName={cn('break-words text-xl sm:text-2xl lg:text-3xl', pnlTextClass(summary.totalRealizedPnl))}
       />
@@ -30,7 +29,7 @@ export function StatsKpiRow({ summary }: Props) {
       <KpiCard
         label="운용 원금"
         value={`$${fmtUsd(summary.activePrincipal)}`}
-        sub="진행 중 사이클 투자금 합"
+        sub="진행 중 사이클 개장 시가 평가 + 추가·인출"
         className="col-span-2 min-w-0 p-4 sm:col-span-1 sm:p-5"
         valueClassName="break-words text-xl sm:text-2xl lg:text-3xl"
       />

@@ -59,7 +59,7 @@ export function EquityCurveChart({
       <CardContent aria-busy={stale} className={cn('px-2 pb-4 transition-opacity sm:px-6 sm:pb-6', stale && 'opacity-60')}>
         <EquityLineChart rows={rows} title="누적 자산 추이" />
         <p className="mt-2 text-xs text-muted-foreground">
-          전략에 배정된 예수금 기준 근사치입니다. 수수료는 반영되지 않습니다.
+          전략에 배정된 예수금 기준 근사치입니다. 수수료는 반영되지 않습니다. 끝난 전략은 자산에서 빠지고, 그 손익은 투입 원금에서 계속 뺍니다.
         </p>
       </CardContent>
     </Card>
