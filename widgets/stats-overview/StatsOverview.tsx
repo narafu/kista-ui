@@ -4,7 +4,9 @@ import { useState } from 'react'
 import {
   useStatsSummaryQuery,
   useEquityCurveQuery,
+  useStatsCurrency,
 } from '@entities/stats'
+import { CurrencyToggle } from '@shared/ui/CurrencyToggle'
 import { cn } from '@shared/lib/utils'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { CardSkeleton } from '@shared/ui/CardSkeleton'
@@ -40,15 +42,20 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
   const [range, setRange] = useState<RangeKey>('3M')
   const [strategyTypeFilter, setStrategyTypeFilter] = useState<string | undefined>(undefined)
 
-  const summaryQuery = useStatsSummaryQuery()
+  const { currency, options: currencyOptions, setCurrency } = useStatsCurrency()
+  const summaryQuery = useStatsSummaryQuery(currency)
 
   // range=3M 초기 상태는 서버 prefetch key(defaultFrom/defaultTo)와 일치해야 hydration이 적중한다.
   const from = range === '3M' ? defaultFrom : rangeToFrom(range, defaultTo)
-  const curveQuery = useEquityCurveQuery({ from, to: defaultTo, type: strategyTypeFilter })
+  const curveQuery = useEquityCurveQuery({ from, to: defaultTo, type: strategyTypeFilter, currency })
+
+  const currencyToggle = <CurrencyToggle options={currencyOptions} value={currency} onChange={setCurrency} />
 
   if (summaryQuery.isPending || curveQuery.isPending) {
+    // 통화를 바꾸는 동안에도 선택 버튼은 남겨 둔다(이전 통화 값을 새 단위로 보여주지 않으려 placeholder는 쓰지 않는다)
     return (
       <div className="flex flex-col gap-4">
+        {currencyToggle}
         <CardSkeleton className="h-24" />
         <CardSkeleton className="h-72" />
       </div>
@@ -67,6 +74,7 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      {currencyToggle}
       {isEmpty ? (
         <>
           <EmptyState
@@ -78,7 +86,7 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
         </>
       ) : (
         <>
-          <SummarySection failed={summaryFailed} summary={summary} />
+          <SummarySection failed={summaryFailed} summary={summary} currency={currency} />
 
           <CurveSection
             failed={curveFailed}
@@ -94,7 +102,7 @@ export function StatsOverview({ defaultFrom, defaultTo }: Props) {
           {/* 넓은 PC(2xl): 사이클 성과 / 전략 유형 비교 2단. 두 표가 6열이라 xl 반쪽 폭에서는 잘려 2xl부터 나눈다. 비교가 없으면 사이클 성과가 전체 폭 */}
           <div className={cn('flex flex-col gap-4', !summaryFailed && '2xl:grid 2xl:grid-cols-2 2xl:items-start')}>
             <CyclePerformanceList typeFilter={strategyTypeFilter} />
-            {summaryFailed ? null : <StrategyTypeComparison byType={byType} />}
+            {summaryFailed ? null : <StrategyTypeComparison byType={byType} currency={currency} />}
           </div>
         </>
       )}

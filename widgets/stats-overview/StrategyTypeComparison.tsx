@@ -5,13 +5,15 @@ import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtSignedUsd, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import { fmtSignedMoney, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import type { Currency } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import type { StrategyTypeStats } from '@entities/stats'
 import { useMeta } from '@entities/meta'
 
 interface Props {
   byType: StrategyTypeStats[]
+  currency: Currency
 }
 
 type SortKey = 'default' | 'type' | 'cycles' | 'avgReturnRate' | 'avgDurationDays' | 'realizedPnl' | 'unrealizedPnl'
@@ -25,7 +27,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'unrealizedPnl', label: '미실현' },
 ]
 
-export function StrategyTypeComparison({ byType }: Props) {
+export function StrategyTypeComparison({ byType, currency }: Props) {
   const { labelOf } = useMeta()
   // 'default'는 헤더에 없는 키 — API 응답 순서 유지
   const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
@@ -82,8 +84,8 @@ export function StrategyTypeComparison({ byType }: Props) {
                         {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
                       <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedUsd(t.realizedPnl, 2, '$')}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedUsd(t.unrealizedPnl, 2, '$')}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedMoney(t.realizedPnl, currency)}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedMoney(t.unrealizedPnl, currency)}</TableDataCell>
                     </tr>
                   ))}
                 </tbody>
@@ -114,11 +116,11 @@ export function StrategyTypeComparison({ byType }: Props) {
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">실현손익</dt>
-                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.realizedPnl))}>{fmtSignedUsd(item.realizedPnl, 2, '$')}</dd>
+                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.realizedPnl))}>{fmtSignedMoney(item.realizedPnl, currency)}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">미실현</dt>
-                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.unrealizedPnl))}>{fmtSignedUsd(item.unrealizedPnl, 2, '$')}</dd>
+                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.unrealizedPnl))}>{fmtSignedMoney(item.unrealizedPnl, currency)}</dd>
                     </div>
                   </dl>
                 </li>

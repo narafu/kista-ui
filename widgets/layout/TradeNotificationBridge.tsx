@@ -16,7 +16,7 @@ export const TRADE_DEPENDENT_KEYS = [
   strategyKeys.details(),
   strategyKeys.dcaExecutionsAll(),
   orderKeys.all,
-  statsKeys.summary(),
+  statsKeys.summaryAll(),
   statsKeys.equityCurveAll(),
   statsKeys.cyclesAll(),
   statsKeys.housingComparisonAll(),

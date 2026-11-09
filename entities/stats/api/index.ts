@@ -11,14 +11,16 @@ import type {
   HousingBenchmarkSeries,
   HousingPriceIndexSeries,
   StatsSummary,
+  EquityCurveParams,
 } from '../model/types'
+import type { Currency } from '@shared/lib/api-schema'
 
-export async function getStatsSummary(token?: string): Promise<StatsSummary> {
-  return fetchEither<StatsSummary>('/api/stats/summary', { method: 'GET' }, token)
+export async function getStatsSummary(currency: Currency, token?: string): Promise<StatsSummary> {
+  return fetchEither<StatsSummary>(`/api/stats/summary${buildQueryString({ currency })}`, { method: 'GET' }, token)
 }
 
 export async function getEquityCurve(
-  params: { from?: string; to?: string; type?: string },
+  params: EquityCurveParams,
   token?: string
 ): Promise<EquityCurve> {
   const qs = buildQueryString(params)
@@ -45,6 +47,7 @@ export async function getHousingBenchmarkComparison(
     symbol: params.benchmarkType === 'HOUSING' ? undefined : params.symbol,
     from: params.from,
     to: params.to,
+    currency: params.currency,
   })
   return fetchEither<HousingBenchmarkComparison>(
     `/api/stats/housing-benchmark${qs}`,

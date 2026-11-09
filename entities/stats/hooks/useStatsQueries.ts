@@ -20,16 +20,12 @@ import type {
   HousingBenchmarkRegionsList,
   HousingBenchmarkSeries,
   HousingPriceIndexSeries,
+  EquityCurveParams,
 } from '../model/types'
+import type { Currency } from '@shared/lib/api-schema'
 
-export function useStatsSummaryQuery() {
-  return useQuery(statsSummaryQueryOptions())
-}
-
-interface EquityCurveParams {
-  from?: string
-  to?: string
-  type?: string
+export function useStatsSummaryQuery(currency: Currency) {
+  return useQuery(statsSummaryQueryOptions(currency))
 }
 
 export function useEquityCurveQuery(params: EquityCurveParams) {

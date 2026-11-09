@@ -27,6 +27,7 @@ export {
   useHousingBenchmarkRegionsQuery,
   useStatsCyclesQuery,
 } from './hooks/useStatsQueries'
+export { useStatsCurrency } from './hooks/useStatsCurrency'
 export {
   housingBenchmarkChartNotice,
   formatHousingBenchmarkSeriesLabel,

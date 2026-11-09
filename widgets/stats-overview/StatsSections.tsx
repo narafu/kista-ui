@@ -1,14 +1,15 @@
 import { SectionError } from '@shared/ui/SectionError'
 import type { StatsSummary, StrategyTypeStats } from '@entities/stats'
+import type { Currency } from '@shared/lib/api-schema'
 import type { NormalizedRow } from './lib/normalizeEquityCurve'
 import type { RangeKey } from './StatsOverview'
 import { StatsKpiRow } from './StatsKpiRow'
 import { EquityCurveChart } from './EquityCurveChart'
 import { StrategyTypeFilterToggle } from './StrategyTypeFilterToggle'
 
-export function SummarySection({ failed, summary }: { failed: boolean; summary?: StatsSummary }) {
+export function SummarySection({ failed, summary, currency }: { failed: boolean; summary?: StatsSummary; currency: Currency }) {
   if (failed) return <SectionError />
-  return summary ? <StatsKpiRow summary={summary} /> : null
+  return summary ? <StatsKpiRow summary={summary} currency={currency} /> : null
 }
 
 interface CurveProps {

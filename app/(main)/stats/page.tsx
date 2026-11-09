@@ -24,7 +24,7 @@ export default async function StatsPage() {
   const queryClient = createQueryClient()
   if (token) {
     await Promise.all([
-      queryClient.prefetchQuery(statsSummaryQueryOptions(token)).catch(() => undefined),
+      queryClient.prefetchQuery(statsSummaryQueryOptions('USD', token)).catch(() => undefined),
       queryClient
         .prefetchQuery(equityCurveQueryOptions({ from: defaultFrom, to: defaultTo }, token))
         .catch(() => undefined),

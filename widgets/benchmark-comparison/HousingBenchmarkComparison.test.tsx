@@ -5,7 +5,7 @@ import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
-const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useHousingPriceIndexSeriesQueryMock, useEtfPriceSeriesQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock } = vi.hoisted(() => ({
+const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useHousingPriceIndexSeriesQueryMock, useEtfPriceSeriesQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock, useStatsCurrencyMock } = vi.hoisted(() => ({
   useHousingBenchmarkQueryMock: vi.fn(),
   useHousingBenchmarkRegionsQueryMock: vi.fn(),
   useHousingPriceIndexSeriesQueryMock: vi.fn(),
@@ -13,6 +13,7 @@ const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useHo
   useAllStrategiesQueryMock: vi.fn(),
   useAccountsQueryMock: vi.fn(),
   useRuntimeConfigQueryMock: vi.fn(),
+  useStatsCurrencyMock: vi.fn(),
 }))
 
 const API_QUALITY_NOTICE =
@@ -36,6 +37,7 @@ vi.mock('@entities/stats', async (importOriginal) => {
     useHousingBenchmarkRegionsQuery: useHousingBenchmarkRegionsQueryMock,
     useHousingPriceIndexSeriesQuery: useHousingPriceIndexSeriesQueryMock,
     useEtfPriceSeriesQuery: useEtfPriceSeriesQueryMock,
+    useStatsCurrency: useStatsCurrencyMock,
   }
 })
 
@@ -196,6 +198,7 @@ async function pick(user: ReturnType<typeof userEvent.setup>, name: string, opti
 describe('HousingBenchmarkComparison', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useStatsCurrencyMock.mockReturnValue({ currency: 'USD', options: ['USD'], setCurrency: vi.fn() })
     useAllStrategiesQueryMock.mockReturnValue({ data: STRATEGIES, isLoading: false })
     useAccountsQueryMock.mockReturnValue({ data: ACCOUNTS, isLoading: false })
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
@@ -219,6 +222,7 @@ describe('HousingBenchmarkComparison', () => {
     expect(screen.getByRole('combobox', { name: '전략' })).toHaveTextContent('전체')
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      currency: 'USD',
       benchmarkType: 'ETF',
       symbol: 'SPY',
       from: '2026-04-17',
@@ -236,6 +240,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      currency: 'USD',
       benchmarkType: 'HOUSING',
       regionCode: '1100000000',
       from: '2025-07-17',
@@ -302,6 +307,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      currency: 'USD',
       benchmarkType: 'ETF',
       symbol: 'QLD',
       from: '2026-04-17',
@@ -321,6 +327,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      currency: 'USD',
       benchmarkType: 'ETF',
       symbol: 'IBIT',
       from: '2026-04-17',
@@ -710,6 +717,7 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith({
       scope: 'PORTFOLIO',
+      currency: 'USD',
       benchmarkType: 'HOUSING',
       regionCode: '1100000000',
       from: '2023-02-28',
@@ -762,5 +770,15 @@ describe('HousingBenchmarkComparison', () => {
 
     expect(screen.getByLabelText('벤치마크 비교 불러오는 중')).toBeInTheDocument()
     expect(screen.getByTestId('housing-benchmark-chart-skeleton')).toHaveClass('min-h-[240px]')
+  })
+
+  it('전체 포트폴리오는 고른 합산 통화로 요청하고 통화가 2개 이상이면 통화 선택을 보여준다', () => {
+    useStatsCurrencyMock.mockReturnValue({ currency: 'KRW', options: ['KRW', 'USD'], setCurrency: vi.fn() })
+    render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
+
+    expect(screen.getByRole('group', { name: '통화' })).toBeInTheDocument()
+    expect(useHousingBenchmarkQueryMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({ scope: 'PORTFOLIO', currency: 'KRW' }), true,
+    )
   })
 })

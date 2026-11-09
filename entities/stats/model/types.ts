@@ -1,4 +1,5 @@
 import type { components } from '@shared/lib/api-types'
+import type { Currency } from '@shared/lib/api-schema'
 
 export type EtfBenchmarkSymbol = string
 
@@ -19,6 +20,14 @@ export interface StatsSummary {
   totalUnrealizedPnl: number
   activePrincipal: number
   byType: StrategyTypeStats[]
+  availableCurrencies?: string[] // 사이클이 있는 실계좌 통화 — 서버 enum 순서, 요청 통화와 무관
+}
+
+export type EquityCurveParams = {
+  from?: string
+  to?: string
+  type?: string
+  currency?: Currency
 }
 
 export interface EquityPoint {
@@ -73,6 +82,7 @@ export type HousingBenchmarkParams =
       regionCode: string
       from?: string
       to?: string
+      currency?: Currency // PORTFOLIO scope 합산 통화(생략 시 USD), STRATEGY는 서버가 무시
     }
   | {
       scope: 'PORTFOLIO' | 'STRATEGY'
@@ -81,6 +91,7 @@ export type HousingBenchmarkParams =
       symbol: EtfBenchmarkSymbol
       from?: string
       to?: string
+      currency?: Currency
     }
 
 type HousingBenchmarkSchemas = components['schemas']

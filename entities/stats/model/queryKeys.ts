@@ -1,12 +1,15 @@
+import type { Currency } from '@shared/lib/api-schema'
 import type { HousingBenchmarkParams, StatsCyclesFilters } from './types'
 
 export const statsKeys = {
   all: ['stats'] as const,
-  summary: () => [...statsKeys.all, 'summary'] as const,
+  // 통화 무관 무효화용 prefix
+  summaryAll: () => [...statsKeys.all, 'summary'] as const,
+  summary: (currency: Currency = 'USD') => [...statsKeys.summaryAll(), currency] as const,
   // 기간·필터 무관 전체 무효화용 prefix — factory 기본 인자가 박힌 키로는 prefix 매칭이 안 된다
   equityCurveAll: () => [...statsKeys.all, 'equity-curve'] as const,
-  equityCurve: (from?: string, to?: string, type = 'ALL') =>
-    [...statsKeys.equityCurveAll(), from ?? null, to ?? null, type] as const,
+  equityCurve: (from?: string, to?: string, type = 'ALL', currency: Currency = 'USD') =>
+    [...statsKeys.equityCurveAll(), from ?? null, to ?? null, type, currency] as const,
   cyclesAll: () => [...statsKeys.all, 'cycles'] as const,
   cycles: ({ type, accountId, ticker, status, page = 0, size }: StatsCyclesFilters = {}) =>
     [...statsKeys.cyclesAll(), type ?? 'ALL', accountId ?? null, ticker ?? null, status ?? 'ALL', page, size ?? null] as const,
@@ -20,6 +23,7 @@ export const statsKeys = {
     params.benchmarkType === 'ETF' ? params.symbol : null,
     params.from ?? null,
     params.to ?? null,
+    params.currency ?? 'USD',
   ] as const,
   housingSeries: (from?: string, to?: string, regionCode?: string) =>
     [...statsKeys.all, 'housing-series', from ?? null, to ?? null, regionCode ?? null] as const,

@@ -20,9 +20,9 @@ describe('stats api', () => {
       byType: [],
     })
 
-    await getStatsSummary('token-1')
+    await getStatsSummary('KRW', 'token-1')
 
-    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary', { method: 'GET' }, 'token-1')
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary?currency=KRW', { method: 'GET' }, 'token-1')
   })
 
   it('getEquityCurve builds query string with from/to only', async () => {

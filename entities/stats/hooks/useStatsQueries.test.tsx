@@ -25,18 +25,18 @@ vi.mock('../api', () => ({
 describe('stats query freshness and error handling', () => {
   it('keeps summary and equity-curve data fresh for one minute', () => {
     useQueryMock.mockReturnValue({ data: undefined })
-    renderHook(() => useStatsSummaryQuery())
+    renderHook(() => useStatsSummaryQuery('KRW'))
     const summaryOptions = useQueryMock.mock.calls.at(-1)?.[0]
 
-    renderHook(() => useEquityCurveQuery({ from: '2026-07-01', to: '2026-07-31' }))
+    renderHook(() => useEquityCurveQuery({ from: '2026-07-01', to: '2026-07-31', currency: 'KRW' }))
     const equityOptions = useQueryMock.mock.calls.at(-1)?.[0]
 
     expect(summaryOptions).toEqual(expect.objectContaining({
-      queryKey: statsKeys.summary(),
+      queryKey: statsKeys.summary('KRW'),
       staleTime: 60_000,
     }))
     expect(equityOptions).toEqual(expect.objectContaining({
-      queryKey: statsKeys.equityCurve('2026-07-01', '2026-07-31', 'ALL'),
+      queryKey: statsKeys.equityCurve('2026-07-01', '2026-07-31', 'ALL', 'KRW'),
       staleTime: 60_000,
     }))
   })

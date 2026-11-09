@@ -2,7 +2,8 @@
 
 import { useEffect, type ReactNode } from 'react'
 import { useMeta } from '@entities/meta'
-import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
+import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery, useStatsCurrency } from '@entities/stats'
+import { CurrencyToggle } from '@shared/ui/CurrencyToggle'
 import { toCurrency } from '@shared/lib/api-schema'
 import { BenchmarkFilterBar } from './BenchmarkFilterBar'
 import { BenchmarkResult } from './BenchmarkResult'
@@ -52,11 +53,15 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
 
   const isNone = filters.strategySelection === 'NONE'
   const canQuery = !isNone
-  const params = filters.buildParams()
+  // 합산 통화는 전체 포트폴리오에만 적용된다 — 개별 전략은 서버가 그 전략 계좌 통화를 쓴다
+  const { currency, options: currencyOptions, setCurrency } = useStatsCurrency()
+  const baseParams = filters.buildParams()
+  const isPortfolio = baseParams.scope === 'PORTFOLIO'
+  const params = isPortfolio ? { ...baseParams, currency } : baseParams
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
   const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
-  // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·USDT·KRW), 전체 포트폴리오면 USD — 서버 quality가 SSOT
+  // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·USDT·KRW), 전체 포트폴리오면 요청한 합산 통화 — 서버 quality가 SSOT
   const investmentCurrency = toCurrency(data?.quality?.investmentCurrency) ?? 'USD'
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)
@@ -64,6 +69,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
 
   return (
     <div className="flex flex-col gap-4">
+      {canQuery && isPortfolio ? <CurrencyToggle options={currencyOptions} value={currency} onChange={setCurrency} /> : null}
       <BenchmarkFilterBar
         activeAsset={filters.activeAsset}
         setActiveAsset={filters.setActiveAsset}
