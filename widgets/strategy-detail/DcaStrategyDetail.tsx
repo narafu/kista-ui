@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, floorToCents, formatCryptoNextExecution, formatDcaCondition, DcaRuleSummaryLabel } from '@entities/strategy'
+import { dcaIndicatorLabel, floorToCents, formatCryptoNextExecution, formatDcaCondition, formatDcaSchedule, formatDcaSizing } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
 import { cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
+import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtMoney, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
@@ -119,8 +120,12 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
               <ul className="space-y-3">
                 {dca.rules.map((r) => (
                   <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
-                    <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
+                    {/* 주기·주문 방식도 다른 항목처럼 라벨 행으로 둔다 — 배지 옆 한 줄 요약은 모바일에서 다른 행과 정렬이 어긋난다 */}
+                    <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
                     <dl className="mt-2.5 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                      <RuleField label="주기" inline>{formatDcaSchedule(r, labelOf('dcaFrequencies', r.frequency))}</RuleField>
+                      {!isCrypto && <RuleField label="주문 방식" inline>{labelOf('orderTypes', r.orderType)}</RuleField>}
+                      <RuleField label="금액" inline>{formatDcaSizing(r.sizing, market)}</RuleField>
                       <RuleField label="조건" inline>
                         {r.conditions.length === 0 ? '조건 없이 매 회차 주문' : r.conditions.map((c, i) => (
                           <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>

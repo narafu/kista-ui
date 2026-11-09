@@ -142,7 +142,10 @@ describe('DcaStrategyDetail', () => {
     renderDetail()
     const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
     expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
-    expect(card).toHaveTextContent('주기 매월 말일 · MOC(종가시장가) 금액 $300.00')
+    // 주기·주문 방식·금액도 조건 등과 같은 라벨 행이다
+    expect(ruleField('주기')).toHaveTextContent('매월 말일')
+    expect(ruleField('주문 방식')).toHaveTextContent('MOC(종가시장가)')
+    expect(ruleField('금액')).toHaveTextContent('$300.00')
     expect(within(card).getByText('매수')).toBeInTheDocument()
     expect(ruleField('조건')).toHaveTextContent('RSI(14) 35 이하')
     expect(ruleField('잔고가 부족할 때')).toHaveTextContent('잔량')
@@ -156,6 +159,7 @@ describe('DcaStrategyDetail', () => {
     const r = { ...ethRule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [r] } })
     expect(ruleField('다음 실행')).toHaveTextContent('11/1 09시')
+    expect(screen.queryByText('주문 방식', { selector: 'dt' })).not.toBeInTheDocument() // 크립토는 주문 방식이 없다
     expect(ruleField('최근 결과')).toHaveTextContent('조건 미충족')
     expect(ruleField('최근 결과')).not.toHaveTextContent('건너뜀')
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()

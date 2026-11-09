@@ -112,8 +112,10 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
         <KpiCard label="밴드 폭" value={`${vr.bandWidth}%`} />
         <KpiCard label="주기" value={`${vr.intervalWeeks}주`} />
-        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} />
+        {/* 날짜는 모바일 반쪽 카드에 한 줄로 들어가지 않아(390px 폭 115px < 137px) sm 미만에서만 전체 폭으로 둔다 */}
+        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} className="col-span-2 sm:col-span-1" />
         <KpiCard
+          className="col-span-2 sm:col-span-1"
           label="다음 사이클 시작"
           value={startDate ? fmtDate(nextVrRolloverDate(startDate, vr.intervalWeeks)) : '미설정'}
         />
