@@ -16,6 +16,15 @@ interface Props {
 
 type SortKey = 'default' | 'type' | 'cycles' | 'avgReturnRate' | 'avgDurationDays' | 'realizedPnl' | 'unrealizedPnl'
 
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: 'type', label: '전략' },
+  { key: 'cycles', label: '사이클' },
+  { key: 'avgReturnRate', label: '평균 수익률' },
+  { key: 'avgDurationDays', label: '평균 소요일' },
+  { key: 'realizedPnl', label: '실현손익' },
+  { key: 'unrealizedPnl', label: '미실현' },
+]
+
 export function StrategyTypeComparison({ byType }: Props) {
   const { labelOf } = useMeta()
   // 'default'는 헤더에 없는 키 — API 응답 순서 유지
@@ -33,7 +42,11 @@ export function StrategyTypeComparison({ byType }: Props) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 유형 비교</CardTitle>
+        {/* 모바일 정렬 컨트롤은 제목 오른쪽에 둔다 — 목록 위에 따로 두면 제목과 사이가 떠 보인다 */}
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 유형 비교</CardTitle>
+          {byType.length > 0 && <MobileSortControl {...head} options={SORT_OPTIONS} className="p-0" />}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {byType.length === 0 ? (
@@ -76,17 +89,6 @@ export function StrategyTypeComparison({ byType }: Props) {
                 </tbody>
               </table>
             </div>
-            <MobileSortControl
-              {...head}
-              options={[
-                { key: 'type', label: '전략' },
-                { key: 'cycles', label: '사이클' },
-                { key: 'avgReturnRate', label: '평균 수익률' },
-                { key: 'avgDurationDays', label: '평균 소요일' },
-                { key: 'realizedPnl', label: '실현손익' },
-                { key: 'unrealizedPnl', label: '미실현' },
-              ]}
-            />
             <ul className="divide-y lg:hidden list-none p-0 m-0" aria-label="전략 유형 비교">
               {sorted.map((item) => (
                 <li key={item.type} className="px-4 py-4">
