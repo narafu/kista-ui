@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
-import { fmtCompactUsdNarrow, fmtUsd } from '@shared/lib/format'
+import { fmtCompactMoneyNarrow, fmtMoney } from '@shared/lib/format'
 import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Surface } from '@shared/ui/Surface'
 import { IconButton } from '@shared/ui/IconButton'
@@ -51,10 +51,32 @@ interface CompactRowProps {
   holidaySet: Set<string>
 }
 
-// 주간 배지와 같은 2줄 배지 — 한 줄이면 이웃 칸 금액과 붙어 보인다
+const BADGE_LABEL = { BUY: '매수', SELL: '매도' } as const
+
+// 통화·방향별 2줄 배지(라벨/금액) — 한 줄이면 이웃 칸 금액과 붙어 보인다. 금액은 7열 칸(모바일 약 33px)에 들어가도록
+// 유효숫자 2자리로 축약하고, 정확한 금액은 title로 노출한다. 통화가 다른 금액은 합치지 않고 배지를 따로 둔다
+function TradeBadges({ summary, badgeClassName }: { summary: DayTradeSummary; badgeClassName: string }) {
+  return (
+    <span className="flex w-full flex-col items-stretch gap-0.5">
+      {summary.byCurrency.flatMap((c) =>
+        (['BUY', 'SELL'] as const)
+          .filter((dir) => (dir === 'BUY' ? c.buyCount : c.sellCount) > 0)
+          .map((dir) => {
+            const amount = dir === 'BUY' ? c.buyAmount : c.sellAmount
+            return (
+              <span key={`${c.currency}-${dir}`} className={cn(badgeClassName, directionBadgeClass(dir))} title={`${BADGE_LABEL[dir]} ${fmtMoney(amount, c.currency)}`}>
+                {BADGE_LABEL[dir]}<br />{fmtCompactMoneyNarrow(amount, c.currency)}
+              </span>
+            )
+          }),
+      )}
+    </span>
+  )
+}
+
 const COMPACT_BADGE_CLASS = 'block rounded py-px text-[10px] leading-tight'
 
-// 배지 금액은 7열 칸(모바일 약 33px)에 들어가도록 유효숫자 2자리로 축약한다(fmtCompactUsdNarrow, 아래 CurrentRow 동일) — 정확한 금액은 title로 노출
+// 주말·미국 휴장일에도 크립토 체결이 있으면 배지를 그린다
 function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(rowStart, i)
@@ -63,7 +85,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
     const isSat = i === 6
     const isWeekend = isSun || isSat
     const isHoliday = holidaySet.has(ds)
-    const daySummary = !isWeekend ? summary.get(ds) : undefined
+    const daySummary = summary.get(ds)
 
     return (
       <div key={ds} className="flex flex-col items-center gap-0.5 py-1">
@@ -77,20 +99,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
         {isHoliday && !isWeekend && (
           <span className="text-[10px] leading-none text-[var(--gold)]">휴장</span>
         )}
-        {!isWeekend && !isHoliday && daySummary && (
-          <span className="flex w-full flex-col items-stretch gap-0.5">
-            {daySummary.buyCount > 0 && (
-              <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(daySummary.buyAmountUsd, 0)}`}>
-                매수<br />{fmtCompactUsdNarrow(daySummary.buyAmountUsd)}
-              </span>
-            )}
-            {daySummary.sellCount > 0 && (
-              <span className={cn(COMPACT_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(daySummary.sellAmountUsd, 0)}`}>
-                매도<br />{fmtCompactUsdNarrow(daySummary.sellAmountUsd)}
-              </span>
-            )}
-          </span>
-        )}
+        {daySummary && <TradeBadges summary={daySummary} badgeClassName={COMPACT_BADGE_CLASS} />}
       </div>
     )
   })
@@ -104,10 +113,10 @@ interface CurrentRowProps {
   tradeSummary: Map<string, DayTradeSummary>
   holidaySet: Set<string>
   todayStr: string | null
-  accountIds: string[]
+  hasStockAccount: boolean
 }
 
-function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds }: CurrentRowProps) {
+function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasStockAccount }: CurrentRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(weekStart, i)
     const ds = toDateStr(day)
@@ -117,34 +126,30 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
     const isToday = ds === todayStr
     const isHoliday = holidaySet.has(ds)
     const isWeekend = isSun || isSat
-    const summary = !isWeekend ? tradeSummary.get(ds) : undefined
+    const summary = tradeSummary.get(ds)
+
+    const closedLabel = isWeekend
+      ? <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground">휴</span>
+      : isHoliday
+        ? <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
+        : null
 
     let badge: React.ReactNode
     let sub: React.ReactNode = null
 
-    if (isWeekend) {
-      badge = <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground">휴</span>
-    } else if (isHoliday) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
-    } else if (isToday && !summary && accountIds.length > 0) {
-      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-info-bg text-info">대기</span>
-      sub = <span className="text-xs text-muted-foreground">오늘</span>
-    } else if (summary) {
+    if (summary) {
       badge = (
-        <span className="flex w-full flex-col items-stretch gap-0.5">
-          {summary.buyCount > 0 && (
-            <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('BUY'))} title={`매수 $${fmtUsd(summary.buyAmountUsd, 0)}`}>
-              매수<br />{fmtCompactUsdNarrow(summary.buyAmountUsd)}
-            </span>
-          )}
-          {summary.sellCount > 0 && (
-            <span className={cn(DAY_BADGE_CLASS, directionBadgeClass('SELL'))} title={`매도 $${fmtUsd(summary.sellAmountUsd, 0)}`}>
-              매도<br />{fmtCompactUsdNarrow(summary.sellAmountUsd)}
-            </span>
-          )}
-        </span>
+        <>
+          {closedLabel}
+          <TradeBadges summary={summary} badgeClassName={DAY_BADGE_CLASS} />
+        </>
       )
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
+    } else if (closedLabel) {
+      badge = closedLabel
+    } else if (isToday && hasStockAccount) {
+      badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-info-bg text-info">대기</span>
+      sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else {
       badge = <span className="text-xs text-muted-foreground">-</span>
     }
@@ -177,8 +182,9 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, accountIds 
 
 export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: Props) {
   const { data: accounts } = useAccountsQuery({ enabled: isAuthenticated })
-  // 일별 체결은 서버가 주식만 집계한다 — "대기" 배지·범례도 주식 계좌 기준으로 맞춘다
-  const accountIds = accounts?.filter((account) => !isCryptoBroker(account.broker)).map((account) => account.id) ?? []
+  // 일별 체결은 크립토 계좌도 계좌 통화로 포함한다. "대기"(미국 장 주문 대기)만 주식 계좌 기준이다
+  const accountIds = accounts?.map((account) => account.id) ?? []
+  const hasStockAccount = accounts?.some((account) => !isCryptoBroker(account.broker)) ?? false
 
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),
@@ -261,7 +267,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
           </div>
         ))}
         <CompactRow rowStart={prevWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
-        <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} accountIds={accountIds} />
+        <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} hasStockAccount={hasStockAccount} />
         <CompactRow rowStart={nextWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
       </div>
 
@@ -280,10 +286,12 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
               <span className="size-[7px] rounded bg-neg shrink-0" />
               매도
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-[7px] rounded bg-info shrink-0" />
-              대기
-            </span>
+            {hasStockAccount && (
+              <span className="flex items-center gap-1.5">
+                <span className="size-[7px] rounded bg-info shrink-0" />
+                대기
+              </span>
+            )}
           </>
         )}
       </div>

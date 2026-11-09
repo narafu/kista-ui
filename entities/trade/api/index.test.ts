@@ -58,7 +58,7 @@ describe('trade api', () => {
 
   it('getDailyTransactionsBatch builds date-range query for the user-scoped batch endpoint', async () => {
     const { getDailyTransactionsBatch } = await import('./index')
-    const batch = { items: [], summary: { buyAmountFcr: 0, sellAmountFcr: 0, domesticFee: 0, overseasFee: 0 } }
+    const batch = { items: [] }
     fetchEitherMock.mockResolvedValueOnce(batch)
 
     const result = await getDailyTransactionsBatch({ from: '2026-01-01', to: '2026-01-31' }, 'token-1')

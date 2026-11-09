@@ -100,41 +100,64 @@ describe('WeeklyMarketCalendar', () => {
   it('stacks label and compact amount so the badge fits a narrow day cell', () => {
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
     useDailyTradesRangeQueryMock.mockReturnValue({
-      data: new Map([['2026-06-30', { buyCount: 1, sellCount: 0, buyAmountUsd: 12345, sellAmountUsd: 0, tradeCount: 1 }]]),
+      data: new Map([['2026-06-30', { tradeCount: 1, byCurrency: [{ currency: 'USD', buyAmount: 12345, sellAmount: 0, buyCount: 1, sellCount: 0 }] }]]),
       isFetching: false,
       isError: false,
     })
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    const badge = screen.getByTitle('매수 $12,345')
+    const badge = screen.getByTitle('매수 $12,345.00')
     expect(badge).toHaveTextContent('매수$12K')
   })
 
   it('앞뒤 주 칸도 라벨·금액을 2줄 배지로 쌓는다', () => {
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
     useDailyTradesRangeQueryMock.mockReturnValue({
-      data: new Map([['2026-06-23', { buyCount: 0, sellCount: 1, buyAmountUsd: 0, sellAmountUsd: 2700, tradeCount: 1 }]]),
+      data: new Map([['2026-06-23', { tradeCount: 1, byCurrency: [{ currency: 'USD', buyAmount: 0, sellAmount: 2700, buyCount: 0, sellCount: 1 }] }]]),
       isFetching: false,
       isError: false,
     })
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    const badge = screen.getByTitle('매도 $2,700')
+    const badge = screen.getByTitle('매도 $2,700.00')
     expect(badge).toHaveTextContent('매도$2.7K')
     expect(badge.querySelector('br')).not.toBeNull()
   })
 
-  it('코인 계좌는 일별 체결 조회 대상에서 뺀다', () => {
+  it('크립토 계좌도 일별 체결 조회에 포함하고 "대기"는 주식 계좌가 있을 때만 보인다', () => {
     useAccountsQueryMock.mockReturnValue({
-      data: [
-        { id: 'a1', nickname: '주식', accountNoMasked: '****0001', broker: 'KIS' },
-        { id: 'a2', nickname: '코인', accountNoMasked: null, broker: 'UPBIT' },
-      ],
+      data: [{ id: 'a2', nickname: '크립토', accountNoMasked: null, broker: 'UPBIT' }],
     })
 
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    expect(useDailyTradesRangeQueryMock).toHaveBeenCalled()
-    expect(useDailyTradesRangeQueryMock.mock.lastCall?.[0]).toEqual(['a1'])
+    expect(useDailyTradesRangeQueryMock.mock.lastCall?.[0]).toEqual(['a2'])
+    expect(screen.queryByText('대기')).not.toBeInTheDocument()
+  })
+
+  it('주말·휴장일 칸에도 크립토 체결 배지를 통화별로 따로 그린다', () => {
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a2', broker: 'UPBIT' }] })
+    useDailyTradesRangeQueryMock.mockReturnValue({
+      data: new Map([
+        // 2026-07-04(토), 2026-07-01(휴장일), 2026-06-27(앞 주 토)
+        ['2026-07-04', { tradeCount: 1, byCurrency: [{ currency: 'KRW', buyAmount: 123456, sellAmount: 0, buyCount: 1, sellCount: 0 }] }],
+        ['2026-07-01', {
+          tradeCount: 2,
+          byCurrency: [
+            { currency: 'KRW', buyAmount: 50000, sellAmount: 0, buyCount: 1, sellCount: 0 },
+            { currency: 'USDT', buyAmount: 1234, sellAmount: 0, buyCount: 1, sellCount: 0 },
+          ],
+        }],
+        ['2026-06-27', { tradeCount: 1, byCurrency: [{ currency: 'KRW', buyAmount: 0, sellAmount: 5000, buyCount: 0, sellCount: 1 }] }],
+      ]),
+      isFetching: false,
+      isError: false,
+    })
+    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
+
+    expect(screen.getByTitle('매수 123,456원')).toHaveTextContent('매수12만원')
+    expect(screen.getByTitle('매수 50,000원')).toHaveTextContent('매수5만원')
+    expect(screen.getByTitle('매수 1,234.00 USDT')).toHaveTextContent('매수1.2K USDT')
+    expect(screen.getByTitle('매도 5,000원')).toHaveTextContent('매도5천원')
   })
 })

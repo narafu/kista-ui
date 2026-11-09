@@ -22,6 +22,15 @@ export function fmtCompactUsdNarrow(n: number): string {
   return narrowCompactUsdFormat.format(n)
 }
 
+const narrowCompactKrwFormat = new Intl.NumberFormat('ko-KR', { notation: 'compact', maximumSignificantDigits: 2 })
+const narrowCompactNumberFormat = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 2 })
+
+/** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원", "1.2K USDT") — 좁은 칸용 */
+export function fmtCompactMoneyNarrow(n: number, currency: Currency): string {
+  if (currency === 'KRW') return `${narrowCompactKrwFormat.format(n)}원`
+  return currency === 'USDT' ? `${narrowCompactNumberFormat.format(n)} USDT` : fmtCompactUsdNarrow(n)
+}
+
 /** 0~1 비율을 부호 포함 %로. null/undefined는 '-' */
 export function fmtSignedPercent(ratio: number | null | undefined, digits = 1): string {
   if (ratio == null) return '-'
@@ -106,7 +115,8 @@ export function fmtSignedKrw(n: number): string {
 
 /** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원", USDT는 "1,234.50 USDT" */
 export function fmtMoney(n: number, currency: Currency): string {
-  if (currency === 'KRW') return fmtKrw(n)
+  // 서버가 KRW 합계를 소수 2자리로 줄 수 있다 — 원 단위로 반올림한다(-0은 0으로)
+  if (currency === 'KRW') return fmtKrw(Math.round(n) || 0)
   return currency === 'USDT' ? `${fmtUsd(n)} USDT` : `$${fmtUsd(n)}`
 }
 
@@ -117,7 +127,8 @@ export function currencyUnit(currency: Currency): string {
 
 /** 부호 포함 계좌 통화 금액 — 예: "+$1.50", "-1,000원", "+1.50 USDT" */
 export function fmtSignedMoney(n: number, currency: Currency): string {
-  return `${n >= 0 ? '+' : '-'}${fmtMoney(Math.abs(n), currency)}`
+  const r = roundMoney(n, currency) // 반올림 뒤 0이 되는 음수를 "-0원"으로 쓰지 않는다
+  return `${r >= 0 ? '+' : '-'}${fmtMoney(Math.abs(r), currency)}`
 }
 
 /** 계좌 통화 표시 단위로 반올림 — 코인 소수 수량 × 가격의 단위 미만을 버린다 */

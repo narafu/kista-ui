@@ -56,22 +56,14 @@ export interface DailyTransaction {
   direction: OrderDirection
   ticker: string
   symbolName: string
-  quantity: number
+  quantity: number // 코인은 소수
   price: number
-  tradeAmountUsd: number
-  currency: string
-}
-
-export interface DailyTransactionSummary {
-  buyAmountFcr: number
-  sellAmountFcr: number
-  domesticFee: number
-  overseasFee: number
+  tradeAmount: number // 계좌 통화, 그 통화 단위로 반올림됨
+  currency: Currency // 계좌 통화
 }
 
 export interface DailyTransactionResult {
   items: DailyTransaction[]
-  summary: DailyTransactionSummary
 }
 
 export interface CryptoHolding {

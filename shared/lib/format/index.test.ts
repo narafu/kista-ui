@@ -215,6 +215,12 @@ describe('fmtMoney', () => {
     expect(fmtMoney(1234, 'KRW')).toBe('1,234원')
     expect(fmtMoney(10.5, 'USDT')).toBe('10.50 USDT')
   })
+  it('KRW 소수는 원 단위로 반올림하고 0이 되는 음수에 -를 붙이지 않는다', () => {
+    expect(fmtMoney(49089.71, 'KRW')).toBe('49,090원')
+    expect(fmtMoney(-0.22, 'KRW')).toBe('0원')
+    expect(fmtSignedMoney(-0.22, 'KRW')).toBe('+0원')
+    expect(fmtSignedMoney(-1.5, 'USD')).toBe('-$1.50')
+  })
 })
 
 describe('fmtSignedMoney', () => {
