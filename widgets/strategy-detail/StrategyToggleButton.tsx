@@ -7,7 +7,7 @@ export function StrategyToggleButton({ active, loading, label, onClick }: { acti
       <Button variant="outline" size="sm" className="w-full" disabled={loading} onClick={onClick}>
         {label}
       </Button>
-      <p className="text-xs text-muted-foreground">{active ? '매매만 멈춤, 재개 가능' : '매매를 다시 시작'}</p>
+      <p className="text-center text-xs text-muted-foreground">{active ? '매매만 멈춤, 재개 가능' : '매매를 다시 시작'}</p>
     </div>
   )
 }

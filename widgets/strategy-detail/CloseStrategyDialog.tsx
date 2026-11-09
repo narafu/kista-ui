@@ -90,7 +90,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <p id={captionId} className="text-xs text-muted-foreground">보관 또는 삭제</p>
+      <p id={captionId} className="text-center text-xs text-muted-foreground">보관 또는 삭제</p>
     </div>
   )
 }

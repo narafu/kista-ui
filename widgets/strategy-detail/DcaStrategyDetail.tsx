@@ -120,13 +120,13 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                 {dca.rules.map((r) => (
                   <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
                     <p className="font-semibold"><DcaRuleSummaryLabel rule={r} labelOf={labelOf} market={market} size="sm" badgeClassName={directionBadgeClass(r.direction)} /></p>
-                    <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-2">
-                      <RuleField label="조건" inline className="col-span-2 sm:col-span-1">
+                    <dl className="mt-2.5 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                      <RuleField label="조건" inline>
                         {r.conditions.length === 0 ? '조건 없이 매 회차 주문' : r.conditions.map((c, i) => (
                           <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
                         ))}
                       </RuleField>
-                      <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline className="col-span-2 sm:col-span-1">
+                      <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline>
                         {SHORTFALL_SHORT[r.shortfall] ?? labelOf('dcaShortfallPolicies', r.shortfall)}
                       </RuleField>
                       <RuleField label={isCrypto ? '다음 실행' : '다음 판정일'} inline>

@@ -16,7 +16,7 @@ interface Props {
 // sm 이상에서는 컨테이너 절반 위치(상세 규칙 카드에서는 그리드 오른쪽 열 시작과 일치)에서 시작하고, 좁은 화면에서는 오른쪽 끝에 붙인다
 export function DcaRuleSummaryLabel({ rule, labelOf, market, badgeClassName, size }: Props) {
   return (
-    <span className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 sm:grid-cols-2">
+    <span className="grid w-full grid-cols-1 items-baseline gap-x-4 gap-y-1 sm:grid-cols-2">
       <span className="flex min-w-0 items-baseline gap-2">
         <Badge tone="none" size={size} className={cn('shrink-0', badgeClassName)}>{labelOf('orderDirections', rule.direction)}</Badge>
         {/* 접근성 이름에서 배지·라벨·값이 붙지 않게 하는 공백 */}
@@ -24,7 +24,7 @@ export function DcaRuleSummaryLabel({ rule, labelOf, market, badgeClassName, siz
         <span>{formatDcaRuleWhen(rule, labelOf, market)}</span>
       </span>
       {' '}
-      <span className="flex items-baseline gap-2 sm:justify-start justify-end">
+      <span className="flex items-baseline gap-2">
         <span className="shrink-0 text-xs font-normal text-muted-foreground">금액</span>{' '}
         <span>{formatDcaSizing(rule.sizing, market)}</span>
       </span>
