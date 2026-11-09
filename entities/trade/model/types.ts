@@ -18,7 +18,7 @@ export interface CycleHistoryItem {
   ticker: string | null
   holdings: number
   avgPrice: number | null
-  usdDeposit: number
+  deposit: number
   strategyType?: string | null // INFINITE|PRIVACY|VR|DCA, null = unknown
 }
 
@@ -40,12 +40,12 @@ export interface PortfolioSummary {
     exchangeCode?: string | null
   }>
   summary?: {
-    totalAssetUsd?: number | null
+    totalAsset?: number | null
     totalEvalProfit?: number | null
     totalReturnRate?: number | null
-    totalAssetUsdActual?: number | null
+    totalAssetActual?: number | null
     evalProfitUsdSum?: number | null
-    usdDeposit?: number | null
+    deposit?: number | null
     posEvalUsd?: number | null
     exchangeRateKrwPerUsd?: number | null
   }

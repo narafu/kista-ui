@@ -115,7 +115,7 @@ describe('DcaStrategyForm', () => {
     expect(screen.queryByLabelText('평단가')).not.toBeInTheDocument()
   })
 
-  it('등록: 가용 예수금을 계좌 통화로 보여주고 100% 채우기 값이 initialUsdDeposit으로 실린다', async () => {
+  it('등록: 가용 예수금을 계좌 통화로 보여주고 100% 채우기 값이 initialDeposit으로 실린다', async () => {
     seedPreview.availableCash = 15000
     renderForm(undefined, 'BTC', 'CRYPTO_KRW')
     expect(seedPreview.calls[0][1]).toMatchObject({ type: 'DCA', ticker: 'BTC' })
@@ -128,7 +128,7 @@ describe('DcaStrategyForm', () => {
     await screen.findByText('규칙 (1/10)')
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
     await waitFor(() => expect(createMutate).toHaveBeenCalled())
-    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialUsdDeposit: 15000 })
+    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialDeposit: 15000 })
   })
 
   it('수정: 예수금 칸이 없고 가용 예수금을 조회하지 않는다', () => {

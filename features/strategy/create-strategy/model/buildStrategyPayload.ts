@@ -41,7 +41,7 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
         type: initial.type,
         ticker: initial.ticker,
         cycleSeedType,
-        ...(canEditSeed ? { initialUsdDeposit: seedUsd ?? undefined } : {}),
+        ...(canEditSeed ? { initialDeposit: seedUsd ?? undefined } : {}),
       }
     : {
         type,
@@ -49,7 +49,7 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
           ? runtimeStrategy.fields.ticker.defaultValue
           : ticker,
         cycleSeedType,
-        initialUsdDeposit: isVr ? normalizedInitialSeed : seedUsd ?? undefined,
+        initialDeposit: isVr ? normalizedInitialSeed : seedUsd ?? undefined,
         ...(usesDivisionCount ? {
           divisionCount: divisionCountSettings?.customizable === false
             ? divisionCountSettings.defaultValue

@@ -2,7 +2,7 @@ export interface NextOrderPositionSnapshot {
   ticker: string
   holdings: number
   averagePrice: string  // 0회차: 전일종가, 이후: 평균 매입가
-  usdDeposit: string
+  deposit: string
   totalAssets: string
   priceOffsetRate: string
   currentRound: number

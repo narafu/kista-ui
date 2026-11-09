@@ -55,7 +55,7 @@ export function AccountDetailContent({
 
       <AccountDetailTabs
         account={account}
-        usdDeposit={portfolio?.summary?.usdDeposit ?? 0}
+        deposit={portfolio?.summary?.deposit ?? 0}
         posEvalUsd={portfolio?.summary?.posEvalUsd ?? 0}
         ledgerTotals={ledgerQuery.data}
         ledgerTotalsError={ledgerQuery.isError && !ledgerQuery.data}

@@ -139,7 +139,7 @@ const initialStrategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'TSLA',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 1200,
+  initialDeposit: 1200,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,

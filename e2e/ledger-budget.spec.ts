@@ -32,6 +32,6 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
     const submit = page.getByRole('button', { name: '등록', exact: true })
     await expect(submit).toBeEnabled()
     await submit.click()
-    await expect.poll(() => createBody?.initialUsdDeposit).toBe(8000)
+    await expect.poll(() => createBody?.initialDeposit).toBe(8000)
   })
 })

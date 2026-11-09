@@ -94,17 +94,17 @@ describe('AccountDetailContent', () => {
     const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(liveAccount.id), liveAccount)
-    queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { usdDeposit: 100, posEvalUsd: 200 } })
+    queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { deposit: 100, posEvalUsd: 200 } })
     render(<QueryClientProvider client={queryClient}>{content(liveAccount)}</QueryClientProvider>)
 
-    expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 100, posEvalUsd: 200 }))
+    expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ deposit: 100, posEvalUsd: 200 }))
 
     act(() => {
-      queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { usdDeposit: 50, posEvalUsd: 250 } })
+      queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { deposit: 50, posEvalUsd: 250 } })
     })
 
     await waitFor(() => {
-      expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ usdDeposit: 50, posEvalUsd: 250 }))
+      expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ deposit: 50, posEvalUsd: 250 }))
     })
   })
 

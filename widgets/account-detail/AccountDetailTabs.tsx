@@ -12,7 +12,7 @@ import type { CryptoPortfolio } from '@entities/trade'
 
 interface Props {
   account: Account
-  usdDeposit: number
+  deposit: number
   posEvalUsd: number
   ledgerTotals?: AccountLedgerTotals
   ledgerTotalsError?: boolean
@@ -20,7 +20,7 @@ interface Props {
   cryptoPortfolioError?: boolean
 }
 
-export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio, cryptoPortfolioError }: Props) {
+export function AccountDetailTabs({ account, deposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio, cryptoPortfolioError }: Props) {
   const { data: strategies, isError: strategiesError } = useStrategiesQuery(account.id)
   // 크립토 계좌는 사이클 이력(USD 예수금 열) 대신 보유 종목을 보여준다
   const rightPanel = isCryptoBroker(account.broker)
@@ -28,7 +28,7 @@ export function AccountDetailTabs({ account, usdDeposit, posEvalUsd, ledgerTotal
     : <TradesTab accountId={account.id} />
 
   const summary = (
-    <AccountSummaryCard account={account} usdDeposit={usdDeposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} ledgerTotalsError={ledgerTotalsError} cryptoPortfolio={cryptoPortfolio} />
+    <AccountSummaryCard account={account} deposit={deposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} ledgerTotalsError={ledgerTotalsError} cryptoPortfolio={cryptoPortfolio} />
   )
 
   return (

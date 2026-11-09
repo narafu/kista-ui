@@ -35,7 +35,7 @@ describe('TradesTab', () => {
     fetchNextPage.mockClear()
     useAccountCycleHistoryQueryMock.mockReturnValue({
       cycleHistory: [
-        { createdAt: '2026-07-01T00:00:00Z', ticker: 'TSLA', holdings: 1, avgPrice: 300, usdDeposit: 100 },
+        { createdAt: '2026-07-01T00:00:00Z', ticker: 'TSLA', holdings: 1, avgPrice: 300, deposit: 100 },
       ],
       isLoading: false,
       fetchNextPage,

@@ -19,14 +19,14 @@ const NO_VALUE = '-'
 
 interface Props {
   account: Account
-  usdDeposit: number
+  deposit: number
   posEvalUsd: number
   ledgerTotals?: AccountLedgerTotals
   ledgerTotalsError?: boolean
   cryptoPortfolio?: CryptoPortfolio
 }
 
-export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio }: Props) {
+export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio }: Props) {
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
@@ -79,7 +79,7 @@ export function AccountSummaryCard({ account, usdDeposit, posEvalUsd, ledgerTota
           ) : !isMock && (
             <>
               <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">증권사 기준</p>
-              <KpiCard label="예수금" value={`$${fmtUsd(usdDeposit)}`} />
+              <KpiCard label="예수금" value={`$${fmtUsd(deposit)}`} />
               <KpiCard label="평가금" value={`$${fmtUsd(posEvalUsd)}`} />
             </>
           )}

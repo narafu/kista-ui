@@ -111,7 +111,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                         {/* DCA는 시드를 두지 않아 예수금이 항상 0 — 표시하지 않는다 */}
                         {entry.strategyType !== 'DCA' && (
                           <span className="text-muted-foreground">
-                            예수금 <span className="font-semibold text-foreground">${fmtUsd(entry.usdDeposit ?? 0)}</span>
+                            예수금 <span className="font-semibold text-foreground">${fmtUsd(entry.deposit ?? 0)}</span>
                           </span>
                         )}
                       </div>
@@ -149,7 +149,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
                             <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.holdings}주</TableDataCell>
                             <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.usdDeposit ?? 0)}`}</TableDataCell>
+                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.deposit ?? 0)}`}</TableDataCell>
                             <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
                           </tr>
                         )

@@ -22,7 +22,7 @@ describe('strategy api normalization', () => {
         type: 'VR',
         status: 'ACTIVE',
         ticker: 'TQQQ',
-        initialUsdDeposit: '2000.00',
+        initialDeposit: '2000.00',
         cycleSeedType: 'NONE',
         divisionCount: null,
         isReverseMode: false,
@@ -233,7 +233,7 @@ describe('reconfigureVr', () => {
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
       isReverseMode: false,
-      initialUsdDeposit: '1500.00',
+      initialDeposit: '1500.00',
     })
 
     const result = await injectCapital('strategy-1', { depositAmount: 500, shares: 10, sharePrice: 62.5 })
@@ -243,7 +243,7 @@ describe('reconfigureVr', () => {
       { method: 'POST', body: JSON.stringify({ depositAmount: 500, shares: 10, sharePrice: 62.5 }) },
       undefined,
     )
-    expect(result.initialUsdDeposit).toBe(1500)
+    expect(result.initialDeposit).toBe(1500)
   })
 
   it('getStrategySeedPreview는 availableCash를 숫자로 정규화하고 없으면 null이다', async () => {

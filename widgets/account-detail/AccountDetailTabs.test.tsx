@@ -47,7 +47,7 @@ const strategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'TSLA',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 1000,
+  initialDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
@@ -57,7 +57,7 @@ describe('AccountDetailTabs', () => {
   it('shows the summary tab (account summary + trades) by default on mobile', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     render(
-      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} deposit={1000} posEvalUsd={2000} />,
     )
 
     // 모바일 영역과 데스크탑 영역 모두 항상 렌더링되므로 계좌 요약 카드가 두 번 나타난다
@@ -69,7 +69,7 @@ describe('AccountDetailTabs', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     const user = userEvent.setup()
     render(
-      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} deposit={1000} posEvalUsd={2000} />,
     )
 
     await user.click(screen.getByRole('tab', { name: '전략' }))
@@ -84,7 +84,7 @@ describe('AccountDetailTabs', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     const user = userEvent.setup()
     render(
-      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} deposit={1000} posEvalUsd={2000} />,
     )
 
     expect(screen.getByRole('tablist', { name: '계좌 상세 탭' })).toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('AccountDetailTabs', () => {
   it('passes hydrated strategy-query data to StrategyList', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [strategy] })
     render(
-      <AccountDetailTabs account={account} usdDeposit={1000} posEvalUsd={2000} />,
+      <AccountDetailTabs account={account} deposit={1000} posEvalUsd={2000} />,
     )
 
     expect(useStrategiesQueryMock).toHaveBeenCalledWith('account-1')
@@ -112,7 +112,7 @@ describe('AccountDetailTabs', () => {
   it('업비트 계좌는 사이클 이력 대신 보유 종목 카드를 렌더한다', () => {
     useStrategiesQueryMock.mockReturnValue({ data: [] })
     render(
-      <AccountDetailTabs account={{ ...account, broker: 'UPBIT', accountNoMasked: null }} usdDeposit={0} posEvalUsd={0} />,
+      <AccountDetailTabs account={{ ...account, broker: 'UPBIT', accountNoMasked: null }} deposit={0} posEvalUsd={0} />,
     )
 
     expect(screen.queryByTestId('trades-tab-stub')).not.toBeInTheDocument()

@@ -110,7 +110,7 @@ function normalizeStrategy(raw: unknown): Strategy {
     status: String(s.status),
     ticker: String(s.ticker),
     cycleSeedType: (s.cycleSeedType as CycleSeedType) ?? 'NONE',
-    initialUsdDeposit: optDec(s.initialUsdDeposit),
+    initialDeposit: optDec(s.initialDeposit),
     divisionCount: optNum(s.divisionCount),
     isReverseMode: Boolean(s.isReverseMode),
     cycleInProgress: Boolean(s.cycleInProgress),

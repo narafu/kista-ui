@@ -95,8 +95,8 @@ function SummaryGrid({ strategy, usesDivisionCount }: { strategy: Strategy; uses
       <KpiCard
         label="시작 예수금"
         value={
-          strategy.initialUsdDeposit != null ? (
-            <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialUsdDeposit)}`}</span>
+          strategy.initialDeposit != null ? (
+            <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialDeposit)}`}</span>
           ) : (
             <span className="inline-flex items-center text-base text-muted-foreground font-normal">미설정</span>
           )

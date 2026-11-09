@@ -1091,7 +1091,7 @@ export interface paths {
         };
         /**
          * 벤치마크 비교 (아파트 매매가격지수 · ETF)
-         * @description USD 투자 성과와 벤치마크(아파트 지역 매매가격지수 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 regionCode는 무시됩니다.
+         * @description 투자 계좌 통화 기준 성과와 벤치마크(아파트 지역 매매가격지수 또는 SPY/QQQ/QLD/IBIT/ETHA ETF)를 비교합니다. benchmarkType=ETF면 symbol이 필수이며 regionCode는 무시됩니다. currency는 PORTFOLIO scope의 합산 통화(생략 시 USD)이며 STRATEGY scope에서는 무시됩니다.
          */
         get: operations["getHousingBenchmarkComparison"];
         put?: never;
@@ -2393,7 +2393,7 @@ export interface components {
              * @description 초기 입금액 (PRIVACY: 배수 자동 산출 기준, VR: 예수금=초기 pool, DCA: 시작 원장 예수금 — 계좌 통화, 0 이상, 생략=0)
              * @example 2000
              */
-            initialUsdDeposit?: number;
+            initialDeposit?: number;
             /**
              * @description 연속 사이클 정책 (null이면 NONE)
              * @example NONE
@@ -2576,7 +2576,7 @@ export interface components {
              * @description 초기 입금액
              * @example 2000
              */
-            initialUsdDeposit?: number;
+            initialDeposit?: number;
             /**
              * Format: date
              * @description 사이클 시작일 (미래면 시작예정일 — 시작예정일 밤 미국장부터 매매 시작)
@@ -2650,7 +2650,7 @@ export interface components {
             recurringAmount?: number;
             /** @description pool 상한 금액 (USD) */
             poolLimit?: number;
-            /** @description 현재 pool(예수금, USD) — 최신 포지션 기준, 개장값(initialUsdDeposit)과 다름 */
+            /** @description 현재 pool(예수금, USD) — 최신 포지션 기준, 개장값(initialDeposit)과 다름 */
             currentPool?: number;
             /**
              * @description pool 상한 비율(0~1) — 현재 사이클 고정 스냅샷
@@ -3035,7 +3035,7 @@ export interface components {
             /** @description 평균 매입가 (0회차: 전일종가) */
             averagePrice?: number;
             /** @description 통합주문가능금액 */
-            usdDeposit?: number;
+            deposit?: number;
             /** @description 가격 보정률 (전반: 양수, 후반: 0 이하) */
             priceOffsetRate?: number;
             /**
@@ -3147,7 +3147,7 @@ export interface components {
              */
             ticker?: string;
             /**
-             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 usdDeposit이 항상 0
+             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 deposit이 항상 0
              * @example INFINITE
              */
             strategyType?: string;
@@ -3158,7 +3158,7 @@ export interface components {
             /** @description 평균 매입 단가 (보유수량 0이면 null) */
             avgPrice?: number;
             /** @description 통합주문가능금액 */
-            usdDeposit?: number;
+            deposit?: number;
         };
         DcaExecutionItem: {
             ruleKey?: string;
@@ -3196,6 +3196,7 @@ export interface components {
             totalUnrealizedPnl?: number;
             activePrincipal?: number;
             byType?: components["schemas"]["TypeStats"][];
+            availableCurrencies?: ("KRW" | "USD" | "JPY" | "USDT")[];
         };
         TypeStats: {
             type?: string;
@@ -3250,18 +3251,6 @@ export interface components {
         DailyTransactionResponse: {
             /** @description 일별 체결 내역 목록 */
             items?: components["schemas"]["ItemDto"][];
-            /** @description 기간 합계 요약 */
-            summary?: components["schemas"]["DailyTransactionSummaryDto"];
-        };
-        DailyTransactionSummaryDto: {
-            /** @description 외화매수금액합계 */
-            buyAmountFcr?: number;
-            /** @description 외화매도금액합계 */
-            sellAmountFcr?: number;
-            /** @description 국내수수료합계 */
-            domesticFee?: number;
-            /** @description 해외수수료합계 */
-            overseasFee?: number;
         };
         ItemDto: {
             /** @description 매매일 (KST 기준) */
@@ -3279,20 +3268,18 @@ export interface components {
             ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
             /** @description 종목명 */
             symbolName?: string;
-            /**
-             * Format: int32
-             * @description 체결수량
-             */
+            /** @description 체결수량 (코인은 소수) */
             quantity?: number;
-            /** @description 해외주식체결단가 */
+            /** @description 체결단가 (계좌 통화) */
             price?: number;
-            /** @description 거래외화금액 */
-            tradeAmountUsd?: number;
+            /** @description 거래금액 (계좌 통화) */
+            tradeAmount?: number;
             /**
-             * @description 통화코드
+             * @description 계좌 통화
              * @example USD
+             * @enum {string}
              */
-            currency?: string;
+            currency?: "KRW" | "USD" | "JPY" | "USDT";
         };
         CryptoMarketIndicatorsCoinbasePremium: {
             /** @description 현재 코인베이스 프리미엄 (%) — (코인베이스 <코인>-USD ÷ (바이낸스 <코인>USDT × 코인베이스 USDT-USD) − 1) × 100 */
@@ -3558,17 +3545,17 @@ export interface components {
         };
         PortfolioSummaryDto: {
             /** @description 총자산 (KRW — 필드명은 usd지만 KRW 값을 담고 있는 KIS 응답 원본 quirk 유지) */
-            totalAssetUsd?: number;
+            totalAsset?: number;
             /** @description 총평가손익 (KRW) */
             totalEvalProfit?: number;
             /** @description 총수익률 (%) */
             totalReturnRate?: number;
             /** @description USD 총자산 (포지션 평가금 + 예수금) */
-            totalAssetUsdActual?: number;
+            totalAssetActual?: number;
             /** @description USD 평가손익 합계 */
             evalProfitUsdSum?: number;
             /** @description USD 예수금 */
-            usdDeposit?: number;
+            deposit?: number;
             /** @description USD 평가금 (포지션 evalAmountUsd 합계) */
             posEvalUsd?: number;
             /** @description 환율 (1 USD = ? KRW) */
@@ -4454,7 +4441,7 @@ export interface components {
             /** @description 보정 후 최종 평단가 */
             finalAvgPrice?: number;
             /** @description 보정 후 최종 예수금 (USD) */
-            finalUsdDeposit?: number;
+            finalDeposit?: number;
             /**
              * @description 보정 후 전략 상태
              * @example ACTIVE
@@ -7477,6 +7464,7 @@ export interface operations {
             query?: {
                 scope?: "PORTFOLIO" | "STRATEGY";
                 strategyId?: string;
+                currency?: "KRW" | "USD" | "JPY" | "USDT";
                 benchmarkType?: "HOUSING" | "ETF";
                 regionCode?: string;
                 symbol?: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
@@ -8906,7 +8894,9 @@ export interface operations {
     };
     getSummary: {
         parameters: {
-            query?: never;
+            query?: {
+                currency?: "KRW" | "USD" | "JPY" | "USDT";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -8927,6 +8917,7 @@ export interface operations {
     getEquityCurve: {
         parameters: {
             query?: {
+                currency?: "KRW" | "USD" | "JPY" | "USDT";
                 type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 from?: string;
                 to?: string;

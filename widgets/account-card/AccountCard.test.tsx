@@ -46,7 +46,7 @@ const baseStrategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'TSLA',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 1000,
+  initialDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
@@ -148,8 +148,8 @@ describe('AccountCard', () => {
 
   it('uses fixed-height desktop strategy rows without the initial deposit amount', () => {
     strategiesQueryData = [
-      { ...baseStrategy, id: 'strategy-1', type: 'INFINITE', ticker: 'MAGX', initialUsdDeposit: 2103 },
-      { ...baseStrategy, id: 'strategy-2', type: 'PRIVACY', ticker: 'SOXL', initialUsdDeposit: 6989 },
+      { ...baseStrategy, id: 'strategy-1', type: 'INFINITE', ticker: 'MAGX', initialDeposit: 2103 },
+      { ...baseStrategy, id: 'strategy-2', type: 'PRIVACY', ticker: 'SOXL', initialDeposit: 6989 },
     ]
     render(
       <AccountCard account={baseAccount} />,

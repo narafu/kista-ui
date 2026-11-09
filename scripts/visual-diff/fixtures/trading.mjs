@@ -11,7 +11,7 @@ export const setMode = (m) => {
 
 const ord = (ticker, direction, quantity, price, orderType = 'LOC', timing = 'AT_CLOSE') => ({ ticker, orderType, timing, direction, quantity, price })
 const placed = (id, ticker, direction, quantity, price, status = 'PLACED') => ({ id, ticker, direction, orderType: 'LOC', timing: 'AT_CLOSE', quantity, price, status })
-const pos = (ticker) => ({ ticker, holdings: 42, averagePrice: '28.1500', usdDeposit: '1234.56', totalAssets: '3773.53', priceOffsetRate: '10.0', currentRound: 31.8, unitAmount: '125.00', referencePrice: '28.15', targetPrice: '30.97' })
+const pos = (ticker) => ({ ticker, holdings: 42, averagePrice: '28.1500', deposit: '1234.56', totalAssets: '3773.53', priceOffsetRate: '10.0', currentRound: 31.8, unitAmount: '125.00', referencePrice: '28.15', targetPrice: '30.97' })
 const okLedger = { remainingLedger: 1234.56, requiredBuyUsd: 250, sufficient: true, trimmed: false }
 
 function preview(ticker) {

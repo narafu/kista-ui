@@ -27,7 +27,7 @@ const serverStrategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'TQQQ',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 1000,
+  initialDeposit: 1000,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,

@@ -33,7 +33,7 @@ export function useSeedModel({
   quantity = null,
 }: UseSeedModelOptions): UseSeedModelReturn {
   const [seedUsdInput, setSeedUsdInputInternal] = useState<number | null>(
-    initial?.initialUsdDeposit ?? null,
+    initial?.initialDeposit ?? null,
   )
 
   function setSeedUsdInput(v: number | null) {

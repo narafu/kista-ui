@@ -50,7 +50,7 @@ function RuntimeConfigError({ onRetry }: { onRetry: () => void }) {
 
 function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?: Strategy }) {
   if (initial && !form.canEditSeed) {
-    return <ReadOnlySeedSection initialUsdDeposit={initial.initialUsdDeposit} />
+    return <ReadOnlySeedSection initialDeposit={initial.initialDeposit} />
   }
   return (
     <SeedInputSection

@@ -87,10 +87,10 @@ describe('trade api', () => {
         },
       ],
       summary: {
-        totalAssetUsd: '1234.56',
+        totalAsset: '1234.56',
         totalEvalProfit: 12.3,
         totalReturnRate: null,
-        usdDeposit: '500.00',
+        deposit: '500.00',
         posEvalUsd: '734.56',
       },
     })
@@ -107,10 +107,10 @@ describe('trade api', () => {
       profitRate: 2.45,
     }))
     expect(result.summary).toEqual(expect.objectContaining({
-      totalAssetUsd: 1234.56,
+      totalAsset: 1234.56,
       totalEvalProfit: 12.3,
       totalReturnRate: null,
-      usdDeposit: 500,
+      deposit: 500,
       posEvalUsd: 734.56,
     }))
   })

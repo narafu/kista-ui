@@ -24,7 +24,7 @@ describe('order api', () => {
         ticker: 'TQQQ',
         holdings: 10,
         averagePrice: '20.50',
-        usdDeposit: '100.00',
+        deposit: '100.00',
         totalAssets: '300.00',
         priceOffsetRate: '5.00',
         currentRound: 3,

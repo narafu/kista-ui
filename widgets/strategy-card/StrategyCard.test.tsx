@@ -73,7 +73,7 @@ const strategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'MAGX',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 2103,
+  initialDeposit: 2103,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,

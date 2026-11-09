@@ -33,7 +33,7 @@ const itemA: CycleHistoryItem = {
   ticker: 'TSLA',
   holdings: 2,
   avgPrice: 300,
-  usdDeposit: 100,
+  deposit: 100,
 }
 
 const itemB: CycleHistoryItem = {
@@ -41,7 +41,7 @@ const itemB: CycleHistoryItem = {
   ticker: 'NVDA',
   holdings: 0,
   avgPrice: null,
-  usdDeposit: 50,
+  deposit: 50,
 }
 
 describe('CycleHistoryTable', () => {
@@ -137,7 +137,7 @@ describe('CycleHistoryTable', () => {
   })
 
   it('DCA 행은 예수금을 표시하지 않고, INFINITE·알 수 없음(null) 행은 그대로 표시한다', () => {
-    const base = { avgPrice: null, holdings: 0, usdDeposit: 0 }
+    const base = { avgPrice: null, holdings: 0, deposit: 0 }
     const items: CycleHistoryItem[] = [
       { ...base, createdAt: '2026-07-01T09:00:00Z', ticker: 'DCAT', strategyType: 'DCA' },
       { ...base, createdAt: '2026-07-01T10:00:00Z', ticker: 'INFT', strategyType: 'INFINITE' },

@@ -85,7 +85,7 @@ function strategyFor(accountId: string, id: string): Strategy {
     status: 'ACTIVE',
     ticker: 'MAGX',
     cycleSeedType: 'MAX',
-    initialUsdDeposit: 1000,
+    initialDeposit: 1000,
     divisionCount: 20,
     isReverseMode: false,
     cycleInProgress: true,

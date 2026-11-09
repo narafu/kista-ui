@@ -53,7 +53,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
         ticker: String(rawPos.ticker),
         holdings: Number(rawPos.holdings),
         averagePrice: String(rawPos.averagePrice),
-        usdDeposit: String(rawPos.usdDeposit),
+        deposit: String(rawPos.deposit),
         totalAssets: String(rawPos.totalAssets),
         priceOffsetRate: String(rawPos.priceOffsetRate),
         currentRound: Number(rawPos.currentRound),

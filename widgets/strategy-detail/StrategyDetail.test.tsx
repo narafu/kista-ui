@@ -156,7 +156,7 @@ const baseStrategy: Strategy = {
   status: 'ACTIVE',
   ticker: 'TSLA',
   cycleSeedType: 'MAX',
-  initialUsdDeposit: 1200,
+  initialDeposit: 1200,
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
@@ -305,7 +305,7 @@ describe('StrategyDetail header card', () => {
         type: 'VR',
         ticker: 'TQQQ',
         divisionCount: undefined,
-        initialUsdDeposit: 2000,
+        initialDeposit: 2000,
         vr: {
           value: 3000,
           bandWidth: 15,
@@ -362,7 +362,7 @@ describe('StrategyDetail header card', () => {
         type: 'VR',
         ticker: 'TQQQ',
         divisionCount: undefined,
-        initialUsdDeposit: 2000,
+        initialDeposit: 2000,
         startDate: '2026-08-01',
         vr: {
           value: 3000,
@@ -399,7 +399,7 @@ describe('StrategyDetail header card', () => {
         type: 'VR',
         ticker: 'TQQQ',
         divisionCount: undefined,
-        initialUsdDeposit: 2000,
+        initialDeposit: 2000,
         vr: {
           value: 3000,
           bandWidth: 15,
@@ -431,7 +431,7 @@ describe('StrategyDetail header card', () => {
         type: 'VR',
         ticker: 'TQQQ',
         divisionCount: undefined,
-        initialUsdDeposit: 2000,
+        initialDeposit: 2000,
         vr: {
           value: 3000,
           bandWidth: 15,

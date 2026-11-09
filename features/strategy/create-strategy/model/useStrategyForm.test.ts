@@ -203,7 +203,7 @@ describe('useStrategyForm submit policy', () => {
     expect(toastInfoMock.mock.calls[0][0]).toContain('바로 주문')
   })
 
-  it('edit payload does not include initialUsdDeposit', async () => {
+  it('edit payload does not include initialDeposit', async () => {
     seedModelState.seedUsdInput = 777
     seedModelState.seedUsd = 777
 
@@ -217,7 +217,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -239,7 +239,7 @@ describe('useStrategyForm submit policy', () => {
       ticker: 'TSLA',
       cycleSeedType: 'MAX',
     })
-    expect(mockUpdateMutate.mock.calls[0][0]).not.toHaveProperty('initialUsdDeposit')
+    expect(mockUpdateMutate.mock.calls[0][0]).not.toHaveProperty('initialDeposit')
   })
 
   it('edit payload sends changed cycleSeedType from current form state', async () => {
@@ -253,7 +253,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -281,7 +281,7 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
-  it('edit payload includes initialUsdDeposit when currentHoldings is zero', async () => {
+  it('edit payload includes initialDeposit when currentHoldings is zero', async () => {
     seedModelState.seedUsd = 1800
 
     const { result } = renderHook(() =>
@@ -294,7 +294,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -315,11 +315,11 @@ describe('useStrategyForm submit policy', () => {
       type: 'INFINITE',
       ticker: 'TSLA',
       cycleSeedType: 'MAX',
-      initialUsdDeposit: 1800,
+      initialDeposit: 1800,
     })
   })
 
-  it('create payload keeps initialUsdDeposit when seed exists', async () => {
+  it('create payload keeps initialDeposit when seed exists', async () => {
     const { result } = renderHook(() =>
       useStrategyForm({
         accountId: 'account-1',
@@ -339,7 +339,7 @@ describe('useStrategyForm submit policy', () => {
       type: 'INFINITE',
       ticker: 'TSLA',
       cycleSeedType: 'MAX',
-      initialUsdDeposit: 1200,
+      initialDeposit: 1200,
       divisionCount: 20,
     })
   })
@@ -359,7 +359,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -396,7 +396,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -409,7 +409,7 @@ describe('useStrategyForm submit policy', () => {
   })
 
   it('edit mode with currentHoldings zero keeps existing seed instead of resetting to minSeed', async () => {
-    // 회귀 테스트: canEditSeed(holdings=0 수정)일 때 minSeed 도착 effect가 initialUsdDeposit을
+    // 회귀 테스트: canEditSeed(holdings=0 수정)일 때 minSeed 도착 effect가 initialDeposit을
     // Math.ceil(minSeed)로 덮어쓰던 버그 — "신규 등록 한정" 주석과 달리 initial 존재 시에도 실행됐음
     seedPreviewState.data.minSeed = 500
 
@@ -423,7 +423,7 @@ describe('useStrategyForm submit policy', () => {
           status: 'ACTIVE',
           ticker: 'TSLA',
           cycleSeedType: 'MAX',
-          initialUsdDeposit: 1200,
+          initialDeposit: 1200,
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
@@ -466,7 +466,7 @@ describe('useStrategyForm submit policy', () => {
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
-      initialUsdDeposit: 2000,
+      initialDeposit: 2000,
       initialHoldings: 10,
       initialAvgPrice: 300,
       intervalWeeks: 4,
@@ -509,7 +509,7 @@ describe('useStrategyForm submit policy', () => {
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
-      initialUsdDeposit: 2000,
+      initialDeposit: 2000,
       intervalWeeks: 4,
       bandWidth: 15,
       recurringAmount: 0,
@@ -587,7 +587,7 @@ describe('useStrategyForm submit policy', () => {
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
-      initialUsdDeposit: 2000,
+      initialDeposit: 2000,
       initialHoldings: 10,
       initialAvgPrice: 300,
       intervalWeeks: 4,
@@ -742,7 +742,7 @@ describe('useStrategyForm submit policy', () => {
       type: 'VR',
       ticker: 'TQQQ',
       cycleSeedType: 'NONE',
-      initialUsdDeposit: 0,
+      initialDeposit: 0,
       intervalWeeks: 2,
       bandWidth: 15,
       recurringAmount: 200,

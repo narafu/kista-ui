@@ -29,12 +29,12 @@ function normalizePortfolio(raw: unknown): PortfolioSummary {
     })),
     summary: p.summary
       ? {
-          totalAssetUsd: num(p.summary.totalAssetUsd),
+          totalAsset: num(p.summary.totalAsset),
           totalEvalProfit: num(p.summary.totalEvalProfit),
           totalReturnRate: num(p.summary.totalReturnRate),
-          totalAssetUsdActual: num(p.summary.totalAssetUsdActual),
+          totalAssetActual: num(p.summary.totalAssetActual),
           evalProfitUsdSum: num(p.summary.evalProfitUsdSum),
-          usdDeposit: num(p.summary.usdDeposit),
+          deposit: num(p.summary.deposit),
           posEvalUsd: num(p.summary.posEvalUsd),
           exchangeRateKrwPerUsd: num(p.summary.exchangeRateKrwPerUsd),
         }

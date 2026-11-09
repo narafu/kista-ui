@@ -68,7 +68,7 @@ export interface Strategy {
   status: string      // 'ACTIVE' | 'PAUSED' | 'ARCHIVED'
   ticker: string      // 메타의 TickerMeta.code
   cycleSeedType: CycleSeedType
-  initialUsdDeposit?: number
+  initialDeposit?: number
   divisionCount?: number  // 분할 수 (INFINITE: 20/30/40, VR/PRIVACY: undefined)
   isReverseMode: boolean  // 리버스모드 활성 여부 (소진 후 모드)
   cycleInProgress: boolean // 진행 중 사이클 존재(최신 사이클 endDate 없음) — 투자금 추가·인출 진입 조건
@@ -85,7 +85,7 @@ export interface StrategyRequest {
   type: string
   ticker?: string
   cycleSeedType: CycleSeedType
-  initialUsdDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
+  initialDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
   initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션). 주식은 정수, 크립토 DCA는 소수 8자리
   initialAvgPrice?: number    // 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)

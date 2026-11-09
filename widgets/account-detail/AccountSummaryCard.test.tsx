@@ -21,7 +21,7 @@ const account: Account = {
 
 describe('AccountSummaryCard', () => {
   it('shows the masked account number by default', () => {
-    render(<AccountSummaryCard account={account} usdDeposit={1000} posEvalUsd={2000} />)
+    render(<AccountSummaryCard account={account} deposit={1000} posEvalUsd={2000} />)
 
     expect(screen.getByText('123-45****')).toBeInTheDocument()
     expect(screen.queryByText('123-45678901')).not.toBeInTheDocument()
@@ -29,7 +29,7 @@ describe('AccountSummaryCard', () => {
 
   it('reveals the real account number and flips the toggle label on click', async () => {
     const user = userEvent.setup()
-    render(<AccountSummaryCard account={account} usdDeposit={1000} posEvalUsd={2000} />)
+    render(<AccountSummaryCard account={account} deposit={1000} posEvalUsd={2000} />)
 
     await user.click(screen.getByRole('button', { name: '보기' }))
 
@@ -42,7 +42,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, accountNo: undefined }}
-        usdDeposit={1000}
+        deposit={1000}
         posEvalUsd={2000}
       />,
     )
@@ -56,7 +56,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'MOCK' }}
-        usdDeposit={1000}
+        deposit={1000}
         posEvalUsd={2000}
         ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: null }}
       />,
@@ -74,7 +74,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={account}
-        usdDeposit={1000}
+        deposit={1000}
         posEvalUsd={2000}
         ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: 7.5 }}
       />,
@@ -94,7 +94,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={account}
-        usdDeposit={0}
+        deposit={0}
         posEvalUsd={0}
         ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: null, unassignedCash: null }}
       />,
@@ -103,7 +103,7 @@ describe('AccountSummaryCard', () => {
   })
 
   it('전략 합산 조회가 실패하면 -와 함께 불러오지 못했다는 안내를 보여준다', () => {
-    render(<AccountSummaryCard account={account} usdDeposit={0} posEvalUsd={0} ledgerTotalsError />)
+    render(<AccountSummaryCard account={account} deposit={0} posEvalUsd={0} ledgerTotalsError />)
     expect(screen.getAllByText('-')).toHaveLength(3)
     expect(screen.getByText('전략 합산 금액을 불러오지 못했습니다.')).toBeInTheDocument()
   })
@@ -112,7 +112,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
-        usdDeposit={0}
+        deposit={0}
         posEvalUsd={0}
         cryptoPortfolio={{ currency: 'KRW', cash: 120000, totalAsset: 1478024, holdings: [] }}
       />,
@@ -131,7 +131,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
-        usdDeposit={0}
+        deposit={0}
         posEvalUsd={0}
         ledgerTotals={{ currency: 'KRW', deposit: 50000, evaluation: 70000, unassignedCash: 3000 }}
         cryptoPortfolio={{ currency: 'KRW', cash: 120000, totalAsset: 1478024, holdings: [] }}
@@ -148,7 +148,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'BINANCE', accountNoMasked: null }}
-        usdDeposit={0}
+        deposit={0}
         posEvalUsd={0}
         cryptoPortfolio={{ currency: 'USDT', cash: 10.5, totalAsset: 75.25, holdings: [] }}
       />,
@@ -162,7 +162,7 @@ describe('AccountSummaryCard', () => {
     render(
       <AccountSummaryCard
         account={{ ...account, broker: 'UPBIT', accountNoMasked: null }}
-        usdDeposit={0}
+        deposit={0}
         posEvalUsd={0}
         cryptoPortfolio={{
           currency: 'KRW',
@@ -182,7 +182,7 @@ describe('AccountSummaryCard', () => {
       render(
         <AccountSummaryCard
           account={{ ...account, broker: 'UPBIT', accountNoMasked: null, apiKeyExpiresAt: '2026-10-01T00:00:00+09:00' }}
-          usdDeposit={0}
+          deposit={0}
           posEvalUsd={0}
         />,
       )

@@ -56,14 +56,14 @@ describe('buildStrategyPayload — edit mode', () => {
     id: 's', type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX',
   } as unknown as Strategy
 
-  it('omits initialUsdDeposit unless the seed is editable', () => {
+  it('omits initialDeposit unless the seed is editable', () => {
     expect(build({ initial, seedUsd: 777, canEditSeed: false, vrFields: vrFields() })).toEqual({
       type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX',
     })
   })
-  it('includes initialUsdDeposit when the seed is editable', () => {
+  it('includes initialDeposit when the seed is editable', () => {
     expect(build({ initial, seedUsd: 1800, canEditSeed: true, cycleSeedType: 'MAX', vrFields: vrFields() })).toEqual({
-      type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', initialUsdDeposit: 1800,
+      type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', initialDeposit: 1800,
     })
   })
 })
@@ -73,7 +73,7 @@ describe('buildStrategyPayload — create mode', () => {
     expect(build({
       seedUsd: 1200, usesDivisionCount: true, divisionCount: 20, vrFields: vrFields(),
     })).toEqual({
-      type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', initialUsdDeposit: 1200, divisionCount: 20,
+      type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', initialDeposit: 1200, divisionCount: 20,
     })
   })
 
@@ -92,7 +92,7 @@ describe('buildStrategyPayload — create mode', () => {
       vrFields: vrFields({ avgPrice: 300, quantity: 10, intervalWeeks: 4, bandWidth: 15 }),
     })
     expect(payload).toEqual({
-      type: 'VR', ticker: 'TQQQ', cycleSeedType: 'NONE', initialUsdDeposit: 2000,
+      type: 'VR', ticker: 'TQQQ', cycleSeedType: 'NONE', initialDeposit: 2000,
       initialHoldings: 10, initialAvgPrice: 300, intervalWeeks: 4, bandWidth: 15, recurringAmount: 0,
       initialGradient: 10, gMax: 20, initialPoolLimitRate: 0.75, poolLimitFloor: 0.5,
     })

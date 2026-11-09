@@ -79,9 +79,9 @@ describe('buildDcaCreatePayload', () => {
     expect(p).not.toHaveProperty('initialHoldings')
     expect(p).not.toHaveProperty('initialAvgPrice')
   })
-  it('예수금>0이면 initialUsdDeposit으로 싣고, 비우거나 0이면 키 없음', () => {
-    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 15000 }))).toMatchObject({ initialUsdDeposit: 15000 })
-    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 0 }))).not.toHaveProperty('initialUsdDeposit')
-    expect(buildDcaCreatePayload(form([rule]))).not.toHaveProperty('initialUsdDeposit')
+  it('예수금>0이면 initialDeposit으로 싣고, 비우거나 0이면 키 없음', () => {
+    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 15000 }))).toMatchObject({ initialDeposit: 15000 })
+    expect(buildDcaCreatePayload(form([rule], { initialDeposit: 0 }))).not.toHaveProperty('initialDeposit')
+    expect(buildDcaCreatePayload(form([rule]))).not.toHaveProperty('initialDeposit')
   })
 })
