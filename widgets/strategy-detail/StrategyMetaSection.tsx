@@ -109,13 +109,14 @@ function SummaryGrid({ strategy, usesDivisionCount }: { strategy: Strategy; uses
 function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate: Strategy['startDate'] }) {
   return (
     <div data-testid="strategy-vr-grid" className="space-y-3">
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
+      {/* 날짜(최대 약 182px, text-3xl)가 lg 4열·xl 반쪽 카드에 한 줄로 들어가지 않아 이 그리드만 lg에서도 2열로 둔다 */}
+      <div className="grid grid-cols-2 gap-3">
         <KpiCard label="밴드 폭" value={`${vr.bandWidth}%`} />
         <KpiCard label="주기" value={`${vr.intervalWeeks}주`} />
-        {/* 날짜는 모바일 반쪽 카드에 한 줄로 들어가지 않아(390px 폭 115px < 137px) sm 미만에서만 전체 폭으로 둔다 */}
-        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} className="col-span-2 sm:col-span-1" />
+        {/* 날짜는 모바일·xl(사이드 열) 반쪽 카드에 한 줄로 들어가지 않아 그 구간에서만 전체 폭으로 둔다 */}
+        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} className="col-span-2 sm:col-span-1 xl:col-span-2" />
         <KpiCard
-          className="col-span-2 sm:col-span-1"
+          className="col-span-2 sm:col-span-1 xl:col-span-2"
           label="다음 사이클 시작"
           value={startDate ? fmtDate(nextVrRolloverDate(startDate, vr.intervalWeeks)) : '미설정'}
         />
