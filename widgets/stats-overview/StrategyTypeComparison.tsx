@@ -19,8 +19,8 @@ type SortKey = 'default' | 'type' | 'cycles' | 'avgReturnRate' | 'avgDurationDay
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: 'type', label: '전략' },
   { key: 'cycles', label: '사이클' },
-  { key: 'avgReturnRate', label: '평균 수익률' },
-  { key: 'avgDurationDays', label: '평균 소요일' },
+  { key: 'avgReturnRate', label: '수익률' },
+  { key: 'avgDurationDays', label: '소요일' },
   { key: 'realizedPnl', label: '실현손익' },
   { key: 'unrealizedPnl', label: '미실현' },
 ]
@@ -60,8 +60,8 @@ export function StrategyTypeComparison({ byType }: Props) {
                   <tr>
                     <SortableHeadCell sortKey="type" {...head}>전략</SortableHeadCell>
                     <SortableHeadCell sortKey="cycles" numeric {...head}>사이클</SortableHeadCell>
-                    <SortableHeadCell sortKey="avgReturnRate" numeric {...head}>평균 수익률</SortableHeadCell>
-                    <SortableHeadCell sortKey="avgDurationDays" numeric {...head}>평균 소요일</SortableHeadCell>
+                    <SortableHeadCell sortKey="avgReturnRate" numeric {...head}>수익률</SortableHeadCell>
+                    <SortableHeadCell sortKey="avgDurationDays" numeric {...head}>소요일</SortableHeadCell>
                     {/* 의도적으로 KPI(실현손익·미실현 평가손익)보다 짧게 — 6열 표 폭 때문에 '미실현'과 같은 방식으로 줄인다 */}
                     <SortableHeadCell sortKey="realizedPnl" numeric {...head}>실현손익</SortableHeadCell>
                     <SortableHeadCell sortKey="unrealizedPnl" numeric {...head}>미실현</SortableHeadCell>
@@ -103,13 +103,13 @@ export function StrategyTypeComparison({ byType }: Props) {
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-muted-foreground">평균 수익률</dt>
+                      <dt className="text-xs text-muted-foreground">수익률</dt>
                       <dd className={cn('mt-0.5 tabular-nums', item.avgReturnRate != null && pnlTextClass(item.avgReturnRate))}>
                         {fmtSignedPercent(item.avgReturnRate)}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-muted-foreground">평균 소요일</dt>
+                      <dt className="text-xs text-muted-foreground">소요일</dt>
                       <dd className="mt-0.5 tabular-nums">{item.avgDurationDays != null ? `${item.avgDurationDays.toFixed(1)}일` : '-'}</dd>
                     </div>
                     <div>
@@ -126,7 +126,7 @@ export function StrategyTypeComparison({ byType }: Props) {
             </ul>
             {/* 6열 헤더에 넣으면 2xl 반쪽 폭에서 잘려 표 아래 보조문구로 둔다 */}
             <p className="border-t px-4 py-3 text-xs text-muted-foreground">
-              평균 수익률은 종료 사이클별 수익률의 단순평균입니다(진행 중 매도분 제외). 사이클 중 추가·인출이 분모에 들어가 추가금은 수익률을 희석하고, VR은 롤오버 주기 구간을 사이클 하나로 셉니다.
+              수익률은 종료 사이클별 수익률의 단순평균입니다(진행 중 매도분 제외). 사이클 중 추가·인출이 분모에 들어가 추가금은 수익률을 희석하고, VR은 롤오버 주기 구간을 사이클 하나로 셉니다.
             </p>
           </>
         )}
