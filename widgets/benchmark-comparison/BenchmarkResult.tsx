@@ -1,6 +1,7 @@
 'use client'
 
 import type { HousingBenchmark, HousingBenchmarkComparison } from '@entities/stats'
+import type { Currency } from '@shared/lib/api-schema'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { BenchmarkLoading } from './BenchmarkStates'
@@ -12,7 +13,7 @@ interface Props {
   query: { isLoading: boolean; isError: boolean; data: HousingBenchmarkComparison | undefined }
   activeAsset: 'ETF' | 'HOUSING'
   investmentLabel: string
-  investmentCurrency: string
+  investmentCurrency: Currency
   benchmarkLabel: string
   benchmarkCurrency: 'USD' | 'KRW'
   fallbackBenchmark: HousingBenchmark

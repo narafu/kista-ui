@@ -1,5 +1,6 @@
 'use client'
 
+import type { Currency } from '@shared/lib/api-schema'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 // eslint-disable-next-line react-doctor/prefer-dynamic-import
@@ -20,7 +21,7 @@ interface Props {
   points: HousingBenchmarkPoint[]
   investmentLabel: string
   benchmark: HousingBenchmark
-  investmentCurrency: string
+  investmentCurrency: Currency
   benchmarkCurrency: 'USD' | 'KRW'
 }
 

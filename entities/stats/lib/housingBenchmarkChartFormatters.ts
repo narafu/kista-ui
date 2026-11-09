@@ -1,3 +1,4 @@
+import type { Currency } from '@shared/lib/api-schema'
 import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '../model/types'
 
 export type HousingBenchmarkSeriesKey = 'investmentIndex' | 'benchmarkIndex'
@@ -10,7 +11,7 @@ export function housingBenchmarkChartNotice(isDaily: boolean) {
     : '주간 지수와 수익률은 서버 계산값입니다.'
 }
 
-export function formatHousingBenchmarkSeriesLabel(label: string, currency: string) {
+export function formatHousingBenchmarkSeriesLabel(label: string, currency: Currency) {
   return `${label} (${currency})`
 }
 

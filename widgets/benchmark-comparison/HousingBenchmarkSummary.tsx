@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
+import type { Currency } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import { pnlTextClass, fmtSignedPercent, fmtSignedPercentPoint } from '@shared/lib/format'
 import type { HousingBenchmarkSummary as HousingBenchmarkSummaryData } from '@entities/stats'
@@ -9,7 +10,7 @@ interface Props {
   summary: HousingBenchmarkSummaryData
   investmentLabel: string
   benchmarkLabel: string
-  investmentCurrency: string
+  investmentCurrency: Currency
   benchmarkCurrency: 'USD' | 'KRW'
 }
 

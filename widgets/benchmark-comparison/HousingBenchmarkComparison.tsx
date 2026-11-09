@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react'
 import { useMeta } from '@entities/meta'
 import { useHousingBenchmarkQuery, useHousingBenchmarkRegionsQuery } from '@entities/stats'
+import { toCurrency } from '@shared/lib/api-schema'
 import { BenchmarkFilterBar } from './BenchmarkFilterBar'
 import { BenchmarkResult } from './BenchmarkResult'
 import { EtfPriceChart } from './EtfPriceChart'
@@ -56,7 +57,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
   const data = query.data
   const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
   // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·USDT·KRW), 전체 포트폴리오면 USD — 서버 quality가 SSOT
-  const investmentCurrency = data?.quality?.investmentCurrency ?? 'USD'
+  const investmentCurrency = toCurrency(data?.quality?.investmentCurrency) ?? 'USD'
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)
   const investmentLabel = resolveInvestmentLabel(data, (type) => labelOf('strategyTypes', type))
