@@ -95,34 +95,31 @@ function CycleCardList({ cycles, accountsById }: Props) {
         <li key={cycle.cycleId} className="px-4 py-4">
           {/* 종목을 제목으로 두고 계좌명은 아래 보조 텍스트로 — 둘 다 굵은 글씨면 어느 쪽이 종목인지 구분되지 않는다 */}
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="font-semibold tabular-nums">{cycle.ticker ?? '-'}</span>
-                <Badge tone="brand" size="sm">
-                  {labelOf('strategyTypes', cycle.strategyType)}
-                </Badge>
-              </div>
-              {accountsById.get(cycle.accountId) && (
-                <div className="mt-1 truncate text-xs text-muted-foreground">
-                  {accountsById.get(cycle.accountId)?.nickname}
-                </div>
-              )}
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+              <span className="font-semibold tabular-nums">{cycle.ticker ?? '-'}</span>
+              <Badge tone="brand" size="sm">
+                {labelOf('strategyTypes', cycle.strategyType)}
+              </Badge>
             </div>
             <span className="shrink-0 text-right text-xs text-muted-foreground">
               <Period cycle={cycle} />
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-end gap-4 border-t pt-3 text-sm">
-            <span className="text-muted-foreground">
-              손익{' '}
-              <span className={pnlClass(cycle.pnl)}>
-                {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
+          {/* 계좌명과 손익·수익률을 한 줄에 — 손익·수익률은 줄이지 않고 긴 계좌명만 말줄임한다 */}
+          <div className="mt-1.5 flex items-center justify-between gap-3 text-sm">
+            <span className="min-w-0 truncate text-xs text-muted-foreground">{accountsById.get(cycle.accountId)?.nickname}</span>
+            <span className="flex shrink-0 items-center gap-3 whitespace-nowrap text-muted-foreground">
+              <span>
+                손익{' '}
+                <span className={pnlClass(cycle.pnl)}>
+                  {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
+                </span>
               </span>
-            </span>
-            <span className="text-muted-foreground">
-              수익률{' '}
-              <span className={pnlClass(cycle.returnRate)}>
-                {fmtSignedPercent(cycle.returnRate)}
+              <span>
+                수익률{' '}
+                <span className={pnlClass(cycle.returnRate)}>
+                  {fmtSignedPercent(cycle.returnRate)}
+                </span>
               </span>
             </span>
           </div>
