@@ -40,8 +40,10 @@ export interface BrokerMeta extends EnumMeta {
   currency?: string
   minOrderAmount?: string // 견적 통화 최소 주문 금액(plain decimal 문자열). 코인 시장에서만 의미가 있다
   amountScale?: number // 금액 소수 자릿수 — KRW 0, USD·USDT 2
-  apiKeyExpirySource?: string // API 키 만료일 출처 — BROKER_API(증권사 조회)·ESTIMATED(추정, 사용자 입력 가능)·NONE
+  apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — BROKER_API(증권사 조회)·ESTIMATED(추정, 사용자 입력 가능)·NONE
 }
+
+type ApiKeyExpirySource = 'BROKER_API' | 'ESTIMATED' | 'NONE'
 
 export interface MetaBundle {
   strategyTypes: StrategyTypeMeta[]

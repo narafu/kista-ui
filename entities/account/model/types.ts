@@ -10,6 +10,12 @@ export interface Account {
   apiKeyExpiresAt?: string | null // API 키 만료 시각(ISO). 만료일을 모르는 broker는 null
 }
 
+export interface CredentialsRequest {
+  appKey: string
+  secretKey: string
+  apiKeyExpiresOn?: string // 실제 만료일(yyyy-MM-dd, KST). 비우면 생략
+}
+
 export interface AccountRequest {
   nickname: string
   accountNo?: string

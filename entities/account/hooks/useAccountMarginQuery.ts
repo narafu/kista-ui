@@ -14,7 +14,7 @@ import {
   testKisConnection,
   type PriceMap,
 } from '../api'
-import type { Account, AccountRequest } from '../model/types'
+import type { Account, AccountRequest, CredentialsRequest } from '../model/types'
 import { accountKeys } from '../model/queryKeys'
 import { accountListQueryOptions } from '../model/queryOptions'
 
@@ -56,7 +56,7 @@ export function useUpdateAccountMutation(accountId: string) {
 // 실패 문구는 EditAccountForm이 거래소 오류 코드별로 인라인 표시한다 — 토스트를 두면 같은 피드백이 두 번 나온다
 export function useUpdateCredentialsMutation(accountId: string) {
   const queryClient = useQueryClient()
-  return useMutation<Account, Error, { appKey: string; secretKey: string; apiKeyExpiresOn?: string }>({
+  return useMutation<Account, Error, CredentialsRequest>({
     mutationFn: (body) => updateCredentials(accountId, body),
     onSuccess: async (saved) => {
       queryClient.setQueryData(accountKeys.detail(accountId), saved)

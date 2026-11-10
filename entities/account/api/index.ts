@@ -1,7 +1,7 @@
 import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { Currency } from '@shared/lib/api-schema'
-import type { Account, AccountRequest } from '../model/types'
+import type { Account, AccountRequest, CredentialsRequest } from '../model/types'
 
 export type PriceMap = Record<string, number>
 
@@ -26,7 +26,7 @@ export async function updateAccount(id: string, data: AccountRequest, token?: st
 }
 
 // 응답은 갱신된 계좌(apiKeyExpiresAt 포함). 서버가 연결 테스트를 통과해야 저장한다
-export async function updateCredentials(id: string, body: { appKey: string; secretKey: string; apiKeyExpiresOn?: string }): Promise<Account> {
+export async function updateCredentials(id: string, body: CredentialsRequest): Promise<Account> {
   return clientFetch<Account>(`/api/accounts/${id}/credentials`, jsonBody('PUT', body))
 }
 

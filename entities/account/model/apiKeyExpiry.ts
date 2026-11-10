@@ -21,6 +21,6 @@ export function kstToday(now = new Date()): string {
 }
 
 // 만료일이 추정값인 broker(메타 apiKeyExpirySource) — 사용자가 실제 만료일을 입력할 수 있다
-export function isEstimatedExpiry(source: string | undefined): boolean {
+export function isEstimatedExpiry(source: 'BROKER_API' | 'ESTIMATED' | 'NONE' | undefined): boolean {
   return source === 'ESTIMATED'
 }
