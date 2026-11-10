@@ -120,6 +120,13 @@ export function fmtMoney(n: number, currency: Currency): string {
   return currency === 'USDT' ? `${fmtUsd(n)} USDT` : `$${fmtUsd(n)}`
 }
 
+/** 금액 문자열과 라벨 줄에 따로 둘 단위로 가른다 — 코드형 단위(USDT)만 unit으로 빼고, 기호형 단위($·원)는 text에 그대로 둔다. 값이 없으면 text는 '-'이고 단위는 그대로 붙어 로딩 전후 라벨 줄이 흔들리지 않는다 */
+export function splitMoneyUnit(n: number | null | undefined, currency: Currency): { text: string; unit?: string } {
+  const unit = currency === 'USDT' ? 'USDT' : undefined
+  if (n == null) return { text: '-', unit }
+  return unit ? { text: fmtUsd(n), unit } : { text: fmtMoney(n, currency) }
+}
+
 /** 입력 칸 뒤에 붙이는 통화 단위 — KRW는 "원", 그 외는 통화 코드(USD·USDT) */
 export function currencyUnit(currency: Currency): string {
   return currency === 'KRW' ? '원' : currency

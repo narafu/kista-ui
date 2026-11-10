@@ -13,9 +13,9 @@ import { useAccountPricesQuery } from '@entities/account'
 import { cryptoPricesQueryOptions, directionBadgeClass } from '@entities/trade'
 import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtMoney, fmtUsd, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
+import { fmtDate, splitMoneyUnit, fmtQuantity, fmtSignedPercent, pnlTextClass, roundMoney } from '@shared/lib/format'
 import { brokerMarket, isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
-import type { Currency, TradingMarket } from '@shared/lib/api-schema'
+import type { TradingMarket } from '@shared/lib/api-schema'
 import { StrategyInfoCard } from './StrategyMetaSection'
 import { CloseStrategyDialog } from './CloseStrategyDialog'
 import { StrategyToggleButton } from './StrategyToggleButton'
@@ -29,13 +29,8 @@ interface Props {
 
 // 모든 타일을 같은 글씨 크기로, 모바일(sm 미만)에서는 타일마다 전체 폭 — 2열 값 칸(360px에서 약 100px)에는 업비트 KRW 금액(984,074,074원)·소수 8자리 수량·"적립식 분할매매"가 한 줄로 안 들어가고, 타일 개수가 6개라 일부만 전체 폭이면 빈 칸이 생긴다
 const TILE = { className: 'col-span-2 sm:col-span-1 p-4 lg:p-5', valueClassName: 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep' }
-// 코드형 단위(코인 티커·USDT)는 값 뒤에 붙이면 모바일 타일에서 줄바꿈되므로 라벨 줄 오른쪽에 둔다. 기호형 단위($·원·주)는 값에 그대로 붙인다
-const unitTag = (unit: string) => <span className="ml-2 shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground">{unit}</span>
-function moneyTile(currency: Currency) {
-  return currency === 'USDT'
-    ? { fmt: (n: number) => fmtUsd(n), labelAction: unitTag('USDT') }
-    : { fmt: (n: number) => fmtMoney(n, currency), labelAction: undefined }
-}
+// 코드형 단위(코인 티커·USDT)는 KpiCard unit으로 라벨 줄 오른쪽에 둔다. 기호형 단위($·원·주)는 값에 그대로 붙인다
+// 값이 없어도('-') 단위는 통화 기준으로 붙인다
 // 규칙 카드는 한 줄 배치라 메타 라벨(가용만큼 주문·주문하지 않음) 대신 짧게 — 모르는 코드는 메타 라벨로
 const SHORTFALL_SHORT: Record<string, string> = { PARTIAL: '잔량', REJECT: '주문 안 함' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
@@ -48,7 +43,6 @@ function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; st
   const holdings = dca?.currentHoldings ?? null
   const avg = dca?.avgPrice ?? null
   const currency = marketCurrency(market)
-  const money = moneyTile(currency)
   const cryptoPrices = useQuery({ ...cryptoPricesQueryOptions(accountId, [ticker]), enabled: isCrypto })
   const prices = useAccountPricesQuery(accountId, [ticker], { enabled: !isCrypto })
   const priceQuery = isCrypto ? cryptoPrices : prices
@@ -61,11 +55,13 @@ function DcaHoldingGrid({ accountId, strategy, market }: { accountId: string; st
   // 보유가 없으면 평가할 대상이 없어 -, 있는데 현재가가 없으면 확인 불가, 조회 중이면 스켈레톤
   const loading = holdings != null && !priced && !settled
   const unavailable = holdings != null && !priced && settled
+  const avgTile = splitMoneyUnit(avg, currency)
+  const evalTile = splitMoneyUnit(evalAmount, currency)
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" labelAction={isCrypto ? unitTag(ticker) : undefined} value={isCrypto ? fmtQuantity(holdings ?? 0) : `${fmtQuantity(holdings ?? 0)}주`} {...TILE} />
-      <KpiCard label="평단가" labelAction={money.labelAction} value={avg != null ? money.fmt(avg) : '-'} {...TILE} />
-      <KpiCard label="평가금액" labelAction={money.labelAction} value={unavailable ? UNAVAILABLE : evalAmount != null ? money.fmt(evalAmount) : '-'} skeleton={loading} {...TILE} />
+      <KpiCard label="보유 수량" unit={isCrypto ? ticker : undefined} value={isCrypto ? fmtQuantity(holdings ?? 0) : `${fmtQuantity(holdings ?? 0)}주`} {...TILE} />
+      <KpiCard label="평단가" unit={avgTile.unit} value={avgTile.text} {...TILE} />
+      <KpiCard label="평가금액" unit={evalTile.unit} value={unavailable ? UNAVAILABLE : evalTile.text} skeleton={loading} {...TILE} />
       <KpiCard
         label="수익률"
         value={unavailable ? UNAVAILABLE : returnRatio != null ? <span className={pnlTextClass(returnRatio)}>{fmtSignedPercent(returnRatio)}</span> : '-'}
@@ -94,7 +90,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   // 통화·크립토 여부는 계좌 broker 기준 — BTC는 업비트(KRW)·바이낸스(USDT) 모두에 있어 티커로 정할 수 없다
   const market = brokerMarket(broker)
   const isCrypto = isCryptoMarket(market)
-  const deposit = moneyTile(marketCurrency(market))
+  const deposit = splitMoneyUnit(strategy.ledgerDeposit != null ? floorToCents(strategy.ledgerDeposit) : null, marketCurrency(market))
   const [closeOpen, setCloseOpen] = useState(false)
   const { dca } = strategy
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
@@ -111,7 +107,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
       <StrategyInfoCard strategy={strategy}>
         <div className="grid grid-cols-2 gap-3">
           <KpiCard label="전략타입" value={labelOf('strategyTypes', strategy.type)} {...TILE} />
-          <KpiCard label="예수금" labelAction={deposit.labelAction} value={strategy.ledgerDeposit != null ? deposit.fmt(floorToCents(strategy.ledgerDeposit)) : '-'} {...TILE} />
+          <KpiCard label="예수금" unit={deposit.unit} value={deposit.text} {...TILE} />
         </div>
         <DcaHoldingGrid accountId={accountId} strategy={strategy} market={market} />
       </StrategyInfoCard>

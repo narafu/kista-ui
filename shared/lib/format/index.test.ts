@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, splitMoneyUnit, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -237,5 +237,21 @@ describe('roundMoney', () => {
     expect(roundMoney(1234.5, 'KRW')).toBe(1235)
     expect(roundMoney(10.555, 'USDT')).toBeCloseTo(10.56)
     expect(roundMoney(10.554, 'USD')).toBe(10.55)
+  })
+})
+
+describe('splitMoneyUnit', () => {
+  it('KRW·USD는 기호가 붙은 text만, unit 없음', () => {
+    expect(splitMoneyUnit(1234.4, 'KRW')).toEqual({ text: '1,234원' })
+    expect(splitMoneyUnit(1234.5, 'USD')).toEqual({ text: '$1,234.50' })
+  })
+
+  it('USDT는 숫자만 text, 단위는 unit으로 뺀다', () => {
+    expect(splitMoneyUnit(1234.5, 'USDT')).toEqual({ text: '1,234.50', unit: 'USDT' })
+  })
+
+  it('값이 없으면 text는 -, 단위는 통화 기준으로 그대로 붙는다', () => {
+    expect(splitMoneyUnit(null, 'USDT')).toEqual({ text: '-', unit: 'USDT' })
+    expect(splitMoneyUnit(undefined, 'KRW')).toEqual({ text: '-', unit: undefined })
   })
 })

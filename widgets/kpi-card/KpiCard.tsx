@@ -4,7 +4,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 interface Props {
   label: string
-  labelAction?: ReactNode
+  /** 라벨 줄 오른쪽 코드형 단위(USDT·코인 티커) — 값 뒤에 붙이면 모바일 타일에서 줄바꿈된다 */
+  unit?: string
   value?: ReactNode
   sub?: ReactNode
   className?: string
@@ -12,7 +13,7 @@ interface Props {
   skeleton?: boolean
 }
 
-export function KpiCard({ label, labelAction, value, sub, className, valueClassName, skeleton = false }: Props) {
+export function KpiCard({ label, unit, value, sub, className, valueClassName, skeleton = false }: Props) {
   return (
     <div
       className={cn(
@@ -21,10 +22,10 @@ export function KpiCard({ label, labelAction, value, sub, className, valueClassN
       )}
     >
       <div className="flex items-center justify-between">
-        <span className="text-base font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
+        <span className="min-w-0 text-base font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
           {label}
         </span>
-        {labelAction}
+        {unit && <span className="ml-2 shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground">{unit}</span>}
       </div>
       <div
         className={cn('text-2xl lg:text-3xl font-bold leading-tight text-foreground', valueClassName)}

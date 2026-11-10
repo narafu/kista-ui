@@ -156,8 +156,15 @@ describe('AccountSummaryCard', () => {
     // USDT 단위는 값이 아닌 라벨 줄에 둔다
     expect(screen.getByText('10.50')).toBeInTheDocument()
     expect(screen.getByText('75.25')).toBeInTheDocument()
-    expect(screen.getAllByText('USDT').length).toBeGreaterThanOrEqual(2)
+    // 전략 합산 3타일(값 없음 포함) + 거래소 기준 2타일
+    expect(screen.getAllByText('USDT')).toHaveLength(5)
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
+  })
+
+  it('KRW 주식 계좌에는 USDT 단위가 없다', () => {
+    render(<AccountSummaryCard account={account} deposit={1000} posEvalUsd={2000} />)
+
+    expect(screen.queryByText('USDT')).not.toBeInTheDocument()
   })
 
   it('현재가 확인 불가 종목이 있으면 총자산에서 빠졌다고 알린다', () => {
