@@ -191,7 +191,8 @@ describe('AdminTradesWorkbench', () => {
     expect(strategySelect).toHaveTextContent('전략 선택')
     expect(brokerSelect).not.toBeDisabled()
     expect(strategySelect).toBeDisabled()
-  })
+    // Select를 다섯 번 열고 고르는 흐름이라 전체 스위트 부하에서 기본 5초를 넘긴다
+  }, 15000)
 
   it('계좌를 찾지 못한 거래(userId null)는 사용자 선택지에 나오지 않는다', async () => {
     const user = userEvent.setup()
