@@ -36,7 +36,10 @@ export function BacktestPageContent() {
               입력값이 바뀌었습니다. 아래 결과는 이전 입력 기준이며, 다시 실행하면 갱신됩니다.
             </p>
           )}
-          <BacktestSummaryCards summary={result.summary} />
+          <BacktestSummaryCards
+            summary={result.summary}
+            excludesRecurringFlows={form.resultParams?.type === 'VR' && !!form.resultParams.vrRecurringAmount}
+          />
           <div className="rounded-[var(--r-lg)] border border-border bg-card p-4 sm:p-6">
             <EquityLineChart
               title="백테스트 자산 추이"

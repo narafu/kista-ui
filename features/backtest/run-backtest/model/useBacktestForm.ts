@@ -195,6 +195,8 @@ export function useBacktestForm() {
     run,
     reset,
     result: mutation.data,
+    /** 결과를 만든 입력 — 폼이 바뀌어도 결과 해석은 이 값 기준이다 */
+    resultParams: mutation.variables,
     isResultStale,
     isLoading: mutation.isPending,
     errorMessage: mutation.error ? apiMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요.') : null,
