@@ -3544,7 +3544,7 @@ export interface components {
             price?: number;
         };
         PortfolioSummaryDto: {
-            /** @description 총자산 (KRW — 필드명은 usd지만 KRW 값을 담고 있는 KIS 응답 원본 quirk 유지) */
+            /** @description 총자산 (KRW — KIS tot_asst_amt 원본 값) */
             totalAsset?: number;
             /** @description 총평가손익 (KRW) */
             totalEvalProfit?: number;
