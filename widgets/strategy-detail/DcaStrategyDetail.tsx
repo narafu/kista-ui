@@ -123,28 +123,31 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
               <ul className="space-y-3">
                 {dca.rules.map((r) => (
                   <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
-                    {/* 주기·주문 방식도 다른 항목처럼 라벨 행으로 둔다 — 배지 옆 한 줄 요약은 모바일에서 다른 행과 정렬이 어긋난다 */}
-                    <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
+                    {/* 모바일 세로 길이를 줄이려 주기·주문 방식은 배지 옆 한 줄, 다음 판정·최근 결과는 하단 보조 줄로 둔다 */}
+                    <div className="flex flex-wrap items-center gap-x-2">
+                      <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>
+                      <span data-testid="rule-summary">
+                        {[formatDcaSchedule(r, labelOf('dcaFrequencies', r.frequency)), !isCrypto && labelOf('orderTypes', r.orderType)].filter(Boolean).join(' · ')}
+                      </span>
+                    </div>
                     <dl className="mt-2.5 grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
-                      <RuleField label="주기" inline>{formatDcaSchedule(r, labelOf('dcaFrequencies', r.frequency))}</RuleField>
-                      {!isCrypto && <RuleField label="주문 방식" inline>{labelOf('orderTypes', r.orderType)}</RuleField>}
                       <RuleField label="금액" inline>{formatDcaSizing(r.sizing, market)}</RuleField>
                       <RuleField label="조건" inline>
                         {r.conditions.length === 0 ? '조건 없이 매 회차 주문' : r.conditions.map((c, i) => (
                           <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
                         ))}
                       </RuleField>
-                      <RuleField label={r.direction === 'SELL' ? '보유가 부족할 때' : '잔고가 부족할 때'} inline>
+                      <RuleField label={r.direction === 'SELL' ? '보유 부족 시' : '잔고 부족 시'} inline>
                         {SHORTFALL_SHORT[r.shortfall] ?? labelOf('dcaShortfallPolicies', r.shortfall)}
                       </RuleField>
-                      <RuleField label={isCrypto ? '다음 실행' : '다음 판정일'} inline>
-                        {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}
-                      </RuleField>
-                      <RuleField label="최근 결과" inline>
-                        {/* 건너뛴 회차는 사유만으로 충분하다 — "건너뜀 · 조건 미충족" 대신 "조건 미충족" */}
-                        {!r.lastExecution ? '-' : r.lastExecution.skipReason ? labelOf('dcaSkipReasons', r.lastExecution.skipReason) : labelOf('dcaExecutionStatuses', r.lastExecution.status)}
-                      </RuleField>
                     </dl>
+                    <p data-testid="rule-footer" className="mt-2.5 text-xs text-muted-foreground">
+                      {isCrypto ? '다음 실행' : '다음 판정'}{' '}
+                      {!r.nextExecution ? '미정' : isCrypto ? formatCryptoNextExecution(r.nextExecution.kstTradeDate, r.executionHour) : fmtDate(r.nextExecution.kstTradeDate)}
+                      {' · 최근 '}
+                      {/* 건너뛴 회차는 사유만으로 충분하다 — "건너뜀 · 조건 미충족" 대신 "조건 미충족" */}
+                      {!r.lastExecution ? '-' : r.lastExecution.skipReason ? labelOf('dcaSkipReasons', r.lastExecution.skipReason) : labelOf('dcaExecutionStatuses', r.lastExecution.status)}
+                    </p>
                   </li>
                 ))}
               </ul>

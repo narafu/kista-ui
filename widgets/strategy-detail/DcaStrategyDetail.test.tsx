@@ -74,6 +74,8 @@ function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 
 }
 
 // 규칙 카드의 라벨(dt)에 딸린 값(dd)
+const ruleSummary = () => screen.getByTestId('rule-summary')
+const ruleFooter = () => screen.getByTestId('rule-footer')
 const ruleField = (label: string) => screen.getByText(label, { selector: 'dt' }).nextElementSibling as HTMLElement
 // KpiCard 타일 — 라벨 span → 라벨 줄 div → 타일
 const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
@@ -145,15 +147,13 @@ describe('DcaStrategyDetail', () => {
     renderDetail()
     const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
     expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
-    // 주기·주문 방식·금액도 조건 등과 같은 라벨 행이다
-    expect(ruleField('주기')).toHaveTextContent('매월 말일')
-    expect(ruleField('주문 방식')).toHaveTextContent('MOC(종가시장가)')
+    // 주기·주문 방식은 배지 옆 요약 한 줄, 금액·조건은 라벨 행이다
+    expect(ruleSummary()).toHaveTextContent('매월 말일 · MOC(종가시장가)')
     expect(ruleField('금액')).toHaveTextContent('$300.00')
     expect(within(card).getByText('매수')).toBeInTheDocument()
     expect(ruleField('조건')).toHaveTextContent('RSI(14) 35 이하')
-    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('잔량')
-    expect(ruleField('다음 판정일')).toHaveTextContent(fmtDate('2026-10-31'))
-    expect(ruleField('최근 결과')).toHaveTextContent('-')
+    expect(ruleField('잔고 부족 시')).toHaveTextContent('잔량')
+    expect(ruleFooter()).toHaveTextContent(`다음 판정 ${fmtDate('2026-10-31')} · 최근 -`)
     expect(within(card).queryByText('방향')).not.toBeInTheDocument()
     expect(screen.queryByTestId('dca-config-grid')).not.toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['전략 정보', '규칙', '회차별 실행 이력'])
@@ -161,25 +161,24 @@ describe('DcaStrategyDetail', () => {
   it('규칙 카드: 크립토는 다음 실행 + 시각, 최근 결과와 skip 사유, 조건 없음 문구', () => {
     const r = { ...ethRule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [r] } })
-    expect(ruleField('다음 실행')).toHaveTextContent('11/1 09시')
-    expect(screen.queryByText('주문 방식', { selector: 'dt' })).not.toBeInTheDocument() // 크립토는 주문 방식이 없다
-    expect(ruleField('최근 결과')).toHaveTextContent('조건 미충족')
-    expect(ruleField('최근 결과')).not.toHaveTextContent('건너뜀')
+    expect(ruleFooter()).toHaveTextContent('다음 실행 11/1 09시 · 최근 조건 미충족')
+    expect(ruleFooter()).not.toHaveTextContent('건너뜀')
+    expect(ruleSummary()).not.toHaveTextContent('MOC') // 크립토는 주문 방식이 없다
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
-    expect(ruleField('잔고가 부족할 때')).toHaveTextContent('주문 안 함')
+    expect(ruleField('잔고 부족 시')).toHaveTextContent('주문 안 함')
     expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
   })
   it('규칙 카드: 주문된 최근 결과는 상태 라벨을 보여 준다', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, lastExecution: { kstTradeDate: '2026-10-21', status: 'ORDERED', skipReason: null } }] } })
-    expect(ruleField('최근 결과')).toHaveTextContent('주문됨')
+    expect(ruleFooter()).toHaveTextContent('최근 주문됨')
   })
   it('규칙 카드: 매도 규칙은 주식이어도 보유 부족 정책을 보여 준다', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, direction: 'SELL' }] } })
-    expect(ruleField('보유가 부족할 때')).toHaveTextContent('잔량')
+    expect(ruleField('보유 부족 시')).toHaveTextContent('잔량')
   })
   it('nextExecution이 null이면 미정', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, nextExecution: null }] } })
-    expect(ruleField('다음 판정일')).toHaveTextContent('미정')
+    expect(ruleFooter()).toHaveTextContent('다음 판정 미정')
   })
   it('공포탐욕지수 조건은 주식이면 (CNN), 크립토면 (Crypto) 출처를 붙인다', () => {
     const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }
