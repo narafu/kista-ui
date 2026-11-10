@@ -1754,7 +1754,7 @@ export interface paths {
         get?: never;
         /**
          * 계좌 API 키 수정
-         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(업비트)을 갱신. 모의계좌는 불가.
+         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(업비트 조회·그 외 추정 또는 입력값)을 갱신. 모의계좌는 불가.
          */
         put: operations["updateCredentials"];
         post?: never;
@@ -2828,8 +2828,8 @@ export interface components {
             broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
             /**
              * Format: date
-             * @description API 키 만료일(KST, yyyy-MM-dd) — KIS·TOSS·MERITZ만 입력 가능, 오늘 이후. 생략하면 추정값(등록·앱키 교체 시 1년 후)·기존 값 유지
-             * @example 2027-05-31
+             * @description API 키 만료일(KST, 선택) — KIS·토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @example 2027-11-10
              */
             apiKeyExpiresOn?: string;
         };
@@ -2866,7 +2866,7 @@ export interface components {
             currency?: string;
             /**
              * Format: date-time
-             * @description 거래소 API 키 만료 시각 (업비트만, 그 외 null)
+             * @description 거래소 API 키 만료 시각 (업비트는 API 조회, KIS·토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
              */
             apiKeyExpiresAt?: string;
         };
@@ -2877,8 +2877,8 @@ export interface components {
             secretKey: string;
             /**
              * Format: date
-             * @description API 키 만료일(KST, yyyy-MM-dd) — KIS·TOSS·MERITZ만 입력 가능, 오늘 이후. 생략하면 추정값(등록·앱키 교체 시 1년 후)·기존 값 유지
-             * @example 2027-05-31
+             * @description API 키 만료일(KST, 선택) — KIS·토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @example 2027-11-10
              */
             apiKeyExpiresOn?: string;
         };
