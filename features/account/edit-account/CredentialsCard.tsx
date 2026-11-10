@@ -54,7 +54,7 @@ export function CredentialsCard({ account }: Props) {
         <Input id="credential-secret" type="password" className="h-12" value={secretKey} onChange={(e) => { setSecretKey(e.target.value); mutation.reset() }} disabled={mutation.isPending} maxLength={512} autoComplete="off" />
       </div>
       {showExpiry && (
-        <ApiKeyExpiryField id="credential-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요. 비우면 오늘부터 1년으로 계산합니다" disabled={mutation.isPending} />
+        <ApiKeyExpiryField id="credential-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요. 비우면 키를 바꾼 경우 오늘부터 1년으로 계산하고, 같은 키면 기존 만료일을 유지합니다" disabled={mutation.isPending} />
       )}
       {mutation.isError && (
         <p className="text-sm text-[var(--status-error)]">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>
