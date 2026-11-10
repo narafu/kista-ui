@@ -79,9 +79,10 @@ describe('AccountSummaryCard', () => {
         ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: 7.5 }}
       />,
     )
-    expect(screen.getByText('예수금 (전략 합산)')).toBeInTheDocument()
+    expect(screen.getByText('전략 기준')).toBeInTheDocument()
+    expect(screen.getAllByText('예수금')).toHaveLength(2)
     expect(screen.getByText('$160.00')).toBeInTheDocument()
-    expect(screen.getByText('평가금 (전략 합산)')).toBeInTheDocument()
+    expect(screen.getAllByText('평가금')).toHaveLength(2)
     expect(screen.getByText('$50.00')).toBeInTheDocument()
     expect(screen.getByText('미배정 예수금')).toBeInTheDocument()
     expect(screen.getByText('주문 가능 기준')).toBeInTheDocument()
@@ -106,7 +107,7 @@ describe('AccountSummaryCard', () => {
   it('전략 합산 조회가 실패하면 -와 함께 불러오지 못했다는 안내를 보여준다', () => {
     render(<AccountSummaryCard account={account} deposit={0} posEvalUsd={0} ledgerTotalsError />)
     expect(screen.getAllByText('-')).toHaveLength(3)
-    expect(screen.getByText('전략 합산 금액을 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('전략 기준 금액을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
   it('업비트 계좌는 계좌번호 대신 예수금·총자산을 보여준다', () => {
@@ -121,7 +122,7 @@ describe('AccountSummaryCard', () => {
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
     expect(screen.getByText('거래소')).toBeInTheDocument()
     expect(screen.queryByText('증권사')).not.toBeInTheDocument()
-    expect(screen.getByText('예수금')).toBeInTheDocument()
+    expect(screen.getAllByText('예수금')).toHaveLength(2)
     expect(screen.getByText('120,000원')).toBeInTheDocument()
     expect(screen.getByText('1,478,024원')).toBeInTheDocument()
     expect(screen.queryByText(/\$/)).not.toBeInTheDocument()
