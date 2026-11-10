@@ -32,7 +32,7 @@ describe('OrderRows', () => {
         orders={[
           { ticker: 'SOXL', direction: 'SELL', orderType: 'LIMIT', timing: 'AT_OPEN', quantity: 1, price: '30' },
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LOC', timing: 'AT_CLOSE', quantity: 1, price: '28' },
-          { ticker: 'SOXL', direction: 'SELL', orderType: 'LOC', timing: 'AT_OPEN', quantity: 1, price: '31' },
+          { ticker: 'SOXL', direction: 'SELL', orderType: 'LOC', timing: 'AT_CLOSE', quantity: 1, price: '31' },
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', timing: 'AT_CLOSE', quantity: 1, price: '27' },
         ]}
       />,
