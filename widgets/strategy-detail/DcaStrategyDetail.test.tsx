@@ -75,6 +75,8 @@ function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 
 
 // 규칙 카드의 라벨(dt)에 딸린 값(dd)
 const ruleField = (label: string) => screen.getByText(label, { selector: 'dt' }).nextElementSibling as HTMLElement
+// KpiCard 타일 — 라벨 span → 라벨 줄 div → 타일
+const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
 
 describe('DcaStrategyDetail', () => {
   beforeEach(() => {
@@ -86,7 +88,8 @@ describe('DcaStrategyDetail', () => {
     cryptoPrices.result = { ETH: 4_400_000 }
     prices.calls = []
     renderDetail(ethStrategy)
-    expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
+    // 코인 티커는 라벨 줄 오른쪽 단위, 값은 숫자만 — 모바일 타일에서 단위 때문에 줄바꿈되지 않게
+    expect(tile('보유 수량')).toHaveTextContent(/^보유 수량ETH0\.5$/)
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
     expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
     expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
@@ -100,8 +103,10 @@ describe('DcaStrategyDetail', () => {
   it('바이낸스 계좌: USDT로 평가금액을 소수 2자리까지 반올림해 표시한다', async () => {
     cryptoPrices.result = { ETH: 3001.111 }
     renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, avgPrice: 2500.5 } }, 'BINANCE')
-    expect(screen.getByText('2,500.50 USDT')).toBeInTheDocument()
-    expect(await screen.findByText('1,500.56 USDT')).toBeInTheDocument()
+    // USDT도 라벨 줄 단위로 빼고 값은 숫자만
+    expect(tile('평단가')).toHaveTextContent(/^평단가USDT2,500\.50$/)
+    expect(await screen.findByText('1,500.56')).toBeInTheDocument()
+    expect(tile('평가금액')).toHaveTextContent(/^평가금액USDT1,500\.56$/)
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
   it('크립토 평가금액은 원 단위로 반올림한다', async () => {
@@ -112,12 +117,11 @@ describe('DcaStrategyDetail', () => {
   it('크립토 시세 조회가 실패해도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
     renderDetail(ethStrategy)
     expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
-    expect(screen.getByText('0.5 ETH')).toBeInTheDocument()
+    expect(tile('보유 수량')).toHaveTextContent('0.5')
     expect(screen.getByText('4,000,000원')).toBeInTheDocument()
   })
   it('예수금: 원장 예수금을 계좌 통화로, 모르면 -', () => {
     const { unmount } = renderDetail({ ...ethStrategy, ledgerDeposit: 15000 })
-    const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
     expect(tile('예수금')).toHaveTextContent('15,000원')
     unmount()
     renderDetail()
@@ -134,7 +138,6 @@ describe('DcaStrategyDetail', () => {
   })
   it('currentHoldings가 null이면 보유 수량 0, 나머지는 -', () => {
     renderDetail({ ...strategy, dca: { rules: [rule], currentHoldings: null, avgPrice: null } })
-    const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
     expect(tile('보유 수량')).toHaveTextContent('0주')
     for (const l of ['평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
   })
