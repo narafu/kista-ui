@@ -143,7 +143,7 @@ describe('DcaStrategyDetail', () => {
     expect(tile('보유 수량')).toHaveTextContent('0주')
     for (const l of ['평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
   })
-  it('규칙 카드: 요약·조건·부족 정책·다음 판정일, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
+  it('규칙 카드: 요약·조건·부족 정책·다음 판정, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
     const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
     expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
@@ -166,7 +166,7 @@ describe('DcaStrategyDetail', () => {
     expect(ruleSummary()).not.toHaveTextContent('MOC') // 크립토는 주문 방식이 없다
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
     expect(ruleField('잔고 부족 시')).toHaveTextContent('주문 안 함')
-    expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/다음 판정/)).not.toBeInTheDocument()
   })
   it('규칙 카드: 주문된 최근 결과는 상태 라벨을 보여 준다', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, lastExecution: { kstTradeDate: '2026-10-21', status: 'ORDERED', skipReason: null } }] } })
