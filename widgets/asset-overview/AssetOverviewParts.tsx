@@ -93,6 +93,7 @@ export function SummaryKpis({ summary, previousSummary, amountValue, labelOf }: 
         label="가장 큰 자산군"
         value={summary.largestAssetClass ? labelOf('assetClasses', summary.largestAssetClass.assetClass) : '-'}
         sub={summary.largestAssetClass ? amountValue(fmtKrw(summary.largestAssetClass.amount)) : undefined}
+        valueClassName={KPI_VALUE_CLASS}
       />
     </div>
   )

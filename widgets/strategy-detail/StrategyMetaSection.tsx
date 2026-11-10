@@ -11,6 +11,9 @@ import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
 import { recurringModeLabel } from './orderBannerCopy'
 
+// DcaStrategyDetail의 TILE과 같은 값 크기 — 모바일 2열 값 칸(약 100~115px)에 금액이 넘치지 않게 한 그리드 안에서 통일
+const TILE_VALUE = 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep'
+
 interface Props {
   strategy: Strategy
   preview: NextOrderPreview | undefined
@@ -59,16 +62,16 @@ function TopGrid({ strategy, cycleSeedLabel }: TopGridProps) {
     <div data-testid="strategy-meta-grid" className="grid grid-cols-2 gap-3">
       <KpiCard
         label="전략타입"
-        value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{labelOf('strategyTypes', strategy.type)}</span>}
+        value={<span className="inline-flex items-center font-bold">{labelOf('strategyTypes', strategy.type)}</span>}
         className="p-4 lg:p-5"
-        valueClassName="text-xl lg:text-2xl"
+        valueClassName={TILE_VALUE}
       />
       {strategy.vr ? (
         <KpiCard
           label="운용 방식"
-          value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{recurringModeLabel(strategy.vr.recurringAmount)}</span>}
+          value={<span className="inline-flex items-center font-bold">{recurringModeLabel(strategy.vr.recurringAmount)}</span>}
           className="p-4 lg:p-5"
-          valueClassName="text-xl lg:text-2xl"
+          valueClassName={TILE_VALUE}
         />
       ) : (
         <KpiCard
@@ -77,6 +80,7 @@ function TopGrid({ strategy, cycleSeedLabel }: TopGridProps) {
             <Badge tone="none" size="md" className={cn('h-[28px] lg:h-[36px] text-base', seedBadgeCls)}>{cycleSeedLabel}</Badge>
           }
           className="p-4 lg:p-5"
+          valueClassName={TILE_VALUE}
         />
       )}
     </div>
@@ -88,19 +92,20 @@ function SummaryGrid({ strategy, usesDivisionCount }: { strategy: Strategy; uses
     <div data-testid="strategy-summary-grid" className="grid grid-cols-2 gap-3">
       <KpiCard
         label={usesDivisionCount ? '분할' : '운용 방식'}
-        value={<span className="inline-flex items-center text-xl lg:text-2xl font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : '매매표'}</span>}
+        value={<span className="inline-flex items-center font-bold">{usesDivisionCount ? `${strategy.divisionCount}분할` : '매매표'}</span>}
         className="p-4 lg:p-5"
-        valueClassName="text-xl lg:text-2xl"
+        valueClassName={TILE_VALUE}
       />
       <KpiCard
         label="시작 예수금"
         value={
           strategy.initialDeposit != null ? (
-            <span className="inline-flex items-center text-xl lg:text-3xl font-bold">{`$${fmtUsd(strategy.initialDeposit)}`}</span>
+            <span className="inline-flex items-center font-bold">{`$${fmtUsd(strategy.initialDeposit)}`}</span>
           ) : (
-            <span className="inline-flex items-center text-base text-muted-foreground font-normal">미설정</span>
+            <span className="inline-flex items-center text-muted-foreground font-normal">미설정</span>
           )
         }
+        valueClassName={TILE_VALUE}
       />
     </div>
   )
@@ -111,33 +116,36 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
     <div data-testid="strategy-vr-grid" className="space-y-3">
       {/* 날짜(최대 약 182px, text-3xl)가 lg 4열·xl 반쪽 카드에 한 줄로 들어가지 않아 이 그리드만 lg에서도 2열로 둔다 */}
       <div className="grid grid-cols-2 gap-3">
-        <KpiCard label="밴드 폭" value={`${vr.bandWidth}%`} />
-        <KpiCard label="주기" value={`${vr.intervalWeeks}주`} />
+        <KpiCard label="밴드 폭" value={`${vr.bandWidth}%`} valueClassName={TILE_VALUE} />
+        <KpiCard label="주기" value={`${vr.intervalWeeks}주`} valueClassName={TILE_VALUE} />
         {/* 날짜는 모바일·xl(사이드 열) 반쪽 카드에 한 줄로 들어가지 않아 그 구간에서만 전체 폭으로 둔다 */}
-        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} className="col-span-2 sm:col-span-1 xl:col-span-2" />
+        <KpiCard label="시작일" value={startDate ? fmtDate(startDate) : '미설정'} className="col-span-2 sm:col-span-1 xl:col-span-2" valueClassName={TILE_VALUE} />
         <KpiCard
           className="col-span-2 sm:col-span-1 xl:col-span-2"
           label="다음 사이클 시작"
           value={startDate ? fmtDate(nextVrRolloverDate(startDate, vr.intervalWeeks)) : '미설정'}
+          valueClassName={TILE_VALUE}
         />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
-        <KpiCard label="G" value={`${vr.gradient}`} />
-        <KpiCard label="V" value={`$${fmtUsd(vr.value)}`} />
+        <KpiCard label="G" value={`${vr.gradient}`} valueClassName={TILE_VALUE} />
+        <KpiCard label="V" value={`$${fmtUsd(vr.value)}`} valueClassName={TILE_VALUE} />
         <KpiCard
           label="pool"
           value={
             vr.currentPool != null ? (
               `$${fmtUsd(vr.currentPool)}`
             ) : (
-              <span className="inline-flex items-center text-base text-muted-foreground font-normal">미설정</span>
+              <span className="inline-flex items-center text-muted-foreground font-normal">미설정</span>
             )
           }
+          valueClassName={TILE_VALUE}
         />
         <KpiCard
           label="pool 상한"
           value={`$${fmtUsd(vr.poolLimit)}`}
           sub={`${(vr.poolLimitRate * 100).toFixed(0)}%`}
+          valueClassName={TILE_VALUE}
         />
       </div>
     </div>
@@ -158,24 +166,24 @@ function PositionGrid({ preview, isLoadingPreview, isPreviewError }: PositionGri
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
       {position ? (
         <>
-          <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} />
-          <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} />
-          <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} />
-          <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} />
+          <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} valueClassName={TILE_VALUE} />
+          <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} valueClassName={TILE_VALUE} />
+          <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} valueClassName={TILE_VALUE} />
+          <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} valueClassName={TILE_VALUE} />
         </>
       ) : isLoadingPreview ? (
         <>
-          <KpiCard label="회차(T)" skeleton />
-          <KpiCard label="단위금액(회)" skeleton />
-          <KpiCard label="기준가" skeleton />
-          <KpiCard label="목표가" skeleton />
+          <KpiCard label="회차(T)" skeleton valueClassName={TILE_VALUE} />
+          <KpiCard label="단위금액(회)" skeleton valueClassName={TILE_VALUE} />
+          <KpiCard label="기준가" skeleton valueClassName={TILE_VALUE} />
+          <KpiCard label="목표가" skeleton valueClassName={TILE_VALUE} />
         </>
       ) : (
         <>
-          <KpiCard label="회차(T)" value="-" />
-          <KpiCard label="단위금액(회)" value="-" />
-          <KpiCard label="기준가" value="-" />
-          <KpiCard label="목표가" value="-" />
+          <KpiCard label="회차(T)" value="-" valueClassName={TILE_VALUE} />
+          <KpiCard label="단위금액(회)" value="-" valueClassName={TILE_VALUE} />
+          <KpiCard label="기준가" value="-" valueClassName={TILE_VALUE} />
+          <KpiCard label="목표가" value="-" valueClassName={TILE_VALUE} />
         </>
       )}
     </div>

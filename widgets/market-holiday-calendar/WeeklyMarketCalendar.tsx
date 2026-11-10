@@ -65,7 +65,7 @@ function TradeBadges({ summary, badgeClassName }: { summary: DayTradeSummary; ba
             const amount = dir === 'BUY' ? c.buyAmount : c.sellAmount
             return (
               <span key={`${c.currency}-${dir}`} className={cn(badgeClassName, directionBadgeClass(dir))} title={`${BADGE_LABEL[dir]} ${fmtMoney(amount, c.currency)}`}>
-                {BADGE_LABEL[dir]}<br />{fmtCompactMoneyNarrow(amount, c.currency)}
+                {BADGE_LABEL[dir]}<br /><span className="whitespace-nowrap">{fmtCompactMoneyNarrow(amount, c.currency)}</span>
               </span>
             )
           }),

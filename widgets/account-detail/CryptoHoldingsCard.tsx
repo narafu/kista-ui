@@ -70,22 +70,25 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
             <div className="space-y-2 px-4 pb-4 lg:hidden">
               {sorted.map((h) => (
                 <div key={h.ticker} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <Badge tone="brand" size="sm" className="px-2.5 font-bold">{h.ticker}</Badge>
-                    <span className="text-sm font-semibold">{fmtQuantity(h.quantity)}</span>
+                    <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{fmtQuantity(h.quantity)}</span>
                   </div>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="text-muted-foreground">
-                      평단가 <span className="font-semibold text-foreground">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</span>
-                    </span>
-                    <span className="text-muted-foreground">
-                      현재가 <span className="font-semibold text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</span>
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">평가금액</span>
-                    <span className="font-semibold text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</span>
-                  </div>
+                  {/* 360px에서 "평단가 65,123.45 USDT"가 줄바꿈되지 않도록 라벨 위·값 아래 2열로 둔다 */}
+                  <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-sm">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">평단가</dt>
+                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">현재가</dt>
+                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="text-xs text-muted-foreground">평가금액</dt>
+                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</dd>
+                    </div>
+                  </dl>
                 </div>
               ))}
             </div>

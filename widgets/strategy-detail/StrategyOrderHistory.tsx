@@ -115,7 +115,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                   {g.items.map((o) => (
                     <div key={o.id} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                           <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
                             {labelOf('orderDirections', o.direction)}
                           </Badge>
@@ -127,12 +127,12 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                           {labelOf('orderStatuses', o.status)}
                         </Badge>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between gap-2 text-sm">
                         <span className="text-muted-foreground">
-                          주문가 <span className="font-semibold text-foreground">${fmtUsd(toNum(o.price))}</span> · 수량 <span className="font-semibold text-foreground"><OrderQuantity o={o} /></span>
+                          주문가 <span className="whitespace-nowrap tabular-nums font-semibold text-foreground">${fmtUsd(toNum(o.price))}</span> · 수량 <span className="whitespace-nowrap tabular-nums font-semibold text-foreground"><OrderQuantity o={o} /></span>
                         </span>
-                        <span className="text-muted-foreground">
-                          체결가 <span className="font-semibold text-foreground">{o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : '-'}</span>
+                        <span className="shrink-0 whitespace-nowrap text-muted-foreground">
+                          체결가 <span className="tabular-nums font-semibold text-foreground">{o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : '-'}</span>
                         </span>
                       </div>
                     </div>

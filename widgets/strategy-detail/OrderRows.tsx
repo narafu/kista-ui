@@ -98,7 +98,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               <TimingNote orderType={o.orderType} timing={o.timing} />
             </span>
             <span className="font-medium">{o.ticker}</span>
-            <span className="font-semibold">${fmtUsd(toNum(o.price))}</span>
+            <span className="whitespace-nowrap tabular-nums font-semibold">${fmtUsd(toNum(o.price))}</span>
             <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             {hasCancel && (
               <div className="flex justify-center">

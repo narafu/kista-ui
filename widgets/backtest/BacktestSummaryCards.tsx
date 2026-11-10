@@ -12,7 +12,7 @@ interface Props {
 
 // 모바일 2열에서 큰 금액이 카드 밖으로 넘치지 않게 성과 탭(StatsKpiRow)과 같은 크기·줄바꿈 규칙을 쓴다
 const CARD_CLASS = 'min-w-0'
-const VALUE_CLASS = 'break-words text-xl sm:text-2xl lg:text-3xl'
+const VALUE_CLASS = 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep'
 
 export function BacktestSummaryCards({ summary, excludesRecurringFlows }: Props) {
   const card = (label: string, value: string | undefined, valueClassName?: string, sub?: string) => (

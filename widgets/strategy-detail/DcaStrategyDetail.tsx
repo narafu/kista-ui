@@ -27,8 +27,8 @@ interface Props {
   strategy: Strategy
 }
 
-// 모든 타일을 같은 글씨 크기로 — 모바일 2열 타일 폭(390px에서 약 115px)에 코인 소수 8자리(0.44522763, text-lg 111px)가 한 줄로 들어가는 크기
-const TILE = { className: 'p-4 lg:p-5', valueClassName: 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep' }
+// 모든 타일을 같은 글씨 크기로, 모바일(sm 미만)에서는 타일마다 전체 폭 — 2열 값 칸(360px에서 약 100px)에는 업비트 KRW 금액(984,074,074원)·소수 8자리 수량·"적립식 분할매매"가 한 줄로 안 들어가고, 타일 개수가 6개라 일부만 전체 폭이면 빈 칸이 생긴다
+const TILE = { className: 'col-span-2 sm:col-span-1 p-4 lg:p-5', valueClassName: 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep' }
 // 코드형 단위(코인 티커·USDT)는 값 뒤에 붙이면 모바일 타일에서 줄바꿈되므로 라벨 줄 오른쪽에 둔다. 기호형 단위($·원·주)는 값에 그대로 붙인다
 const unitTag = (unit: string) => <span className="ml-2 shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground">{unit}</span>
 function moneyTile(currency: Currency) {

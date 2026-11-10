@@ -153,8 +153,10 @@ describe('AccountSummaryCard', () => {
         cryptoPortfolio={{ currency: 'USDT', cash: 10.5, totalAsset: 75.25, holdings: [] }}
       />,
     )
-    expect(screen.getByText('10.50 USDT')).toBeInTheDocument()
-    expect(screen.getByText('75.25 USDT')).toBeInTheDocument()
+    // USDT 단위는 값이 아닌 라벨 줄에 둔다
+    expect(screen.getByText('10.50')).toBeInTheDocument()
+    expect(screen.getByText('75.25')).toBeInTheDocument()
+    expect(screen.getAllByText('USDT').length).toBeGreaterThanOrEqual(2)
     expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
   })
 

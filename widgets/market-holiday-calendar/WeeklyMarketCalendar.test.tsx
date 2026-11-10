@@ -157,7 +157,7 @@ describe('WeeklyMarketCalendar', () => {
 
     expect(screen.getByTitle('매수 123,456원')).toHaveTextContent('매수12만원')
     expect(screen.getByTitle('매수 50,000원')).toHaveTextContent('매수5만원')
-    expect(screen.getByTitle('매수 1,234.00 USDT')).toHaveTextContent('매수1.2K USDT')
+    expect(screen.getByTitle('매수 1,234.00 USDT')).toHaveTextContent('매수1.2K₮')
     expect(screen.getByTitle('매도 5,000원')).toHaveTextContent('매도5천원')
   })
 })

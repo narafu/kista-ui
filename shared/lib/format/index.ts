@@ -25,10 +25,10 @@ export function fmtCompactUsdNarrow(n: number): string {
 const narrowCompactKrwFormat = new Intl.NumberFormat('ko-KR', { notation: 'compact', maximumSignificantDigits: 2 })
 const narrowCompactNumberFormat = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 2 })
 
-/** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원", "1.2K USDT") — 좁은 칸용 */
+/** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원", "1.2K₮"; 좁은 칸용 — USDT는 테더 기호 ₮로 줄인다) */
 export function fmtCompactMoneyNarrow(n: number, currency: Currency): string {
   if (currency === 'KRW') return `${narrowCompactKrwFormat.format(n)}원`
-  return currency === 'USDT' ? `${narrowCompactNumberFormat.format(n)} USDT` : fmtCompactUsdNarrow(n)
+  return currency === 'USDT' ? `${narrowCompactNumberFormat.format(n)}₮` : fmtCompactUsdNarrow(n)
 }
 
 /** 0~1 비율을 부호 포함 %로. null/undefined는 '-' */
