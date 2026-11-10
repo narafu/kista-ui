@@ -55,6 +55,19 @@ interface TopGridProps {
   cycleSeedLabel: string
 }
 
+/** "적립식($200.00)" — 금액 중간에서 끊기지 않게 "(" 앞에서만 줄바꿈 */
+function RecurringModeValue({ label }: { label: string }) {
+  const i = label.indexOf('(')
+  if (i < 0) return <span className="font-bold">{label}</span>
+  return (
+    <span className="font-bold">
+      {label.slice(0, i)}
+      <wbr />
+      <span className="whitespace-nowrap">{label.slice(i)}</span>
+    </span>
+  )
+}
+
 function TopGrid({ strategy, cycleSeedLabel }: TopGridProps) {
   const { labelOf } = useMeta()
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
@@ -69,7 +82,7 @@ function TopGrid({ strategy, cycleSeedLabel }: TopGridProps) {
       {strategy.vr ? (
         <KpiCard
           label="운용 방식"
-          value={<span className="inline-flex items-center font-bold">{recurringModeLabel(strategy.vr.recurringAmount)}</span>}
+          value={<RecurringModeValue label={recurringModeLabel(strategy.vr.recurringAmount)} />}
           className="p-4 lg:p-5"
           valueClassName={TILE_VALUE}
         />
