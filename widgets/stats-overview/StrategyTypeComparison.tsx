@@ -5,7 +5,7 @@ import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { fmtSignedMoney, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import { fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
 import type { Currency } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import type { StrategyTypeStats } from '@entities/stats'
@@ -84,8 +84,8 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
                         {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
                       <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.realizedPnl))}>{fmtSignedMoney(t.realizedPnl, currency)}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(t.unrealizedPnl))}>{fmtSignedMoney(t.unrealizedPnl, currency)}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.realizedPnl, currency)))}>{fmtSignedMoney(t.realizedPnl, currency)}</TableDataCell>
+                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.unrealizedPnl, currency)))}>{fmtSignedMoney(t.unrealizedPnl, currency)}</TableDataCell>
                     </tr>
                   ))}
                 </tbody>
@@ -116,11 +116,11 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">실현손익</dt>
-                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.realizedPnl))}>{fmtSignedMoney(item.realizedPnl, currency)}</dd>
+                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(roundMoney(item.realizedPnl, currency)))}>{fmtSignedMoney(item.realizedPnl, currency)}</dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">미실현</dt>
-                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(item.unrealizedPnl))}>{fmtSignedMoney(item.unrealizedPnl, currency)}</dd>
+                      <dd className={cn('mt-0.5 font-medium tabular-nums', pnlTextClass(roundMoney(item.unrealizedPnl, currency)))}>{fmtSignedMoney(item.unrealizedPnl, currency)}</dd>
                     </div>
                   </dl>
                 </li>

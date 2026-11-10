@@ -6,7 +6,7 @@ import { Badge } from '@shared/ui/Badge'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtSignedMoney, pnlTextClass, fmtSignedPercent } from '@shared/lib/format'
+import { fmtDate, fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
 import type { CyclePerformance } from '@entities/stats'
 import { brokerCurrency } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
@@ -19,6 +19,11 @@ interface Props {
 
 function pnlClass(value: number | null | undefined) {
   return cn('tabular-nums', value != null ? pnlTextClass(value) : 'text-muted-foreground')
+}
+
+// 금액 색은 표시 단위로 반올림한 값으로 정한다 — "+0원"이 음수 색으로 보이지 않게
+function pnlMoneyClass(pnl: CyclePerformance['pnl'], broker: string | undefined) {
+  return pnlClass(pnl == null ? pnl : roundMoney(pnl, brokerCurrency(broker)))
 }
 
 // 행 통화는 계좌 broker로 정한다(업비트 KRW, 바이낸스 USDT, 주식 USD)
@@ -73,7 +78,7 @@ function CycleTable({ cycles, accountsById }: Props) {
               <TableDataCell className="text-muted-foreground">
                 <Period cycle={cycle} />
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.pnl))}>
+              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlMoneyClass(cycle.pnl, accountsById.get(cycle.accountId)?.broker))}>
                 {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
               </TableDataCell>
               <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.returnRate))}>
@@ -111,7 +116,7 @@ function CycleCardList({ cycles, accountsById }: Props) {
             <span className="flex shrink-0 items-center gap-3 whitespace-nowrap text-muted-foreground">
               <span>
                 손익{' '}
-                <span className={pnlClass(cycle.pnl)}>
+                <span className={pnlMoneyClass(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}>
                   {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
                 </span>
               </span>

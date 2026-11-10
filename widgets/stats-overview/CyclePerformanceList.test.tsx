@@ -195,6 +195,28 @@ describe('CyclePerformanceList', () => {
     expect(await screen.findByRole('option', { name: '크립토계좌' })).toBeInTheDocument()
   })
 
+  it('반올림하면 0이 되는 원화 손실은 음수 색 없이 "+0원"으로 보여준다', () => {
+    useStatsCyclesQueryMock.mockReturnValue({
+      data: {
+        items: [{
+          cycleId: 'c1', accountId: 'a1', strategyType: 'DCA', ticker: 'X', startDate: '2026-01-01', endDate: null,
+          startAmount: 1000, endAmount: null, pnl: -0.22, returnRate: 0, durationDays: null, closed: false,
+        }],
+        page: 0, totalElements: 1, totalPages: 1,
+      },
+      isLoading: false,
+      isError: false,
+    })
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1', nickname: '크립토계좌', accountNoMasked: null, broker: 'UPBIT' }] })
+
+    render(<CyclePerformanceList />)
+
+    // 데스크톱 표 + 모바일 행 각각 1개
+    const zeros = screen.getAllByText('+0원')
+    expect(zeros).toHaveLength(2)
+    for (const el of zeros) expect(el.closest('.text-neg')).toBeNull()
+  })
+
   it('보관된 전략만 "보관된 전략" 섹션에 종목·유형·계좌와 삭제 버튼으로 보여 준다', () => {
     useStatsCyclesQueryMock.mockReturnValue({ data: { items: [], page: 0, totalElements: 0, totalPages: 0 }, isLoading: false, isError: false })
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1', nickname: '메인', broker: 'KIS' }] })

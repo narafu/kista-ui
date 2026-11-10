@@ -237,4 +237,23 @@ describe('StatsOverview', () => {
     expect(await screen.findByText('3,000.00 USDT')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary?currency=USDT', { method: 'GET' }, undefined)
   })
+
+  it('반올림하면 0이 되는 KRW 손실은 음수 색 없이 "+0원"으로 보여준다', async () => {
+    fetchEitherMock.mockImplementation((url: string) => {
+      if (url.startsWith('/api/stats/summary')) return Promise.resolve({
+        ...SUMMARY, totalRealizedPnl: -0.22, availableCurrencies: ['KRW'],
+        byType: [{ ...SUMMARY.byType[0], realizedPnl: -0.22 }],
+      })
+      if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve(CURVE)
+      if (url.startsWith('/api/stats/cycles')) return Promise.resolve({ items: [], page: 0, totalElements: 0, totalPages: 0 })
+      if (url.startsWith('/api/accounts') || url.startsWith('/api/trading-cycles')) return Promise.resolve([])
+      return Promise.reject(new Error(`unexpected url: ${url}`))
+    })
+
+    renderWithClient(<StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />)
+
+    const zeros = await screen.findAllByText('+0원')
+    expect(zeros.length).toBeGreaterThanOrEqual(3) // KPI + 비교 표 + 비교 모바일 행
+    for (const el of zeros) expect(el.closest('.text-neg')).toBeNull()
+  })
 })
