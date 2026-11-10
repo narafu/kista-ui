@@ -42,7 +42,10 @@ function reducer(state: State, action: Action): State {
   if (action.type === 'BACK') {
     return { ...state, step: (Math.max(1, state.step - 1) as 1 | 2 | 3 | 4) }
   }
-  const newData = { ...state.data, ...action.payload }
+  // 브로커를 바꾸면 이전 브로커의 키·계좌번호·만료일을 비운다(뒤로 갔다가 다른 브로커를 고르는 경우)
+  const brokerChanged = action.payload.broker !== undefined && action.payload.broker !== state.data.broker
+  const base = brokerChanged ? { ...state.data, apiKey: '', apiSecret: '', accountNo: '', apiKeyExpiresOn: '' } : state.data
+  const newData = { ...base, ...action.payload }
   return { step: (Math.min(4, state.step + 1) as 1 | 2 | 3 | 4), data: newData }
 }
 
