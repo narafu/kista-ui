@@ -18,7 +18,7 @@ interface Props {
   accountLabel?: string | ReactNode
 }
 
-// DCA 카드 — 미리보기(readiness·시드) 없이 설정 요약·다음 판정일·최근 결과만 표시.
+// DCA 카드 — 미리보기(readiness·시드) 없이 설정 요약·다음 판정·최근 결과만 표시.
 // 레이아웃은 사이클 카드(StrategyCard)와 같은 골격: 모바일 2행, PC는 배지·티커 헤더 + 정보 행 + 금액 푸터
 export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: Props) {
   const { labelOf } = useMeta()
@@ -37,7 +37,7 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
     ? `최근 ${labelOf('dcaExecutionStatuses', last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
   const next = earliestNextExecution(rules)
-  const nextLabel = isCrypto ? '다음 실행' : '다음 판정일'
+  const nextLabel = isCrypto ? '다음 실행' : '다음 판정'
   const nextValue = !next?.nextExecution
     ? '미정'
     : isCrypto

@@ -51,9 +51,9 @@ describe('DcaStrategyCard', () => {
     expect(screen.queryByText('장 마감 시장가')).not.toBeInTheDocument()
     expect(screen.queryByText('매수')).not.toBeInTheDocument()
   })
-  it('주식은 가장 이른 규칙의 다음 판정일을 보여준다', () => {
+  it('주식은 가장 이른 규칙의 다음 판정을 보여준다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={threeRules()} />)
-    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
+    expect(screen.getByText('다음 판정')).toBeInTheDocument()
     expect(screen.getByText(fmtDate('2026-10-21'))).toBeInTheDocument()
   })
   it('코인은 가장 이른 규칙의 KST 날짜와 그 규칙의 실행 시각을 보여준다', () => {
@@ -61,7 +61,7 @@ describe('DcaStrategyCard', () => {
     expect(screen.getByText('다음 실행')).toBeInTheDocument()
     expect(screen.getByText('10/21 21시')).toBeInTheDocument()
     expect(screen.getByText('다음 실행 10/21 21시')).toBeInTheDocument() // 모바일 배지
-    expect(screen.queryByText(/다음 판정일/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/다음 판정/)).not.toBeInTheDocument()
   })
   it('바이낸스 계좌의 BTC 전략은 코인 문구로 보여준다', () => {
     render(<DcaStrategyCard accountId="a1" broker="BINANCE" strategy={threeRules('BTC')} />)
@@ -69,16 +69,16 @@ describe('DcaStrategyCard', () => {
   })
   it('티커가 코인이어도 계좌가 주식 broker면 계좌 기준으로 판정한다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={threeRules('BTC')} />)
-    expect(screen.getByText('다음 판정일')).toBeInTheDocument()
+    expect(screen.getByText('다음 판정')).toBeInTheDocument()
   })
   it('최근 결과는 가장 최근 lastExecution 기준이다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={threeRules()} />)
     expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2) // 모바일·PC 배지 행
   })
-  it('모든 규칙의 nextExecution이 null이면 다음 판정일을 미정으로 표시한다', () => {
+  it('모든 규칙의 nextExecution이 null이면 다음 판정을 미정으로 표시한다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={withRules(rule({ nextExecution: null }))} />)
     expect(screen.getByText('미정')).toBeInTheDocument()
-    expect(screen.getByText('다음 판정일 미정')).toBeInTheDocument() // 모바일 배지
+    expect(screen.getByText('다음 판정 미정')).toBeInTheDocument() // 모바일 배지
   })
   it('lastExecution이 모두 null이면 최근 실행 문구를 표시하지 않는다', () => {
     render(<DcaStrategyCard accountId="a1" broker="KIS" strategy={strategy} />)
