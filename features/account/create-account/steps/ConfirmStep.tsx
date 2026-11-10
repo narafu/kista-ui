@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 
-import { BROKER_CREDENTIAL, brokerErrorMessage, useCreateAccountMutation } from '@entities/account'
+import { BROKER_CREDENTIAL, brokerErrorMessage, isEstimatedExpiry, useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { apiMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
@@ -18,12 +18,13 @@ interface Props {
 
 export function ConfirmStep({ data, onBack }: Props) {
   const { mutate, isPending, isError, error } = useCreateAccountMutation()
-  const { labelOf } = useMeta()
+  const { labelOf, findBroker } = useMeta()
   const router = useRouter()
 
   const broker = (data.broker || 'KIS') as BrokerCode
   const isMock = isMockBroker(broker)
   const hasAccountNo = !isMock && !isKeyOnlyBroker(broker)
+  const expiresOn = !isMock && isEstimatedExpiry(findBroker(broker)?.apiKeyExpirySource) ? data.apiKeyExpiresOn : ''
 
   function handleSubmit() {
     const req: AccountRequest = isMock
@@ -33,6 +34,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         appKey: data.apiKey,
         secretKey: data.apiSecret,
         ...(hasAccountNo ? { accountNo: data.accountNo } : {}),
+        ...(expiresOn ? { apiKeyExpiresOn: expiresOn } : {}),
         broker,
       }
     mutate(req, {
@@ -79,6 +81,12 @@ export function ConfirmStep({ data, onBack }: Props) {
                 {data.apiKey ? `${data.apiKey.slice(0, 6)}...` : '-'}
               </span>
             </div>
+            {expiresOn && (
+              <div className="flex items-center justify-between px-4 py-3">
+                <span className="text-sm text-muted-foreground">API 키 만료일</span>
+                <span className="text-sm font-semibold">{expiresOn}</span>
+              </div>
+            )}
           </>
         )}
       </div>

@@ -22,7 +22,8 @@ import {
 import { cn } from '@shared/lib/utils'
 import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
-import { useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
+import { ApiKeyExpiryField, isEstimatedExpiry, useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
+import { useMeta } from '@entities/meta'
 import { strategyKeys } from '@entities/strategy'
 import { statsKeys } from '@entities/stats'
 import { orderKeys } from '@entities/order'
@@ -39,6 +40,9 @@ export function EditAccountForm({ account }: Props) {
   const [nickname, setNickname] = useState(account.nickname)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+  // 저장된 추정 만료일은 미리 채우지 않는다 — 과거 날짜가 그대로 전송돼 별칭 수정까지 실패하는 걸 막는다
+  const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState('')
+  const showExpiry = isEstimatedExpiry(useMeta().findBroker(account.broker)?.apiKeyExpirySource)
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -49,7 +53,7 @@ export function EditAccountForm({ account }: Props) {
     e.preventDefault()
     if (!nickname.trim()) return
     updateMutation.mutate(
-      { nickname: nickname.trim() },
+      { nickname: nickname.trim(), ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) },
       {
         onSuccess: () => {
           toast.success('계좌가 수정되었습니다')
@@ -103,6 +107,10 @@ export function EditAccountForm({ account }: Props) {
             />
             <p className="text-sm text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
           </div>
+        )}
+
+        {showExpiry && (
+          <ApiKeyExpiryField id="edit-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요" disabled={updateMutation.isPending} />
         )}
 
         <p className="text-sm text-muted-foreground">

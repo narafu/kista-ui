@@ -185,6 +185,17 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('일부 종목은 현재가 확인 불가로 총자산에서 빠졌습니다.')).toBeInTheDocument()
   })
 
+  it('KIS 계좌도 apiKeyExpiresAt이 있으면 만료 배지를 보여준다', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
+    try {
+      render(<AccountSummaryCard account={{ ...account, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} deposit={0} posEvalUsd={0} />)
+      expect(screen.getByText('API 키 만료 임박')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('키가 만료됐으면 재등록 필요를 보여준다', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))

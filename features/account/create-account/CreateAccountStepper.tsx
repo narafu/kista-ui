@@ -16,6 +16,7 @@ export type StepData = {
   apiSecret: string
   accountNo: string
   nickname: string
+  apiKeyExpiresOn: string // 선택 — 만료일이 추정값인 broker에서만 입력받는다('' = 미입력)
 }
 
 type State = { step: 1 | 2 | 3 | 4; data: StepData }
@@ -32,6 +33,7 @@ const initialState: State = {
     apiSecret: '',
     accountNo: '',
     nickname: '',
+    apiKeyExpiresOn: '',
   },
 }
 

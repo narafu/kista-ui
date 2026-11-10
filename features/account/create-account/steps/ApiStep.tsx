@@ -1,10 +1,11 @@
 'use client'
 
-import { useReducer } from 'react'
+import { useReducer, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useTestKisConnectionMutation } from '@entities/account'
+import { ApiKeyExpiryField, isEstimatedExpiry, kstToday, useTestKisConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
+import { useMeta } from '@entities/meta'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { StepData } from '../CreateAccountStepper'
 import { ApiKeyField, ApiSecretField, BinanceKeyGuide, ConnectionTest, UpbitKeyGuide } from './ApiStepParts'
@@ -102,10 +103,13 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
   const testMutation = useTestKisConnectionMutation()
   const { data: runtimeConfig, isLoading: isRuntimeConfigLoading } = useRuntimeConfigQuery()
+  const { findBroker } = useMeta()
+  const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState(data.apiKeyExpiresOn)
 
   // MOCK은 이 스텝을 렌더하지 않는다(CreateAccountStepper가 건너뜀)
   const broker = data.broker as Exclude<BrokerCode, 'MOCK'>
   const config = BROKER_CONFIG[broker]
+  const showExpiry = isEstimatedExpiry(findBroker(broker)?.apiKeyExpirySource)
   const keyValid = apiKey.length >= config.minLen
   const secretValid = apiSecret.length >= config.minLen
   const canTest = keyValid && secretValid
@@ -152,6 +156,10 @@ export function ApiStep({ data, onNext, onBack }: Props) {
         />
       </div>
 
+      {showExpiry && (
+        <ApiKeyExpiryField id="api-key-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요. 비우면 오늘부터 1년으로 계산합니다" />
+      )}
+
       {broker === 'MERITZ' && (
         <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
           메리츠증권은 계좌번호를 받지 않고 App Key에 연결된 계좌 하나로 매매합니다. 계좌를 여러 개 등록하려면 계좌마다 App Key를 따로 발급받으세요.
@@ -182,8 +190,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           type="button"
           size="form"
           className="flex-1"
-          disabled={!canProceed}
-          onClick={() => onNext({ apiKey, apiSecret })}
+          disabled={!canProceed || (showExpiry && apiKeyExpiresOn !== '' && apiKeyExpiresOn < kstToday())}
+          onClick={() => onNext({ apiKey, apiSecret, apiKeyExpiresOn: showExpiry ? apiKeyExpiresOn : '' })}
         >
           다음
         </Button>

@@ -2826,6 +2826,12 @@ export interface components {
              * @enum {string}
              */
             broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
+            /**
+             * Format: date
+             * @description API 키 만료일(KST, yyyy-MM-dd) — KIS·TOSS·MERITZ만 입력 가능, 오늘 이후. 생략하면 추정값(등록·앱키 교체 시 1년 후)·기존 값 유지
+             * @example 2027-05-31
+             */
+            apiKeyExpiresOn?: string;
         };
         AccountResponse: {
             /**
@@ -2869,6 +2875,12 @@ export interface components {
             appKey: string;
             /** @description 새 API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key) */
             secretKey: string;
+            /**
+             * Format: date
+             * @description API 키 만료일(KST, yyyy-MM-dd) — KIS·TOSS·MERITZ만 입력 가능, 오늘 이후. 생략하면 추정값(등록·앱키 교체 시 1년 후)·기존 값 유지
+             * @example 2027-05-31
+             */
+            apiKeyExpiresOn?: string;
         };
         ExecuteOrdersResponse: {
             /** @description 증권사에 접수된 주문 목록 */
@@ -4778,6 +4790,11 @@ export interface components {
              * @example 0
              */
             amountScale?: number;
+            /**
+             * @description API 키 만료일 출처 (NONE·BROKER_API·ESTIMATED)
+             * @example BROKER_API
+             */
+            apiKeyExpirySource?: string;
         };
         DcaIndicatorMeta: {
             /**

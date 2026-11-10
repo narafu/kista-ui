@@ -8,6 +8,7 @@ vi.mock('@entities/meta', async () => {
   return { useMeta: () => ({
     meta: testMeta,
     labelOf: testLabelOf,
+    findBroker: (code: string) => testMeta.brokers.find(b => b.code === code),
   }) }
 })
 

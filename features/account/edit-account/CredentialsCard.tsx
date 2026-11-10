@@ -6,8 +6,9 @@ import { Spinner } from '@shared/ui/Spinner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useMeta } from '@entities/meta'
 import { cn } from '@shared/lib/utils'
-import { useUpdateCredentialsMutation, BROKER_CREDENTIAL, brokerErrorMessage } from '@entities/account'
+import { ApiKeyExpiryField, isEstimatedExpiry, useUpdateCredentialsMutation, BROKER_CREDENTIAL, brokerErrorMessage } from '@entities/account'
 import type { Account, CredentialBroker } from '@entities/account'
 
 interface Props {
@@ -19,6 +20,8 @@ export const CARD_CLASS = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-
 export function CredentialsCard({ account }: Props) {
   const [appKey, setAppKey] = useState('')
   const [secretKey, setSecretKey] = useState('')
+  const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState('')
+  const showExpiry = isEstimatedExpiry(useMeta().findBroker(account.broker)?.apiKeyExpirySource)
   const mutation = useUpdateCredentialsMutation(account.id)
   const { keyLabel, secretLabel, invalidMessage } = BROKER_CREDENTIAL[account.broker as CredentialBroker]
   const canSubmit = appKey.trim().length > 0 && secretKey.trim().length > 0 && !mutation.isPending
@@ -26,10 +29,11 @@ export function CredentialsCard({ account }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    mutation.mutate({ appKey: appKey.trim(), secretKey: secretKey.trim() }, {
+    mutation.mutate({ appKey: appKey.trim(), secretKey: secretKey.trim(), ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) }, {
       onSuccess: () => {
         setAppKey('')
         setSecretKey('')
+        setApiKeyExpiresOn('')
         toast.success('API 키가 재등록되었습니다')
       },
     })
@@ -49,6 +53,9 @@ export function CredentialsCard({ account }: Props) {
         <Label htmlFor="credential-secret">{secretLabel}</Label>
         <Input id="credential-secret" type="password" className="h-12" value={secretKey} onChange={(e) => { setSecretKey(e.target.value); mutation.reset() }} disabled={mutation.isPending} maxLength={512} autoComplete="off" />
       </div>
+      {showExpiry && (
+        <ApiKeyExpiryField id="credential-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요. 비우면 오늘부터 1년으로 계산합니다" disabled={mutation.isPending} />
+      )}
       {mutation.isError && (
         <p className="text-sm text-[var(--status-error)]">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>
       )}

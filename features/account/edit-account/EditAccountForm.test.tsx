@@ -32,6 +32,11 @@ vi.mock('@entities/account', async (importOriginal) => ({
   useDeleteAccountMutation: () => ({ mutate: deleteMutateMock, isPending: false }),
 }))
 
+vi.mock('@entities/meta', async () => {
+  const { testMeta } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ findBroker: (code: string) => testMeta.brokers.find(b => b.code === code) }) }
+})
+
 vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
@@ -104,6 +109,44 @@ describe('EditAccountForm', () => {
     await user.type(screen.getByLabelText('Access Key'), 'x')
     expect(credentialsResetMock).toHaveBeenCalled()
     expect(screen.queryByText(/허용 IP가 등록되지 않았습니다/)).not.toBeInTheDocument()
+  })
+
+  it('추정 만료일 broker(KIS)에서만 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
+    const { unmount } = render(<EditAccountForm account={account} />)
+    const inputs = screen.getAllByLabelText('API 키 만료일 (선택)')
+    expect(inputs).toHaveLength(2) // 계좌 정보 수정 + 키 재등록
+    expect(inputs[0]).toHaveAttribute('min', new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }))
+    expect(inputs[0]).toHaveValue('')
+    unmount()
+    render(<EditAccountForm account={upbitAccount} />)
+    expect(screen.queryByLabelText('API 키 만료일 (선택)')).not.toBeInTheDocument()
+  })
+
+  it('만료일을 입력하지 않으면 저장 바디에 apiKeyExpiresOn이 없다', async () => {
+    const user = userEvent.setup()
+    render(<EditAccountForm account={{ ...account, apiKeyExpiresAt: '2020-01-01T00:00:00+09:00' }} />)
+    await user.click(screen.getByRole('button', { name: '저장' }))
+    expect(updateMutateMock.mock.calls.at(-1)?.[0]).toEqual({ nickname: '메인 계좌' })
+  })
+
+  it('만료일을 입력하면 저장 바디에 포함한다', async () => {
+    const user = userEvent.setup()
+    render(<EditAccountForm account={account} />)
+    await user.type(screen.getAllByLabelText('API 키 만료일 (선택)')[0], '2027-03-01')
+    await user.click(screen.getByRole('button', { name: '저장' }))
+    expect(updateMutateMock.mock.calls.at(-1)?.[0]).toEqual({ nickname: '메인 계좌', apiKeyExpiresOn: '2027-03-01' })
+  })
+
+  it('키 재등록 시 만료일을 입력했을 때만 apiKeyExpiresOn을 보낸다', async () => {
+    const user = userEvent.setup()
+    render(<EditAccountForm account={account} />)
+    await user.type(screen.getByLabelText('App Key'), 'new-key-1234')
+    await user.type(screen.getByLabelText('App Secret'), 'new-secret-1234')
+    await user.click(screen.getByRole('button', { name: 'API 키 재등록' }))
+    expect(credentialsMutateMock.mock.calls.at(-1)?.[0]).toEqual({ appKey: 'new-key-1234', secretKey: 'new-secret-1234' })
+    await user.type(screen.getAllByLabelText('API 키 만료일 (선택)')[1], '2027-03-01')
+    await user.click(screen.getByRole('button', { name: 'API 키 재등록' }))
+    expect(credentialsMutateMock.mock.calls.at(-1)?.[0]).toEqual({ appKey: 'new-key-1234', secretKey: 'new-secret-1234', apiKeyExpiresOn: '2027-03-01' })
   })
 
   it('모의계좌는 키 재등록 섹션이 없다', () => {

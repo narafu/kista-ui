@@ -6,12 +6,12 @@ export const testMeta = {
   strategyTypes: [],
   tickers: [],
   brokers: [
-    { code: 'TOSS', label: '토스증권', description: '토스', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2 },
-    { code: 'KIS', label: '한국투자증권', description: '한투', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2 },
-    { code: 'MOCK', label: '모의계좌', description: '모의', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2 },
-    { code: 'UPBIT', label: '업비트', description: '업비트', market: 'CRYPTO_KRW', currency: 'KRW', minOrderAmount: '5000', amountScale: 0 },
-    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2 },
-    { code: 'BINANCE', label: '바이낸스', description: '바이낸스', market: 'CRYPTO_USDT', currency: 'USDT', minOrderAmount: '5', amountScale: 2 },
+    { code: 'TOSS', label: '토스증권', description: '토스', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'ESTIMATED' },
+    { code: 'KIS', label: '한국투자증권', description: '한투', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'ESTIMATED' },
+    { code: 'MOCK', label: '모의계좌', description: '모의', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'NONE' },
+    { code: 'UPBIT', label: '업비트', description: '업비트', market: 'CRYPTO_KRW', currency: 'KRW', minOrderAmount: '5000', amountScale: 0, apiKeyExpirySource: 'BROKER_API' },
+    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'ESTIMATED' },
+    { code: 'BINANCE', label: '바이낸스', description: '바이낸스', market: 'CRYPTO_USDT', currency: 'USDT', minOrderAmount: '5', amountScale: 2, apiKeyExpirySource: 'NONE' },
   ],
   strategyStatuses: [
     { code: 'ACTIVE', label: '운영중' },

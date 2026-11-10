@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { AccountInfoStep } from './AccountInfoStep'
 import type { StepData } from '../CreateAccountStepper'
 
-const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '' }
+const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
 
 describe('AccountInfoStep', () => {
   it('auto-inserts the KIS account number hyphen and proceeds with the formatted value', async () => {

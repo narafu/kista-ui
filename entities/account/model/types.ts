@@ -7,7 +7,7 @@ export interface Account {
   accountNoMasked: string | null // 업비트·메리츠는 계좌번호가 없어 null
   accountNo?: string | null
   broker: BrokerCode
-  apiKeyExpiresAt?: string | null // 업비트 API 키 만료 시각(ISO). 만료일을 모르는 broker는 null
+  apiKeyExpiresAt?: string | null // API 키 만료 시각(ISO). 만료일을 모르는 broker는 null
 }
 
 export interface AccountRequest {
@@ -16,4 +16,5 @@ export interface AccountRequest {
   appKey?: string
   secretKey?: string
   broker?: BrokerCode
+  apiKeyExpiresOn?: string // 사용자가 입력한 실제 만료일(yyyy-MM-dd, KST). 비우면 생략
 }

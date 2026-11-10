@@ -24,7 +24,8 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@entities/meta', async () => {
   const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
-  return { useMeta: () => ({ labelOf: testLabelOf }) }
+  const { testMeta } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf, findBroker: (code: string) => testMeta.brokers.find(b => b.code === code) }) }
 })
 
 const data: StepData = {
@@ -33,6 +34,7 @@ const data: StepData = {
   apiSecret: 'app-secret-1234',
   accountNo: '74420614-01',
   nickname: '메인 계좌',
+  apiKeyExpiresOn: '',
 }
 
 describe('ConfirmStep', () => {
@@ -53,6 +55,27 @@ describe('ConfirmStep', () => {
       },
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
+  })
+
+  it('추정 만료일 broker는 입력한 만료일을 요청에 담고 확인 행을 보여준다', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    render(<ConfirmStep data={{ ...data, apiKeyExpiresOn: '2027-03-01' }} onBack={vi.fn()} />)
+    expect(screen.getByText('2027-03-01')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+    expect(mutateMock.mock.calls.at(-1)?.[0]).toMatchObject({ apiKeyExpiresOn: '2027-03-01' })
+  })
+
+  it('만료일이 비어 있거나 추정값이 아닌 broker는 apiKeyExpiresOn을 생략한다', async () => {
+    mockState = { isPending: false, isError: false, error: null }
+    const user = userEvent.setup()
+    const { unmount } = render(<ConfirmStep data={data} onBack={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+    expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('apiKeyExpiresOn')
+    unmount()
+    render(<ConfirmStep data={{ ...data, broker: 'UPBIT', accountNo: '', apiKeyExpiresOn: '2027-03-01' }} onBack={vi.fn()} />)
+    await user.click(screen.getByRole('button', { name: '계좌 연결' }))
+    expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('apiKeyExpiresOn')
   })
 
   it('shows the server detail message when the account number is already registered (409)', () => {
@@ -80,7 +103,7 @@ describe('ConfirmStep', () => {
   it('MOCK broker: omits accountNo/appKey/secretKey and hides those rows', async () => {
     mockState = { isPending: false, isError: false, error: null }
     const user = userEvent.setup()
-    const mockData: StepData = { broker: 'MOCK', apiKey: '', apiSecret: '', accountNo: '', nickname: '모의 계좌' }
+    const mockData: StepData = { broker: 'MOCK', apiKey: '', apiSecret: '', accountNo: '', nickname: '모의 계좌', apiKeyExpiresOn: '' }
     render(<ConfirmStep data={mockData} onBack={vi.fn()} />)
 
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
@@ -110,7 +133,7 @@ describe('ConfirmStep', () => {
   it('업비트는 계좌번호 없이 키만 보낸다', async () => {
     mockState = { isPending: false, isError: false, error: null }
     const user = userEvent.setup()
-    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'access-key-1234', apiSecret: 'secret-key-1234', accountNo: '', nickname: '코인' }} onBack={vi.fn()} />)
+    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'access-key-1234', apiSecret: 'secret-key-1234', accountNo: '', nickname: '코인', apiKeyExpiresOn: '' }} onBack={vi.fn()} />)
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '계좌 연결' }))
     expect(mutateMock).toHaveBeenCalledWith(
@@ -123,7 +146,7 @@ describe('ConfirmStep', () => {
   it('메리츠는 계좌번호 없이 키만 보낸다', async () => {
     mockState = { isPending: false, isError: false, error: null }
     const user = userEvent.setup()
-    render(<ConfirmStep data={{ broker: 'MERITZ', apiKey: 'app-key-1234', apiSecret: 'app-secret-1234', accountNo: '', nickname: '메리츠' }} onBack={vi.fn()} />)
+    render(<ConfirmStep data={{ broker: 'MERITZ', apiKey: 'app-key-1234', apiSecret: 'app-secret-1234', accountNo: '', nickname: '메리츠', apiKeyExpiresOn: '' }} onBack={vi.fn()} />)
     expect(screen.queryByText('계좌번호')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '계좌 연결' }))
     expect(Object.keys(mutateMock.mock.calls.at(-1)?.[0])).not.toContain('accountNo')
@@ -131,7 +154,7 @@ describe('ConfirmStep', () => {
 
   it('업비트 자격증명 오류는 Access Key·Secret Key를 짚는다', () => {
     mockState = { isPending: false, isError: true, error: new ApiError(422, { code: 'BROKER_CREDENTIAL_INVALID' }) }
-    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'k', apiSecret: 's', accountNo: '', nickname: '코인' }} onBack={vi.fn()} />)
+    render(<ConfirmStep data={{ broker: 'UPBIT', apiKey: 'k', apiSecret: 's', accountNo: '', nickname: '코인', apiKeyExpiresOn: '' }} onBack={vi.fn()} />)
     expect(screen.getByText(/Access Key와 Secret Key를 다시 확인하세요/)).toBeInTheDocument()
   })
 })

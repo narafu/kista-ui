@@ -24,6 +24,11 @@ vi.mock('@entities/account', async (importOriginal) => ({
   }),
 }))
 
+vi.mock('@entities/meta', async () => {
+  const { testMeta } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ findBroker: (code: string) => testMeta.brokers.find(b => b.code === code) }) }
+})
+
 let mockRuntimeLoading = false
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () =>
@@ -32,7 +37,7 @@ vi.mock('@entities/runtime-config', () => ({
       : { data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' }, BINANCE: { enabled: true, allowedIp: '168.107.63.152' } } }, isLoading: false },
 }))
 
-const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '' }
+const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
 
 describe('ApiStep', () => {
   beforeEach(() => {
@@ -69,7 +74,22 @@ describe('ApiStep', () => {
     const nextButton = screen.getByRole('button', { name: '다음' })
     expect(nextButton).not.toBeDisabled()
     await user.click(nextButton)
-    expect(onNext).toHaveBeenCalledWith({ apiKey: '1234567890', apiSecret: 'abcdefghij' })
+    expect(onNext).toHaveBeenCalledWith({ apiKey: '1234567890', apiSecret: 'abcdefghij', apiKeyExpiresOn: '' })
+  })
+
+  it('추정 만료일 broker(KIS)는 만료일 입력란을 보여주고 입력값을 넘긴다', async () => {
+    mockState = { isPending: false, isSuccess: true, isError: false }
+    const onNext = vi.fn()
+    const user = userEvent.setup()
+    render(<ApiStep data={{ ...baseData, apiKey: '1234567890', apiSecret: 'abcdefghij' }} onNext={onNext} onBack={vi.fn()} />)
+    await user.type(screen.getByLabelText('API 키 만료일 (선택)'), '2027-03-01')
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    expect(onNext).toHaveBeenCalledWith({ apiKey: '1234567890', apiSecret: 'abcdefghij', apiKeyExpiresOn: '2027-03-01' })
+  })
+
+  it('만료일이 추정값이 아닌 broker(업비트)는 만료일 입력란이 없다', () => {
+    render(<ApiStep data={{ ...baseData, broker: 'UPBIT' }} onNext={vi.fn()} onBack={vi.fn()} />)
+    expect(screen.queryByLabelText('API 키 만료일 (선택)')).not.toBeInTheDocument()
   })
 
   it('업비트는 허용 IP와 필요한 권한을 안내하고 출금 권한을 켜지 말라고 강조한다', () => {
