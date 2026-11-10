@@ -34,7 +34,8 @@ export function BacktestSummaryCards({ summary }: Props) {
       {/* 낙폭은 항상 0 이하라 손익색을 칠하지 않는다 */}
       {card('최대 낙폭', summary && fmtSignedPercent(summary.mdd))}
       {card('체결 건수', summary && `${summary.tradeCount}건`)}
-      {card('사이클 수', summary && `${summary.cycleCount}회`)}
+      {/* 서버 cycleCount는 기간 끝에 진행 중인 마지막 사이클까지 센다 */}
+      {card('사이클 수', summary && `${summary.cycleCount}회`, undefined, summary && '진행 중 사이클 포함')}
     </div>
   )
 }
