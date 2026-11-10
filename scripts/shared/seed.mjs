@@ -10,6 +10,9 @@ const MOCK_VR = '4141787f-ec49-436a-8e92-f74f01df644d'
 const KIS = '0a37eaa5-2b60-50c9-d45c-e1a5ae2f984a'
 const KIS_PAUSED = '5e4856a3-e121-52bd-a9bf-8025b19911cf'
 
+// 로컬 API에서 찾지 못한 시드 키 — e2e가 시드 없는 화면 점검을 실패 대신 건너뛰게 한다
+const missing = new Set()
+
 const defaults = {
   // 계좌 → 전략 ID → ticker. preview 모드 fixture가 previews 응답을 만들 때 사용
   accounts: { [MOCK]: { [MOCK_INF]: 'SOXL', [MOCK_VR]: 'TQQQ' } },
@@ -45,6 +48,7 @@ async function resolveFromApi() {
     } else console.warn('[seed] KIS 시드 계좌 없음 — kis·paused는 기본 ID 사용')
     const account = accounts.find((a) => a.broker === 'MOCK' && a.nickname === '[시드] 모의계좌')
     if (!account) {
+      missing.add('infinite').add('vr')
       console.warn('[seed] MOCK 시드 계좌 없음 — 기본 ID 사용(kista-api scripts/dev-seed/seed.sh 확인)')
       return { ...kisResolved, accounts: { ...defaults.accounts, ...kisResolved.accounts } }
     }
@@ -59,7 +63,10 @@ async function resolveFromApi() {
     for (const [key, type, ticker] of [['infinite', 'INFINITE', 'SOXL'], ['vr', 'VR', 'TQQQ']]) {
       const s = pick(type, ticker)
       if (s) resolved[key] = { accountId: account.id, strategyId: s.id }
-      else console.warn(`[seed] MOCK 계좌에 ${type} 전략 없음 — ${key}는 기본 ID 사용(해당 화면 점검 실패 예상, kista-api scripts/dev-seed/seed.sh 확인)`)
+      else {
+        missing.add(key)
+        console.warn(`[seed] MOCK 계좌에 ${type} 전략 없음 — ${key}는 기본 ID 사용(해당 화면 점검 실패 예상, kista-api scripts/dev-seed/seed.sh 확인)`)
+      }
     }
     return { ...resolved, ...kisResolved, accounts: { ...resolved.accounts, ...kisResolved.accounts } }
   } catch (error) {
@@ -71,6 +78,9 @@ async function resolveFromApi() {
 const override = process.env.KISTA_DEV_SEED ? JSON.parse(readFileSync(process.env.KISTA_DEV_SEED, 'utf8')) : await resolveFromApi()
 
 export const seed = { ...defaults, ...override }
+
+/** 로컬 API에서 그 시드 전략을 찾았는지 — 없으면 기본 ID라 화면이 404다(MOCK 시세 Toss 허용 IP 미등록 등) */
+export const hasSeed = (key) => !missing.has(key)
 
 export const tickerOf = (strategyId) =>
   Object.values(seed.accounts).map((s) => s[strategyId]).find(Boolean) ?? 'SOXL'

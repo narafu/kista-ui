@@ -66,7 +66,8 @@ test.describe('전략 (USER)', () => {
   })
 
   test('VR 전략 상세에는 투자금 추가 링크가 없다', async ({ page }) => {
-    const { seed } = await import('../scripts/shared/seed.mjs')
+    const { seed, hasSeed } = await import('../scripts/shared/seed.mjs')
+    test.skip(!hasSeed('vr'), 'MOCK 계좌에 VR 시드 전략 없음 — kista-api scripts/dev-seed/seed.sh 확인')
     await page.goto(`/accounts/${seed.vr.accountId}/strategies/${seed.vr.strategyId}`)
     await expect(page.getByRole('link', { name: 'VR 재설정' })).toBeVisible()
     await expect(page.getByRole('link', { name: '투자금 추가' })).toHaveCount(0)
