@@ -73,7 +73,7 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
           <KpiCard label={brokerKindLabel(account.broker)} className={account.accountNoMasked == null ? 'col-span-2' : undefined} value={brokerLabel} valueClassName={TILE_VALUE} />
           <KpiCard label="예수금 (전략 합산)" className={MONEY_TILE} unit={ledgerDeposit.unit} value={ledgerDeposit.text} valueClassName={TILE_VALUE} />
           <KpiCard label="평가금 (전략 합산)" className={MONEY_TILE} unit={ledgerEval.unit} value={ledgerEval.text} valueClassName={TILE_VALUE} />
-          <KpiCard label="미배정 예수금 (주문 가능 기준)" className="col-span-2" unit={ledgerUnassigned.unit} value={ledgerUnassigned.text} valueClassName={TILE_VALUE} />
+          <KpiCard label="미배정 예수금" className="col-span-2" unit={ledgerUnassigned.unit} value={ledgerUnassigned.text} valueClassName={TILE_VALUE} sub="주문 가능 기준" />
           {ledgerTotalsError && (
             <p role="status" className="col-span-2 text-xs text-muted-foreground">전략 합산 금액을 불러오지 못했습니다.</p>
           )}

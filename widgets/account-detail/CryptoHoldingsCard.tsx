@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -8,7 +9,7 @@ import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
-import { fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { fmtMoney, fmtQuantity, splitMoneyUnit } from '@shared/lib/format'
 import type { CryptoPortfolio } from '@entities/trade'
 import { SectionError } from '@shared/ui/SectionError'
 
@@ -36,6 +37,16 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 function sortValue(h: CryptoHolding, key: Exclude<SortKey, 'default' | 'ticker'>) {
   if (key === 'evalAmount') return h.currentPrice == null ? null : h.evalAmount
   return h[key]
+}
+
+// 확인 불가면 단위 없이 표시 — 보이지 않는 값에 USDT 라벨을 달지 않는다
+function MobileCell({ label, unit, text, className }: { label: string; unit?: string; text: ReactNode; className?: string }) {
+  return (
+    <div className={className}>
+      <dt className="text-xs text-muted-foreground">{label}{unit && <span className="ml-1">{unit}</span>}</dt>
+      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{text}</dd>
+    </div>
+  )
 }
 
 export function CryptoHoldingsCard({ portfolio, isError }: Props) {
@@ -74,20 +85,11 @@ export function CryptoHoldingsCard({ portfolio, isError }: Props) {
                     <Badge tone="brand" size="sm" className="px-2.5 font-bold">{h.ticker}</Badge>
                     <span className="shrink-0 whitespace-nowrap text-sm font-semibold tabular-nums">{fmtQuantity(h.quantity)}</span>
                   </div>
-                  {/* 360px에서 "평단가 65,123.45 USDT"가 줄바꿈되지 않도록 라벨 위·값 아래 2열로 둔다 */}
+                  {/* 코드형 단위(USDT)는 값 뒤가 아니라 라벨 줄에 둔다 — 360px에서 값이 줄바꿈되지 않게 */}
                   <dl className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-sm">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">평단가</dt>
-                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.avgBuyPrice == null ? '-' : fmtMoney(h.avgBuyPrice, portfolio.currency)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">현재가</dt>
-                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.currentPrice, portfolio.currency)}</dd>
-                    </div>
-                    <div className="col-span-2">
-                      <dt className="text-xs text-muted-foreground">평가금액</dt>
-                      <dd className="whitespace-nowrap font-semibold tabular-nums text-foreground">{h.currentPrice == null ? CARD_UNAVAILABLE : fmtMoney(h.evalAmount, portfolio.currency)}</dd>
-                    </div>
+                    <MobileCell label="평단가" {...splitMoneyUnit(h.avgBuyPrice, portfolio.currency)} />
+                    <MobileCell label="현재가" {...(h.currentPrice == null ? { text: CARD_UNAVAILABLE } : splitMoneyUnit(h.currentPrice, portfolio.currency))} />
+                    <MobileCell label="평가금액" {...(h.currentPrice == null ? { text: CARD_UNAVAILABLE } : splitMoneyUnit(h.evalAmount, portfolio.currency))} className="col-span-2" />
                   </dl>
                 </div>
               ))}
