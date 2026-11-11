@@ -2,7 +2,7 @@
 
 근거 측정: `findings/c-parallel-structures.md` 4~5절과 5절 보충, `findings/g-ux-pattern-variance.md` 2·4절, `findings/d-single-use-abstractions.md` 5절, `findings/a-vertical-trace.md` 화면 4.
 
-**사용자 결정이 필요한 항목이 하나 있다(아래 "결정 1"). 결정 전에는 태스크 1~3을 실행하지 않는다.**
+**결정 1(인터셉트 라우트 폐지)은 2026-11-12 사용자가 승인했다.** 아래 "승인되지 않으면" 문단은 기록으로만 남긴다.
 
 ## 현재 구조와 문제
 
@@ -52,7 +52,7 @@
 
 ## 목표 구조
 
-### 결정 1 (사용자 승인 필요): 폼 형태는 "다이얼로그" 아니면 "페이지"다. 인터셉트 라우트를 없앤다
+### 결정 1 (승인됨, 2026-11-12): 폼 형태는 "다이얼로그" 아니면 "페이지"다. 인터셉트 라우트를 없앤다
 
 | 형태 | 기준 | 화면에서 |
 |---|---|---|
@@ -160,7 +160,7 @@ const form = useAppForm({
 
 | # | 태스크 | 대상 | 모델 | 완료 판정 |
 |---|---|---|---|---|
-| 0 | 결정 1 승인 받기 | — | — | 사용자 답변 |
+| 0 | 결정 1 승인 받기 | — | — | 완료(2026-11-12, 폐지 승인) |
 | 1 | 폼 전수표: 폼마다 현재 형태, 필드 수, 하위 뷰 유무, URL 파라미터 의존, 목표 형태 | `findings/m-form-inventory.md` | Sonnet | 폼 31개 전부 행이 있음 |
 | 2 | `FormDialog` 추가, 모바일 뒤로 가기 동작 확인 | `shared/ui/FormDialog.tsx` | Opus | a11y-check, 모바일 뷰포트 스크린샷 |
 | 3 | 작은 폼을 다이얼로그로 전환하고 인터셉트 라우트 제거(예산 → 투자금 추가·인출 → 나머지 순서) | `app/(main)/@modal/**`, 해당 `page.tsx`·`loading.tsx`·`*FormBody.tsx`, 폼 컴포넌트의 `dismiss` | Sonnet | `ls "app/(main)/@modal"`이 없음, `grep -rn "dismiss" --include='*.tsx' . \| grep -v test` 0건, `grep -rn "RouteModal\|subviewHistory" .` 0건 |
@@ -185,7 +185,7 @@ const form = useAppForm({
 
 | 기존 결정 | 출처 | 재심 결과 |
 |---|---|---|
-| 인터셉팅 라우트 모달(PC 모달·모바일 풀페이지) | `docs/agents/app.md` | 폐지 제안(결정 1). 승인 전까지 유지 |
+| 인터셉팅 라우트 모달(PC 모달·모바일 풀페이지) | `docs/agents/app.md` | 폐지(결정 1, 2026-11-12 승인) |
 | 인터셉트 쌍의 `FormBody` 공유 조립과 `app/` 내 cross-import 예외 | `docs/agents/app.md` | 결정 1과 함께 폐지 |
 | 목록 자체가 라우트 모달인 예산 화면과 searchParams `replaceState` | `docs/agents/app.md` | 결정 1과 함께 폐지. 예산 목록은 가계부 설정 화면의 일반 구역 + 폼 다이얼로그 |
 | mutation hook이 `onError` 토스트를 갖고 호출부가 성공 토스트를 넣는다 | `docs/agents/entities.md`, `copy.md` | 변경. 실패는 02의 전역 처리, 성공은 `useAppForm`의 `successMessage` |

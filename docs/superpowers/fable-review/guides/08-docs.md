@@ -167,7 +167,7 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 
 ## 사용자 결정
 
-1. **archive 71파일(31,230줄)과 감사 보고서를 삭제할지.** 권고: 삭제(git 이력에 남고, 참조는 memory 3건뿐).
+1. **archive 71파일(31,230줄)과 감사 보고서 삭제: 승인됨(2026-11-12).** 삭제 커밋 해시를 `PROGRESS.md`에 적는다. 감사의 미해결 항목은 06과 대조해 남는 것만 백로그 한 줄로 옮긴다.
 2. **`specs/2026-07-12-reject-reason-design.md`**(62줄, "설계 초안 — 리뷰 대기", UI 구현 흔적 없음): 구현할지, 폐기할지. 서버는 `rejectReason` 필드를 이미 내려준다.
 3. **감사 보고서의 미해결 P2 항목**(S-02·S-03·S-04, A-03·A-16): 백로그로 옮길지, 06 지침서가 덮는 것으로 보고 닫을지. 권고: 06과 대조해 덮이지 않는 것만 백로그 한 줄로.
 4. **`.claude`의 나머지 에이전트·스킬**(`next-component-boundary`, `ui-markup-specialist`, `ui-audit`, `typecheck-and-report`, `playwright-cli` 2,015줄)을 쓰고 있는지.

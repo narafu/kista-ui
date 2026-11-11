@@ -112,6 +112,8 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 - **자동 무효화 없이 mutation마다 무효화 대상을 적는다**: 지금 구조의 이름만 바뀐 형태다. 가계부 28개 mutation이 이미 전부 "자기 리소스 루트 무효화"다. 기본 규칙으로 두고 예외만 적는 편이 적다.
 - **서버에서 `next/headers`를 `kistaFetch` 안에서 읽는다**: 클라이언트 번들과 같은 모듈 그래프에 서버 전용 import가 들어간다. 요청별 `QueryClient`에 토큰을 넣는 쪽이 경계가 분명하다.
 
+사용자 결정(2026-11-12): `openapi-fetch`·`openapi-react-query` 도입 승인.
+
 ## 예상 감량과 위험
 
 | 대상 | 현재 | 목표 | 감량 |
