@@ -1,76 +1,86 @@
 # Fable 전면 검토 진행 원장 (kista-ui)
 
-공통 기준: `../kista-api/docs/superpowers/fable-review/CHARTER.md` (새 세션은 CHARTER → 이 파일 → `findings/` 순으로 읽는다).
+공통 기준: `../kista-api/docs/superpowers/fable-review/CHARTER.md`. 새 세션은 CHARTER → 이 파일 → `guides/` 순으로 읽는다. `findings/`는 지침서가 인용하는 근거다.
 
-규모 기준선(2026-11-11): ts 430개, tsx 549개, 약 81,700줄.
+추가 기준(사용자 지시, fable-api 경유):
+- `kista-api/docs/superpowers/fable-review/ui-api-principles.md` — 기본값은 API, UI는 화면 상태·표시·상호작용만.
+- `kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md` — 서버 쪽 규약(required 정확화, BigDecimal number, 목록은 전량형 `{items}` / 커서 페이지형 둘, 메타 통합, 상태 플래그, `fieldErrors`, 검증 전용 엔드포인트).
+- UI 세션은 UI 코드철학 + UI/UX 관점. context7 MCP 적극 활용, 필요하면 Playwright CLI.
 
-## 1단계 측정 (진행 중, 2026-11-11 착수)
+## 상태 (2026-11-12)
 
-Sonnet/Haiku 서브에이전트 6개 병렬. 산출물은 `findings/`.
+1단계 측정, 2단계 판단, 3단계 지침서 작성 **완료**. 구현은 하지 않았다(산출물은 분석과 지침서).
+남은 일: 사용자 결정 받기 → 결정에 따라 지침서의 해당 절 갱신 → 실행은 Opus/Sonnet 세션이 지침서로.
 
-| 측정 | 파일 | 상태 |
-|------|------|------|
-| (a) 대표 화면 수직 추적 | `findings/a-vertical-trace.md` | 5시간 한도로 중단 → 12:42 재개, 진행 중 |
-| (b) 개념별 타입 복제 | `findings/b-type-duplication.md` | 파일 400줄 작성됨, 한도로 중단 → 재개해 마무리 중 |
-| (c) 평행 구조(테이블·폼·다이얼로그·fetch hook) | `findings/c-parallel-structures.md` | 완료 |
-| (d) 사용처 1곳뿐인 공용 코드·간접층 | `findings/d-single-use-abstractions.md` | 완료 |
-| (e) 테스트·스토리 비대 원인 | `findings/e-test-bloat.md` | 완료 |
-| (f) 유지 확정 항목 요약(재심 대상) | `findings/f-retained-decisions.md` | 완료 |
-| (g) UI/UX 패턴 불일치(같은 UX를 몇 가지 방식으로 구현했나) | `findings/g-ux-pattern-variance.md` | 진행 중 (사용자 지시로 추가: UI 코드철학 + UI/UX 관점) |
+## 핵심 진단
 
-### 측정 중간 결론 (c·d·e·f 기준)
+기준선: 제품 코드 약 41,400줄(생성 `api-types.ts` 9,564줄 별도), 테스트 30,240줄, 테스트 제외 파일 709개.
 
-- 제품 코드 약 5만 줄(생성 `api-types.ts` 9,564줄 포함), 테스트 30,240줄(전체의 38%).
-- Route Handler·서버/클라이언트 이중 정의는 이미 얇다(22개 377줄, `fetchEither`). 비대 원인이 아니다.
-- 파일 수 비대의 주원인은 계층 분리다: 30줄 미만 파일 46%, features 슬라이스 68%·widgets 슬라이스 71%가 소비처 1곳, 순수 barrel 87개, 폼 라우트 1개가 app 파일 5개.
-- 평행 구조 감량은 수백 줄대(finance mutation 33개, 폼 라우트 4종 세트, 테이블 15개).
-- 테스트는 줄 수보다 변경 비용이 문제다: `vi.mock` 395개, 문구 리터럴 단언 1,219건, 공용 픽스처 빌더 없음.
+- 화면 하나는 평균 97파일 5,300줄 + 테스트 4,096줄이다. 순수 전달층(barrel·프록시·래퍼)은 줄 수의 4~7%뿐이라 "간접층이 두껍다"는 줄 수로는 기각됐다.
+- 비대의 본체는 넷이다.
+  1. 서버가 이미 아는 것을 UI가 다시 적는다: 타입 74쌍(일치율 99.3%), 정규화, 코드값 19집합 110곳, 업무 규칙·상태 판정·집계 사본.
+  2. URL과 타입을 다른 이름으로 다시 부르는 데이터 층: api 함수 130개, 키·옵션 21파일, hook 125개.
+  3. 같은 상황을 화면마다 다시 그린다: 목록 이중 마크업, 로딩 5종, 실패 5종, 확인 3종, 폼 구현 2벌, 폼 형태 6종.
+  4. 기술 역할로 자른 5계층: 슬라이스 89개 중 features 68%·widgets 71%가 소비처 1곳, barrel 105개, 30줄 미만 파일 46%.
+- 테스트는 케이스 수가 아니라 무대 비용이 크다: 모듈 mock 395개, wrapper 21개, 인라인 픽스처 1,386줄, 문구 리터럴 단언 1,219건.
 
-### 측정 추가 결론 (a·b 기준)
+## 지침서
 
-- 화면 1개 = 평균 97파일 5,300줄 + 형제 테스트 38파일 4,096줄. 순수 전달층은 줄 수의 4%(보조층 포함 7%)라 "간접층이 두껍다"는 가설은 줄 수로는 기각. 본체는 층 안 실코드와 테스트.
-- 생성 타입 `shared/lib/api-types.ts`(9,564줄)를 런타임 코드 4개 파일만 쓴다. 수기 재선언 74쌍(필드 일치 99.3%), 정규화 함수 16개 217줄의 98.6%가 `String()/Number()` 복사. 개념 1개당 선언 평균 21회, 코드값 19집합이 약 110곳 복제.
-- **확정 사실(fable-api 코드 확인, 2026-11-11)**: kista-api는 BigDecimal을 문자열이 아니라 JSON number로 내보낸다(Jackson 전역 설정 없음, 예외는 `PlainDecimalSerializer` 2벌). UI 주석 "BigDecimal 문자열로 온다"는 현재 코드와 맞지 않는다. api 쪽 지침서는 응답 record `@NullMarked` + springdoc required 표기, BigDecimal plain number 전역 통일로 간다. **UI 지침서 전제: 생성 타입을 직접 쓴다, 금액은 number.**
-- api가 바뀌면 줄어드는 UI 코드 후보 6건은 fable-api에 전달 완료(`kista-api/docs/superpowers/fable-review/cross-repo.md` B절).
-- fable-infra가 알린 UI 배포 자산 후보(required-env 누락 `TRADING_API_BASE_URL`, `.github/scripts/wait-reconcile*` 사본, `server-deploy.yml` 경로 필터 없음, `NEXT_PUBLIC_*` 추가 시 5곳 수정, 루트 compose trading URL 미주입)는 근거 파일 `kista-infra/docs/superpowers/fable-review/findings/cross-repo-deploy.md`. 불필요 파일·배포 지침서에서 다룬다.
+| # | 주제 | 파일 | 제품 감량(추정) | 선행 |
+|---|---|---|---:|---|
+| 01 | 타입 SSOT | `guides/01-type-ssot.md` | 약 1,050줄 | api T1·T2 |
+| 02 | 데이터 층 | `guides/02-data-layer.md` | 약 2,900줄, 45파일 | 01 |
+| 05 | UI·API 책임 분담 | `guides/05-ui-api-responsibility.md` | 약 1,900줄 | 01·02, api T3~T8·T10~T12 |
+| 04 | 라우트와 폼 | `guides/04-routes-and-forms.md` | 약 2,550줄, 55파일 | 02·05 |
+| 06 | UX 프리미티브 | `guides/06-ux-primitives.md` | 약 2,100~2,600줄 | 02, api T4 |
+| 03 | 계층 구조 | `guides/03-layer-structure.md` | 약 700줄, 150파일 | 01·02·04·05·06 |
+| 07 | 테스트 | `guides/07-tests.md` | 테스트 약 9,300줄 | 인프라 태스크는 02 직후, 전환은 03 직후 |
+| 08 | 문서 정리 | `guides/08-docs.md` | 자동 로드 약 250~330줄, archive 31,400줄 | 1단계 독립, 2단계는 각 코드 지침서 뒤 |
+| 09 | 불필요 파일·배포 자산 | `guides/09-unused-files-and-deploy.md` | 소량 | 일부 infra·api와 동시 |
 
-### 범위 추가 (fable-api 경유 사용자 지시, 2026-11-11)
+합계(추정): 제품 약 11,000~12,000줄(41,400의 27~29%), 테스트 제외 파일 709 → 약 500, 테스트 30,240 → 약 21,000.
 
-| 측정 | 파일 | 상태 |
-|------|------|------|
-| (h) 문서 드리프트·중복·자동 로드 비용 | `findings/h-docs-drift.md` | 진행 중 |
-| (i) 불필요 파일 삭제 후보 | `findings/i-unused-files.md` | 진행 중 |
+실행 순서: **01 → 02 → (07 인프라) → 05 → 04 → 06 → 03 → 07 전환**. 08의 1단계와 09의 독립 태스크는 언제든.
 
-삭제·대량 문서 개편의 실제 실행은 사용자 승인 후.
+실행 방식: 각 지침서의 "태스크 분해" 표가 태스크별 대상·권장 모델·완료 판정 명령을 갖는다. 지침서 하나를 한 세션(또는 SDD 루프 한 번)으로 실행한다. 01·05는 서버 태스크가 차단 조건이라 `kista-api/docs/superpowers/fable-review/cross-repo.md`의 상태를 먼저 확인한다.
 
-## 2단계 판단 (완료, 2026-11-11)
+## 사용자 결정 대기
 
-측정 a~i 완료. 주제 9개 확정, fable-api에 전달함. 실행 순서: 01 → 02 → 05 → 04 → 06 → 03 → 07, 문서(08)·불필요 파일(09)은 독립.
-
-추가 기준(사용자 지시, fable-api 경유): `kista-api/docs/superpowers/fable-review/ui-api-principles.md`(기본값은 API, UI는 화면 상태·표시·상호작용만)와 `guides/10-ui-contract.md`(required 정확화, BigDecimal number, 목록은 전량형 `{items}` / 커서 페이지형 `{items,nextCursor,hasMore}` 둘뿐, 메타 통합, 상태 플래그, `fieldErrors`). UI 지침서 전체가 이 규약을 전제로 한다. KIS·업비트 브로커는 삭제 예정(사용자 결정).
-
-사용자 지시(2026-11-11): UI 세션은 UI 코드철학 + UI/UX 관점. context7 MCP 적극 활용, 필요하면 Playwright CLI.
-
-## 3단계 지침서
-
-| # | 주제 | 파일 | 상태 |
+| # | 결정 | 지침서 | 권고 |
 |---|---|---|---|
-| 01 | 타입 SSOT | `guides/01-type-ssot.md` | 완료 |
-| 02 | 데이터 층 | `guides/02-data-layer.md` | 완료 (context7로 openapi-react-query·TanStack Query 동작 확인) |
-| 03 | 계층 구조(FSD 재심) | `guides/03-layer-structure.md` | 완료 |
-| 04 | 라우트와 폼 | `guides/04-routes-and-forms.md` | 완료. **사용자 결정 1건 대기**(인터셉트 라우트 폐지) |
-| 05 | UI·API 책임 분담(서버 규칙·코드값 사본, 집계, 목록) | `guides/05-…` | 측정 j(`findings/j-ui-api-principle-violations.md`) 진행 중 → 끝나면 작성. 가계부 집계 명세와 위반 전수 목록을 fable-api에 보내야 한다 |
-| 06 | UX 프리미티브 통일 | `guides/06-…` | 미작성 (근거 `findings/g`) |
-| 07 | 테스트 인프라·감량 | `guides/07-…` | 미작성 (근거 `findings/e`) |
-| 08 | 문서 정리 | `guides/08-…` | 미작성 (근거 `findings/h`, `f`). 원칙 문서가 `kista-api/docs/agents/ui-api-contract.md`로 옮겨지면 루트 CLAUDE.md가 가리키게 한다 |
-| 09 | 불필요 파일·배포 자산 | `guides/09-…` | 미작성 (근거 `findings/i`, kista-infra `findings/cross-repo-deploy.md`). wait-reconcile·required-env는 삭제 확정 |
+| 1 | 인터셉트 라우트(PC 모달·모바일 풀페이지)를 없애고 "작은 폼은 다이얼로그, 큰 폼은 페이지"로 | 04 결정 1 | 폐지 |
+| 2 | 새 의존성 `openapi-fetch`·`openapi-react-query` 도입 | 02 | 도입 |
+| 3 | FSD 5계층 → `app/screens/domains/shared` 대이동 | 03 | 실행(코드 지침서 중 마지막) |
+| 4 | 사용자 상태 라벨 "반려"(본인 화면) / "거절"(관리자 화면)을 하나로 통일할지 | 05 결정 2 | 통일(메타 한 라벨) |
+| 5 | 관리자 목록의 번호 페이지네이션을 "더 보기"로 | 06 | 전환 |
+| 6 | archive 71파일·감사 보고서 삭제, `reject-reason` 미구현 spec 처리, `.claude` 나머지 도구 사용 여부 | 08 | 삭제 |
+| 7 | `.prettierrc`(도구 없음) 처리, 수동 스크립트 사용 여부, 배포 workflow 변경 시점 | 09 | — |
 
-## 사용자에게 물을 결정 (모아서 한 번에)
+## 즉시 고칠 수 있는 버그 (지시 대기)
 
-1. 04: 인터셉트 라우트(PC 모달·모바일 풀페이지)를 없애고 "작은 폼은 다이얼로그, 큰 폼은 페이지"로 바꿀지.
-2. 02: 새 의존성 `openapi-fetch`·`openapi-react-query` 도입.
-3. 03: FSD 5계층을 `app/screens/domains/shared`로 바꾸는 대이동.
+- PRIVACY 목록이 `?days=`를 보내는데 서버 파라미터는 `range`다(`AdminPrivacyTradeController.java:44`, fable-api 확인). 기간이 무시되고 전량이 내려온다. 한 줄 수정.
+- 루트 `docker-compose.yml`이 `TRADING_API_BASE_URL`을 주입하지 않는다(실행 확인은 안 함).
+- `deploy/server/required-env`에 `TRADING_API_BASE_URL` 누락.
 
-## 바로 다음 할 일
+## 측정 산출물
 
-06 작성 → j 완료 확인 후 05 작성과 fable-api 전달 → 07 → 08 → 09 → 사용자 결정 질문.
+| 파일 | 내용 |
+|---|---|
+| `findings/a-vertical-trace.md` | 대표 화면 6개 수직 추적 |
+| `findings/b-type-duplication.md` | 타입·스키마·코드값 복제 |
+| `findings/c-parallel-structures.md` | 평행 구조 |
+| `findings/d-single-use-abstractions.md` | 단일 사용 추상화, 계층 지형 |
+| `findings/e-test-bloat.md` | 테스트 비대 원인 |
+| `findings/f-retained-decisions.md` | 유지 확정 결정 약 357건 |
+| `findings/g-ux-pattern-variance.md` | UX 패턴 분산 |
+| `findings/h-docs-drift.md` | 문서 드리프트·중복·로드 비용 |
+| `findings/i-unused-files.md` | 삭제 후보(참조 grep) |
+| `findings/j-ui-api-principle-violations.md` | UI·API 원칙 위반 전수, 가계부 집계 명세 재료 |
+
+지침서가 실행 중 만들라고 한 산출물(아직 없음): `k-invalidation-map.md`(02 태스크 4), `l-move-map.csv`(03 태스크 1), `m-form-inventory.md`(04 태스크 1).
+
+## 다른 세션과 주고받은 것
+
+- fable-api에 전달: cross-repo 후보 6건, 주제 목록, 원칙 위반 전수 목록과 집계 명세, 검증 전용 엔드포인트·단건 조회 요청(전부 수용, api T10·T11·T12).
+- fable-api에서 받음: BigDecimal은 JSON number(코드 확인), 지침서 10 규약, 예외 대장 판정(등록 예외 0건), KIS·업비트 삭제 결정, 프로세스 구조 권고(D1=A: 진입점 하나, 사용자 결정 전).
+- fable-infra에서 받음: 배포 자산 후보 6건(09에 반영).
