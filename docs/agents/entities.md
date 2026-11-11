@@ -20,8 +20,11 @@ entities끼리 직접 참조 금지. 두 도메인을 조합해야 하면 `featu
 entities/{domain}/
   api/index.ts
   model/types.ts
+  model/queryKeys.ts
+  model/queryOptions.ts
   hooks/
   providers/
+  ui/
   index.ts
 ```
 

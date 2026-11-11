@@ -58,7 +58,7 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "대표 슬라이�
 - 슬라이스 전용 quirk는 `widgets/<slice>/CLAUDE.md`에 둔다(해당 디렉토리 작업 시 자동 로드): dashboard, stats-overview, all-strategies, housing-quintile-trend, benchmark-comparison, accounts-grid, cycle-history
 - **`kpi-card`**: `<KpiCard />` 그리드 패턴 유지
 - **`revealable-value`**: 마스킹 값 공개 토글
-- **`admin-user-list`**: 이상감지 카드는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
+- **`admin-log-list`**: 이상감지 카드(`AnomaliesSection`)는 `AdminAnomalies { pausedAccounts, inactiveAccounts }`
 - **`market-holiday-calendar/WeeklyMarketCalendar`**: 주간/월간 데이터를 여러 쿼리로 조합. 일별 체결은 크립토 계좌를 포함해 통화별로 따로 집계하며(`summarizeDailyTrades`, 다른 통화 금액은 합치지 않음) 주말·휴장일 칸에도 배지를 그린다. "대기"만 주식 계좌 기준
 - **`glass-card`**, **`pull-to-refresh`**: 동적 계산(픽셀 위치, `rotate()` 각도 등) 인라인 style 유지
 - **`glass-card/GlassCard`**: `topBar` prop(ReactNode) — 로그인/pending/rejected 등 인증 흐름 페이지 좌상단 로고+우상단 액션(로그아웃 등)을 `justify-between` 오버레이 행으로 배치. 컴패니언 `BrandWordmark`(로고+워드마크)와 함께 사용 (`app/pending/page.tsx`, `app/rejected/page.tsx` 참고). 배경은 `brand-radial-bg` 클래스(`globals.css`) 고정 적용

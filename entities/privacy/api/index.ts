@@ -8,10 +8,9 @@ import type {
 } from '../model/types'
 
 // 관리자 — PRIVACY P 매매표 목록. Server Component는 token과 함께, Client Component는
-// token 없이 호출(admin catch-all 라우트가 GET도 프록시). days 미전달 시 전체 기간 조회
-export async function listAdminPrivacyBases(token?: string, days?: number): Promise<AdminPrivacyBase[]> {
-  const qs = days != null ? `?days=${days}` : ''
-  return fetchEither<AdminPrivacyBase[]>(`/api/admin/privacy-trade-bases${qs}`, { method: 'GET' }, token)
+// token 없이 호출(admin catch-all 라우트가 GET도 프록시). 전체 기간을 받는다 — 기간 필터는 화면이 한다
+export async function listAdminPrivacyBases(token?: string): Promise<AdminPrivacyBase[]> {
+  return fetchEither<AdminPrivacyBase[]>('/api/admin/privacy-trade-bases', { method: 'GET' }, token)
 }
 
 // 관리자 — P 매매표 등록(privacy_master 생성 + 주문). 기존 FIDA 수신 로직 재사용 —

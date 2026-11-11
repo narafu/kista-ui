@@ -115,7 +115,7 @@ KIS·업비트는 삭제가 결정됐다(사용자 결정, fable-api 전달). UI
 
 목록 규약 보충(같은 회신): 페이지형에서 사용자가 고르는 정렬·필터·검색은 전부 서버 파라미터다(`sort=<필드>,<asc|desc>`, 필터는 필드명 그대로). 커서는 정렬 키를 포함한 불투명 문자열이다. 가계부 거래 목록의 유형·메모 검색·카테고리·정렬·페이지 5가지가 전부 서버로 간다. 06의 `DataList` 페이지형 모드는 정렬 헤더를 클릭하면 `sort` 파라미터를 바꾸고 첫 페이지부터 다시 받는다.
 
-즉시 고칠 수 있는 버그: PRIVACY 목록이 `?days=`를 보내는데 서버 파라미터는 `range`다(`AdminPrivacyTradeController.java:44`). 기간이 무시되고 전량이 내려와 UI가 로컬에서 거른다. 화면 결과는 같고 과다 조회만 있다. 한 줄 수정(`days` → `range`)은 지금 해도 안전하다. 사용자에게 알리고 지시를 받는다.
+PRIVACY `days` 파라미터(2026-11-12 정리): 코드를 다시 확인하니 `listAdminPrivacyBases(token, days?)`의 `days`를 넘기는 호출부가 없었다(`entities/privacy/model/queryOptions.ts:10`). 즉 틀린 이름의 파라미터는 보내진 적이 없고, 화면은 처음부터 전량을 받아 로컬에서 거른다. 죽은 인자를 지웠다. 전량 수신 자체는 T4 관리자 묶음의 페이지형 전환에서 해소한다.
 
 ## 예상 감량과 위험
 
@@ -168,8 +168,10 @@ KIS·업비트는 삭제가 결정됐다(사용자 결정, fable-api 전달). UI
 
 ## 사용자 결정이 필요한 것
 
-- **결정 2**: 사용자 상태 라벨이 본인 화면("반려")과 관리자 화면("거절")에서 의도적으로 다르다. 메타가 라벨을 하나만 주면 둘 중 하나로 통일된다. 통일할지, UI가 화면 문구로 한쪽을 따로 가질지.
-- 관리자 목록의 번호 페이지네이션 폐지(06의 위험 항목과 같은 질문).
+확정(2026-11-12):
+
+- **결정 2**: REJECTED 라벨은 "반려"로 통일한다. 메타 라벨 하나를 두 화면이 쓴다. `USER_STATUS_LABEL`·`ADMIN_USER_STATUS_LABEL` 두 벌과 `copy.md`의 "의도적으로 분리된 용어" 예외를 지운다. 서버 메타의 `userStatuses` REJECTED 라벨이 "반려"여야 한다(fable-api에 전달).
+- 관리자 목록과 전략 주문 내역의 번호 페이지네이션을 "더 보기"로 바꾼다.
 
 ## 하지 말아야 할 것
 
@@ -186,7 +188,7 @@ KIS·업비트는 삭제가 결정됐다(사용자 결정, fable-api 전달). UI
 |---|---|---|
 | 전략 type·status·ticker는 `string`, 메타가 SSOT(리터럴 금지) | `entities/strategy/model/types.ts:1` | 방향 유지, 강화. 타입은 생성 union, 라벨·옵션은 메타 |
 | 증권사 → 시장 정적 맵을 서버 컴포넌트 판정용으로 둔다 | `shared/lib/api-schema.ts:57` | 폐지. 메타를 서버에서 프리페치 |
-| `USER_STATUS_LABEL`과 `ADMIN_USER_STATUS_LABEL`은 의도적으로 다르다 | `docs/agents/copy.md`, `status.ts` | 사용자 결정(결정 2) |
+| `USER_STATUS_LABEL`과 `ADMIN_USER_STATUS_LABEL`은 의도적으로 다르다 | `docs/agents/copy.md`, `status.ts` | 폐지. "반려"로 통일(2026-11-12 사용자 결정) |
 | 가계부 거래는 12개월 윈도우 키로 조회하고 클라이언트가 집계 | `entities/finance/model/queryKeys.ts` 주석, `docs/agents/finance.md` | 폐지. 커서 목록 + 서버 집계 |
 | stats `cycles`는 서버가 필터 후 번호 페이지네이션 | `docs/agents/entities.md` "stats" | 변경. 커서 페이지형 |
 | runtime-config는 `staleTime: 0` + focus refetch로 운영 설정을 즉시 반영 | `docs/agents/entities.md` "runtime-config" | 메타로 합쳐진 뒤의 캐시 정책은 서버 T5가 정한다. UI는 그 정책을 `setQueryDefaults` 한 줄로 따른다 |

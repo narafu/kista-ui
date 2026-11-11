@@ -97,7 +97,7 @@ fable-infra가 알린 것 중 이 레포에서 고칠 것:
 | 1 | 사용자 결정 받기(B1·B2·B4·B7) | — | — | 답변 |
 | 2 | A1~A3·A5~A7 삭제 | 위 표 | Haiku | `npm run typecheck && npm run knip && npx vitest run shared/lib/format entities/stats features/strategy/reconfigure-vr` |
 | 3 | B5·B6: knip 예외 정리, `sharp` 명시 | `knip.json`, `package.json` | Haiku | `npm run knip` 0건 |
-| 4 | 루트 compose에 `TRADING_API_BASE_URL` 추가(또는 D1 결정에 따라 키 삭제) | `docker-compose.yml` | Haiku | `docker compose config`가 오류 없이 값을 보간 |
+| 4 | 루트 compose에 `TRADING_API_BASE_URL` 추가(**완료 2026-11-12**, D1 결정이 "진입점 하나"면 키 삭제) | `docker-compose.yml` | Haiku | `docker compose config`가 오류 없이 값을 보간 |
 | 5 | `server-deploy.yml`: `paths-ignore`, CI 연결, 중복 typecheck 제거. `ci.yml`: bats 추가 | `.github/workflows/*.yml` | Sonnet | 문서만 바꾼 push에서 배포 workflow가 돌지 않음(사용자 push로 확인) |
 | 6 | `NEXT_PUBLIC_*` 원본을 `.env.production.public` 하나로 | `Dockerfile`, `docker-compose.yml`, `server-deploy.yml`, `docs/agents/deployment.md` | Opus | 전후 빌드에서 공개 값이 같음. `/code-review medium` |
 | 7 | C1~C3: 대기 스크립트·required-env 삭제 | `.github/scripts/**`, `deploy/server/required-env`, `contract.bats`, `server-deploy.yml` | Sonnet | infra 변경 배포 후. `bats deploy/server/contract.bats` 통과, 실제 배포 1회 성공 |

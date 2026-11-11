@@ -55,20 +55,25 @@
 | FSD 5계층 → `app/screens/domains/shared` 대이동 | 03 | 실행 승인(코드 지침서 중 마지막, 전용 worktree) |
 | archive 71파일·감사 보고서 삭제 | 08 | 삭제 완료 — 커밋 `be6d886a`(복구: `git show be6d886a^:<경로>`). 감사 미해결 P2는 코드에서 이미 해소 확인(하드코딩 팔레트 0건, 사이드바 활성 토큰 사용, `--rose-50` 다크 오버라이드 존재). memory의 archive 경로 참조 3건 정정 |
 
-아직 묻지 않은 것(해당 지침서 실행 전에 묻는다):
+추가 확정(2026-11-12):
 
-| 결정 | 지침서 | 권고 |
+| 결정 | 지침서 | 결과 |
 |---|---|---|
-| 사용자 상태 라벨 "반려"(본인 화면) / "거절"(관리자 화면)을 하나로 통일할지 | 05 결정 2 | 통일(메타 한 라벨) |
-| 관리자 목록의 번호 페이지네이션을 "더 보기"로 | 06 | 전환 |
-| `reject-reason` 미구현 spec 처리, `.claude` 나머지 도구 사용 여부, 전역 CLAUDE.md와 겹치는 4곳 | 08 | — |
-| `.prettierrc`(도구 없음) 처리, 수동 스크립트 사용 여부, 배포 workflow 변경 시점 | 09 | — |
+| REJECTED 라벨 | 05 결정 2 | "반려"로 통일 |
+| 관리자 목록·전략 주문 내역의 번호 페이지네이션 | 06 | "더 보기"로 전환 |
+| `reject-reason` 미구현 spec | 08 | 폐기, 삭제함 |
+| 검토 중 발견한 버그·드리프트 | 05·08·09 | 지금 수정(아래) |
 
-## 즉시 고칠 수 있는 버그 (지시 대기)
+아직 묻지 않은 것(해당 지침서 실행 전에 묻는다): `.claude` 나머지 도구 사용 여부와 전역 CLAUDE.md 중복 4곳(08), `.prettierrc` 처리·수동 스크립트 사용 여부·배포 workflow 변경 시점(09).
 
-- PRIVACY 목록이 `?days=`를 보내는데 서버 파라미터는 `range`다(`AdminPrivacyTradeController.java:44`, fable-api 확인). 기간이 무시되고 전량이 내려온다. 한 줄 수정.
-- 루트 `docker-compose.yml`이 `TRADING_API_BASE_URL`을 주입하지 않는다(실행 확인은 안 함).
-- `deploy/server/required-env`에 `TRADING_API_BASE_URL` 누락.
+## 이 세션에서 실행한 것 (지침서 밖 코드 변경은 이것뿐)
+
+- archive 71파일 + 감사 보고서 삭제(08 태스크 4).
+- 잘못된 결과를 내던 `.claude` 도구 3개 삭제(`fsd-boundary-checker`, `fsd-scaffold`, `dto-sync-check`), 폐기된 spec 삭제(08 태스크 3).
+- 문서의 코드와 어긋난 서술 D1~D7 정정, memory 참조 정정(08 태스크 2).
+- `listAdminPrivacyBases`의 죽은 `days` 인자 삭제. 호출부가 없어 실제로 보내진 적은 없었다(처음 보고한 "기간이 무시된다"는 과장이었다).
+- 루트 `docker-compose.yml`에 `TRADING_API_BASE_URL` 추가(09 태스크 4).
+- 남은 것: `deploy/server/required-env`의 `TRADING_API_BASE_URL` 누락은 infra 변경과 같은 묶음(09 C2).
 
 ## 측정 산출물
 
