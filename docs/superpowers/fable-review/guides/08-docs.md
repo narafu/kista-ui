@@ -148,7 +148,7 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 | 1 | 사용자 결정 받기(아래 목록) | — | — | 답변 |
 | 2 | 어긋난 서술 10건 + memory 1건 정정 | `findings/h` 2-2·2-3절의 file:line | Haiku | 선행 확인 2 |
 | 3 | 잘못된 도구 3개 삭제 | `.claude/agents/fsd-boundary-checker.md`, `.claude/skills/{fsd-scaffold,dto-sync-check}/` | Haiku | 루트 `CLAUDE.md`·문서에서 해당 이름 참조 0건 |
-| 4 | archive·감사 보고서 삭제, 미구현 spec 처리 | `docs/superpowers/{plans,specs}/archive/**`, `audit/**` | Haiku | `git ls-files docs/superpowers \| grep -v fable-review \| wc -l`이 결정에 따른 수 |
+| 4 | archive·감사 보고서 삭제(**완료, 커밋 `be6d886a`**), 미구현 spec 처리(결정 대기) | `docs/superpowers/{plans,specs}/archive/**`, `audit/**` | Haiku | `git ls-files docs/superpowers \| grep -v fable-review \| wc -l`이 결정에 따른 수 |
 | 5 | 중복 정리와 정본 지정(R1~R15), README 사본 삭제 | `docs/agents/*.md`, `README.md`, 디렉토리 `CLAUDE.md` | Sonnet | 주제별 정본 표를 PR 설명에 첨부, 선행 확인 3 |
 | 6 | 문단형 줄 분해, 과거 서사 삭제(이유 보존) | 자동 로드 문서 13개 | Opus | `awk 'length > 800' docs/agents/*.md \| wc -l` 0, 선행 확인 1에서 목표 수치의 1단계분 달성 |
 | 7 | memory 정리 | memory 4개 파일, `MEMORY.md` | Sonnet | 인덱스와 파일 일치 |
@@ -169,7 +169,7 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 
 1. **archive 71파일(31,230줄)과 감사 보고서 삭제: 승인됨(2026-11-12).** 삭제 커밋 해시를 `PROGRESS.md`에 적는다. 감사의 미해결 항목은 06과 대조해 남는 것만 백로그 한 줄로 옮긴다.
 2. **`specs/2026-07-12-reject-reason-design.md`**(62줄, "설계 초안 — 리뷰 대기", UI 구현 흔적 없음): 구현할지, 폐기할지. 서버는 `rejectReason` 필드를 이미 내려준다.
-3. **감사 보고서의 미해결 P2 항목**(S-02·S-03·S-04, A-03·A-16): 백로그로 옮길지, 06 지침서가 덮는 것으로 보고 닫을지. 권고: 06과 대조해 덮이지 않는 것만 백로그 한 줄로.
+3. ~~감사 보고서의 미해결 P2 항목~~: 닫음. 2026-11-12 코드 대조에서 S-02·S-03·S-04·A-03·A-16 전부 해소 확인.
 4. **`.claude`의 나머지 에이전트·스킬**(`next-component-boundary`, `ui-markup-specialist`, `ui-audit`, `typecheck-and-report`, `playwright-cli` 2,015줄)을 쓰고 있는지.
 5. **전역 `~/.claude/CLAUDE.md`**(16.6KB, 매 세션 로드)는 이 레포 밖이라 손대지 않았다. 프로젝트 문서와 겹치는 4곳(`findings/h` R13)을 어느 쪽에 둘지는 사용자가 정한다.
 
