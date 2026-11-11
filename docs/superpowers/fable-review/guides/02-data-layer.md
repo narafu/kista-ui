@@ -77,6 +77,20 @@ const save = $api.useMutation('post', '/api/finance/transactions')
 - 화면이 성립하려면 반드시 있어야 하는 데이터(계좌 상세의 계좌, 전략 상세의 전략)는 클라이언트에서 `useSuspenseQuery`로 읽는다. 서버가 채웠으므로 첫 렌더에 값이 있고, `data === undefined` 분기와 `if (!account) return null`이 사라진다.
 - 부가 구역 데이터는 지금처럼 `useQuery` + `SectionError`를 쓴다.
 
+### 5. 목록은 두 가지뿐이다
+
+kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md` 2-2절)이 모든 컬렉션 응답을 두 형식으로 통일한다. UI도 목록을 읽는 방법을 둘만 둔다.
+
+| 종류 | 서버 응답 | UI |
+|---|---|---|
+| 전량형(계좌, 전략, 가계부 계좌·카테고리·예산, 메타성 목록) | `{ items }` | `$api.useQuery(...)`, 받은 전량 안에서 열 정렬·즉시 필터 가능 |
+| 페이지형(가계부 거래내역, 자산 스냅샷, 전략 주문, 일별 체결, 사이클 이력, DCA 실행 이력, 관리자 목록, 로그) | `?cursor=&size=` → `{ items, nextCursor, hasMore }` | `$api.useInfiniteQuery(...)` 하나. `getNextPageParam: (last) => last.hasMore ? last.nextCursor : undefined`를 `shared/api`의 `cursorPage` 옵션 상수로 한 번만 적는다 |
+
+- `openapi-react-query`의 `useInfiniteQuery`는 페이지 파라미터 이름 기본값이 `cursor`라 서버 규약과 그대로 맞는다.
+- 페이지형을 클라이언트에서 자르거나(`use-client-pagination`) 다시 정렬·필터하지 않는다. 필터·기간은 쿼리 파라미터로 서버에 보낸다.
+- 번호 페이지네이션(`PaginationBar`·`PageSizeSelector`, 사용 15·13파일)과 총 건수·총 페이지 표시는 페이지형에서 사라진다. 화면은 "더 보기"로 통일한다(06 지침서의 목록 프리미티브). 총계가 필요한 화면은 집계 엔드포인트의 값을 쓴다.
+- 지금의 페이지 형식 3갈래(`page/size/totalElements`, `content`, 커서)를 다루는 코드(`useCycleHistory`의 "더 보기" 기록, `listDcaExecutions`의 페이지 매핑, `use-client-pagination`)가 이 하나로 합쳐진다.
+
 ### entities에 남는 것
 
 - `model/types.ts`: 생성 타입 별칭(01).
@@ -119,7 +133,8 @@ const save = $api.useMutation('post', '/api/finance/transactions')
 - **목록에서 상세를 찾는 쿼리**(`detailFromListQueryOptions`, `strategyDetailQueryOptions`)는 경로 하나에 대응하지 않는다. 단건 조회 엔드포인트가 없어서 생긴 구조다. 서버에 `GET /api/accounts/{id}`, `GET /api/trading-cycles/{id}`를 요청한다(`cross-repo.md`에 추가). 생기기 전까지는 목록 쿼리 + `select`로 읽는다.
 - **배열 파라미터의 순서**: `accountKeys.prices`는 티커를 정렬해 키에 넣는다. 경로 키에서는 호출부가 정렬된 배열을 넘겨야 한다. `params` 정규화(배열 정렬)를 `$api` 래핑 한 곳에서 한다.
 - **401 처리**: `clientFetch`의 갱신·로그아웃 단일화 로직은 인증 흐름이다. 동작을 바꾸지 않고 그대로 옮긴다. Opus가 맡고 `/code-review high`를 돌린다.
-- **라이브러리 동작 확인**: `openapi-react-query`가 `queryOptions`·`useSuspenseQuery`·`useInfiniteQuery`를 제공하는지, 키 모양이 `[method, path, init]`인지는 설치 후 `node_modules` 소스로 확인한다(태스크 1). 다르면 태스크 1에서 멈추고 자체 구현(약 80줄)으로 바꾼다.
+- **라이브러리 동작**: 공식 문서(context7 `/openapi-ts/openapi-typescript`, 2026-11-11 조회)로 확인한 것 — `openapi-react-query`는 `queryOptions`·`useQuery`·`useInfiniteQuery`·`useMutation`을 제공하고 키는 `[method, path, { params }]`다. `openapi-fetch`는 `fetch` 주입과 `onRequest`/`onResponse` 미들웨어를 지원하며, 실패 응답을 던지게 하려면 `onResponse`에서 직접 throw한다(여기서 `ApiError`를 던진다). TanStack Query의 `MutationCache` 전역 `onSuccess`/`onError`와 `mutation.meta`, `setQueryDefaults`의 부분 키 매칭도 문서로 확인했다. 확인하지 못한 것 — `useSuspenseQuery` 제공 여부와 설치될 버전의 키 세 번째 원소 정확한 모양. 태스크 1에서 `node_modules` 소스로 확인하고, `useSuspenseQuery`가 없으면 `useSuspenseQuery($api.queryOptions(...))`로 쓴다.
+- **목록 규약 전환은 api와 같은 날 배포한다.** 봉투가 배열에서 `{ items }`로 바뀌는 순간 구 UI가 깨진다. 묶음(가계부 / 전략 주문·체결·이력 / 관리자)별로 api 지침서 10의 T4와 짝지어 배포한다.
 
 ## 동작 보존용 선행 테스트
 

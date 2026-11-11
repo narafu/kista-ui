@@ -43,14 +43,34 @@ Sonnet/Haiku 서브에이전트 6개 병렬. 산출물은 `findings/`.
 
 삭제·대량 문서 개편의 실제 실행은 사용자 승인 후.
 
-## 2단계 판단
+## 2단계 판단 (완료, 2026-11-11)
 
-미착수. 측정이 끝나면 주제 5~8개를 정해 kista-api Fable 세션에 주제 목록을 SendMessage로 보낸다.
+측정 a~i 완료. 주제 9개 확정, fable-api에 전달함. 실행 순서: 01 → 02 → 05 → 04 → 06 → 03 → 07, 문서(08)·불필요 파일(09)은 독립.
+
+추가 기준(사용자 지시, fable-api 경유): `kista-api/docs/superpowers/fable-review/ui-api-principles.md`(기본값은 API, UI는 화면 상태·표시·상호작용만)와 `guides/10-ui-contract.md`(required 정확화, BigDecimal number, 목록은 전량형 `{items}` / 커서 페이지형 `{items,nextCursor,hasMore}` 둘뿐, 메타 통합, 상태 플래그, `fieldErrors`). UI 지침서 전체가 이 규약을 전제로 한다. KIS·업비트 브로커는 삭제 예정(사용자 결정).
+
+사용자 지시(2026-11-11): UI 세션은 UI 코드철학 + UI/UX 관점. context7 MCP 적극 활용, 필요하면 Playwright CLI.
 
 ## 3단계 지침서
 
-미착수. `guides/NN-<주제>.md`.
+| # | 주제 | 파일 | 상태 |
+|---|---|---|---|
+| 01 | 타입 SSOT | `guides/01-type-ssot.md` | 완료 |
+| 02 | 데이터 층 | `guides/02-data-layer.md` | 완료 (context7로 openapi-react-query·TanStack Query 동작 확인) |
+| 03 | 계층 구조(FSD 재심) | `guides/03-layer-structure.md` | 완료 |
+| 04 | 라우트와 폼 | `guides/04-routes-and-forms.md` | 완료. **사용자 결정 1건 대기**(인터셉트 라우트 폐지) |
+| 05 | UI·API 책임 분담(서버 규칙·코드값 사본, 집계, 목록) | `guides/05-…` | 측정 j(`findings/j-ui-api-principle-violations.md`) 진행 중 → 끝나면 작성. 가계부 집계 명세와 위반 전수 목록을 fable-api에 보내야 한다 |
+| 06 | UX 프리미티브 통일 | `guides/06-…` | 미작성 (근거 `findings/g`) |
+| 07 | 테스트 인프라·감량 | `guides/07-…` | 미작성 (근거 `findings/e`) |
+| 08 | 문서 정리 | `guides/08-…` | 미작성 (근거 `findings/h`, `f`). 원칙 문서가 `kista-api/docs/agents/ui-api-contract.md`로 옮겨지면 루트 CLAUDE.md가 가리키게 한다 |
+| 09 | 불필요 파일·배포 자산 | `guides/09-…` | 미작성 (근거 `findings/i`, kista-infra `findings/cross-repo-deploy.md`). wait-reconcile·required-env는 삭제 확정 |
+
+## 사용자에게 물을 결정 (모아서 한 번에)
+
+1. 04: 인터셉트 라우트(PC 모달·모바일 풀페이지)를 없애고 "작은 폼은 다이얼로그, 큰 폼은 페이지"로 바꿀지.
+2. 02: 새 의존성 `openapi-fetch`·`openapi-react-query` 도입.
+3. 03: FSD 5계층을 `app/screens/domains/shared`로 바꾸는 대이동.
 
 ## 바로 다음 할 일
 
-`findings/` 6개 파일이 다 찼는지 확인 → 읽고 주제 선정.
+06 작성 → j 완료 확인 후 05 작성과 fable-api 전달 → 07 → 08 → 09 → 사용자 결정 질문.
