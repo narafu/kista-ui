@@ -75,6 +75,8 @@ fable-infra가 알린 것 중 이 레포에서 고칠 것:
 5. **PR 단계에 shellcheck·bats가 없다.** `deploy/server/contract.bats`를 `ci.yml`에 넣는다. C1 뒤에는 대상 스크립트가 줄어든다.
 6. **Caddy 라우팅**을 이 레포 소유 스니펫(`deploy/server/caddy/kista-ui.caddy`)으로 옮기는 안은 infra 지침서가 소유한다. 그쪽 실행 때 파일을 받는다.
 
+갱신(2026-11-12): kista-api 프로세스 구조가 "진입점 하나"로 확정됐다. `TRADING_API_BASE_URL` 관련 항목(B1, 태스크 4에서 추가한 루트 compose 값, C2의 required-env 누락)은 02 지침서 태스크 8에서 api 배포 전환과 같은 날 한 번에 지운다. 그 전까지는 지금 값이 필요하다. 토스는 주문을 유지하고 `brokers[].tradable` 메타는 만들지 않는다.
+
 ## 예상 감량과 위험
 
 | 묶음 | 감량 |

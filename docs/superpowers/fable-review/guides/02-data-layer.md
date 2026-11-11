@@ -57,7 +57,8 @@ const save = $api.useMutation('post', '/api/finance/transactions')
 - 브라우저: 상대 경로로 Route Handler를 부른다. 401 갱신·로그아웃(`clientFetch`의 현재 동작)을 여기에 둔다.
 - 서버: 대상 프로세스 base URL을 붙이고 `Authorization`을 단다. 토큰은 인자로 받지 않는다. 요청별 `QueryClient`를 만들 때 한 번 넣는다(`createQueryClient({ token })`). `queryFn`이 받는 컨텍스트의 `client`에서 토큰을 찾는다.
 - 공개 경로 목록(`/api/market/**` 등)은 이 함수 안의 상수 하나다. 공개 경로에는 서버·브라우저 모두 토큰을 붙이지 않는다.
-- 경로 → 프로세스 표는 `resolveUpstream(path)` 하나다. 서버 직결과 프록시가 같은 함수를 쓴다. kista-api 쪽 검토에서 진입점이 하나로 합쳐지면 이 함수가 상수를 반환하도록 바뀌고 나머지는 그대로다.
+- 경로 → 프로세스 표는 `resolveUpstream(path)` 하나다. 서버 직결과 프록시가 같은 함수를 쓴다.
+- **진입점은 하나가 된다(사용자 결정 2026-11-12, api 지침서 05의 D1=A).** api와 trading-core가 한 이미지로 합쳐지고 URL은 그대로다. 합쳐지기 전까지는 지금의 두 호스트 매핑이 동작해야 하므로 `resolveUpstream` 구조를 유지하고, api 05의 배포 전환 단계와 같은 날 태스크 8(아래)로 매핑을 한 호스트로 줄인다.
 
 ### 2. 프록시 Route Handler 하나
 
@@ -159,6 +160,8 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 | 6 | `initial*` props 제거, 핵심 데이터 `useSuspenseQuery` 전환, page의 토큰 전달 제거 | `app/(main)/**/page.tsx`, `widgets/{account-detail,strategy-detail}/**`, `features/strategy/create-strategy/StrategyFormPage.tsx` | Sonnet | `grep -rn "initialAccount\|initialStrategy" --include='*.tsx' .` 0건 |
 | 7 | 구 `api-client`·`fetchEither`·`createProxyRoute` 삭제, 문서 갱신 | `shared/lib/api-client/**`, `docs/agents/{architecture,entities,shared}.md` | Haiku | `npm run knip`, `npm run lint`, `npm run test:run` |
 
+| 8 | 진입점 단일화: `resolveUpstream`이 `getApiBaseUrl()`만 반환, `getTradingApiBaseUrl`·`TRADING_API_BASE_URL`(env.ts, `.env.example`, 루트·`deploy/server` compose, `docs/agents/deployment.md`)과 `NEXT_PUBLIC_TRADING_API_BASE_URL` 폴백 삭제 | `shared/api/**`, `shared/lib/env.ts`, compose 2개 | Sonnet | api 지침서 05 배포 전환과 같은 날 배포. `git grep -n TRADING_API_BASE_URL` 0건 |
+
 5a를 먼저 한다. 가계부는 정규화가 없고 mutation이 전부 무효화형이라 새 규칙이 맞는지 가장 싸게 검증된다.
 
 ## 하지 말아야 할 것
@@ -174,5 +177,5 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 - 선행: 01(타입). 생성 타입이 정확해야 `paths`에서 추론한 응답 타입을 그대로 쓸 수 있다.
 - 03(계층 재심)은 이 지침서로 entities가 얇아진 뒤의 모양을 전제로 한다.
 - 05는 이 지침서가 남긴 "모양 변환 함수 약 150줄"과 목록 → 상세 조회를 서버 변경으로 더 줄인다.
-- kista-api 검토의 프로세스 구조 결론(진입점 1개 대 2개)은 `resolveUpstream` 한 함수에만 영향을 준다.
+- kista-api 프로세스 구조는 진입점 하나로 확정됐다(D1=A). 태스크 8이 api 지침서 05의 배포 전환 단계와 짝이다.
 - `cross-repo.md`에 추가할 요청: 단건 조회 엔드포인트 2개(`GET /api/accounts/{id}`, `GET /api/trading-cycles/{id}`), 오류 `detail`을 사용자용 문장으로 보장.

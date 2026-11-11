@@ -75,6 +75,12 @@
 - 루트 `docker-compose.yml`에 `TRADING_API_BASE_URL` 추가(09 태스크 4).
 - 남은 것: `deploy/server/required-env`의 `TRADING_API_BASE_URL` 누락은 infra 변경과 같은 묶음(09 C2).
 
+## 다른 레포 결정 반영 (2026-11-12, fable-api 전달)
+
+- D1=A 확정: API 진입점 하나. `TRADING_API_BASE_URL`과 두 호스트 매핑은 api 지침서 05 배포 전환과 같은 날 02 태스크 8로 지운다.
+- 토스 주문 유지, `brokers[].tradable` 메타 없음. KIS·업비트 삭제는 그대로.
+- 매매 공식 변경 예정(api 지침서 08): `priceOffsetRate`·`currentRound`의 소수 자릿수가 늘어난다. UI 확인 결과 — `currentRound`는 3곳에서 `toFixed(1)`로 표시(`StrategyCard.tsx:98,150`, `StrategyMetaSection.tsx:182`), `priceOffsetRate`는 타입·정규화에만 있고 화면 표시·비교 코드가 없다. 소수 2자리를 가정한 비교는 없다. fable-api에 회신함.
+
 ## 측정 산출물
 
 | 파일 | 내용 |
