@@ -1,7 +1,9 @@
 import { StrictMode } from 'react'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { isSubviewEntry, pushSubviewEntry, SUBVIEW_HISTORY_KEY, useSubviewHistory } from './subviewHistory'
+import { pushSubviewEntry, SUBVIEW_HISTORY_KEY, useSubviewHistory } from './subviewHistory'
+
+const isSubviewEntry = () => (window.history.state as Record<string, unknown> | null)?.[SUBVIEW_HISTORY_KEY] != null
 
 afterEach(() => {
   window.history.replaceState(null, '')
@@ -16,11 +18,6 @@ describe('subviewHistory', () => {
     expect(isSubviewEntry()).toBe(true)
     expect(window.history.state).toEqual({ __NA: true, [SUBVIEW_HISTORY_KEY]: id })
     expect(pushSubviewEntry()).not.toBe(id)
-  })
-
-  it('isSubviewEntry는 객체가 아닌 state를 거른다', () => {
-    expect(isSubviewEntry(null)).toBe(false)
-    expect(isSubviewEntry('x')).toBe(false)
   })
 
   it('open이 true가 되면 한 칸 쌓고, leave → 표식 없는 popstate에서 onPop 1회', () => {

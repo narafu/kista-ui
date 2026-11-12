@@ -211,7 +211,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - a11y-check의 "라우트 모달" 점검을 "폼 다이얼로그" 점검으로 바꿨다.
   - `docs/agents/app.md`의 인터셉트 4문단을 폼 형태 기준(다이얼로그 아니면 페이지) 2문단으로 바꾸고, strategy·finance 문서를 고쳤다.
 - 테스트: 고친 테스트는 `mockApi`·`renderApp`으로 바꿨다. 남은 모듈 mock은 서버 컴포넌트 쿠키를 대신하는 `next/headers` 하나뿐이다(`strategies/[sid]/edit/page.test.tsx`). 기존 mock 4개에서 줄었다.
-- 변이 확인(폼마다 1회):
+- 변이 확인(폼마다 1회, 전략 상세의 버튼 노출 조건 2개 포함 — `supportsCapitalAdjustment`·`canWithdrawCapital` 제거 시 각각 실패):
   - 투자금 추가: `onDone` 제거 → 실패.
   - 투자금 인출: 요청 바디 변경 → 실패.
   - 예산 복제: `duplicateFrom` 제거 → 실패.
@@ -238,7 +238,6 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 
 ### 남긴 것
 
-- `subviewHistory`의 `isSubviewEntry` export는 이제 테스트에서만 쓴다(knip 통과). 다음에 이 파일을 건드릴 때 지운다.
 - 다이얼로그가 열린 채 부모가 unmount되면(예: 화면 전환) 같은 URL의 이력 칸이 하나 남는다. 뒤로 가기 한 번이 아무 일도 하지 않는다. DCA 하위 뷰와 같은 한계다.
 - 지침서 04의 태스크 7(문서)은 이번에 앞당겨 했다. 08에서 다시 하지 않는다.
 

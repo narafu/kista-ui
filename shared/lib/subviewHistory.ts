@@ -24,9 +24,6 @@ function setCurrentToken(token: string | null) {
   window.history.replaceState(token == null ? rest : { ...rest, [SUBVIEW_HISTORY_KEY]: token }, '')
 }
 
-export function isSubviewEntry(state: unknown = window.history.state): boolean {
-  return subviewToken(state) != null
-}
 
 // open이 false→true가 될 때 한 칸 쌓고, 그 칸(이번 진입 토큰)을 벗어나는 popstate에서 onPop을 부른다.
 // leave()가 하위 뷰를 닫는 유일한 경로다 — 실제 닫기는 onPop이 한다(브라우저 뒤로가기와 같은 경로)
