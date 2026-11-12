@@ -100,7 +100,7 @@ shared/              도메인을 모르는 것
 - **이동과 수정이 섞이면 리뷰할 수 없다.** 이동 커밋(`git mv` + import 치환만)과 병합·인라인 커밋을 분리한다.
 - **barrel 제거 시 순환 import**: barrel이 가리던 순환이 드러날 수 있다. typecheck는 통과해도 런타임 초기화 순서 문제가 난다. 이동 후 `npm run build`와 e2e로 확인한다.
 - **테스트의 `vi.mock('@entities/…')` 경로 395개**가 전부 바뀐다. 07 지침서의 mock 정리와 순서를 맞춘다(아래 의존 참고).
-- **`cacheArchitecture.test.ts`**(app/widgets/features/entities를 AST로 훑는 규칙 테스트)의 대상 디렉토리를 새 구조로 바꾼다.
+- **`eslint.config.mjs`의 구조 규칙**(07 태스크 5에서 `cacheArchitecture.test.ts`·`metadata.test.ts`를 옮긴 것, `runtimeFiles`·`entities/**/hooks/**`·`app/**` glob)의 대상 경로를 새 구조로 바꾼다.
 
 ## 동작 보존용 선행 테스트
 
@@ -119,7 +119,7 @@ shared/              도메인을 모르는 것
 | 4 | entities + features → `domains/` 이동(도메인 하나씩, 표의 위에서 아래 순서) | 전 도메인 | Sonnet | 도메인마다 기준선 4명령, 케이스 수 불변 |
 | 5 | widgets → `screens/` 또는 `domains/*/ui` 이동 | `widgets/**` | Sonnet | `ls widgets features entities`가 없음 |
 | 6 | barrel 삭제, 직접 import로 치환 | 전체 | Sonnet | `git ls-files \| grep -c '/index.ts$'`가 실코드 barrel(`shared/lib/format` 등) 수 이하, `npm run build` |
-| 7 | lint 경계 규칙 추가, tsconfig alias 교체, `cacheArchitecture.test.ts` 대상 갱신 | `eslint.config.mjs`, `tsconfig.json`, `knip.json` | Opus | 고의 위반 import를 넣었을 때 `npm run lint`가 실패하는지 확인 후 되돌림 |
+| 7 | lint 경계 규칙 추가, tsconfig alias 교체, 구조 규칙 glob 갱신 | `eslint.config.mjs`, `tsconfig.json`, `knip.json` | Opus | 고의 위반 import를 넣었을 때 `npm run lint`가 실패하는지 확인 후 되돌림 |
 | 8 | 슬롯 우회 제거(대시보드 3단 슬롯, `renderHousingExtras`), 단일 사용 hook·30줄 미만 조각 인라인 | `screens/{dashboard,benchmark}/**`, `domains/strategy/form/**` 등 | Sonnet | visual-diff 차이 없음, 기준선 4명령 |
 | 9 | 문서·도구 정리: 계층별 CLAUDE.md, `docs/agents/{architecture,entities,features,widgets,app}.md`, `fsd-*` 에이전트·스킬, README 아키텍처 절 | 08 지침서에 합친다 | Haiku | 08의 판정 |
 

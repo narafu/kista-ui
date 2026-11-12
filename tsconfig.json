@@ -28,6 +28,7 @@
       "@features/*": ["./features/*"],
       "@entities/*": ["./entities/*"],
       "@shared/*": ["./shared/*"],
+      "@testing/*": ["./testing/*"],
       "@/lib/*": ["./lib/*"],
       "@/components/*": ["./components/*"]
     }

@@ -1,22 +1,13 @@
-import { HydrationBoundary, QueryClient, QueryClientProvider, dehydrate } from '@tanstack/react-query'
-import { act, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { act, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
-import { getAccountLedgerTotals } from '@entities/account/api'
 import { tradeKeys } from '@entities/trade'
-import { getAccountPortfolio, getCryptoPortfolio } from '@entities/trade/api'
+import { createQueryClient } from '@shared/lib/query'
+import { apiError, mockApi, type ApiHandlers } from '@testing/mockApi'
+import { renderApp } from '@testing/renderApp'
 import { AccountDetailContent } from './AccountDetailContent'
-
-vi.mock('@entities/trade/api', () => ({
-  getAccountPortfolio: vi.fn(async () => ({})),
-  getCryptoPortfolio: vi.fn(async () => ({ currency: 'KRW', cash: 1, totalAsset: 2, holdings: [] })),
-}))
-
-vi.mock('@entities/account/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@entities/account/api')>()),
-  getAccountLedgerTotals: vi.fn(async () => ({ currency: 'USD', deposit: 0, evaluation: null, unassignedCash: null })),
-}))
 
 const { tabsMock } = vi.hoisted(() => ({ tabsMock: vi.fn((_props: unknown) => null) }))
 
@@ -31,41 +22,32 @@ const serverAccount: Account = {
   broker: 'MOCK',
 }
 
-function createClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, staleTime: Infinity },
-    },
-  })
+const ledgerTotals: ApiHandlers = {
+  'GET /api/accounts/{accountId}/ledger-totals': { currency: 'USD', deposit: 0 },
 }
 
-function content(account = serverAccount) {
-  return (
-    <AccountDetailContent
-      accountId={account.id}
-      initialAccount={account}
-    />
-  )
+function renderContent(account: Account, seed: (client: ReturnType<typeof createQueryClient>) => void = () => {}) {
+  const queryClient = createQueryClient()
+  queryClient.setQueryData(accountKeys.detail(account.id), account)
+  seed(queryClient)
+  renderApp(<AccountDetailContent accountId={account.id} initialAccount={account} />, { queryClient })
+  return queryClient
 }
 
 describe('AccountDetailContent', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
   it('keeps a newer prewarmed detail when stale destination hydration arrives', () => {
-    const serverClient = createClient()
-    serverClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount, { updatedAt: 100 })
-    const browserClient = createClient()
+    mockApi(ledgerTotals)
+    const serverClient = createQueryClient()
+    serverClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount, { updatedAt: Date.now() - 1000 })
+    const browserClient = createQueryClient()
     const prewarmed = { ...serverAccount, nickname: 'Prewarmed nickname' }
-    browserClient.setQueryData(accountKeys.detail(serverAccount.id), prewarmed, { updatedAt: 200 })
+    browserClient.setQueryData(accountKeys.detail(serverAccount.id), prewarmed, { updatedAt: Date.now() })
 
-    render(
-      <QueryClientProvider client={browserClient}>
-        <HydrationBoundary state={dehydrate(serverClient)}>
-          {content()}
-        </HydrationBoundary>
-      </QueryClientProvider>,
+    renderApp(
+      <HydrationBoundary state={dehydrate(serverClient)}>
+        <AccountDetailContent accountId={serverAccount.id} initialAccount={serverAccount} />
+      </HydrationBoundary>,
+      { queryClient: browserClient },
     )
 
     expect(screen.getByRole('heading', { name: 'Prewarmed nickname' })).toBeInTheDocument()
@@ -73,15 +55,11 @@ describe('AccountDetailContent', () => {
   })
 
   it('updates the mutable account header from the detail cache without a reload', async () => {
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    mockApi(ledgerTotals)
+    const queryClient = renderContent(serverAccount)
 
     act(() => {
-      queryClient.setQueryData(accountKeys.detail(serverAccount.id), {
-        ...serverAccount,
-        nickname: 'Edited nickname',
-      })
+      queryClient.setQueryData(accountKeys.detail(serverAccount.id), { ...serverAccount, nickname: 'Edited nickname' })
     })
 
     await waitFor(() => {
@@ -91,11 +69,11 @@ describe('AccountDetailContent', () => {
   })
 
   it('reads deposit and evaluation from the portfolio cache so trade invalidation updates them without a refresh', async () => {
+    mockApi(ledgerTotals)
     const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(liveAccount.id), liveAccount)
-    queryClient.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { deposit: 100, posEvalUsd: 200 } })
-    render(<QueryClientProvider client={queryClient}>{content(liveAccount)}</QueryClientProvider>)
+    const queryClient = renderContent(liveAccount, (client) => {
+      client.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { deposit: 100, posEvalUsd: 200 } })
+    })
 
     expect(tabsMock).toHaveBeenLastCalledWith(expect.objectContaining({ deposit: 100, posEvalUsd: 200 }))
 
@@ -109,11 +87,11 @@ describe('AccountDetailContent', () => {
   })
 
   it('전략 합산 조회가 실패하면 ledgerTotalsError를 넘긴다', async () => {
-    vi.mocked(getAccountLedgerTotals).mockRejectedValueOnce(new Error('boom'))
-    const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(liveAccount.id), liveAccount)
-    render(<QueryClientProvider client={queryClient}>{content(liveAccount)}</QueryClientProvider>)
+    mockApi({
+      'GET /api/accounts/{accountId}/ledger-totals': apiError(500),
+      'GET /api/accounts/{accountId}/portfolio': {},
+    })
+    renderContent({ ...serverAccount, broker: 'KIS' })
 
     await waitFor(() => {
       expect(tabsMock).toHaveBeenCalledWith(expect.objectContaining({ ledgerTotalsError: true }))
@@ -121,12 +99,14 @@ describe('AccountDetailContent', () => {
   })
 
   it('업비트 계좌는 주식 포트폴리오를 부르지 않고 크립토 포트폴리오를 부른다', async () => {
-    const crypto: Account = { ...serverAccount, broker: 'UPBIT', accountNoMasked: null }
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(crypto.id), crypto)
-    render(<QueryClientProvider client={queryClient}>{content(crypto)}</QueryClientProvider>)
+    // 주식 포트폴리오 경로는 등록하지 않는다 — 부르면 mockApi가 테스트를 실패시킨다
+    const api = mockApi({
+      ...ledgerTotals,
+      'GET /api/accounts/{accountId}/crypto-portfolio': { currency: 'KRW', cash: 1, totalAsset: 2, holdings: [] },
+    })
+    renderContent({ ...serverAccount, broker: 'UPBIT', accountNoMasked: null })
 
-    await waitFor(() => expect(getCryptoPortfolio).toHaveBeenCalledWith('account-1', undefined))
-    expect(getAccountPortfolio).not.toHaveBeenCalled()
+    await waitFor(() => expect(api.requests.map((r) => r.path)).toContain('/api/accounts/account-1/crypto-portfolio'))
+    expect(api.requests.map((r) => r.path)).not.toContain('/api/accounts/account-1/portfolio')
   })
 })

@@ -20,6 +20,7 @@ export default defineConfig({
       '@features': path.resolve(__dirname, './features'),
       '@entities': path.resolve(__dirname, './entities'),
       '@shared': path.resolve(__dirname, './shared'),
+      '@testing': path.resolve(__dirname, './testing'),
       '@/lib': path.resolve(__dirname, './lib'),
       '@/components': path.resolve(__dirname, './components'),
     },

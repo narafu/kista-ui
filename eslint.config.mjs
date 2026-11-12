@@ -11,6 +11,21 @@ const reactDoctorStub = {
   rules: new Proxy({}, { get: (_, name) => (typeof name === 'string' ? noopRule : undefined) }),
 }
 
+// 런타임 소스 구조 규칙(docs/agents/shared.md "cache"·"metadata"). no-restricted-syntax는 config 객체끼리 병합되지 않고
+// 뒤 객체가 덮어쓰므로, 파일 묶음마다 해당 selector를 모두 합쳐 건다.
+const runtimeFiles = ['app/**', 'widgets/**', 'features/**', 'entities/**']
+const nonRuntimeFiles = ['**/*.{test,spec,docs,fixture}.*', '**/{__fixtures__,__tests__,docs,fixtures,test,tests}/**']
+const cacheSelectors = [
+  { selector: 'Identifier[name=/^getCached(Accounts|Strategies|User)$/]', message: '가변 인증 데이터에 Next Data Cache 리더를 쓰지 않는다(docs/agents/shared.md "cache").' },
+  { selector: "Property[key.name='initialDataUpdatedAt'][computed=false][value.value=0], Property[key.value='initialDataUpdatedAt'][value.value=0], Property[key.name='initialDataUpdatedAt'] > :matches(TSAsExpression, TSTypeAssertion).value > Literal.expression[value=0]", message: 'initialDataUpdatedAt: 0으로 hydration을 강제로 stale 처리하지 않는다.' },
+]
+const hookRefreshSelector = { selector: "CallExpression[callee.object.name='router'][callee.property.name='refresh']", message: 'entities hook에서 router.refresh()로 캐시 동기화를 대신하지 않는다(docs/agents/shared.md "router.refresh() 허용 범위").' }
+const titleSuffixSelectors = [
+  { selector: 'Literal[value=/\\| KISTA/], TemplateElement[value.raw=/\\| KISTA/]', message: '접미사 " | KISTA"는 root layout의 title.template이 붙인다(docs/agents/copy.md).' },
+]
+const nestedLayoutTitleSelector = { selector: "Property[key.name='title'][value.type=/^(Literal|TemplateLiteral)$/]", message: '중첩 layout은 title을 문자열로 쓰지 않는다 — 하위 라우트의 template 상속이 끊긴다.' }
+const restrict = (...selectors) => ({ 'no-restricted-syntax': ['error', ...selectors] })
+
 export default tseslint.config(
   nextPlugin.configs['core-web-vitals'],
   jsxA11y.flatConfigs.strict,
@@ -46,6 +61,19 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    files: runtimeFiles,
+    ignores: nonRuntimeFiles,
+    rules: {
+      ...restrict(...cacheSelectors),
+      'no-restricted-imports': ['error', {
+        paths: [{ name: 'next/cache', importNames: ['unstable_cache', 'cacheTag'], message: '가변 인증 데이터에 persistent cache를 쓰지 않는다(docs/agents/shared.md "cache").' }],
+      }],
+    },
+  },
+  { files: ['entities/**/hooks/**'], ignores: nonRuntimeFiles, rules: restrict(...cacheSelectors, hookRefreshSelector) },
+  { files: ['app/**'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...cacheSelectors, ...titleSuffixSelectors) },
+  { files: ['app/**/layout.tsx'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...cacheSelectors, ...titleSuffixSelectors, nestedLayoutTitleSelector) },
   {
     // shadcn 자동생성 파일 — 직접 수정 금지, false positive 스캔 제외
     ignores: ['node_modules/**', '.worktrees/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],

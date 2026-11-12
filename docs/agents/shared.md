@@ -13,7 +13,7 @@
 
 ## cache
 
-Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. 느리게 변하는 reference/public 데이터에만 명시적 TTL/tag로 허용하며, `unstable_cache`는 Next.js 16 legacy API다. 신규 `cacheTag`는 `cacheComponents`와 `'use cache'` 도입이 전제다. 이 금지 규칙은 `shared/lib/query/cacheArchitecture.test.ts`가 app/widgets/features/entities 전체를 AST로 훑어 기계적으로 강제한다 — 위반 시 이름만으로는 규칙과 무관해 보이는 이 테스트가 실패한다
+Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. 느리게 변하는 reference/public 데이터에만 명시적 TTL/tag로 허용하며, `unstable_cache`는 Next.js 16 legacy API다. 신규 `cacheTag`는 `cacheComponents`와 `'use cache'` 도입이 전제다. 이 금지 규칙(`getCached*` 리더, `initialDataUpdatedAt: 0`, entities hook의 `router.refresh()`, `next/cache`의 `unstable_cache`·`cacheTag`)은 `eslint.config.mjs`의 `no-restricted-syntax`·`no-restricted-imports`가 강제한다
 
 ## query
 
@@ -76,7 +76,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 ## metadata
 
-탭 제목 접미사 `TITLE_TEMPLATE`는 `shared/lib/metadata.ts`가 SSOT. 규칙은 `docs/agents/copy.md`, 강제는 `shared/lib/metadata.test.ts`.
+탭 제목 접미사 `TITLE_TEMPLATE`는 `shared/lib/metadata.ts`가 SSOT. 규칙은 `docs/agents/copy.md`, 강제는 `eslint.config.mjs`(app 소스의 `| KISTA` 리터럴, 중첩 layout의 문자열 title 금지).
 
 ## proxy
 
