@@ -47,7 +47,7 @@ kista-infra 검토와 사용자 결정으로 확정된 것:
 
 | # | 대상 | 근거 | 조건 |
 |---|---|---|---|
-| C1 | `.github/scripts/wait-reconcile.sh`, `wait-reconcile.bats`, `stub/gh` | kista-api와 같은 사본이다. 배포 대기 구조를 없애고 infra가 commit status로 결과를 돌려주는 것으로 사용자 결정이 났다(fable-api 전달, 2026-11-11) | infra 쪽 commit status 회신이 배포된 뒤. `server-deploy.yml`의 대기 단계도 같이 지운다 |
+| C1 (완료, 2026-11-13) | `.github/scripts/wait-reconcile.sh`, `wait-reconcile.bats`, `stub/gh` | kista-api와 같은 사본이다. 배포 대기 구조를 없애고 infra가 commit status로 결과를 돌려주는 것으로 사용자 결정이 났다(fable-api 전달, 2026-11-11) | infra 쪽 commit status 회신이 배포된 뒤. `server-deploy.yml`의 대기 단계도 같이 지운다 |
 | C2 | `deploy/server/required-env` | `TRADING_API_BASE_URL`이 빠져 있어 이미 틀렸다(compose는 기본값 없이 보간하고 `shared/lib/env.ts:16-17`은 없으면 throw). infra 지침서의 목표는 이 파일을 없애고 compose에서 `${API_BASE_URL:?}`·`${TRADING_API_BASE_URL:?}`로 강제하는 것 | infra 지침서 실행과 같은 묶음. `deploy/server/contract.bats`의 해당 단언도 같이 고친다 |
 | C3 | `UI_DOMAIN` 환경값 | 소비처가 없는 흔적값이다(`deploy/server/README.md:32`가 인정) | C2와 같이 |
 | C4 | KIS·업비트 전용 UI 코드 약 70줄과 테스트·픽스처 참조 38파일 | 증권사 삭제가 결정됐다 | api 지침서 04의 단계 A와 같은 배포 묶음(05 지침서 태스크 9) |
