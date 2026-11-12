@@ -35,8 +35,9 @@ renderApp(<AccountDetailScreen accountId="a1" />)
 ```
 
 - `mockApi`는 `paths` 타입으로 키와 응답 모양을 검사하는 `fetch` 대체다(`vi.stubGlobal('fetch', …)`, 약 50줄, 의존성 추가 없음). 응답 모양이 스펙과 어긋나면 typecheck가 잡는다.
-- `renderApp`은 `QueryClientProvider`·`MetaProvider(testMeta)`·라우터 대역·`Toaster`를 한 번에 감싼다. 파일별 wrapper 21개를 대체한다.
-- `next/navigation`·`next/link`·`sonner`의 대역은 `vitest.setup.ts`에 한 번만 둔다.
+- `renderApp`은 `QueryClientProvider`·`MetaProvider(testMeta)`를 감싼다. 파일별 wrapper 21개를 대체한다.
+- `next/navigation`·`next/link`·`sonner`의 대역은 `vitest.setup.ts`에 한 번만 둔다. `sonner`는 `toast`를 spy로 바꾸고 `Toaster`는 렌더하지 않는다(실행 결정, 2026-11-12 — 실제 `Toaster`를 렌더하는 테스트가 없고 기존 테스트가 `toast.*` 호출을 단언한다).
+- **위치(실행 결정)**: `mockApi`·`renderApp`은 루트 `testing/`(alias `@testing/*`)에 있다. `renderApp`이 `entities/meta`를 써야 해서 `shared/`에 둘 수 없다. 03 이동 때도 이 위치를 유지하고 lint 경계의 테스트 전용 예외로 둔다.
 - 결과: `vi.mock('@entities/…')`, `vi.mock('../api')`, `vi.mock('@tanstack/react-query')`가 없어진다. 테스트가 파일 경로를 모르므로 구조를 바꿔도 깨지지 않는다.
 
 ### 2. 픽스처는 생성 타입의 빌더
@@ -121,11 +122,11 @@ export const strategy = (over: Partial<Strategy> = {}): Strategy => ({ id: 's1',
 
 | # | 태스크 | 대상 | 모델 | 완료 판정 |
 |---|---|---|---|---|
-| 1 | 기준선 기록 | PROGRESS | Haiku | 수치 기록 |
-| 2 | `mockApi`·`renderApp`·전역 대역(`next/navigation`, `next/link`, `sonner`) | `shared/testing/**`, `vitest.setup.ts` | Opus | 자체 테스트(미등록 요청 실패, 타입 검사) |
-| 3 | 도메인별 빌더 | `domains/*/testing.ts`(03 전이면 `entities/*/model/fixtures.ts`) | Sonnet | `grep -rn "as unknown as" --include='*.test.*' . \| wc -l`이 5 이하 |
+| 1 | 기준선 기록(**완료 2026-11-12**) | PROGRESS | Haiku | 수치 기록 |
+| 2 | `mockApi`·`renderApp`·전역 대역(`next/navigation`, `next/link`, `sonner`)(**완료 2026-11-12**) | `testing/**`, `vitest.setup.ts` | Opus | 자체 테스트(미등록 요청 실패, 타입 검사) |
+| 3 | 도메인별 빌더(**완료 2026-11-12**, `entities/{strategy,order}/model/fixtures.ts`, `testMeta`의 `strategyTypeMeta`) | `domains/*/testing.ts`(03 전이면 `entities/*/model/fixtures.ts`) | Sonnet | `grep -rn "as unknown as" --include='*.test.*' . \| wc -l`이 5 이하 |
 | 4 | 재진술·전달 테스트 삭제(후보 목록을 먼저 만들고 사람이 읽을 수 있는 표로 보고) | 후보 80~120케이스 | Sonnet(목록), Opus(판정) | 표의 각 행에 삭제 이유. 커버리지 분기 기준 통과 |
-| 5 | 소스 패턴 테스트를 ESLint 규칙으로 | `shared/lib/query/cacheArchitecture.test.ts`, `shared/lib/metadata.test.ts`, `eslint.config.mjs` | Sonnet | 금지 import를 고의로 넣었을 때 `npm run lint` 실패 확인 후 테스트 파일 삭제 |
+| 5 | 소스 패턴 테스트를 ESLint 규칙으로(**완료 2026-11-12**) | `shared/lib/query/cacheArchitecture.test.ts`, `shared/lib/metadata.test.ts`, `eslint.config.mjs` | Sonnet | 금지 import를 고의로 넣었을 때 `npm run lint` 실패 확인 후 테스트 파일 삭제 |
 | 6 | 화면 통합 테스트 전환(상위 5개 파일부터). 케이스 대응표 작성 → 전환 → 변이 확인 | `StrategyDetail`, `HousingBenchmarkComparison`, `StrategyCard`, `CryptoMarketSection`, 이후 나머지 | Opus(상위 5개), Sonnet(나머지, 도메인별 병렬) | `grep -rn "vi.mock('@\(entities\|domains\)" . \| wc -l` 0, 대응표에 빈 행 없음 |
 | 7 | `useStrategyForm.test.ts`와 하위 단위 테스트의 중복 정리(04 태스크 6과 같은 묶음) | `features/strategy/create-strategy/**` 테스트 | Opus | payload 고정 테스트 통과, 변이 확인 3건 |
 | 8 | `it.each` 묶음, 문구 단언 정리 | `shared/lib/format/index.test.ts` 등 18묶음 | Sonnet | `npm run test:run` |

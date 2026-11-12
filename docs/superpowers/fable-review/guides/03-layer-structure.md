@@ -67,6 +67,7 @@ shared/              도메인을 모르는 것
 3. **파일은 재사용되거나 커질 때만 나눈다.** 한 컴포넌트만 쓰는 hook·헬퍼·상수는 그 파일 안에 둔다. 파일이 300줄을 넘거나 두 번째 사용처가 생기면 나눈다. 테스트하려고 떼어낸 순수 함수는 같은 파일에서 export하면 된다.
 4. **승격은 두 번째 사용처가 생길 때 한다.** 화면 전용 → 도메인(두 화면이 쓸 때) → shared(도메인을 모를 때). 미리 올리지 않는다.
 5. alias는 `@screens/*`, `@domains/*`, `@shared/*` 세 개다. `@/lib/*`·`@/components/*`는 shadcn 생성물용으로 유지한다.
+6. **테스트 전용 예외**: 루트 `testing/`(alias `@testing/*`, 07 태스크 2에서 생김)은 `mockApi`·`renderApp`을 담고 `domains/meta`를 import한다. 다섯 번째 최상위 디렉토리지만 테스트 파일과 `vitest.setup.ts`에서만 import할 수 있다. lint 경계에 이 두 방향(`testing/`은 테스트에서만 import, `testing/`은 어디든 import)을 넣고, 이동 스크립트는 `testing/` 안의 import 경로만 고친다.
 
 ### 그렇게 정한 이유
 

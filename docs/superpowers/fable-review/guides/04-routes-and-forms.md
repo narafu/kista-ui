@@ -161,15 +161,15 @@ const form = useAppForm({
 | # | 태스크 | 대상 | 모델 | 완료 판정 |
 |---|---|---|---|---|
 | 0 | 결정 1 승인 받기 | — | — | 완료(2026-11-12, 폐지 승인) |
-| 1 | 폼 전수표: 폼마다 현재 형태, 필드 수, 하위 뷰 유무, URL 파라미터 의존, 목표 형태 | `findings/m-form-inventory.md` | Sonnet | 폼 31개 전부 행이 있음 |
-| 2 | `FormDialog` 추가, 모바일 뒤로 가기 동작 확인 | `shared/ui/FormDialog.tsx` | Opus | a11y-check, 모바일 뷰포트 스크린샷 |
-| 3 | 작은 폼을 다이얼로그로 전환하고 인터셉트 라우트 제거(예산 → 투자금 추가·인출 → 나머지 순서) | `app/(main)/@modal/**`, 해당 `page.tsx`·`loading.tsx`·`*FormBody.tsx`, 폼 컴포넌트의 `dismiss` | Sonnet | `ls "app/(main)/@modal"`이 없음, `grep -rn "dismiss" --include='*.tsx' . \| grep -v test` 0건, `grep -rn "RouteModal\|subviewHistory" .` 0건 |
+| 1 | 폼 전수표: 폼마다 현재 형태, 필드 수, 하위 뷰 유무, URL 파라미터 의존, 목표 형태 | `findings/m-form-inventory.md` | Sonnet | 폼 전부 행이 있음(**완료 2026-11-12**, 실제 28행) |
+| 2 | `FormDialog` 추가, 모바일 뒤로 가기 동작 확인(**완료 2026-11-12**, 실기기 확인은 남음) | `shared/ui/FormDialog.tsx` | Opus | a11y-check, 모바일 뷰포트 스크린샷 |
+| 3 | 작은 폼을 다이얼로그로 전환하고 인터셉트 라우트 제거(**완료 2026-11-12**. `subviewHistory`는 `FormDialog`와 DCA 하위 뷰가 함께 쓰므로 남겼다 — 완료 판정 grep에서 뺀다) | `app/(main)/@modal/**`, 해당 `page.tsx`·`loading.tsx`·`*FormBody.tsx`, 폼 컴포넌트의 `dismiss` | Sonnet | `ls "app/(main)/@modal"`이 없음, `grep -rn "dismiss" --include='*.tsx' . \| grep -v test` 0건, `grep -rn "RouteModal\|subviewHistory" .` 0건 |
 | 4 | `useAppForm`·`FormField` 추가, `FormActions`를 form 객체를 받게 변경 | `shared/ui/form/**` | Opus | 단위 테스트(제출·진행·성공·서버 필드 오류 매핑) |
 | 5a | 가계부 폼 5개 전환, 생성·수정 쌍 병합(`CategoryFormDialog`·`SystemCategoryFormDialog`) | `features/finance/**` | Sonnet | 선행 테스트 2 통과, `grep -rn "submitFormDialog" .` 0건 |
 | 5b | 관리자 개인정보 다이얼로그 쌍 병합, 그 외 수동 폼 전환 | `widgets/admin-privacy-trade-list/**`, `features/{account,asset,admin,settings}/**` | Sonnet (디렉토리별 병렬) | 해당 vitest, `grep -rnE "useState.*\(''\)" features --include='*Form*.tsx'`가 폼 필드 용도로 0건 |
 | 5c | 투자금 추가·인출을 한 컴포넌트로 | `features/strategy/{inject,withdraw}-capital/**` | Sonnet | 선행 테스트 2 통과 |
 | 6 | 전략 폼 통합(골격 1 + 종류별 섹션, 판별 유니언 스키마, 메타 기본값) | `features/strategy/create-strategy/**`, `features/strategy/reconfigure-vr/**` | Opus | 선행 테스트 1 통과, `/code-review high` |
-| 7 | 문서 갱신: `docs/agents/app.md`의 인터셉트 라우트 4문단 삭제, 폼 형태 기준과 폼 구현 규칙 추가 | 08 지침서에 합친다 | Haiku | 08의 판정 |
+| 7 | 문서 갱신: `docs/agents/app.md`의 인터셉트 라우트 4문단 삭제, 폼 형태 기준과 폼 구현 규칙 추가(**폼 형태 부분 완료 2026-11-12**, 폼 구현 규칙은 태스크 4 뒤) | 08 지침서에 합친다 | Haiku | 08의 판정 |
 
 태스크 6은 05 지침서(서버 규칙 사본 제거)와 api 지침서 10의 T5(메타 기본값)·T7(`fieldErrors`) 뒤에 한다. 그 전에 하면 지울 코드를 새 구조로 옮기게 된다.
 
