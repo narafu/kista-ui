@@ -77,7 +77,7 @@
 
 ## 다른 레포 결정 반영 (2026-11-12, fable-api 전달)
 
-- D1=A 확정: API 진입점 하나. `TRADING_API_BASE_URL`과 두 호스트 매핑은 api 지침서 05 배포 전환과 같은 날 02 태스크 8로 지운다.
+- api 지침서 05 개정: 서버는 kista-web·kista-worker 두 role이 경로로 나눠 받고 Caddy가 분기한다. UI 진입점은 Caddy 내부 리스너(`API_BASE_URL=http://caddy:8080`) 하나. `TRADING_API_BASE_URL`·경로 표·스펙 병합 스크립트는 api 05 단계 M 직후 02 태스크 8로 지운다. 내부 리스너의 `X-Forwarded-Proto: http`·`Host` 변화는 UI 쿠키·리다이렉트에 영향 없음을 코드로 확인(02에 근거). worker 배포 중 502/503과 `WRONG_ROLE`은 06의 "서버 재시작 안내"로 묶는다.
 - 토스 주문 유지, `brokers[].tradable` 메타 없음. KIS·업비트 삭제는 그대로.
 - 매매 공식 변경 예정(api 지침서 08): `priceOffsetRate`·`currentRound`의 소수 자릿수가 늘어난다. UI 확인 결과 — `currentRound`는 3곳에서 `toFixed(1)`로 표시(`StrategyCard.tsx:98,150`, `StrategyMetaSection.tsx:182`), `priceOffsetRate`는 타입·정규화에만 있고 화면 표시·비교 코드가 없다. 소수 2자리를 가정한 비교는 없다. fable-api에 회신함.
 

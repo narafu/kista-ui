@@ -58,7 +58,9 @@ const save = $api.useMutation('post', '/api/finance/transactions')
 - 서버: 대상 프로세스 base URL을 붙이고 `Authorization`을 단다. 토큰은 인자로 받지 않는다. 요청별 `QueryClient`를 만들 때 한 번 넣는다(`createQueryClient({ token })`). `queryFn`이 받는 컨텍스트의 `client`에서 토큰을 찾는다.
 - 공개 경로 목록(`/api/market/**` 등)은 이 함수 안의 상수 하나다. 공개 경로에는 서버·브라우저 모두 토큰을 붙이지 않는다.
 - 경로 → 프로세스 표는 `resolveUpstream(path)` 하나다. 서버 직결과 프록시가 같은 함수를 쓴다.
-- **진입점은 하나가 된다(사용자 결정 2026-11-12, api 지침서 05의 D1=A).** api와 trading-core가 한 이미지로 합쳐지고 URL은 그대로다. 합쳐지기 전까지는 지금의 두 호스트 매핑이 동작해야 하므로 `resolveUpstream` 구조를 유지하고, api 05의 배포 전환 단계와 같은 날 태스크 8(아래)로 매핑을 한 호스트로 줄인다.
+- **UI의 진입점은 하나가 된다(api 지침서 05 개정판, 2026-11-12).** 서버는 여전히 두 프로세스(kista-web: 인증·가계부·meta·SSE / kista-worker: 매매 엔진 HTTP 전부)가 경로로 나눠 받지만, 경로 분기는 Caddy 한 곳에만 둔다. UI 서버 측 호출은 `API_BASE_URL=http://caddy:8080`(Caddy 내부 리스너) 하나를 쓴다. UI는 경로 → 호스트 표를 갖지 않는다. api 통합 배포(05 단계 M) 전까지는 지금의 두 호스트 매핑이 동작해야 하므로 `resolveUpstream` 구조를 유지하고, 그 직후 태스크 8(아래)로 한 호스트로 줄인다.
+- 내부 리스너를 거치면 api가 받는 요청은 `X-Forwarded-Proto: http`, `Host: caddy:8080`이 된다. UI 쪽 영향은 없다(2026-11-12 코드 확인): api의 리다이렉트를 브라우저로 넘기는 곳이 없고(로그인 콜백의 리다이렉트는 UI origin으로 만든다 — `app/auth/callback/route.ts:28-90`), AT 쿠키의 `Secure`는 UI가 브라우저 쪽 `x-forwarded-proto`로 정하며(`proxy.ts:17,132`, `app/api/auth/refresh/route.ts:18`), api의 RT `Set-Cookie`를 그대로 넘기는 세 곳(`app/auth/callback/route.ts:82-84`, `shared/lib/auth/refresh.ts:33-34` → `proxy.ts:96`·`app/api/auth/refresh/route.ts:25`)은 api가 `Secure`·`SameSite`를 요청 헤더가 아니라 설정값으로 만들고 `Domain`을 달지 않아(`RefreshTokenCookieHelper.java:23-38`) 달라지지 않는다. 확인이 남은 것은 SSE 2개(`trades/stream`, `auth/status-stream`)가 Caddy 내부 리스너를 지날 때 버퍼링·타임아웃 없이 흐르는지다. 전환 때 실제로 확인한다.
+- 엔진(worker) 배포 중 약 3~4분은 엔진 경로가 502/503이다. 잘못된 role로 간 요청은 503 `code=WRONG_ROLE`이다. 프록시는 5xx 본문을 숨기지만(`relayUpstreamError`) 503의 `code`는 넘긴다. 화면 표현은 06 지침서 2절.
 
 ### 2. 프록시 Route Handler 하나
 
@@ -160,7 +162,7 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 | 6 | `initial*` props 제거, 핵심 데이터 `useSuspenseQuery` 전환, page의 토큰 전달 제거 | `app/(main)/**/page.tsx`, `widgets/{account-detail,strategy-detail}/**`, `features/strategy/create-strategy/StrategyFormPage.tsx` | Sonnet | `grep -rn "initialAccount\|initialStrategy" --include='*.tsx' .` 0건 |
 | 7 | 구 `api-client`·`fetchEither`·`createProxyRoute` 삭제, 문서 갱신 | `shared/lib/api-client/**`, `docs/agents/{architecture,entities,shared}.md` | Haiku | `npm run knip`, `npm run lint`, `npm run test:run` |
 
-| 8 | 진입점 단일화: `resolveUpstream`이 `getApiBaseUrl()`만 반환, `getTradingApiBaseUrl`·`TRADING_API_BASE_URL`(env.ts, `.env.example`, 루트·`deploy/server` compose, `docs/agents/deployment.md`)과 `NEXT_PUBLIC_TRADING_API_BASE_URL` 폴백 삭제 | `shared/api/**`, `shared/lib/env.ts`, compose 2개 | Sonnet | api 지침서 05 배포 전환과 같은 날 배포. `git grep -n TRADING_API_BASE_URL` 0건 |
+| 8 | 진입점 단일화: `resolveUpstream` 삭제(항상 `getApiBaseUrl()`), `getTradingApiBaseUrl`·`TRADING_API_BASE_URL`(env.ts, `.env.example`, 루트·`deploy/server` compose, `docs/agents/deployment.md`)과 `NEXT_PUBLIC_TRADING_API_BASE_URL` 폴백 삭제, 운영 `API_BASE_URL`을 Caddy 내부 리스너로. 스펙이 하나로 합쳐지므로 `scripts/fetch-spec.mjs`의 8080·8081 병합(42줄)을 지우고 `fetch:spec`을 단일 URL 내려받기로 | `shared/api/**`, `shared/lib/env.ts`, compose 2개, `scripts/fetch-spec.mjs`, `package.json` | Sonnet | api 지침서 05 단계 M 직후. `git grep -n TRADING_API_BASE_URL` 0건, SSE 2개가 실제로 흐르는지 확인, 로그인·토큰 갱신 1회 확인 |
 
 5a를 먼저 한다. 가계부는 정규화가 없고 mutation이 전부 무효화형이라 새 규칙이 맞는지 가장 싸게 검증된다.
 
@@ -177,5 +179,5 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 - 선행: 01(타입). 생성 타입이 정확해야 `paths`에서 추론한 응답 타입을 그대로 쓸 수 있다.
 - 03(계층 재심)은 이 지침서로 entities가 얇아진 뒤의 모양을 전제로 한다.
 - 05는 이 지침서가 남긴 "모양 변환 함수 약 150줄"과 목록 → 상세 조회를 서버 변경으로 더 줄인다.
-- kista-api 프로세스 구조는 진입점 하나로 확정됐다(D1=A). 태스크 8이 api 지침서 05의 배포 전환 단계와 짝이다.
+- kista-api는 web·worker 두 role이 경로로 나눠 받고 Caddy가 분기한다(api 지침서 05 개정판). UI 진입점은 Caddy 하나다. 태스크 8이 api 05 단계 M과 짝이다.
 - `cross-repo.md`에 추가할 요청: 단건 조회 엔드포인트 2개(`GET /api/accounts/{id}`, `GET /api/trading-cycles/{id}`), 오류 `detail`을 사용자용 문장으로 보장.
