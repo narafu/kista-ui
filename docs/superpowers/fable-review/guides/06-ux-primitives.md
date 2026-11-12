@@ -63,7 +63,7 @@
 
 - 한 구역(카드)의 제목, 로딩, 조회 실패(다시 시도 포함), 빈 상태, 본문을 한 컴포넌트가 그린다. `SectionError`·`EmptyState`·`LoadingRow`·`CardSkeleton`의 조합과 직접 쓴 텍스트를 대체한다.
 - 로딩 표현은 `skeleton` 프리셋(`rows` / `chart` / `cards` / `text`) 중 하나다. "불러오는 중…" 직접 텍스트를 쓰지 않는다.
-- 서버 재시작 안내: 응답이 503이고 `code`가 재시작·role 불일치(`WRONG_ROLE` 등 서버가 정한 코드)면 실패 대신 "매매 서버를 재시작하는 중입니다. 잠시 후 자동으로 다시 불러옵니다."를 보여주고 일정 간격으로 다시 조회한다(React Query `retry`를 이 오류에만 켠다 — `createQueryClient` 한 곳). 어느 경로가 엔진 경로인지 UI는 알지 않는다. 판정은 응답의 `code`만 본다. 업스트림이 죽어 Caddy가 내는 502/503에도 같은 `code`가 실리도록 서버·infra에 요청했다(없으면 본문 없는 502/503을 같은 안내로 묶는다). mutation이 같은 오류를 받으면 전역 토스트가 같은 문구를 띄운다.
+- 서버 재시작 안내: 응답이 503이고 `code`가 `ENGINE_RESTARTING` 또는 `WRONG_ROLE`이면(둘 다 `ErrorCode`에 추가된다 — api 지침서 05의 7절, 이름 확정) 실패 대신 서버 `detail`("매매 서버를 재시작하는 중입니다. …")을 보여주고 일정 간격으로 다시 조회한다(React Query `retry`를 이 오류에만 켠다 — `createQueryClient` 한 곳). 어느 경로가 엔진 경로인지 UI는 알지 않는다. 판정은 응답의 `code`만 본다. worker가 내려가 있을 때는 Caddy `handle_errors`가 같은 형식의 503 ProblemDetail을 싣는다(확정, Caddy 문법·재시도 대기 시간은 fable-infra 확인 중). mutation이 같은 오류를 받으면 전역 토스트가 같은 문구를 띄운다.
 - 조회 실패 색은 `--status-error` 하나다. `text-warn`은 경고(사용자가 조치할 수 있는 상태)에만 쓴다.
 - 차트 지연 로딩 래퍼 5개(`AssetTrend`, `AssetComposition`, `FinanceTrend`, `FearGreedCard`, `MarketChartCard`, 합 202줄)는 `AsyncSection` + `dynamic()` 한 줄이 된다.
 
