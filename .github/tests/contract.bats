@@ -3,9 +3,11 @@
 
 D="$BATS_TEST_DIRNAME/../../deploy/server"
 
-@test "reconcile 계약: roles=kista-ui, required-env=UI_DOMAIN·API_BASE_URL, compose 이미지 변수 KISTA_UI_IMAGE" {
+@test "reconcile 계약: roles=kista-ui, compose 이미지 변수 KISTA_UI_IMAGE, 런타임 URL은 :? 필수 보간" {
   [ "$(cat "$D/roles")" = kista-ui ]
-  [ "$(tr '\n' ' ' < "$D/required-env")" = "UI_DOMAIN API_BASE_URL " ]
+  [ ! -e "$D/required-env" ]
+  grep -q 'API_BASE_URL: ${API_BASE_URL:?' "$D/docker-compose.yml"
+  grep -q 'TRADING_API_BASE_URL: ${TRADING_API_BASE_URL:?' "$D/docker-compose.yml"
   grep -q 'image: ${KISTA_UI_IMAGE' "$D/docker-compose.yml"
 }
 

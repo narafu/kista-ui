@@ -7,7 +7,7 @@
 ```text
 /opt/kista-ui/
 ├── .env                    ← kista-infra 배포 워크플로가 매 배포마다 렌더링·덮어씀
-├── releases/<id>/          ← kista-infra가 config SHA의 deploy/server/{docker-compose.yml,roles,required-env} + images.env로 구성한 bundle
+├── releases/<id>/          ← kista-infra가 config SHA의 deploy/server/{docker-compose.yml,roles,bluegreen} + images.env로 구성한 bundle
 ├── current → releases/<id> ← 마지막 적용 성공 release
 ├── previous → releases/<id>
 └── reconcile.log           ← 마지막 reconcile 출력
@@ -29,7 +29,7 @@
 
 ## .env 내용
 
-`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN` 2개가 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. `deploy/server/required-env`(kista-infra reconcile.sh가 적용 전 검사)가 여전히 이 값의 존재를 요구하므로 `.env`에는 계속 채워둬야 한다. 이 `.env` 자체는 `kista-infra`의 배포 워크플로가 `secrets/kista-ui.env.gpg`에서 매 배포마다 렌더링·덮어쓴다 — 값을 바꾸려면 kista-infra의 `scripts/env.sh edit kista-ui`로 암호화 파일을 직접 수정해야 하며, 서버 `.env`를 직접 편집해도 다음 kista-infra 배포 때 덮어써진다.
+`NEXT_PUBLIC_*`는 빌드 타임에 이미지에 인라인되므로 서버 `.env`에 다시 넣을 필요 없다. 서버 `.env`에는 `API_BASE_URL`·`TRADING_API_BASE_URL`(kista-ui 런타임이 실제로 소비 — `environment:`로 컨테이너에 주입됨)과 `UI_DOMAIN`이 있다. **`UI_DOMAIN`은 이 레포의 스택에서는 더 이상 아무것도 소비하지 않는 사실상 흔적값이다** — kista-infra의 Caddy는 자신의 `/opt/kista-infra/.env`(`infra.env.gpg`에서 렌더링)에 담긴 자체 `UI_DOMAIN`을 참조하며, kista-ui의 `docker-compose.yml`도 더 이상 `UI_DOMAIN`을 읽지 않는다. 옛 release(`required-env`가 `UI_DOMAIN`을 요구하던 번들)로 롤백할 수 있도록 kista-infra 3단계 전까지는 `.env`에 남겨 둔다. `API_BASE_URL`·`TRADING_API_BASE_URL`이 비어 있으면 `docker-compose.yml`의 `${VAR:?}` 보간이 서버 `reconcile.sh`의 첫 compose 호출(변경 전 조회)에서 실패한다. 이 `.env` 자체는 `kista-infra`의 배포 워크플로가 `secrets/kista-ui.env.gpg`에서 매 배포마다 렌더링·덮어쓴다 — 값을 바꾸려면 kista-infra의 `scripts/env.sh edit kista-ui`로 암호화 파일을 직접 수정해야 하며, 서버 `.env`를 직접 편집해도 다음 kista-infra 배포 때 덮어써진다.
 
 ```dotenv
 UI_DOMAIN=kista-app.com
@@ -43,7 +43,7 @@ API_BASE_URL=https://api.kista-app.com
 1. `verify` job (`npm run typecheck`, `npm run test:run`) + `deploy-checks` job (shellcheck·bats — `.github/tests`)
 2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입, 이와 별도로 `DEPLOYMENT_VERSION`=커밋 SHA를 `deploymentId`용으로 주입) → GHCR push
 3. `deploy` — kista-infra에 `repository_dispatch(deploy-kista-ui)`로 `{config=이 커밋, roles=kista-ui=이 커밋, request_id}`를 보내고 그 run이 끝날 때까지 대기(`wait-reconcile.sh`). 커밋의 초록불 = 서버 적용·헬스 게이트 통과. 대기 중 더 새 요청이 대체하면 생략으로 성공 처리
-4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: `required-env` 검사 → kista-ui는 `bluegreen` 대상이라 `up --dry-run`으로 변경 판정 후 `--scale kista-ui=2 --no-recreate`로 새 컨테이너를 옆에 띄움 → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 새 컨테이너만 제거(옛 컨테이너가 계속 서비스), 성공 시 옛 컨테이너 stop/rm·`current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
+4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: 첫 compose 호출에서 필수 변수 보간 검사(비어 있으면 아무것도 바꾸지 않고 실패) → kista-ui는 `bluegreen` 대상이라 `up --dry-run`으로 변경 판정 후 `--scale kista-ui=2 --no-recreate`로 새 컨테이너를 옆에 띄움 → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 새 컨테이너만 제거(옛 컨테이너가 계속 서비스), 성공 시 옛 컨테이너 stop/rm·`current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
 5. 교체 중 서비스 DNS 이름 `kista-ui`가 두 컨테이너를 모두 가리키고, Caddy(kista-infra `Caddyfile`, upstream `keepalive off`)가 종료 중 컨테이너로의 connection refused를 재시도로 흡수한다. 옛 컨테이너는 SIGTERM 후 처리 중 요청을 끝내고 `stop_grace_period` 35s 안에 종료(SSE는 끊기고 클라이언트가 재연결) — 설계 `kista-infra/docs/superpowers/specs/2026-10-02-kista-api-blue-green-design.md`
 
 매매 시간대 배포 가드는 없다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
