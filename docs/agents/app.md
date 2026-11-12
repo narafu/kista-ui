@@ -38,7 +38,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 - **`loading.tsx`**: `app/**/loading.tsx`(main·admin·pending·rejected) — `animate-pulse` + 실제 레이아웃을 모방한 skeleton. 새 라우트를 추가하면 같이 둔다
 - **인증 레이아웃의 동적 렌더링 명시 필요**: `(main)/layout.tsx`는 proxy가 `/me` 응답으로 캐싱한 `ROLE_COOKIE`를 직접 읽어 `getMe()` SSR 왕복을 건너뛴다(쿠키 없을 때만 폴백 호출). 이처럼 레이아웃에서 `cookies()`/`getAuthToken()` 등 동적 API 호출을 모두 제거하면 Next.js가 정적 프리렌더 대상으로 오인해 빌드 타임에 인증 없는 fetch가 실행되며 빌드가 깨질 수 있다(`(admin)/layout.tsx` 회귀 사례) — `(admin)/layout.tsx`는 `export const dynamic = 'force-dynamic'`을 명시하고, `(main)/layout.tsx`는 export 없이 `cookies()` 호출로 동적 렌더된다
 - **폼 형태는 다이얼로그 아니면 페이지**: 한 화면에 들어오고 하위 뷰·단계가 없는 폼은 `shared/ui/FormDialog`(PC 가운데, 모바일 전체 화면 시트)로 그 자리에서 연다 — 투자금 추가·인출, 예산. 가계부 거래내역·카테고리·재무계좌 다이얼로그(`*FormDialog.tsx`)는 아직 이력 칸 없는 일반 `Dialog`라 모바일 뒤로 가기가 화면을 떠난다(이전 대상). 섹션이 여럿이거나 하위 뷰·단계가 있는 폼은 일반 페이지다 — 전략 등록·수정, VR 재설정, 자산 기록, 계좌 등록·수정, 일괄 등록. 인터셉트 라우트(`@modal`)·`?dialog=` 같은 라우트 장치로 다이얼로그를 URL에 묶지 않는다 — 깊은 링크가 필요하면 그 폼은 페이지다(2026-11 인터셉트 라우트 폐지, `docs/superpowers/fable-review/guides/04-routes-and-forms.md` 결정 1).
-- **`FormDialog` 닫기와 뒤로 가기**: 열 때 `shared/lib/subviewHistory`로 이력 한 칸을 쌓아 모바일 뒤로 가기가 폼만 닫는다. 폼은 children 함수가 넘기는 `close`로만 닫는다(X·ESC·배경과 같은 `history.back()` 경로) — 부모의 `onOpenChange(false)`를 직접 부르면 쌓은 칸이 남는다. 본문은 열려 있는 동안만 마운트돼 열 때마다 초기값이 새로 잡힌다. 페이지 폼 안 하위 뷰(DCA 규칙 편집)도 같은 훅을 쓴다.
+- **`FormDialog` 닫기와 뒤로 가기**: 열 때 `shared/lib/subviewHistory`로 이력 한 칸을 쌓아 모바일 뒤로 가기가 폼만 닫는다. 폼은 children 함수가 넘기는 `close`로만 닫는다(X·ESC·배경과 같은 `history.back()` 경로) — 부모가 open을 직접 false로 내리면 쌓은 칸이 남는다. 본문은 열려 있는 동안만 마운트돼 열 때마다 초기값이 새로 잡힌다. 페이지 폼 안 하위 뷰(DCA 규칙 편집)도 같은 훅을 쓴다.
 
 ## 캐싱 (Server Component)
 

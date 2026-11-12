@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { BudgetForm } from '@features/finance/manage-budgets'
-import { FormDialog } from '@shared/ui/FormDialog'
+import { BudgetFormDialog } from '@features/finance/manage-budgets'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { fmtKrw } from '@shared/lib/format'
@@ -193,14 +192,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           </div>
         )}
       </CardContent>
-      <FormDialog
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        title="예산 추가"
-        description="카테고리·적용 기간·월 예산을 입력합니다."
-      >
-        {(close) => <BudgetForm type={type} defaultCategoryId={addCategoryId} onDone={close} />}
-      </FormDialog>
+      <BudgetFormDialog type={type} target={{ mode: 'create' }} open={addOpen} onClose={() => setAddOpen(false)} defaultCategoryId={addCategoryId} />
     </Card>
   )
 }

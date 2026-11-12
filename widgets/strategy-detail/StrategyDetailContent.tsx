@@ -86,7 +86,7 @@ export function StrategyDetailContent({
 
       <FormDialog
         open={capitalDialog === 'inject'}
-        onOpenChange={(open) => setCapitalDialog(open ? 'inject' : null)}
+        onClose={() => setCapitalDialog(null)}
         title="투자금 추가"
         description="진행 중인 사이클에 예수금을 추가합니다."
       >
@@ -94,7 +94,7 @@ export function StrategyDetailContent({
       </FormDialog>
       <FormDialog
         open={capitalDialog === 'withdraw'}
-        onOpenChange={(open) => setCapitalDialog(open ? 'withdraw' : null)}
+        onClose={() => setCapitalDialog(null)}
         title="투자금 인출"
         description="진행 중인 사이클에서 예수금을 인출합니다."
       >

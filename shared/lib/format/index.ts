@@ -48,7 +48,14 @@ export function fmtSignedPercentPoint(ratio: number | null | undefined, digits =
 export function fmtDate(dateStr: string): string {
   // 'yyyy-MM-dd'는 UTC 자정으로 파싱되므로 UTC로 포맷해야 뷰어 시간대(UTC 서쪽)에서 하루 밀리지 않는다
   const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
-  return new Date(dateStr).toLocaleDateString('ko-KR', dateOnly ? { timeZone: 'UTC' } : undefined)
+  const date = new Date(dateStr)
+  // formatToParts는 잘못된 날짜에 throw한다 — 렌더가 깨지지 않게 이전(toLocaleDateString)과 같은 값을 돌려준다
+  if (Number.isNaN(date.getTime())) return 'Invalid Date'
+  // ko-KR 기본 패턴은 CLDR 버전마다 다르다(CLDR 49부터 '2026/8/1') — 숫자만 받아 'YYYY. M. D.'로 직접 조립한다
+  const parts = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', ...(dateOnly && { timeZone: 'UTC' }) })
+    .formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value
+  return `${part('year')}. ${part('month')}. ${part('day')}.`
 }
 
 /** 날짜+시각 (ko-KR 로케일) */

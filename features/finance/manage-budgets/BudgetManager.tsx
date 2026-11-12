@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { FormDialog } from '@shared/ui/FormDialog'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
@@ -30,7 +29,7 @@ import {
   useUnshareFinanceBudgetMutation,
 } from '@entities/finance'
 import type { FinanceBudget, FinanceCategory, FlowType } from '@entities/finance'
-import { BudgetForm } from './BudgetForm'
+import { BudgetFormDialog, type BudgetFormTarget } from './BudgetFormDialog'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BUDGETS: FinanceBudget[] = []
@@ -41,13 +40,7 @@ interface Props {
 }
 
 // 추가·복제·수정 폼 대화상자 — 목록 데이터가 이미 캐시에 있어 행에서 바로 초기값을 넘긴다
-type FormTarget = { mode: 'create' } | { mode: 'duplicate'; budget: FinanceBudget } | { mode: 'edit'; budget: FinanceBudget }
-
-const FORM_COPY = {
-  create: { title: '예산 추가', description: '카테고리·적용 기간·월 예산을 입력합니다.' },
-  duplicate: { title: '예산 복제', description: '원본과 적용 기간이 겹치면 저장되지 않습니다. 적용 기간을 변경하세요.' },
-  edit: { title: '예산 수정', description: '카테고리·적용 기간·월 예산을 입력합니다.' },
-} as const
+type FormTarget = BudgetFormTarget
 
 type BudgetStatus = 'UPCOMING' | 'ACTIVE' | 'ENDED'
 type StatusFilter = 'ALL' | BudgetStatus
@@ -246,21 +239,7 @@ export function BudgetManager({ type }: Props) {
         </>
       )}
 
-      <FormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        title={FORM_COPY[formTarget.mode].title}
-        description={FORM_COPY[formTarget.mode].description}
-      >
-        {(close) => (
-          <BudgetForm
-            type={type}
-            initial={formTarget.mode === 'edit' ? formTarget.budget : undefined}
-            duplicateFrom={formTarget.mode === 'duplicate' ? formTarget.budget : undefined}
-            onDone={close}
-          />
-        )}
-      </FormDialog>
+      <BudgetFormDialog type={type} target={formTarget} open={formOpen} onClose={() => setFormOpen(false)} />
 
       {deleteDialog.target && (
         <ConfirmDeleteDialog
