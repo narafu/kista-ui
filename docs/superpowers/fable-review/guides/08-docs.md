@@ -185,4 +185,4 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 
 - 1단계는 독립이다. 다른 지침서보다 먼저 해도 된다.
 - 2단계의 각 태스크는 표의 조건 지침서에 달려 있다. 03의 태스크 9, 04의 태스크 7, 07의 태스크 9가 이 지침서의 13·11·14로 합쳐진다.
-- `fable-review/` 자체(findings·guides·PROGRESS)는 실행이 끝날 때까지 남기고, 마지막 지침서가 완료되면 지운다.
+- `fable-review/` 자체(findings·guides·PROGRESS·questions)는 실행이 끝날 때까지 남기고, 마지막 지침서가 완료되면 지운다.
