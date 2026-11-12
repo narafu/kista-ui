@@ -94,7 +94,7 @@
 | E | 프록시 단일화 | 02-2 `resolveUpstream` 한 함수 + 프록시 Route Handler 13개 → 1개 | Opus | 인증·프록시 경로라 Opus. 01과 무관. 나중의 진입점 단일화(02-8)가 한 줄 변경이 된다 |
 | F | 문서·배포 | 08-5 중복 정리, 08-6 문단형 줄 분해(이유 보존), 08-7 memory, 09-2·3 죽은 심볼·knip 예외, 09-5·6 workflow·`NEXT_PUBLIC_*` 원본 통합 | Opus(08-6, 09-6), 나머지 Sonnet·Haiku | 독립. 09-5·6은 push가 있어야 검증된다 |
 
-권장 순서: **A → B → C → D → E**, F는 틈날 때. **A 완료(2026-11-12, 아래 "묶음 A 실행 기록")** — 다음은 B. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
+권장 순서: **A → B → C → D → E**, F는 틈날 때. **A·B 완료(2026-11-12, 아래 "묶음 A 실행 기록"·"묶음 B 실행 기록")** — 다음은 C. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
 
 Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-3, 02-2 (+ 08-6, 09-6).
 
@@ -173,6 +173,75 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
     - `strategyFormHelpers.test.ts`: 부분 RuntimeConfig stub이다.
     - `MarketChartCardInner.test.tsx`: canvas stub이다.
 
+## 묶음 B 실행 기록 (2026-11-12)
+
+커밋: `eaf98591`(04-1) → `60ea8f11`(04-2) → `e2ddf7cc`(04-3). 별도 수정 `cc80c297`.
+
+### 04-1 폼 전수표
+
+- `findings/m-form-inventory.md`. 폼은 31개가 아니라 28행이다(지침서 수치는 추정).
+- 다이얼로그로 옮길 폼: 투자금 추가·인출, 예산 추가·복제·수정. 페이지로 남는 폼: 전략 등록·수정, VR 재설정, 자산 기록, 계좌 등록·수정, 일괄 등록, 관리자 설정. 나머지 17개는 이미 다이얼로그 또는 인라인이라 그대로 둔다.
+- 지침서와 달랐던 점: 닉네임은 다이얼로그가 아니라 인라인 편집이다.
+- 사용자 확정(전수표 5절):
+  - 예산 목록 `/finance/budgets/[type]`은 일반 페이지로 남긴다. 설정 화면으로 옮길지는 03에서 판단한다.
+  - `FormDialog`는 처음부터 이력 한 칸을 쌓는다.
+  - 투자금 확인 AlertDialog는 다이얼로그 안에 그대로 둔다.
+  - 인터셉트 관련 문서는 04-3과 같은 커밋에서 정리한다.
+
+### 04-2 `FormDialog`
+
+- `shared/ui/FormDialog.tsx`: PC(sm 이상)는 가운데 다이얼로그, 모바일은 전체 화면 시트다(하단 safe-area 여백 포함).
+- 기존 `useSubviewHistory`를 재사용해 열 때 이력 한 칸을 쌓는다. X·ESC·배경·취소·제출 성공이 모두 `history.back()`을 거쳐 popstate에서 닫힌다. 폼은 children 함수가 넘기는 `close`로만 닫는다. 연타로 두 칸을 되돌아가지 않도록 막는 장치가 있다.
+- **지침서와 다른 점**: `subviewHistory`는 지우지 않는다. 페이지로 남는 DCA 규칙 편집 하위 뷰와 `FormDialog`가 함께 쓴다. 그래서 태스크 3 완료 판정의 grep에서 `subviewHistory`는 뺀다.
+- 확인한 것:
+  - 단위 테스트 6건. 연타 방지와 이력 쌓기는 변이 확인을 했다.
+  - `a11y-check` 폼 다이얼로그 점검(투자금 추가, 예산 추가)이 PC·모바일 모두 위반 0건이다.
+  - 390px 모바일 스크린샷에서 전체 화면 시트로 뜬다.
+  - Chromium 에뮬레이션에서 뒤로 가기를 누르면 폼만 닫히고 URL은 그대로다.
+
+### 04-3 전환과 삭제
+
+- `app/(main)/@modal` 전체, `RouteModal`, `ModalFormSkeleton`, `shared/lib/dismiss.ts`, 투자금 추가·인출 라우트, 예산 등록·수정 라우트, `FormBody` 9개를 지웠다. 예산 링크 헬퍼 `newBudgetHref`·`editBudgetHref`도 지웠다.
+- 화면별 처리:
+  - 투자금 추가·인출: 전략 상세 헤더의 버튼이 `FormDialog`를 연다.
+  - 예산: 목록 페이지 안에서 추가·복제·수정을 다이얼로그로 연다. 복제는 URL 대신 행 데이터를 넘긴다.
+  - 수입·소비·저축 탭의 예산 빠른 등록: 그 자리에서 다이얼로그로 연다.
+- 함께 정리한 것:
+  - `FinanceHeader`의 모달 배경 경로 보정과 `SectionTabBar` `activePathname`. 쓰는 곳이 없어졌다.
+  - a11y-check의 "라우트 모달" 점검을 "폼 다이얼로그" 점검으로 바꿨다.
+  - `docs/agents/app.md`의 인터셉트 4문단을 폼 형태 기준(다이얼로그 아니면 페이지) 2문단으로 바꾸고, strategy·finance 문서를 고쳤다.
+- 테스트: 고친 테스트는 `mockApi`·`renderApp`으로 바꿨다. 남은 모듈 mock은 서버 컴포넌트 쿠키를 대신하는 `next/headers` 하나뿐이다(`strategies/[sid]/edit/page.test.tsx`). 기존 mock 4개에서 줄었다.
+- 변이 확인(폼마다 1회):
+  - 투자금 추가: `onDone` 제거 → 실패.
+  - 투자금 인출: 요청 바디 변경 → 실패.
+  - 예산 복제: `duplicateFrom` 제거 → 실패.
+  - 예산 수정: create로 고정 → 실패.
+  - 예산 닫기: `onDone`을 아무 일도 안 하게 바꿈 → 실패.
+  - 빠른 등록: `defaultCategoryId` 제거 → 실패.
+- 검증 결과:
+  - `typecheck`·`lint`·`knip` 0건.
+  - 전체 vitest: 259파일, 1,877건 통과. 5건이 timeout으로 실패했는데, 모두 이번에 건드리지 않은 파일이고 단독으로 돌리면 24/24 통과했다. 묶음 A 기준선에 적은 부하성 timeout과 같다.
+  - e2e(worktree, 로컬 api): chromium 14건 통과, 1건 skip(VR 시드 없음).
+  - e2e의 `account-cache` 2건은 실행마다 결과가 흔들렸고(5초 이동 timeout 등) 한 번은 2/2 통과했다. 계좌 생성·삭제 흐름이라 이번 변경과 관계없다.
+
+### 함께 고친 것 (`cc80c297`)
+
+- Tailwind v4 자동 소스 탐지가 `docs/`의 md까지 스캔한다. 그래서 `findings/g-ux-pattern-variance.md`의 `text-[var(--…)]`가 유틸리티로 생성돼 dev 서버 CSS 파싱이 깨졌다(e2e webServer가 모든 화면 실패).
+- `app/globals.css`에 `@source not "../docs"`를 넣었다.
+- 운영 Docker 빌드는 이 상태에서도 통과하고 있었다(최근 배포 성공).
+
+### 미검증 (실기기 필요)
+
+- 모바일 하드웨어·제스처 뒤로 가기(Android, iOS PWA)가 `FormDialog`만 닫는지.
+- iOS 키보드가 올라온 상태에서 전체 화면 시트(`h-dvh`)의 입력칸·버튼 가림과 스크롤. 노치 상단 safe-area는 넣지 않았다(앱 헤더도 쓰지 않음).
+- 재무 계좌 다이얼로그(필드 7개)처럼 긴 폼은 모바일에서 X 버튼이 스크롤과 함께 올라간다. 닫기는 취소 버튼과 뒤로 가기로 가능하다.
+
+### 남긴 것
+
+- `subviewHistory`의 `isSubviewEntry` export는 이제 테스트에서만 쓴다(knip 통과). 다음에 이 파일을 건드릴 때 지운다.
+- 다이얼로그가 열린 채 부모가 unmount되면(예: 화면 전환) 같은 URL의 이력 칸이 하나 남는다. 뒤로 가기 한 번이 아무 일도 하지 않는다. DCA 하위 뷰와 같은 한계다.
+- 지침서 04의 태스크 7(문서)은 이번에 앞당겨 했다. 08에서 다시 하지 않는다.
+
 ## 측정 산출물
 
 | 파일 | 내용 |
@@ -188,7 +257,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 | `findings/i-unused-files.md` | 삭제 후보(참조 grep) |
 | `findings/j-ui-api-principle-violations.md` | UI·API 원칙 위반 전수, 가계부 집계 명세 재료 |
 
-지침서가 실행 중 만들라고 한 산출물(아직 없음): `k-invalidation-map.md`(02 태스크 4), `l-move-map.csv`(03 태스크 1), `m-form-inventory.md`(04 태스크 1).
+지침서가 실행 중 만들라고 한 산출물: `m-form-inventory.md`(04 태스크 1, 작성함). 아직 없음: `k-invalidation-map.md`(02 태스크 4), `l-move-map.csv`(03 태스크 1).
 
 ## 다른 세션과 주고받은 것
 
