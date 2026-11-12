@@ -4,8 +4,8 @@ import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from './useAdmi
 import { adminSettingsKeys } from '../model/queryOptions'
 
 const { useQueryMock, useMutationMock, invalidateQueriesMock, setQueryDataMock, successMock } = vi.hoisted(() => ({
-  useQueryMock: vi.fn(() => ({})),
-  useMutationMock: vi.fn((_options: unknown) => ({})),
+  useQueryMock: vi.fn((_options: unknown) => ({})),
+  useMutationMock: vi.fn((_options: { onSuccess: (settings: unknown) => Promise<void> }) => ({})),
   invalidateQueriesMock: vi.fn(),
   setQueryDataMock: vi.fn(),
   successMock: vi.fn(),
@@ -28,7 +28,7 @@ describe('admin settings hooks', () => {
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
       queryKey: adminSettingsKeys.all,
     }))
-    const queryOptions = (useQueryMock.mock.calls as unknown as Array<[Record<string, unknown>]>).at(-1)?.[0]
+    const queryOptions = useQueryMock.mock.lastCall?.[0]
     expect(queryOptions).not.toHaveProperty('initialData')
   })
 
@@ -40,7 +40,7 @@ describe('admin settings hooks', () => {
     const onSuccess = vi.fn(() => effectPromise)
     renderHook(() => useUpdateAdminSettingsMutation({ onSuccess }))
     const settings = { auth: { approvalRequired: false } }
-    const options = (useMutationMock.mock.calls as unknown as Array<[{ onSuccess: (settings: unknown) => Promise<void> }]>).at(-1)?.[0]
+    const options = useMutationMock.mock.lastCall?.[0]
     if (!options) throw new Error('mutation options were not registered')
     let settled = false
     const mutationSuccess = options.onSuccess(settings).then(() => {

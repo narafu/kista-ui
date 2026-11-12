@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { Strategy } from '@entities/strategy'
+import type { DcaRule, Strategy } from '@entities/strategy'
+import { dcaRule as rule, strategy as buildStrategy } from '@entities/strategy/model/fixtures'
 import { fmtDate } from '@shared/lib/format'
 import { DcaStrategyCard } from './DcaStrategyCard'
 
@@ -19,19 +20,13 @@ vi.mock('@entities/meta', async () => {
 })
 
 
-const rule = (patch: Record<string, unknown>) => ({
-  ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
-  sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [],
-  nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null, ...patch,
+const strategy = buildStrategy({
+  id: 'd1', type: 'DCA', ticker: 'UPRO',
+  dca: { rules: [rule()], currentHoldings: null, avgPrice: null },
 })
 
-const strategy = {
-  id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
-  dca: { rules: [rule({})], currentHoldings: null, avgPrice: null },
-} as unknown as Strategy
-
-function withRules(...rules: Array<Record<string, unknown>>): Strategy {
-  return { ...strategy, dca: { ...strategy.dca!, rules } } as unknown as Strategy
+function withRules(...rules: DcaRule[]): Strategy {
+  return { ...strategy, dca: { ...strategy.dca!, rules } }
 }
 
 const threeRules = (ticker = 'UPRO') => ({

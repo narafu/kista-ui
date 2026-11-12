@@ -5,7 +5,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import { ApiError } from '@shared/lib/api-client'
 
-import type { Strategy } from '../model/types'
+import type { DcaConfigRequest, Strategy } from '../model/types'
+import { vrSummary } from '../model/fixtures'
 import { strategyKeys } from '../model/queryKeys'
 import {
   useArchiveStrategyMutation,
@@ -273,7 +274,7 @@ describe('strategy mutations', () => {
 
   it('replaces the reconfigured strategy in both lists and calls onSuccess', async () => {
     const queryClient = createTestQueryClient()
-    const reconfigured = { ...strategyA, vr: { value: 5000 } } as unknown as Strategy
+    const reconfigured: Strategy = { ...strategyA, vr: vrSummary({ value: 5000 }) }
     seedStrategyLists(queryClient, [strategyA, strategyB])
     reconfigureVrMock.mockResolvedValue(reconfigured)
     const callback = vi.fn()
@@ -339,9 +340,9 @@ describe('useDcaExecutionsQuery', () => {
 })
 
 describe('useReconfigureDcaMutation', () => {
-  const dcaRequest = {
-    direction: 'BUY', amount: 300, orderType: 'MOC', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, conditions: [],
-  } as unknown as Parameters<ReturnType<typeof useReconfigureDcaMutation>['mutateAsync']>[0]
+  const dcaRequest: DcaConfigRequest = {
+    rules: [{ direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [] }],
+  }
 
   it('전략 id로 재설정 API를 호출하고 상세·목록 캐시를 갱신한 뒤 onSuccess를 호출한다', async () => {
     const queryClient = createTestQueryClient()

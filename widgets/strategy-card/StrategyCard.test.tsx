@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
+import { dcaRule, strategy as buildStrategy } from '@entities/strategy/model/fixtures'
 import type { LedgerCheck } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
 
@@ -213,7 +214,7 @@ describe('StrategyCard mobile row', () => {
         ...previewState.data,
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
         todayOrders: [],
-        ledgerCheck: SHORT,
+        ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
       },
     }
 
@@ -287,7 +288,7 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '1300', quantity: 1 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
-        ledgerCheck: SHORT,
+        ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
       },
     }
 
@@ -440,13 +441,13 @@ describe('StrategyCard status', () => {
   it('hides the order border for a paused strategy even when the preview reports a deficit', () => {
     previewState = {
       data: {
-        orders: [{ direction: 'BUY' }],
+        orders: [{ direction: 'BUY', price: '0', quantity: 1 }],
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
-        ledgerCheck: SHORT,
+        ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
       },
       isLoading: false,
-    } as unknown as typeof previewState
+    }
     render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, status: 'PAUSED' }} />)
 
     expect(screen.queryByTestId('strategy-order-border-accent')).not.toBeInTheDocument()
@@ -461,18 +462,13 @@ describe('StrategyCard status', () => {
 })
 
 describe('StrategyCard DCA', () => {
-  const dcaStrategy = {
-    id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
+  const dcaStrategy = buildStrategy({
+    id: 'd1', type: 'DCA', ticker: 'UPRO',
     dca: {
-      rules: [{
-        ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
-        sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [],
-        nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
-        lastExecution: { kstTradeDate: '2026-09-30', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' },
-      }],
+      rules: [dcaRule({ lastExecution: { kstTradeDate: '2026-09-30', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } })],
       currentHoldings: null, avgPrice: null,
     },
-  } as unknown as Strategy
+  })
 
   beforeEach(() => previewMock.mockClear())
 

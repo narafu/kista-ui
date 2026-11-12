@@ -1,4 +1,4 @@
-import type { MetaBundle } from '../model/types'
+import type { MetaBundle, StrategyTypeMeta } from '../model/types'
 
 // 로컬 kista-api `GET /api/meta` 응답(2026-10-24)의 enum 카테고리를 그대로 옮긴 테스트 공용 메타 — 서버 이름이 바뀌면 여기만 고친다.
 // strategyTypes·tickers는 테스트마다 필요한 capability가 달라 각 테스트가 채운다
@@ -117,3 +117,8 @@ export function testLabelOf(category: keyof MetaBundle, code: string): string {
   const item = ((testMeta[category] ?? []) as { code: string; label?: string; description?: string }[]).find((i) => i.code === code)
   return item?.label ?? item?.description ?? code
 }
+
+export const strategyTypeMeta = (over: Partial<StrategyTypeMeta> = {}): StrategyTypeMeta => ({
+  code: 'INFINITE', availableTickers: [], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false, divisionCounts: [],
+  orderTypes: [], directions: [], frequencies: [], conditionIndicators: [], ...over,
+})

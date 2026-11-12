@@ -100,7 +100,7 @@ vi.mock('@features/strategy/manage-strategy', async (orig) => ({
 }))
 
 const mockPreviewQuery = vi.fn(() => ({
-  data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', ledgerCheck: null } as Partial<NextOrderPreview>,
+  data: { todayOrders: [], position: null, orders: [], skipReason: 'NO_CYCLE_HISTORY', otherStrategiesPlannedBuyUsd: '0', ledgerCheck: null } as Partial<NextOrderPreview> | undefined,
   isLoading: false,
   isError: false,
   error: null as unknown,
@@ -242,7 +242,7 @@ describe('StrategyDetail header card', () => {
     })
 
     it('미리보기 오류 문구는 화면에 한 번만 나온다', () => {
-      mockPreviewQuery.mockReturnValue({ data: undefined as unknown as Partial<NextOrderPreview>, isLoading: false, isError: true, error: new Error('boom') })
+      mockPreviewQuery.mockReturnValue({ data: undefined, isLoading: false, isError: true, error: new Error('boom') })
       render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
       expect(screen.getAllByText('주문 미리보기를 불러오는 중 오류가 발생했습니다.')).toHaveLength(1)

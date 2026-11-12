@@ -25,7 +25,7 @@ describe('createProxyRoute', () => {
     const { GET } = createProxyRoute({ basePath: '/api/daily-trades' })
     const request = new NextRequest('https://kista.test/api/daily-trades?from=2026-07-13&to=2026-07-14')
 
-    const response = await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+    const response = await GET(request)
 
     expect(response.status).toBe(200)
     expect(fetchMock).toHaveBeenCalledWith(
@@ -46,10 +46,7 @@ describe('createProxyRoute', () => {
     const { GET } = createProxyRoute({ basePath: '/api/daily-trades' })
     const request = new NextRequest('https://kista.test/api/daily-trades?from=2026-07-13&to=2026-07-14')
 
-    const response = await (GET as unknown as (
-      request: NextRequest,
-      context: object,
-    ) => Promise<Response>)(request, {})
+    const response = await GET(request, {})
 
     expect(response.status).toBe(200)
     expect(fetchMock).toHaveBeenCalledWith(
@@ -71,7 +68,7 @@ describe('createProxyRoute', () => {
     const { GET } = createProxyRoute({ basePath: '/api/trading-cycles', target: 'trading' })
     const request = new NextRequest('https://kista.test/api/trading-cycles')
 
-    const response = await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+    const response = await GET(request)
 
     expect(response.status).toBe(200)
     expect(fetchMock).toHaveBeenCalledWith(
@@ -97,20 +94,14 @@ describe('createProxyRoute', () => {
     })
 
     const rootRequest = new NextRequest('https://kista.test/api/stats/housing-benchmark')
-    await (GET as unknown as (
-      request: NextRequest,
-      context: object,
-    ) => Promise<Response>)(rootRequest, { params: Promise.resolve({ path: ['housing-benchmark'] }) })
+    await GET(rootRequest, { params: Promise.resolve({ path: ['housing-benchmark'] }) })
     expect(fetchMock).toHaveBeenLastCalledWith(
       expect.stringContaining('https://kista-api.test/api/stats/housing-benchmark'),
       expect.any(Object),
     )
 
     const tradingRequest = new NextRequest('https://kista.test/api/stats/summary')
-    await (GET as unknown as (
-      request: NextRequest,
-      context: object,
-    ) => Promise<Response>)(tradingRequest, { params: Promise.resolve({ path: ['summary'] }) })
+    await GET(tradingRequest, { params: Promise.resolve({ path: ['summary'] }) })
     expect(fetchMock).toHaveBeenLastCalledWith(
       expect.stringContaining('https://kista-trading.test/api/stats/summary'),
       expect.any(Object),
@@ -128,7 +119,7 @@ describe('createProxyRoute', () => {
     const { GET } = createProxyRoute({ basePath: '/api/market', requireAuth })
     const request = new NextRequest('https://kista.test/api/market/fear-greed')
 
-    await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+    await GET(request)
 
     const headers = fetchMock.mock.calls[0][1].headers as Record<string, string>
     expect(headers.Authorization).toBe(expected)
@@ -142,7 +133,7 @@ describe('createProxyRoute', () => {
     const { GET } = createProxyRoute({ basePath: '/api/market', requireAuth: false })
     const request = new NextRequest('https://kista.test/api/market/fear-greed')
 
-    const response = await (GET as unknown as (request: NextRequest) => Promise<Response>)(request)
+    const response = await GET(request)
 
     expect(response.status).toBe(200)
     expect(fetchMock).toHaveBeenCalledTimes(1)

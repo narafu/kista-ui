@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Strategy } from '@entities/strategy'
+import { strategy, vrSummary } from '@entities/strategy/model/fixtures'
 import { computeVrDerived, type VrDerivedInput } from './vrDerived'
 
 function baseInput(overrides: Partial<VrDerivedInput> = {}): VrDerivedInput {
@@ -33,7 +33,7 @@ describe('computeVrDerived', () => {
   })
 
   it('uses the persisted V value in edit mode for normalizedInitialValue', () => {
-    const initial = { vr: { value: 4200 } } as unknown as Strategy
+    const initial = strategy({ vr: vrSummary({ value: 4200 }) })
     expect(computeVrDerived(baseInput({ initial, avgPrice: 999, quantity: 999 })).normalizedInitialValue).toBe(4200)
   })
 

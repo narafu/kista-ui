@@ -94,9 +94,84 @@
 | E | 프록시 단일화 | 02-2 `resolveUpstream` 한 함수 + 프록시 Route Handler 13개 → 1개 | Opus | 인증·프록시 경로라 Opus. 01과 무관. 나중의 진입점 단일화(02-8)가 한 줄 변경이 된다 |
 | F | 문서·배포 | 08-5 중복 정리, 08-6 문단형 줄 분해(이유 보존), 08-7 memory, 09-2·3 죽은 심볼·knip 예외, 09-5·6 workflow·`NEXT_PUBLIC_*` 원본 통합 | Opus(08-6, 09-6), 나머지 Sonnet·Haiku | 독립. 09-5·6은 push가 있어야 검증된다 |
 
-권장 순서: **A → B → C → D → E**, F는 틈날 때. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
+권장 순서: **A → B → C → D → E**, F는 틈날 때. **A 완료(2026-11-12, 아래 "묶음 A 실행 기록")** — 다음은 B. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
 
 Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-3, 02-2 (+ 08-6, 09-6).
+
+## 묶음 A 실행 기록 (2026-11-12)
+
+### 07-1 기준선 (변경 전 `main` 11600a19)
+
+- `vitest run`: 260파일, 1,887케이스. 커버리지를 켠 전체 실행은 약 540~585초 걸린다. 부하 때문에 timeout으로 실패하는 케이스가 1~20건 생긴다(`cacheArchitecture.test.ts`의 15초 timeout 등). 실패한 9파일을 커버리지 없이 따로 돌리면 117케이스가 모두 통과했다. 그래서 실제 실패는 0건으로 본다.
+- 커버리지 측정 명령: `npx vitest run --coverage --coverage.reportOnFailure --coverage.reporter=json-summary --testTimeout=60000`. `reportOnFailure`가 없으면 timeout 하나만 나도 리포트를 쓰지 않는다.
+- 집계 기준: `entities/*`·`features/*`는 슬라이스(2단계 디렉토리)로, 나머지는 최상위 디렉토리로 묶는다.
+- 전체: 줄 85.66%, 분기 79.39%.
+
+| 묶음 | 줄 % | 분기 % |
+|---|---:|---:|
+| app | 88.6 | 68.8 |
+| widgets | 86.3 | 77.2 |
+| shared | 92.9 | 87.1 |
+| components | 98.4 | 96.7 |
+| proxy.ts | 91.6 | 73.8 |
+| entities/account | 80.5 | 84.6 |
+| entities/admin | 87.6 | 77.6 |
+| entities/admin-settings | 91.7 | 100.0 |
+| entities/backtest | 100.0 | 50.0 |
+| entities/error-log | 100.0 | 62.5 |
+| entities/fcm | 59.2 | 38.5 |
+| entities/finance | 74.5 | 83.7 |
+| entities/market | 75.0 | 53.8 |
+| entities/meta | 88.5 | 84.6 |
+| entities/order | 85.0 | 94.2 |
+| entities/privacy | 43.5 | 87.5 |
+| entities/runtime-config | 100.0 | - |
+| entities/stats | 85.1 | 81.0 |
+| entities/strategy | 85.2 | 82.0 |
+| entities/trade | 91.7 | 83.3 |
+| entities/user | 68.1 | 50.0 |
+| features/account | 87.6 | 82.1 |
+| features/admin | 90.4 | 84.4 |
+| features/asset | 91.6 | 72.7 |
+| features/auth | 96.7 | 77.5 |
+| features/backtest | 89.3 | 77.4 |
+| features/finance | 67.3 | 57.7 |
+| features/settings | 81.3 | 69.7 |
+| features/strategy | 94.0 | 88.5 |
+
+### 07-2 테스트 무대
+
+- `testing/mockApi.ts`: 전역 `fetch`를 대체한다. 키(`'GET /api/...'`)와 응답 모양은 `paths` 타입으로 검사한다. 2xx가 아닌 응답은 `apiError(status, body)`로 주고, `undefined`를 돌려주면 204가 된다. 등록하지 않은 요청은 기록해 뒀다가 테스트가 끝날 때 실패시킨다. React Query가 reject를 삼켜도 놓치지 않는다(`it.fails`로 자체 검증).
+- `testing/renderApp.tsx`: `QueryClientProvider`(`createQueryClient`)와 `MetaProvider(testMeta)`로 감싼다.
+- 위치: `shared/testing`이 아니라 루트 `testing/`(alias `@testing/*`)에 둔다. `renderApp`이 `entities/meta`를 써야 하는데, `shared`에서 `entities`를 import하는 것은 금지라서다. 03 이동의 영향도 받지 않는다.
+- `vitest.setup.ts`에 전역 대역 3개를 둔다.
+  - `next/navigation`: 원본을 펼치고 `useRouter`·`usePathname`·`useSearchParams`·`useParams`만 대역으로 바꾼다.
+  - `next/link`: `<a>`로 렌더한다.
+  - `sonner`: `toast`는 spy, `Toaster`는 null이다.
+  - 파일별 `vi.mock`을 두면 그쪽이 이긴다(커스텀 대역을 쓰는 4파일로 확인).
+- **sonner 결정**: 지침서는 "setup에 대역"과 "`renderApp`이 `Toaster`를 감싼다"를 둘 다 적고 있는데, 둘은 함께 쓸 수 없다. spy 쪽을 골랐다. 실제 `Toaster`를 렌더하는 테스트가 0건이고, 기존 39파일이 `toast.*` 호출을 단언하는 방식이라서다.
+- 파일럿: `widgets/account-detail/AccountDetailContent.test.tsx`. 모듈 mock 2개와 손으로 만든 `QueryClient`를 `mockApi` + `renderApp`으로 바꿨다. 변이 확인 2건이 모두 실패를 냈다(크립토 분기 제거, 원장 실패 플래그 고정).
+
+### 07-5 소스 패턴 테스트 → ESLint
+
+- `cacheArchitecture.test.ts`(282줄)와 `metadata.test.ts`(26줄)의 규칙을 `eslint.config.mjs`의 `no-restricted-syntax`·`no-restricted-imports`로 1:1로 옮기고, 두 테스트 파일을 지웠다.
+- 고의 위반 파일로 11건이 모두 잡히고, 테스트 경로는 제외되는 것을 확인했다.
+- 차이: `next/cache` namespace import(`import * as`)는 이제 import 자체가 금지된다. 기존 테스트는 금지 export를 호출할 때만 잡았다.
+
+### 07-3 도메인 빌더
+
+- 빌더 파일:
+  - `entities/strategy/model/fixtures.ts`: `strategy`, `vrSummary`, `dcaRule`
+  - `entities/order/model/fixtures.ts`: `nextOrderPreview`
+  - `entities/meta/__fixtures__/testMeta.ts`: `strategyTypeMeta`
+- 기본값은 캐스트 없는 완전한 객체이고, 변형은 `over`로만 준다.
+- 테스트의 `as unknown as`는 29건에서 5건이 됐다.
+  - `createProxyRoute.test.ts`의 7건은 빌더가 아니라 `Handler` 타입을 그대로 써서 없앴다.
+  - 남은 5건은 의도된 것이다.
+    - `assetSort.test.ts`(2건): null·undefined를 string 자리에 넣는 견고성 케이스다.
+    - `BacktestForm.test.tsx`: 부분 hook 결과 stub이다.
+    - `strategyFormHelpers.test.ts`: 부분 RuntimeConfig stub이다.
+    - `MarketChartCardInner.test.tsx`: canvas stub이다.
 
 ## 측정 산출물
 

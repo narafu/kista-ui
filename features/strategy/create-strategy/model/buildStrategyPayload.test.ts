@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Strategy } from '@entities/strategy'
+import { strategy } from '@entities/strategy/model/fixtures'
 import type { RuntimeConfig, RuntimeStrategyType } from '@entities/runtime-config'
 import { buildStrategyPayload, type BuildStrategyPayloadInput } from './buildStrategyPayload'
 import { computeVrDerived, type VrRecurringMode } from './vrDerived'
@@ -52,9 +52,7 @@ function build(input: Partial<BuildStrategyPayloadInput> & { vrFields: VrFields;
 }
 
 describe('buildStrategyPayload — edit mode', () => {
-  const initial = {
-    id: 's', type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX',
-  } as unknown as Strategy
+  const initial = strategy({ id: 's', type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX' })
 
   it('omits initialDeposit unless the seed is editable', () => {
     expect(build({ initial, seedUsd: 777, canEditSeed: false, vrFields: vrFields() })).toEqual({

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { Strategy } from '@entities/strategy'
+import type { DcaRule, Strategy } from '@entities/strategy'
+import { dcaRule as buildDcaRule, strategy as buildStrategy } from '@entities/strategy/model/fixtures'
 import { todayKst } from '@shared/lib/format'
 import { testOrderAmount } from '../sections/__fixtures__/dcaTestMeta'
 import {
@@ -185,15 +186,12 @@ describe('buildDcaRuleDefaults', () => {
 })
 
 describe('buildDcaFormDefaults', () => {
-  const dcaRule = (o: object) => ({
-    ruleKey: 'a', direction: 'SELL', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: 15, orderType: 'MOO', executionHour: null,
-    sizing: { type: 'AMOUNT', amount: 250, percent: null }, shortfall: 'PARTIAL', conditions: [],
-    nextExecution: null, lastExecution: null, ...o,
+  const dcaRule = (o: Partial<DcaRule>) => buildDcaRule({
+    direction: 'SELL', dayOfMonth: 15, orderType: 'MOO', sizing: { type: 'AMOUNT', amount: 250, percent: null }, nextExecution: null, ...o,
   })
-  const strategy = (rules: object[]): Strategy => ({
-    id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'QLD', cycleSeedType: 'NONE', isReverseMode: false,
-    dca: { rules, currentHoldings: null, avgPrice: null },
-  } as unknown as Strategy)
+  const strategy = (rules: DcaRule[]): Strategy => buildStrategy({
+    type: 'DCA', ticker: 'QLD', dca: { rules, currentHoldings: null, avgPrice: null },
+  })
 
   it('등록 기본값은 규칙 없음', () => {
     expect(buildDcaFormDefaults(undefined, 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))).toEqual({

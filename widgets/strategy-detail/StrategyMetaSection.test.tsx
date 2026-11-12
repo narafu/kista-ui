@@ -1,17 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { MetaProvider } from '@entities/meta'
-import { testMeta } from '@entities/meta/__fixtures__/testMeta'
+import { strategyTypeMeta, testMeta } from '@entities/meta/__fixtures__/testMeta'
 import type { NextOrderPreview } from '@entities/order'
-import type { Strategy } from '@entities/strategy'
+import { strategy as buildStrategy } from '@entities/strategy/model/fixtures'
 import { StrategyMetaSection } from './StrategyMetaSection'
 
-const strategy = { id: 's1', type: 'INFINITE', status: 'ACTIVE', cycleSeedType: 'MAX', divisionCount: 40 } as unknown as Strategy
-const strategyType = { code: 'INFINITE', label: '무한매수', divisionCounts: [20, 40] }
+const strategy = buildStrategy({ cycleSeedType: 'MAX', divisionCount: 40 })
+const strategyType = strategyTypeMeta({ label: '무한매수', divisionCounts: [20, 40] })
 
 function renderSection(preview: Partial<NextOrderPreview> | undefined, o: { loading?: boolean; error?: boolean } = {}) {
   return render(
-    <MetaProvider meta={{ ...testMeta, strategyTypes: [strategyType] as unknown as typeof testMeta.strategyTypes }}>
+    <MetaProvider meta={{ ...testMeta, strategyTypes: [strategyType] }}>
       <StrategyMetaSection
         strategy={strategy}
         preview={preview as NextOrderPreview | undefined}
