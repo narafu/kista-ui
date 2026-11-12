@@ -1,15 +1,15 @@
 'use client'
 
-import { useMemo } from 'react'
-import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
+import { FormDialog } from '@shared/ui/FormDialog'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
@@ -18,13 +18,10 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { fmtKrw, todayKst } from '@shared/lib/format'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { cn } from '@shared/lib/utils'
 import {
   collectSubtreeIds,
-  editBudgetHref,
   getCascadeLevels,
   getCategoryPath,
-  newBudgetHref,
   useCanShareToGroup,
   useDeleteFinanceBudgetMutation,
   useFinanceBudgetsQuery,
@@ -33,6 +30,7 @@ import {
   useUnshareFinanceBudgetMutation,
 } from '@entities/finance'
 import type { FinanceBudget, FinanceCategory, FlowType } from '@entities/finance'
+import { BudgetForm } from './BudgetForm'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
 const EMPTY_BUDGETS: FinanceBudget[] = []
@@ -41,6 +39,15 @@ const EMPTY_CATEGORIES: FinanceCategory[] = []
 interface Props {
   type: FlowType
 }
+
+// 추가·복제·수정 폼 대화상자 — 목록 데이터가 이미 캐시에 있어 행에서 바로 초기값을 넘긴다
+type FormTarget = { mode: 'create' } | { mode: 'duplicate'; budget: FinanceBudget } | { mode: 'edit'; budget: FinanceBudget }
+
+const FORM_COPY = {
+  create: { title: '예산 추가', description: '카테고리·적용 기간·월 예산 입력' },
+  duplicate: { title: '예산 복제', description: '원본과 적용 기간이 겹치면 저장되지 않습니다. 적용 기간을 변경하세요.' },
+  edit: { title: '예산 수정', description: '카테고리·적용 기간·월 예산 입력' },
+} as const
 
 type BudgetStatus = 'UPCOMING' | 'ACTIVE' | 'ENDED'
 type StatusFilter = 'ALL' | BudgetStatus
@@ -86,8 +93,8 @@ export function BudgetManager({ type }: Props) {
   const size = sizeParam && PAGE_SIZES.includes(sizeParam) ? sizeParam : DEFAULT_SIZE
   const pageParam = positiveInt(searchParams.get('page')) ?? 1
 
-  // 목록 모달이 폼 라우트로 교체됐다가 돌아와도 필터가 남도록 URL에 둔다. replaceState는 서버 왕복·
-  // 인터셉트 재평가 없이 useSearchParams와 동기화된다(Next.js 네이티브 history 지원). 기본값은 생략한다.
+  // 새로고침·뒤로가기에도 필터가 남도록 URL에 둔다. replaceState는 서버 왕복 없이
+  // useSearchParams와 동기화된다(Next.js 네이티브 history 지원). 기본값은 생략한다.
   function updateParams(patch: Record<string, string | null>) {
     const next = new URLSearchParams(searchParams.toString())
     for (const [key, value] of Object.entries(patch)) {
@@ -129,6 +136,10 @@ export function BudgetManager({ type }: Props) {
   const currentPage = Math.min(pageParam, totalPages)
   const paged = filtered.slice((currentPage - 1) * size, currentPage * size)
 
+  // 대상은 닫힌 뒤에도 남겨 둔다 — 닫힘 애니메이션 동안 제목·본문이 "예산 추가"로 바뀌지 않게
+  const [formTarget, setFormTarget] = useState<FormTarget>({ mode: 'create' })
+  const [formOpen, setFormOpen] = useState(false)
+  const openForm = (target: FormTarget) => { setFormTarget(target); setFormOpen(true) }
   const deleteDialog = useConfirmDialog<FinanceBudget>()
   const deleteMutation = useDeleteFinanceBudgetMutation()
   const shareMutation = useShareFinanceBudgetMutation()
@@ -176,10 +187,10 @@ export function BudgetManager({ type }: Props) {
           </SelectContent>
         </Select>
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
-        <Link href={newBudgetHref(type)} className={cn(buttonVariants({ variant: 'brand-soft', size: 'sm' }), 'ml-auto gap-1.5')}>
+        <Button type="button" variant="brand-soft" size="sm" className="ml-auto gap-1.5" onClick={() => openForm({ mode: 'create' })}>
           <Plus className="size-4" />
           예산 추가
-        </Link>
+        </Button>
       </div>
 
       {(!budgetsQuery.data && budgetsQuery.isError) || (!categoriesQuery.data && categoriesQuery.isError) ? (
@@ -216,8 +227,8 @@ export function BudgetManager({ type }: Props) {
                       <span className="whitespace-nowrap">~ {budget.applyEndDate ?? '무기한'}</span>
                     </p>
                     <ShareableRowActions
-                      editHref={editBudgetHref(type, budget.id)}
-                      duplicateHref={newBudgetHref(type, { duplicateFrom: budget.id })}
+                      onEdit={() => openForm({ mode: 'edit', budget })}
+                      onDuplicate={() => openForm({ mode: 'duplicate', budget })}
                       onShare={() => handleShare(budget.id)}
                       onUnshare={() => handleUnshare(budget.id)}
                       onDelete={() => deleteDialog.request(budget)}
@@ -234,6 +245,22 @@ export function BudgetManager({ type }: Props) {
           {totalPages > 1 && <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
         </>
       )}
+
+      <FormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        title={FORM_COPY[formTarget.mode].title}
+        description={FORM_COPY[formTarget.mode].description}
+      >
+        {(close) => (
+          <BudgetForm
+            type={type}
+            initial={formTarget.mode === 'edit' ? formTarget.budget : undefined}
+            duplicateFrom={formTarget.mode === 'duplicate' ? formTarget.budget : undefined}
+            onDone={close}
+          />
+        )}
+      </FormDialog>
 
       {deleteDialog.target && (
         <ConfirmDeleteDialog

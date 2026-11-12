@@ -1,9 +1,12 @@
-import { HydrationBoundary, QueryClient, QueryClientProvider, dehydrate } from '@tanstack/react-query'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { useRouter } from 'next/navigation'
 import { describe, expect, it, vi } from 'vitest'
 
 import { accountKeys, type Account } from '@entities/account'
 import { strategyKeys, type Strategy } from '@entities/strategy'
+import { createQueryClient } from '@shared/lib/query'
+import { renderApp } from '@testing/renderApp'
 import { StrategyDetailContent } from './StrategyDetailContent'
 
 vi.mock('./StrategyDetail', () => ({
@@ -34,11 +37,9 @@ const serverStrategy: Strategy = {
 }
 
 function createClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, staleTime: Infinity },
-    },
-  })
+  const client = createQueryClient()
+  client.setQueryDefaults([], { staleTime: Infinity })
+  return client
 }
 
 function content() {
@@ -61,12 +62,11 @@ describe('StrategyDetailContent', () => {
     browserClient.setQueryData(accountKeys.detail(serverAccount.id), { ...serverAccount, nickname: 'Prewarmed account' }, { updatedAt: 200 })
     browserClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ticker: 'SOXL' }, { updatedAt: 200 })
 
-    render(
-      <QueryClientProvider client={browserClient}>
-        <HydrationBoundary state={dehydrate(serverClient)}>
-          {content()}
-        </HydrationBoundary>
-      </QueryClientProvider>,
+    renderApp(
+      <HydrationBoundary state={dehydrate(serverClient)}>
+        {content()}
+      </HydrationBoundary>,
+      { queryClient: browserClient },
     )
 
     expect(screen.getByRole('heading', { name: 'SOXL' })).toBeInTheDocument()
@@ -77,7 +77,7 @@ describe('StrategyDetailContent', () => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), serverStrategy)
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
     act(() => {
       queryClient.setQueryData(accountKeys.detail(serverAccount.id), { ...serverAccount, nickname: 'Edited account' })
@@ -95,7 +95,7 @@ describe('StrategyDetailContent', () => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), dcaStrategy)
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
     expect(screen.getByTestId('dca-detail')).toBeInTheDocument()
     expect(screen.queryByTestId('infinite-detail')).not.toBeInTheDocument()
@@ -106,24 +106,22 @@ describe('StrategyDetailContent', () => {
     ['PRIVACY', true],
     ['VR', false],
     ['DCA', true],
-  ] as const)('%s 전략의 "투자금 추가" 링크 노출은 %s', (type, visible) => {
+  ] as const)('%s 전략의 "투자금 추가" 버튼 노출은 %s', (type, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
-    const link = screen.queryByRole('link', { name: '투자금 추가' })
-    if (visible) expect(link).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/inject-capital')
-    else expect(link).not.toBeInTheDocument()
+    expect(!!screen.queryByRole('button', { name: '투자금 추가' })).toBe(visible)
   })
 
-  it('INFINITE 전략도 진행 중 사이클이 없으면 "투자금 추가" 링크를 숨긴다', () => {
+  it('INFINITE 전략도 진행 중 사이클이 없으면 "투자금 추가" 버튼를 숨긴다', () => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
-    expect(screen.queryByRole('link', { name: '투자금 추가' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '투자금 추가' })).not.toBeInTheDocument()
   })
 
   it.each([
@@ -131,24 +129,22 @@ describe('StrategyDetailContent', () => {
     ['PRIVACY', true],
     ['VR', false],
     ['DCA', true],
-  ] as const)('%s 전략의 "투자금 인출" 링크 노출은 %s', (type, visible) => {
+  ] as const)('%s 전략의 "투자금 인출" 버튼 노출은 %s', (type, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
-    const link = screen.queryByRole('link', { name: '투자금 인출' })
-    if (visible) expect(link).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/withdraw-capital')
-    else expect(link).not.toBeInTheDocument()
+    expect(!!screen.queryByRole('button', { name: '투자금 인출' })).toBe(visible)
   })
 
-  it('진행 중 사이클이 없으면 "투자금 인출" 링크를 숨긴다', () => {
+  it('진행 중 사이클이 없으면 "투자금 인출" 버튼를 숨긴다', () => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
-    expect(screen.queryByRole('link', { name: '투자금 인출' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '투자금 인출' })).not.toBeInTheDocument()
   })
 
   it.each([
@@ -156,12 +152,32 @@ describe('StrategyDetailContent', () => {
     [0, false],
     [0.01, true],
     [undefined, true],
-  ] as const)('장부 예수금 %s이면 "투자금 인출" 링크 노출은 %s', (ledgerDeposit, visible) => {
+  ] as const)('장부 예수금 %s이면 "투자금 인출" 버튼 노출은 %s', (ledgerDeposit, visible) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
     queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerDeposit })
-    render(<QueryClientProvider client={queryClient}>{content()}</QueryClientProvider>)
+    renderApp(content(), { queryClient })
 
-    expect(!!screen.queryByRole('link', { name: '투자금 인출' })).toBe(visible)
+    expect(!!screen.queryByRole('button', { name: '투자금 인출' })).toBe(visible)
+  })
+
+  it.each([
+    ['투자금 추가', '진행 중인 사이클에 예수금을 추가', '추가 예수금'],
+    ['투자금 인출', '진행 중인 사이클에서 예수금을 인출', '인출 예수금'],
+  ] as const)('"%s" 버튼은 같은 화면에서 다이얼로그를 열고 취소로 닫는다', async (name, description, field) => {
+    const queryClient = createClient()
+    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerDeposit: 500 })
+    renderApp(content(), { queryClient })
+
+    fireEvent.click(screen.getByRole('button', { name }))
+
+    const dialog = await screen.findByRole('dialog', { name })
+    expect(dialog).toHaveTextContent(description)
+    expect(screen.getByLabelText(field)).toBeInTheDocument()
+    expect(useRouter().push).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name })).not.toBeInTheDocument())
   })
 })

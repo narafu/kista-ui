@@ -1,12 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mockApi } from '@testing/mockApi'
+import { renderApp } from '@testing/renderApp'
 import { FinanceBudgetProgress } from './FinanceBudgetProgress'
 import type { CategoryIndex, CategoryIndexEntry, FinanceBudget, FinanceCategory, FinanceTransaction } from '@entities/finance'
-
-vi.mock('@entities/meta', async () => {
-  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
-  return { useMeta: () => ({ labelOf: testLabelOf }) }
-})
 
 function cat(id: string, name: string, children: FinanceCategory[] = []): FinanceCategory {
   return { id, type: 'EXPENSE', name, sortOrder: 0, system: false, children }
@@ -31,7 +30,7 @@ function renderWidget(props: {
   index: CategoryIndex
   onCategorySelect?: (categoryId: string) => void
 }) {
-  return render(
+  return renderApp(
     <FinanceBudgetProgress
       type="EXPENSE"
       budgets={props.budgets}
@@ -107,7 +106,7 @@ describe('FinanceBudgetProgress 예산 초과 표현', () => {
 
   it('저축·수입은 목표를 넘기면 좋은 신호라 "초과 달성"으로 경고색 없이 표시한다', () => {
     const entry: CategoryIndexEntry = { type: 'SAVING', rootId: 'fund', name: '펀드', path: [{ id: 'fund', name: '펀드', sortOrder: 0 }], sortOrder: 0 }
-    render(
+    renderApp(
       <FinanceBudgetProgress
         type="SAVING"
         budgets={[budget('b-fund', 'fund', 100)]}
@@ -127,15 +126,42 @@ describe('FinanceBudgetProgress 예산 초과 표현', () => {
 })
 
 describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
-  it('예산 없이 실적만 있는 카테고리에 추가 라우트 링크(categoryId 프리필)를 단다', () => {
+  beforeEach(() => {
+    // jsdom의 history.back은 popstate를 보내지 않는다 — 브라우저처럼 다음 태스크에 보낸다(FormDialog가 popstate에서 닫힌다)
+    vi.spyOn(window.history, 'back').mockImplementation(() => {
+      setTimeout(() => window.dispatchEvent(new PopStateEvent('popstate', { state: null })))
+    })
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  it('예산 없이 실적만 있는 카테고리의 "예산 추가"는 그 카테고리가 채워진 대화상자를 열고, 제출하면 POST 후 닫힌다', async () => {
+    const user = userEvent.setup()
+    const food: FinanceCategory = cat('food', '식비')
+    const { requests } = mockApi({
+      'GET /api/finance/categories': [food, cat('transit', '교통')],
+      'GET /api/finance/groups': [],
+      'POST /api/finance/budgets': budget('b-new', 'food', 80_000),
+    })
     renderWidget({
       budgets: [],
       transactions: [tx('food', 30_000)],
-      categoryTree: [cat('food', '식비')],
+      categoryTree: [food],
       index: new Map([idx('food', '식비')]),
     })
 
-    expect(screen.getByRole('link', { name: '식비 예산 추가' })).toHaveAttribute('href', '/finance/budgets/expense/new?categoryId=food')
+    await user.click(screen.getByRole('button', { name: '식비 예산 추가' }))
+    const dialog = await screen.findByRole('dialog', { name: '예산 추가' })
+    await waitFor(() => expect(within(dialog).getByLabelText('카테고리')).toHaveTextContent('식비'))
+    expect(within(dialog).getByLabelText('월 예산')).toHaveValue('')
+
+    await user.type(within(dialog).getByLabelText('월 예산'), '80000')
+    await user.click(within(dialog).getByRole('button', { name: '추가' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    const posts = requests.filter((r) => r.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(posts[0].body).toMatchObject({ categoryId: 'food', amount: 80_000 })
+    expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
   })
 })
 

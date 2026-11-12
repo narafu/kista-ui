@@ -1,34 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { useRouter } from 'next/navigation'
+import { describe, expect, it, vi } from 'vitest'
 import { accountKeys } from '@entities/account'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
+import { mockApi } from '@testing/mockApi'
+import { renderApp } from '@testing/renderApp'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
-
-const mutateMock = vi.fn()
-const routerPushMock = vi.fn()
-const routerBackMock = vi.fn()
-const invalidateQueriesMock = vi.fn(() => Promise.resolve())
-let reconfigureSuccessHandler: (() => void | Promise<void>) | undefined
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: routerPushMock, back: routerBackMock }),
-}))
-
-vi.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
-}))
-
-vi.mock('@entities/strategy', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@entities/strategy')>()),
-  useReconfigureVrMutation: (_strategyId: string, onSuccess?: () => void | Promise<void>) => {
-    reconfigureSuccessHandler = onSuccess
-    return { mutate: mutateMock, isPending: false }
-  },
-}))
 
 const strategy: ReconfigureVrStrategy = {
   id: 'strategy-1',
@@ -58,22 +39,34 @@ const strategy: ReconfigureVrStrategy = {
   },
 }
 
-describe('ReconfigureVrForm', () => {
-  beforeEach(() => {
-    mutateMock.mockClear()
-    routerPushMock.mockClear()
-    routerBackMock.mockClear()
-    invalidateQueriesMock.mockClear()
-    reconfigureSuccessHandler = undefined
-  })
 
+let requests: { method: string; path: string; body: unknown }[] = []
+
+function renderForm(target: ReconfigureVrStrategy = strategy) {
+  ;({ requests } = mockApi({
+    'PUT /api/trading-cycles/{id}/vr-config': strategy as never,
+    // 저장 뒤 훅이 전략 목록을 다시 맞춘다
+    'GET /api/trading-cycles': [strategy] as never,
+    'GET /api/accounts/{accountId}/trading-cycles': [strategy] as never,
+  }))
+  return renderApp(<ReconfigureVrForm accountId="account-1" strategy={target} />)
+}
+
+// 보낸 PUT 바디 — JSON을 거치므로 undefined 필드는 없다
+const submitted = () => requests.find((r) => r.method === 'PUT')?.body as Record<string, unknown> | undefined
+const submittedAfterSend = async () => {
+  await waitFor(() => expect(submitted()).toBeDefined())
+  return submitted() as Record<string, unknown>
+}
+
+describe('ReconfigureVrForm', () => {
   it('경고 배너를 상시 노출한다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     expect(screen.getByText(/진행 중인 사이클이 즉시 종료되고 새 사이클이 시작되며/)).toBeInTheDocument()
   })
 
   it('램프 필드 초깃값을 gradient/poolLimit이 아닌 initialGradient/initialPoolLimitRate에서 채운다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const initialGradientInput = screen.getByLabelText('초기 gradient(G)') as HTMLInputElement
     const initialPoolLimitRateInput = screen.getByLabelText('초기 poolLimitRate') as HTMLInputElement
     expect(initialGradientInput.value).toBe('10')
@@ -82,7 +75,7 @@ describe('ReconfigureVrForm', () => {
   })
 
   it('gradient 단계주기를 0으로 바꾸면 상한·유예가 0으로 비활성되고, 0에서 벗어나면 빈 칸으로 리셋된다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const step = screen.getByLabelText('gradient 단계주기') as HTMLInputElement
     const gMax = screen.getByLabelText('gradient 상한') as HTMLInputElement
     const grace = screen.getByLabelText('gradient 유예') as HTMLInputElement
@@ -98,7 +91,7 @@ describe('ReconfigureVrForm', () => {
   })
 
   it('poolLimitRate 단계주기를 0으로 바꾸면 하한·유예가 0으로 비활성되고, 0에서 벗어나면 빈 칸으로 리셋된다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const step = screen.getByLabelText('poolLimitRate 단계주기') as HTMLInputElement
     const floor = screen.getByLabelText('poolLimitRate 하한') as HTMLInputElement
     const grace = screen.getByLabelText('poolLimitRate 유예') as HTMLInputElement
@@ -113,19 +106,19 @@ describe('ReconfigureVrForm', () => {
   })
 
   it('제출 시 즉시 뮤테이션을 호출하지 않고 확인 다이얼로그를 먼저 띄운다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     expect(await screen.findByText('VR 전략을 재설정하시겠습니까?')).toBeInTheDocument()
-    expect(mutateMock).not.toHaveBeenCalled()
+    expect(submitted()).toBeUndefined()
   })
 
   it('확인 다이얼로그에서 확정하면 현재 폼 값으로 뮤테이션을 호출한다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0]).toEqual(expect.objectContaining({
+    const body = await submittedAfterSend()
+    expect(body).toEqual(expect.objectContaining({
       bandWidth: 15,
       intervalWeeks: 4,
       initialGradient: 10,
@@ -133,32 +126,32 @@ describe('ReconfigureVrForm', () => {
     }))
   })
 
-  it('재설정 성공 시 사이클이 교체되므로 해당 전략의 주문 미리보기를 무효화한 뒤 이동한다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+  it('재설정 성공 시 사이클이 교체되므로 주문 미리보기 등을 무효화한 뒤 상세로 이동한다', async () => {
+    const { queryClient } = renderForm(strategy)
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await reconfigureSuccessHandler?.()
-
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: orderKeys.preview(strategy.id) })
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: statsKeys.all })
-    expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotals('account-1') })
-    expect(routerPushMock).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`)
+    await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`))
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderKeys.preview(strategy.id) })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: statsKeys.all })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotals('account-1') })
   })
 
   it('인출 모드로 전환 후 금액을 입력하면 음수로 제출된다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '200' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-200)
+    expect((await submittedAfterSend()).recurringAmount).toBe(-200)
   })
 
   it('금액 재입력 없이 인출→적립 모드만 전환해도 부호가 양수로 재계산된다', async () => {
     // strategy fixture는 recurringAmount: -100 (인출식)으로 설정돼 있음 — 초기 recurringMode는 WITHDRAW
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
 
     const amountInput = screen.getByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
@@ -167,15 +160,14 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(100)
+    expect((await submittedAfterSend()).recurringAmount).toBe(100)
   })
 
   it('금액 재입력 없이 적립→인출 모드만 전환해도 부호가 음수로 재계산된다', async () => {
     // recurringAmount가 양수(적립식)인 상태에서 시작해야 인출 전환 시 부호 재계산 여부가 갈린다 —
     // strategy 원본 fixture(-100)로는 WITHDRAW로 전환해도 값이 그대로 -100이라 버그 유무를 구분하지 못한다.
     const depositStrategy: ReconfigureVrStrategy = { ...strategy, vr: { ...strategy.vr, recurringAmount: 100 } }
-    render(<ReconfigureVrForm accountId="account-1" strategy={depositStrategy} />)
+    renderForm(depositStrategy)
     fireEvent.click(screen.getByRole('button', { name: '- 인출' }))
 
     const amountInput = screen.getByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
@@ -184,13 +176,12 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(-100)
+    expect((await submittedAfterSend()).recurringAmount).toBe(-100)
   })
 
   it('인출 모드에서 금액 칸을 비우면 거치로 바꾸지 않고 오류로 막는다', async () => {
     // fixture는 recurringAmount: -100 — 초기 모드 WITHDRAW
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
@@ -203,7 +194,7 @@ describe('ReconfigureVrForm', () => {
 
   it('거치에서 적립으로 바꾼 직후엔 오류를 띄우지 않고, 금액 없이 제출하면 적립금 오류로 막는다', async () => {
     const holdStrategy: ReconfigureVrStrategy = { ...strategy, vr: { ...strategy.vr, recurringAmount: 0 } }
-    render(<ReconfigureVrForm accountId="account-1" strategy={holdStrategy} />)
+    renderForm(holdStrategy)
     fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
     expect(screen.queryByText('적립금을 0보다 크게 입력하세요.')).not.toBeInTheDocument()
 
@@ -212,18 +203,17 @@ describe('ReconfigureVrForm', () => {
   })
 
   it('거치 모드로 바꾸면 0으로 보낸다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '거치' }))
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].recurringAmount).toBe(0)
-    expect(mutateMock.mock.calls[0][0]).not.toHaveProperty('recurringMode')
+    expect((await submittedAfterSend()).recurringAmount).toBe(0)
+    expect(submitted()).not.toHaveProperty('recurringMode')
   })
 
   it('gMax가 initialGradient보다 작으면 확인 다이얼로그를 열지 않는다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
@@ -231,11 +221,11 @@ describe('ReconfigureVrForm', () => {
     await screen.findByText('gradient 상한은 초기값 이상이어야 합니다.')
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
-    expect(mutateMock).not.toHaveBeenCalled()
+    expect(submitted()).toBeUndefined()
   })
 
   it('injectShares>0인데 매수단가를 비우면 확인 다이얼로그를 열지 않는다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
@@ -243,11 +233,11 @@ describe('ReconfigureVrForm', () => {
     await screen.findByText('주식을 편입하려면 매수단가를 입력하세요.')
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
-    expect(mutateMock).not.toHaveBeenCalled()
+    expect(submitted()).toBeUndefined()
   })
 
   it('injectShares가 0보다 클 때만 매수단가 필드를 노출한다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     expect(screen.queryByLabelText('매수단가')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
@@ -257,7 +247,7 @@ describe('ReconfigureVrForm', () => {
 
   it('추가 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
     const user = userEvent.setup()
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const input = screen.getByLabelText('추가 예수금') as HTMLInputElement
 
     await user.type(input, '123.456')
@@ -266,13 +256,12 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].injectDeposit).toBe(123.45)
+    expect((await submittedAfterSend()).injectDeposit).toBe(123.45)
   })
 
   it('추가 예수금에 음수를 입력하면(부호가 조용히 사라지지 않고) 검증 에러가 표시되고 제출이 막힌다', async () => {
     const user = userEvent.setup()
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const input = screen.getByLabelText('추가 예수금') as HTMLInputElement
 
     await user.type(input, '-50')
@@ -282,25 +271,24 @@ describe('ReconfigureVrForm', () => {
     await screen.findByText('Too small: expected number to be >=0')
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
-    expect(mutateMock).not.toHaveBeenCalled()
+    expect(submitted()).toBeUndefined()
   })
 
   it('인출 주식 수·인출 예수금을 입력하면 제출값에 그대로 반영된다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.change(screen.getByLabelText('인출 주식 수'), { target: { value: '4' } })
     fireEvent.change(screen.getByLabelText('인출 예수금'), { target: { value: '150' } })
 
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].withdrawShares).toBe(4)
-    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBe(150)
+    expect((await submittedAfterSend()).withdrawShares).toBe(4)
+    expect(submitted()?.withdrawDeposit).toBe(150)
   })
 
   it('인출 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
     const user = userEvent.setup()
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     const input = screen.getByLabelText('인출 예수금') as HTMLInputElement
 
     await user.type(input, '99.999')
@@ -309,23 +297,22 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBe(99.99)
+    expect((await submittedAfterSend()).withdrawDeposit).toBe(99.99)
   })
 
   it('인출 필드를 비워두면 제출값에 포함되지 않는다', async () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} />)
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
-    await waitFor(() => expect(mutateMock).toHaveBeenCalled())
-    expect(mutateMock.mock.calls[0][0].withdrawShares).toBeUndefined()
-    expect(mutateMock.mock.calls[0][0].withdrawDeposit).toBeUndefined()
+    const body = await submittedAfterSend()
+    expect(body.withdrawShares).toBeUndefined()
+    expect(body.withdrawDeposit).toBeUndefined()
   })
 
-  it('dismiss가 back이면 취소 클릭 시 router.back을 호출한다', () => {
-    render(<ReconfigureVrForm accountId="account-1" strategy={strategy} dismiss="back" />)
+  it('취소를 누르면 상세 페이지로 이동한다', () => {
+    renderForm(strategy)
     fireEvent.click(screen.getByRole('button', { name: '취소' }))
-    expect(routerBackMock).toHaveBeenCalled()
+    expect(useRouter().push).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`)
   })
 })

@@ -11,7 +11,7 @@ import { useMeta } from '@entities/meta'
 import { NewStrategyButton } from './NewStrategyButton'
 
 // 전략 목록(/strategies)용 진입점 — 전략은 계좌에 종속되므로 계좌를 먼저 고른 뒤 기존
-// /accounts/{id}/strategies/new 라우트(PC는 @modal 인터셉트)로 보낸다. 계좌가 1개면 선택 없이 바로 이동,
+// /accounts/{id}/strategies/new 페이지로 보낸다. 계좌가 1개면 선택 없이 바로 이동,
 // 0개면 렌더하지 않는다(빈 상태 화면이 계좌 등록을 안내한다).
 export function AddStrategyButton() {
   const { data: accounts = [] } = useAccountsQuery()

@@ -1,7 +1,6 @@
 'use client'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,24 +25,19 @@ import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import { useInjectCapitalMutation } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
-import type { DismissMode } from '@shared/lib/dismiss'
 import { injectCapitalFormSchema, type InjectCapitalFormValues } from './model/injectCapitalFormSchema'
 
 interface Props {
   accountId: string
   strategy: Strategy
   currency: Currency // 계좌 통화 — 입력 단위·자릿수·금액 표기
-  // 'push': 일반 페이지 라우트. 'back': 인터셉팅 라우트(모달)
-  dismiss?: DismissMode
+  onDone: () => void // 취소·성공 뒤 — FormDialog의 close
 }
 
-export function InjectCapitalForm({ accountId, strategy, currency, dismiss = 'push' }: Props) {
-  const router = useRouter()
+export function InjectCapitalForm({ accountId, strategy, currency, onDone }: Props) {
   const queryClient = useQueryClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
-  const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(backHref)
   // 다음 거래일 주문이 바뀌므로 주문 미리보기를 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
   const handleSuccess = async () => {
     await Promise.all([
@@ -54,7 +48,7 @@ export function InjectCapitalForm({ accountId, strategy, currency, dismiss = 'pu
       invalidateLedgerTotals(queryClient, accountId),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
     ])
-    handleDone()
+    onDone()
   }
 
   const form = useForm<InjectCapitalFormValues>({
@@ -95,7 +89,7 @@ export function InjectCapitalForm({ accountId, strategy, currency, dismiss = 'pu
         {errors.depositAmount && <p id="depositAmount-error" role="alert" className="text-sm text-destructive">{errors.depositAmount.message}</p>}
       </div>
 
-      <FormActions onCancel={handleDone} isPending={disabled} canSubmit label="추가" pendingLabel="추가 중..." className="pt-2" />
+      <FormActions onCancel={onDone} isPending={disabled} canSubmit label="추가" pendingLabel="추가 중..." className="pt-2" />
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent size="sm">

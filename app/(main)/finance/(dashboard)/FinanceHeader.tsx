@@ -39,9 +39,7 @@ const FLOW_TYPE_BY_HREF: Record<string, FlowType> = {
 }
 
 export function FinanceHeader() {
-  // 예산 관리 라우트(/finance/budgets/{slug}/...)가 @modal로 떠 있는 동안 이 헤더는 배경 페이지에 남는다 —
-  // 경로를 원래 흐름 탭(/finance/{slug})으로 되돌려 봐야 제목·탭·액션이 "자산"으로 바뀌지 않는다.
-  const pathname = usePathname().replace(/^\/finance\/budgets\/([^/]+).*$/, '/finance/$1')
+  const pathname = usePathname()
   const activeHref = TAB_OPTIONS.find(({ href }) => isSectionTabActive(pathname, href, '/finance'))?.href ?? '/finance'
   const flowType = FLOW_TYPE_BY_HREF[activeHref]
   const registerWindowTo = registerWindowUpperBound(todayKst())
@@ -82,7 +80,6 @@ export function FinanceHeader() {
         items={TAB_OPTIONS}
         rootHref="/finance"
         ariaLabel="가계부 탭"
-        activePathname={pathname}
         className="grid-cols-5 sm:w-[30rem]"
       />
     </>

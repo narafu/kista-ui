@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
-import { ReconfigureVrFormBody } from './ReconfigureVrFormBody'
+import { notFound } from 'next/navigation'
+import { PageHeader } from '@widgets/page-header'
+import { findStrategy } from '@entities/strategy'
+import { ReconfigureVrForm, hasVr } from '@features/strategy/reconfigure-vr'
+import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>
@@ -10,10 +14,18 @@ export const metadata: Metadata = {
   description: 'VR 전략의 밴드 폭·주기·램프 파라미터를 재설정하고 투자금을 추가합니다',
 }
 
-export default function ReconfigureVrPage({ params }: Props) {
+export default async function ReconfigureVrPage({ params }: Props) {
+  const { params: { id, sid }, token } = await requirePageToken(params)
+
+  const strategy = await findStrategy(id, sid, token)
+  if (!strategy || !hasVr(strategy)) {
+    return notFound()
+  }
+
   return (
     <div className="max-w-lg mx-auto">
-      <ReconfigureVrFormBody params={params} />
+      <PageHeader eyebrow={strategy.ticker} eyebrowHref={`/accounts/${id}/strategies/${sid}`} title="VR 재설정" description="VR 파라미터와 투자금 추가·인출 재설정" />
+      <ReconfigureVrForm accountId={id} strategy={strategy} />
     </div>
   )
 }

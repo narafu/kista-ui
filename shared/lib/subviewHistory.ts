@@ -51,7 +51,7 @@ export function useSubviewHistory(open: boolean, onPop: () => void): { leave: ()
     window.addEventListener('popstate', listener)
     return () => {
       window.removeEventListener('popstate', listener)
-      // popstate 없이 사라지면(언마운트) 현재 칸에 표식이 남아 RouteModal이 go(-2)로 모달 출발 화면을 지나친다 —
+      // popstate 없이 사라지면(언마운트) 현재 칸에 이번 표식이 남는다 —
       // 이번 진입 표식만 지우고 Next의 __NA·트리 등 나머지 키는 남긴다. 이미 다른 칸이면 건드리지 않는다
       if (subviewToken(window.history.state) === entryId.current) setCurrentToken(null)
     }

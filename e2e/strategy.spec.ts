@@ -33,8 +33,8 @@ test.describe('전략 (USER)', () => {
     // 실제 데이터가 있는 로컬 DB라 최종 "추가 확정"은 절대 누르지 않는다
     const { seed } = await import('../scripts/shared/seed.mjs')
     await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
-    await page.getByRole('link', { name: '투자금 추가' }).click()
-    await expect(page.getByRole('heading', { name: '투자금 추가' })).toBeVisible()
+    await page.getByRole('button', { name: '투자금 추가' }).click()
+    await expect(page.getByRole('dialog', { name: '투자금 추가' })).toBeVisible()
 
     await page.getByRole('button', { name: '추가', exact: true }).click()
     await expect(page.getByText('추가할 예수금을 입력하세요.')).toBeVisible()
@@ -52,8 +52,8 @@ test.describe('전략 (USER)', () => {
     // 실제 데이터가 있는 로컬 DB라 최종 "인출 확정"은 절대 누르지 않는다
     const { seed } = await import('../scripts/shared/seed.mjs')
     await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
-    await page.getByRole('link', { name: '투자금 인출' }).click()
-    await expect(page.getByRole('heading', { name: '투자금 인출' })).toBeVisible()
+    await page.getByRole('button', { name: '투자금 인출' }).click()
+    await expect(page.getByRole('dialog', { name: '투자금 인출' })).toBeVisible()
 
     await page.getByRole('button', { name: '인출', exact: true }).click()
     await expect(page.getByText('인출할 예수금을 입력하세요.')).toBeVisible()
@@ -65,12 +65,12 @@ test.describe('전략 (USER)', () => {
     await expect(page.getByText('투자금을 인출하시겠습니까?')).toHaveCount(0)
   })
 
-  test('VR 전략 상세에는 투자금 추가 링크가 없다', async ({ page }) => {
+  test('VR 전략 상세에는 투자금 추가 버튼이 없다', async ({ page }) => {
     const { seed, hasSeed } = await import('../scripts/shared/seed.mjs')
     test.skip(!hasSeed('vr'), 'MOCK 계좌에 VR 시드 전략 없음 — kista-api scripts/dev-seed/seed.sh 확인')
     await page.goto(`/accounts/${seed.vr.accountId}/strategies/${seed.vr.strategyId}`)
     await expect(page.getByRole('link', { name: 'VR 재설정' })).toBeVisible()
-    await expect(page.getByRole('link', { name: '투자금 추가' })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: '투자금 인출' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: '투자금 추가' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: '투자금 인출' })).toHaveCount(0)
   })
 })

@@ -25,7 +25,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
       message={hasAccounts ? '전략을 추가할 계좌를 선택하세요.' : '계좌를 먼저 등록한 후 전략을 추가하세요.'}
       action={
         hasAccounts ? (
-          // 헤더의 "전략 추가"와 같은 생성 라우트(PC는 @modal 인터셉트)로 바로 보낸다
+          // 헤더의 "전략 추가"와 같은 생성 페이지로 바로 보낸다
           <div className="flex flex-col gap-2 w-full max-w-xs">
             {accounts.map((account) => (
               <Link

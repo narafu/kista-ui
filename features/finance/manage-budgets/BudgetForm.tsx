@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormActions } from '@shared/ui/FormActions'
@@ -11,9 +10,7 @@ import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
-import type { DismissMode } from '@shared/lib/dismiss'
 import {
-  budgetListHref,
   monthStartDate,
   useCanShareToGroup,
   useCategoryPathState,
@@ -33,8 +30,8 @@ interface Props {
   duplicateFrom?: Pick<FinanceBudget, 'categoryId' | 'amount' | 'applyStartDate' | 'applyEndDate'>
   // 예산 미설정 카테고리 빠른 등록 — 카테고리만 프리필하는 일반 추가(복제 아님).
   defaultCategoryId?: string
-  // 'push'(기본): 일반 페이지 라우트 — 예산 목록으로 이동. 'back': 인터셉팅 라우트(모달) — 이전 화면으로 복귀
-  dismiss?: DismissMode
+  // 취소·제출 성공 때 부른다 — FormDialog의 close를 그대로 넘긴다
+  onDone: () => void
 }
 
 // 달력 위젯에서 연도 0000·임의 큰 값 등 극단값을 입력하면 서버가 예기치 못한 오류를 낼 수 있어
@@ -42,10 +39,8 @@ interface Props {
 const MIN_APPLY_DATE = '1900-01-01'
 const MAX_APPLY_DATE = '2999-12-31'
 
-// 제목·설명은 렌더하지 않는다 — 라우트 Body의 PageHeader(h1)가 맡아 RouteModal 대화상자 이름이 된다.
-export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, dismiss = 'push' }: Props) {
-  const router = useRouter()
-  const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(budgetListHref(type))
+// 제목·설명은 렌더하지 않는다 — 호출부 FormDialog가 맡는다.
+export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, onDone }: Props) {
   const { data: categoryTree = [] } = useFinanceCategoriesQuery(type)
 
   const mode = initial ? 'edit' : 'create'
@@ -88,7 +83,7 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, di
       updateMutation,
       createExtra: { shareToGroup: canShareToGroup && shareToGroup },
       messages: { create: '예산이 추가되었습니다', edit: '예산이 수정되었습니다' },
-      onSuccess: handleDone,
+      onSuccess: onDone,
     })
   }
 
@@ -163,7 +158,7 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, di
         <ShareToGroupSwitch id="budgetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
       )}
 
-      <FormActions onCancel={handleDone} isPending={isPending} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} pendingLabel={mode === 'edit' ? '수정 중…' : '추가 중…'} className="pt-2" />
+      <FormActions onCancel={onDone} isPending={isPending} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} pendingLabel={mode === 'edit' ? '수정 중…' : '추가 중…'} className="pt-2" />
     </form>
   )
 }

@@ -1,16 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
-import Link from 'next/link'
+import { useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
+import { BudgetForm } from '@features/finance/manage-budgets'
+import { FormDialog } from '@shared/ui/FormDialog'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, newBudgetHref, sortCategoryTree } from '@entities/finance'
+import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
 import type { BudgetTreeNode, CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, FlowType, Period } from '@entities/finance'
 
 interface Props {
@@ -122,6 +123,9 @@ function BudgetTreeRow({ node, orderedRootIds, index, onSelect, overIsGood }: Bu
 export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today, onCategorySelect }: Props) {
   const { labelOf } = useMeta()
   const { maskIfHidden } = useAmountHiddenPreference()
+  // 예산 미설정 카테고리 빠른 등록 대상 — 닫힘 애니메이션 동안 본문이 바뀌지 않게 닫혀도 남겨 둔다
+  const [addCategoryId, setAddCategoryId] = useState<string>()
+  const [addOpen, setAddOpen] = useState(false)
 
   const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
   const typedTransactions = filterByType(transactions, index, type)
@@ -171,13 +175,16 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
                       </button>
                       <span className="shrink-0 text-sm tabular-nums text-muted-foreground">{maskIfHidden(fmtKrw(entry.amount))}</span>
                       {/* 예산 없이 실적만 있는 카테고리 즉석 등록 — 카테고리만 프리필, 날짜·금액은 사용자가 입력 */}
-                      <Link
-                        href={newBudgetHref(type, { categoryId: entry.categoryId })}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         aria-label={`${entry.categoryName} 예산 추가`}
-                        className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
+                        className="shrink-0"
+                        onClick={() => { setAddCategoryId(entry.categoryId); setAddOpen(true) }}
                       >
                         예산 추가
-                      </Link>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -186,6 +193,14 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
           </div>
         )}
       </CardContent>
+      <FormDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        title="예산 추가"
+        description="카테고리·적용 기간·월 예산 입력"
+      >
+        {(close) => <BudgetForm type={type} defaultCategoryId={addCategoryId} onDone={close} />}
+      </FormDialog>
     </Card>
   )
 }

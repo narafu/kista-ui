@@ -1,84 +1,107 @@
-import { render, screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { toast } from 'sonner'
+import { describe, expect, it, vi } from 'vitest'
+import { apiError, mockApi } from '@testing/mockApi'
+import { renderApp } from '@testing/renderApp'
 import { BudgetForm } from './BudgetForm'
 import type { FinanceBudget, FinanceCategory } from '@entities/finance'
 
-const { pushMock, backMock, createMutateMock, updateMutateMock, categoryTree } = vi.hoisted(() => ({
-  pushMock: vi.fn(),
-  backMock: vi.fn(),
-  createMutateMock: vi.fn(),
-  updateMutateMock: vi.fn(),
-  categoryTree: [
-    { id: 'cat-food', type: 'EXPENSE', name: '식비', sortOrder: 0, system: false, children: [] },
-    { id: 'cat-transit', type: 'EXPENSE', name: '교통', sortOrder: 1, system: false, children: [] },
-  ] as FinanceCategory[],
-}))
-
-vi.mock('@entities/finance', async () => {
-  const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
-  return {
-    ...actual,
-    useFinanceCategoriesQuery: () => ({ data: categoryTree }),
-    useCanShareToGroup: () => false,
-    useCreateFinanceBudgetMutation: () => ({ mutate: createMutateMock, isPending: false }),
-    useUpdateFinanceBudgetMutation: () => ({ mutate: updateMutateMock, isPending: false }),
-  }
-})
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock, back: backMock }) }))
-vi.mock('sonner', () => ({ toast: { success: vi.fn(), warning: vi.fn(), error: vi.fn() } }))
+const categoryTree: FinanceCategory[] = [
+  { id: 'cat-food', type: 'EXPENSE', name: '식비', sortOrder: 0, system: false, children: [] },
+  { id: 'cat-transit', type: 'EXPENSE', name: '교통', sortOrder: 1, system: false, children: [] },
+]
 
 const source: FinanceBudget = { id: 'b1', categoryId: 'cat-food', applyStartDate: '2026-01-01', amount: 100_000 }
 
-describe('BudgetForm', () => {
-  beforeEach(() => {
-    pushMock.mockClear()
-    backMock.mockClear()
-    createMutateMock.mockReset()
-    updateMutateMock.mockReset()
+function setup(handlers: Parameters<typeof mockApi>[0] = {}) {
+  return mockApi({
+    'GET /api/finance/categories': categoryTree,
+    'GET /api/finance/groups': [],
+    ...handlers,
   })
+}
 
-  it('복제 원본의 카테고리·금액·시작일이 그대로 채워진다', () => {
-    render(<BudgetForm type="EXPENSE" duplicateFrom={source} />)
+// 카테고리 트리는 비동기로 도착한다 — 선택 영역에 이름이 뜰 때까지 기다린다
+async function categoryLabel(name: string) {
+  await waitFor(() => expect(screen.getByLabelText('카테고리')).toHaveTextContent(name))
+}
 
-    expect(screen.getByLabelText('카테고리')).toHaveTextContent('식비')
+describe('BudgetForm', () => {
+  it('복제 원본의 카테고리·금액·시작일이 그대로 채워진다', async () => {
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
+
+    await categoryLabel('식비')
     expect(screen.getByLabelText('월 예산')).toHaveValue('100,000')
     expect(screen.getByLabelText('적용 시작일')).toHaveValue('2026-01-01')
   })
 
-  it('복제 제출(날짜 변경) 시 create mutation이 호출된다(update 아님)', async () => {
+  it('복제 제출(날짜 변경)은 POST로 새 예산을 만들고 성공하면 onDone을 부른다', async () => {
     const user = userEvent.setup()
-    render(<BudgetForm type="EXPENSE" duplicateFrom={source} />)
+    const onDone = vi.fn()
+    const { requests } = setup({ 'POST /api/finance/budgets': { ...source, id: 'b2', applyStartDate: '2026-09-01' } })
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={onDone} />)
+    await categoryLabel('식비')
 
     await user.clear(screen.getByLabelText('적용 시작일'))
     await user.type(screen.getByLabelText('적용 시작일'), '2026-09-01')
     await user.click(screen.getByRole('button', { name: '추가' }))
 
-    expect(createMutateMock).toHaveBeenCalledTimes(1)
-    expect(createMutateMock.mock.calls[0][0]).toMatchObject({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-09-01' })
-    expect(updateMutateMock).not.toHaveBeenCalled()
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1))
+    const posts = requests.filter((r) => r.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(posts[0].body).toEqual({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-09-01' })
+    expect(requests.some((r) => r.method === 'PUT')).toBe(false)
+    expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
   })
 
-  it('수정 제출 시 update mutation이 호출된다', async () => {
+  it('수정 제출은 PUT으로 그 예산을 고치고 성공하면 onDone을 부른다', async () => {
     const user = userEvent.setup()
-    render(<BudgetForm type="EXPENSE" initial={source} />)
+    const onDone = vi.fn()
+    const { requests } = setup({ 'PUT /api/finance/budgets/{id}': source })
+    renderApp(<BudgetForm type="EXPENSE" initial={source} onDone={onDone} />)
+    await categoryLabel('식비')
 
+    await user.clear(screen.getByLabelText('월 예산'))
+    await user.type(screen.getByLabelText('월 예산'), '120000')
     await user.click(screen.getByRole('button', { name: '수정' }))
 
-    expect(updateMutateMock).toHaveBeenCalledTimes(1)
-    expect(createMutateMock).not.toHaveBeenCalled()
+    await waitFor(() => expect(onDone).toHaveBeenCalledTimes(1))
+    const puts = requests.filter((r) => r.method === 'PUT')
+    expect(puts).toHaveLength(1)
+    expect(puts[0].path).toBe('/api/finance/budgets/b1')
+    expect(puts[0].body).toEqual({ categoryId: 'cat-food', amount: 120_000, applyStartDate: '2026-01-01' })
+    expect(requests.some((r) => r.method === 'POST')).toBe(false)
+    expect(toast.success).toHaveBeenCalledWith('예산이 수정되었습니다')
   })
 
-  it('defaultCategoryId로 카테고리만 프리필된다', () => {
-    render(<BudgetForm type="EXPENSE" defaultCategoryId="cat-transit" />)
+  it('서버가 거절하면(겹침 409) onDone을 부르지 않는다', async () => {
+    const user = userEvent.setup()
+    const onDone = vi.fn()
+    const { requests } = setup({ 'POST /api/finance/budgets': apiError(409, { detail: '기간이 겹칩니다' }) })
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={onDone} />)
+    await categoryLabel('식비')
 
-    expect(screen.getByLabelText('카테고리')).toHaveTextContent('교통')
+    await user.click(screen.getByRole('button', { name: '추가' }))
+
+    await waitFor(() => expect(requests.some((r) => r.method === 'POST')).toBe(true))
+    await waitFor(() => expect(screen.getByRole('button', { name: '추가' })).toBeEnabled())
+    expect(onDone).not.toHaveBeenCalled()
+  })
+
+  it('defaultCategoryId로 카테고리만 프리필된다', async () => {
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" defaultCategoryId="cat-transit" onDone={vi.fn()} />)
+
+    await categoryLabel('교통')
     expect(screen.getByLabelText('월 예산')).toHaveValue('')
   })
 
   it('월 예산이 0원이면 저장 버튼이 비활성화된다', async () => {
     const user = userEvent.setup()
-    render(<BudgetForm type="EXPENSE" duplicateFrom={source} />)
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
 
     await user.clear(screen.getByLabelText('월 예산'))
     await user.type(screen.getByLabelText('월 예산'), '0')
@@ -87,14 +110,16 @@ describe('BudgetForm', () => {
   })
 
   it('추가 폼은 이번 달 1일을 시작일 기본값으로 채운다', () => {
-    render(<BudgetForm type="EXPENSE" />)
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" onDone={vi.fn()} />)
 
     expect((screen.getByLabelText('적용 시작일') as HTMLInputElement).value).toMatch(/^\d{4}-\d{2}-01$/)
   })
 
   it('종료일이 시작일보다 앞서면 안내가 뜨고 저장 버튼이 비활성화된다', async () => {
     const user = userEvent.setup()
-    render(<BudgetForm type="EXPENSE" duplicateFrom={{ ...source, applyStartDate: '2026-05-01' }} />)
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={{ ...source, applyStartDate: '2026-05-01' }} onDone={vi.fn()} />)
 
     await user.type(screen.getByLabelText('적용 종료일 (선택)'), '2026-04-30')
 
@@ -102,23 +127,14 @@ describe('BudgetForm', () => {
     expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
   })
 
-  it('dismiss=back이면 취소 시 router.back()', async () => {
+  it('취소를 누르면 onDone을 부른다', async () => {
     const user = userEvent.setup()
-    render(<BudgetForm type="EXPENSE" dismiss="back" />)
+    const onDone = vi.fn()
+    setup()
+    renderApp(<BudgetForm type="EXPENSE" onDone={onDone} />)
 
     await user.click(screen.getByRole('button', { name: '취소' }))
 
-    expect(backMock).toHaveBeenCalledTimes(1)
-    expect(pushMock).not.toHaveBeenCalled()
-  })
-
-  it('dismiss 기본값(push)이면 저장 성공 후 목록 라우트로 이동한다', async () => {
-    const user = userEvent.setup()
-    updateMutateMock.mockImplementation((_payload: unknown, opts: { onSuccess: () => void }) => opts.onSuccess())
-    render(<BudgetForm type="EXPENSE" initial={source} />)
-
-    await user.click(screen.getByRole('button', { name: '수정' }))
-
-    expect(pushMock).toHaveBeenCalledWith('/finance/budgets/expense')
+    expect(onDone).toHaveBeenCalledTimes(1)
   })
 })

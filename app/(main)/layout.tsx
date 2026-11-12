@@ -19,10 +19,9 @@ import { cn } from '@shared/lib/utils'
 
 interface Props {
   children: React.ReactNode
-  modal: React.ReactNode
 }
 
-export default async function MainLayout({ children, modal }: Props) {
+export default async function MainLayout({ children }: Props) {
   const token = await getAuthToken()
   const cookieStore = await cookies()
   // proxy가 /me 응답으로 1시간 캐시하는 role 쿠키 — 로그인 직후 첫 요청만 미존재
@@ -82,7 +81,6 @@ export default async function MainLayout({ children, modal }: Props) {
         {isAuthenticated && <FcmBridge />}
         {/* 비회원은 체결 스트림 대상이 아니다 — 연결하면 auth-error 응답만 받고 끊긴다 */}
         {isAuthenticated && <TradeNotificationBridge />}
-        {modal}
         </div>
     </MetaProvider>
   )

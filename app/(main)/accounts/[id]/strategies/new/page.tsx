@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
-import { NewStrategyFormBody } from './NewStrategyFormBody'
+import { notFound } from 'next/navigation'
+import { PageHeader } from '@widgets/page-header'
+import { StrategyFormPage, loadAccountForNewStrategy } from '@features/strategy/create-strategy'
+import { requirePageToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -10,10 +13,18 @@ export const metadata: Metadata = {
   description: '이 계좌에 적용할 매매 전략을 등록합니다',
 }
 
-export default function NewStrategyPage({ params }: Props) {
+export default async function NewStrategyPage({ params }: Props) {
+  const { params: { id }, token } = await requirePageToken(params)
+
+  const account = await loadAccountForNewStrategy(id, token)
+  if (!account) {
+    return notFound()
+  }
+
   return (
     <div className="max-w-lg mx-auto">
-      <NewStrategyFormBody params={params} />
+      <PageHeader eyebrow={account.nickname} eyebrowHref={`/accounts/${id}`} title="전략 등록" description="전략 종류와 매매 조건 설정" />
+      <StrategyFormPage accountId={id} broker={account.broker} />
     </div>
   )
 }

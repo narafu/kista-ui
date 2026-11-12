@@ -108,7 +108,7 @@ export type {
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './lib/categoryTree'
 export { buildCategoryIndex } from './lib/categoryIndex'
 export type { FlowType } from './lib/budgetRoutes'
-export { FLOW_TYPE_LABEL, budgetListHref, editBudgetHref, flowTypeFromSlug, newBudgetHref } from './lib/budgetRoutes'
+export { FLOW_TYPE_LABEL, budgetListHref, flowTypeFromSlug } from './lib/budgetRoutes'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
 export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
 export type { BulkRegisterItem, CategoryGroupNode } from './lib/bulkRegisterPreview'

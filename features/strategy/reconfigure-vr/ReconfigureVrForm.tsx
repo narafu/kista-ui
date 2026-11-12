@@ -25,14 +25,11 @@ import { useReconfigureVrMutation } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { createReconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
-import type { DismissMode } from '@shared/lib/dismiss'
 import { ParamsSection, RampSection, InjectSection, WithdrawSection, initialRecurringMode } from './ReconfigureVrSections'
 
 interface Props {
   accountId: string
   strategy: ReconfigureVrStrategy
-  // 'push': 일반 페이지 라우트. 'back': 인터셉팅 라우트(모달)
-  dismiss?: DismissMode
 }
 
 // ReconfigureVrFormValues는 zod 스키마상 각 필드가 number|null|undefined이지만
@@ -59,13 +56,13 @@ function toReconfigureVrRequest(values: ReconfigureVrFormValues): ReconfigureVrR
   }
 }
 
-export function ReconfigureVrForm({ accountId, strategy, dismiss = 'push' }: Props) {
+export function ReconfigureVrForm({ accountId, strategy }: Props) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const vr = strategy.vr
 
   const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
-  const handleDone = dismiss === 'back' ? () => router.back() : () => router.push(backHref)
+  const handleDone = () => router.push(backHref)
   // 사이클이 통째로 교체되므로 다음 주문 미리보기도 반드시 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
   const handleReconfigureSuccess = async () => {
     await Promise.all([

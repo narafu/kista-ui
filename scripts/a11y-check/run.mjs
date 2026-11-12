@@ -1,4 +1,4 @@
-// 접근성 회귀 점검: axe(PC·모바일 × 라이트·다크), 키보드 포커스 링, 다이얼로그·라우트 모달 포커스 관리.
+// 접근성 회귀 점검: axe(PC·모바일 × 라이트·다크), 키보드 포커스 링, 다이얼로그·폼 다이얼로그 포커스 관리.
 // 위반이 하나라도 있으면 exit 1. 사용법·전제·제외 규칙 근거는 같은 디렉토리 README.md
 // 안전장치: 이미 떠 있는 dev 서버(--url)를 읽기만 한다 — 브라우저에서 나가는 GET/HEAD 외 요청은 전부 abort(로컬 DB 실데이터 보호).
 // 예외는 계좌 등록 위저드의 연결 테스트 POST 하나로, 브라우저 안에서 가짜 응답을 돌려줘 서버에 도달하지 않는다
@@ -37,13 +37,11 @@ const DIALOG_PAGES = {
   user: ['/settings', '/finance/settings', ACCT, `${ACCT}/edit`, detail(seed.infinite), '/finance'],
   admin: ['/admin/users', '/admin/pending', '/admin/accounts', '/admin/privacy-trades', '/admin/settings', '/admin/logs'],
 }
-// 인터셉팅 라우트 모달(RouteModal): [이름, 시작 페이지, 트리거 셀렉터, 모바일에서 트리거를 보이게 할 탭 이름?]
-const ROUTE_MODALS = [
-  ['전략 등록', ACCT, 'button:has-text("전략 추가"):visible', '전략'],
-  ['VR 재설정', detail(seed.vr), 'a[href$="/reconfigure-vr"]:visible'],
-  ['전략 수정', detail(seed.infinite), 'a[href$="/edit"]:visible'],
-  ['자산 수정', '/finance', 'a[href^="/finance/"][href$="/edit"]:visible'],
-  ['자산 복제', '/finance', 'a[href^="/finance/new"]:visible'],
+// 폼 다이얼로그(FormDialog — PC 가운데, 모바일 전체 화면): [이름, 시작 페이지, 트리거 셀렉터]
+// 열림 상태를 부모가 쥐어 트리거가 data-slot=dialog-trigger가 아니므로 checkDialogs가 잡지 못해 따로 연다
+const FORM_DIALOGS = [
+  ['투자금 추가', detail(seed.infinite), 'button:has-text("투자금 추가"):visible'],
+  ['예산 추가', '/finance/budgets/expense', 'button:has-text("예산 추가"):visible'],
 ]
 
 const { values: opts } = parseArgs({
@@ -248,12 +246,11 @@ async function checkDialogs(page, path) {
   }
 }
 
-async function checkRouteModals(page, vp) {
-  for (const [name, start, sel, mobileTab] of ROUTE_MODALS) {
+async function checkFormDialogs(page, vp) {
+  for (const [name, start, sel] of FORM_DIALOGS) {
     await open(page, start)
-    if (vp === 'mo' && mobileTab) { await page.getByRole('tab', { name: mobileTab, exact: true }).click(); await page.waitForTimeout(800) }
     const link = page.locator(sel).first()
-    if (!(await link.count())) { fail(`[modal] ${name} ${vp}: 트리거 링크 없음(${sel}) — 시드 데이터 확인`); continue }
+    if (!(await link.count())) { fail(`[modal] ${name} ${vp}: 트리거 없음(${sel}) — 시드 데이터 확인`); continue }
     await link.focus()
     await page.keyboard.press('Enter')
     await page.waitForSelector('[role=dialog]', { timeout: 60_000 }).catch(() => {})
@@ -293,9 +290,9 @@ try {
     await ctx.close()
     if (role === 'user' && !skip.has('modal')) {
       for (const vp of Object.keys(VIEWPORTS)) {
-        console.log(`== route modals ${vp}`)
+        console.log(`== form dialogs ${vp}`)
         const mctx = await newContext(browser, tokens.user, vp, 'light')
-        await checkRouteModals(await mctx.newPage(), vp)
+        await checkFormDialogs(await mctx.newPage(), vp)
         await mctx.close()
       }
     }
