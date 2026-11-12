@@ -162,8 +162,8 @@ describe('StrategyDetailContent', () => {
   })
 
   it.each([
-    ['투자금 추가', '진행 중인 사이클에 예수금을 추가', '추가 예수금'],
-    ['투자금 인출', '진행 중인 사이클에서 예수금을 인출', '인출 예수금'],
+    ['투자금 추가', '진행 중인 사이클에 예수금을 추가합니다.', '추가 예수금'],
+    ['투자금 인출', '진행 중인 사이클에서 예수금을 인출합니다.', '인출 예수금'],
   ] as const)('"%s" 버튼은 같은 화면에서 다이얼로그를 열고 취소로 닫는다', async (name, description, field) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)

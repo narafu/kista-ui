@@ -38,7 +38,6 @@ export function WithdrawCapitalForm({ accountId, strategy, currency, onDone }: P
   const queryClient = useQueryClient()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-
   // 다음 거래일 주문이 바뀌므로 주문 미리보기를 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
   const handleSuccess = async () => {
     await Promise.all([

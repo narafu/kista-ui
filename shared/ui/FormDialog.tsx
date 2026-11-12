@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 
@@ -17,16 +17,23 @@ interface Props {
 // 열 때 이력 한 칸을 쌓아 모바일 뒤로 가기가 화면을 떠나지 않고 폼만 닫는다. X·ESC·배경·close가 모두
 // history.back()을 거쳐 popstate에서 닫히므로 닫는 경로가 하나다. 본문은 닫혀 있는 동안 unmount돼 열 때마다 초기값이 새로 잡힌다.
 export function FormDialog({ open, onOpenChange, title, description, children }: Props) {
-  // history.back()의 popstate는 비동기다 — 그 사이 닫기가 또 불리면(연타) 두 칸을 되돌아간다
-  const leaving = useRef(false)
-  const { leave } = useSubviewHistory(open, () => onOpenChange(false))
-  // popstate 없이 닫힌 경우(부모가 직접 닫음)에도 다음 열림에서 닫기가 막히지 않게 열 때마다 푼다
-  useEffect(() => {
-    if (open) leaving.current = false
-  }, [open])
+  // 열림마다 회차를 매기고 close는 렌더 시점 회차를 잡는다. 이미 닫힌 회차의 close는 무시한다 —
+  // 연타(popstate 전 두 번째 close), 뒤로 가기로 닫힌 뒤 늦게 끝난 mutation의 onDone, 다시 연 다이얼로그에
+  // 도착한 이전 회차의 onDone이 history.back()을 한 번 더 불러 화면을 떠나지 않게
+  const [session, setSession] = useState(open ? 1 : 0)
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+    if (open) setSession((s) => s + 1)
+  }
+  const closedSession = useRef(0)
+  const { leave } = useSubviewHistory(open, () => {
+    closedSession.current = session
+    onOpenChange(false)
+  })
   const close = () => {
-    if (leaving.current) return
-    leaving.current = true
+    if (closedSession.current >= session) return
+    closedSession.current = session
     leave()
   }
   return (

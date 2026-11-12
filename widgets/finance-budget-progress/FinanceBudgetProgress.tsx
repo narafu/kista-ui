@@ -197,7 +197,7 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
         open={addOpen}
         onOpenChange={setAddOpen}
         title="예산 추가"
-        description="카테고리·적용 기간·월 예산 입력"
+        description="카테고리·적용 기간·월 예산을 입력합니다."
       >
         {(close) => <BudgetForm type={type} defaultCategoryId={addCategoryId} onDone={close} />}
       </FormDialog>

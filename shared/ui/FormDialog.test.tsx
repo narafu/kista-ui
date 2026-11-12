@@ -3,14 +3,14 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FormDialog } from './FormDialog'
 
-function Harness({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
+function Harness({ onOpenChange, onClose }: { onOpenChange: (open: boolean) => void; onClose?: (close: () => void) => void }) {
   const [open, setOpen] = useState(false)
   const change = (next: boolean) => { onOpenChange(next); setOpen(next) }
   return (
     <>
       <button type="button" onClick={() => change(true)}>열기</button>
       <FormDialog open={open} onOpenChange={change} title="투자금 추가" description="설명">
-        {(close) => <button type="button" onClick={close}>취소</button>}
+        {(close) => { onClose?.(close); return <button type="button" onClick={close}>취소</button> }}
       </FormDialog>
     </>
   )
@@ -81,5 +81,30 @@ describe('FormDialog', () => {
     await screen.findByRole('dialog')
     act(() => { window.dispatchEvent(new PopStateEvent('popstate', { state: null })) })
     expect(onOpenChange).toHaveBeenLastCalledWith(false)
+  })
+
+  it('뒤로 가기로 닫힌 뒤 늦게 도착한 close는 화면을 떠나지 않는다', async () => {
+    let lateClose = () => {}
+    render(<Harness onOpenChange={() => {}} onClose={(c) => { lateClose = c }} />)
+    fireEvent.click(screen.getByRole('button', { name: '열기' }))
+    await screen.findByRole('dialog')
+    act(() => { window.dispatchEvent(new PopStateEvent('popstate', { state: null })) })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    act(() => lateClose())
+    expect(window.history.back).not.toHaveBeenCalled()
+  })
+
+  it('이전 회차의 close는 다시 연 다이얼로그를 닫지 않는다', async () => {
+    let firstClose = () => {}
+    let captured = false
+    render(<Harness onOpenChange={() => {}} onClose={(c) => { if (!captured) { firstClose = c; captured = true } }} />)
+    fireEvent.click(screen.getByRole('button', { name: '열기' }))
+    act(() => screen.getByRole('button', { name: '취소' }).click())
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: '열기' }))
+    await screen.findByRole('dialog')
+    act(() => firstClose())
+    expect(window.history.back).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })

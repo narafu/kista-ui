@@ -44,9 +44,9 @@ interface Props {
 type FormTarget = { mode: 'create' } | { mode: 'duplicate'; budget: FinanceBudget } | { mode: 'edit'; budget: FinanceBudget }
 
 const FORM_COPY = {
-  create: { title: '예산 추가', description: '카테고리·적용 기간·월 예산 입력' },
+  create: { title: '예산 추가', description: '카테고리·적용 기간·월 예산을 입력합니다.' },
   duplicate: { title: '예산 복제', description: '원본과 적용 기간이 겹치면 저장되지 않습니다. 적용 기간을 변경하세요.' },
-  edit: { title: '예산 수정', description: '카테고리·적용 기간·월 예산 입력' },
+  edit: { title: '예산 수정', description: '카테고리·적용 기간·월 예산을 입력합니다.' },
 } as const
 
 type BudgetStatus = 'UPCOMING' | 'ACTIVE' | 'ENDED'
