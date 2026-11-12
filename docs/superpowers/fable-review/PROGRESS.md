@@ -81,6 +81,23 @@
 - 토스 주문 유지, `brokers[].tradable` 메타 없음. KIS·업비트 삭제는 그대로.
 - 매매 공식 변경 예정(api 지침서 08): `priceOffsetRate`·`currentRound`의 소수 자릿수가 늘어난다. UI 확인 결과 — `currentRound`는 3곳에서 `toFixed(1)`로 표시(`StrategyCard.tsx:98,150`, `StrategyMetaSection.tsx:182`), `priceOffsetRate`는 타입·정규화에만 있고 화면 표시·비교 코드가 없다. 소수 2자리를 가정한 비교는 없다. fable-api에 회신함.
 
+## 서버 변경 없이 먼저 구현할 수 있는 것 (2026-11-12 선별)
+
+01(타입)·05(책임 분담)와 02의 도메인 전환은 api T1·T2 등이 나와야 한다. 아래는 지금 바로 가능한 태스크다. 세션 하나에 묶음 하나.
+
+| 순서 | 묶음 | 태스크 | 모델 | 왜 먼저인가 |
+|---|---|---|---|---|
+| A | 테스트 무대 | 07-1 기준선, 07-2 `mockApi`·`renderApp`·전역 대역, 07-3 도메인 빌더, 07-5 소스 패턴 테스트 → ESLint | Opus(07-2), 나머지 Sonnet·Haiku | 이후 모든 리팩토링이 테스트를 덜 깨뜨린다. 제품 코드를 안 건드려 위험이 가장 낮다. `mockApi`는 지금의 `fetch`(Route Handler 경로 = OpenAPI 경로)에도 그대로 걸린다 |
+| B | 폼 형태 | 04-1 폼 전수표, 04-2 `FormDialog`, 04-3 작은 폼을 다이얼로그로 옮기고 `@modal` 라우트·`RouteModal`·`dismiss`·`FormBody` 삭제 | Opus(04-2), Sonnet(04-1·3) | 사용자 승인 완료. 약 900줄·35파일이 사라지고 03 이동량이 준다. 모바일 뒤로 가기·iOS 키보드는 실기기 확인 필요 |
+| C | 폼 구현 | 04-4 `useAppForm`·`FormField`, 04-5a 가계부 폼 5개, 04-5b 관리자·그 외 수동 폼, 04-5c 투자금 추가·인출 병합 | Opus(04-4), Sonnet(전환) | 기존 mutation hook을 그대로 받게 만들면 02 전에 가능. 서버 `fieldErrors` 매핑은 꺼 두고 T7 뒤에 켠다. 전략 폼 통합(04-6)은 제외 — T5·T7·T10 필요 |
+| D | 화면 프리미티브 | 06-1 `DataList`(전량형 + 이미 커서인 `CycleHistoryTable`로 시범, 감량 실측), 06-3 `AsyncSection`·스켈레톤 프리셋, 06-4 `ConfirmDialog`, 06-5 `AmountInput`, 06-6 `Surface`·`SectionTitle`, 06-7 포매터·lint | Opus(06-1, 06-3 프리미티브), Sonnet(전환) | 서버와 무관한 UI 일관성 작업. 페이지형 표 전환(06-2 일부)과 페이지네이션 삭제(06-8)는 api T4와 같은 날이라 제외 |
+| E | 프록시 단일화 | 02-2 `resolveUpstream` 한 함수 + 프록시 Route Handler 13개 → 1개 | Opus | 인증·프록시 경로라 Opus. 01과 무관. 나중의 진입점 단일화(02-8)가 한 줄 변경이 된다 |
+| F | 문서·배포 | 08-5 중복 정리, 08-6 문단형 줄 분해(이유 보존), 08-7 memory, 09-2·3 죽은 심볼·knip 예외, 09-5·6 workflow·`NEXT_PUBLIC_*` 원본 통합 | Opus(08-6, 09-6), 나머지 Sonnet·Haiku | 독립. 09-5·6은 push가 있어야 검증된다 |
+
+권장 순서: **A → B → C → D → E**, F는 틈날 때. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
+
+Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-3, 02-2 (+ 08-6, 09-6).
+
 ## 측정 산출물
 
 | 파일 | 내용 |
