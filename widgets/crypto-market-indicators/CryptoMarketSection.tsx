@@ -5,6 +5,7 @@ import type { CryptoMarketIndicators } from '@entities/market'
 import { Surface } from '@shared/ui/Surface'
 import { SegmentedTabs } from '@shared/ui/SegmentedTabs'
 import { cn } from '@shared/lib/utils'
+import { fmtKoDate } from '@shared/lib/format'
 import { Button } from '@/components/ui/button'
 import { AltcoinSeasonCard, BtcDominanceCard, CoinbasePremiumCard, HashRibbonsCard, FundingRateCard, KimchiPremiumCard, HalvingSummary, LongShortRatioCard, OpenInterestCard, ValuationCard } from './CryptoIndicatorCards'
 
@@ -19,8 +20,11 @@ function isMarketFailed(data: CryptoMarketIndicators) {
   return !data.btcDominance && !data.altcoinSeason && !data.hashRibbons
 }
 
-const fmtKstDateTime = (instant: string) =>
-  new Date(instant).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+const fmtKstDateTime = (instant: string) => {
+  const date = new Date(instant)
+  if (Number.isNaN(date.getTime())) return 'Invalid Date'
+  return `${fmtKoDate(date, 'Asia/Seoul')} ${date.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })}`
+}
 
 function Message({ text, onRetry, retrying }: { text: string; onRetry?: () => void; retrying?: boolean }) {
   return (

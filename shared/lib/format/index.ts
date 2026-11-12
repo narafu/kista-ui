@@ -45,22 +45,28 @@ export function fmtSignedPercentPoint(ratio: number | null | undefined, digits =
   return `${ratio >= 0 ? '+' : '-'}${percent}%p`
 }
 
-export function fmtDate(dateStr: string): string {
-  // 'yyyy-MM-dd'는 UTC 자정으로 파싱되므로 UTC로 포맷해야 뷰어 시간대(UTC 서쪽)에서 하루 밀리지 않는다
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
-  const date = new Date(dateStr)
-  // formatToParts는 잘못된 날짜에 throw한다 — 렌더가 깨지지 않게 이전(toLocaleDateString)과 같은 값을 돌려준다
+/**
+ * Date → "2026. 8. 1." — ko-KR 기본 패턴은 CLDR 버전마다 다르다(CLDR 49부터 '2026/8/1').
+ * 숫자만 받아 직접 조립해 런타임·브라우저와 무관하게 같은 표기를 낸다. 잘못된 날짜는 toLocale*처럼 'Invalid Date'
+ */
+export function fmtKoDate(date: Date, timeZone?: string): string {
   if (Number.isNaN(date.getTime())) return 'Invalid Date'
-  // ko-KR 기본 패턴은 CLDR 버전마다 다르다(CLDR 49부터 '2026/8/1') — 숫자만 받아 'YYYY. M. D.'로 직접 조립한다
-  const parts = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', ...(dateOnly && { timeZone: 'UTC' }) })
-    .formatToParts(date)
+  const parts = new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone }).formatToParts(date)
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value
   return `${part('year')}. ${part('month')}. ${part('day')}.`
 }
 
+export function fmtDate(dateStr: string): string {
+  // 'yyyy-MM-dd'는 UTC 자정으로 파싱되므로 UTC로 포맷해야 뷰어 시간대(UTC 서쪽)에서 하루 밀리지 않는다
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(dateStr)
+  return fmtKoDate(new Date(dateStr), dateOnly ? 'UTC' : undefined)
+}
+
 /** 날짜+시각 (ko-KR 로케일) */
 export function fmtDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('ko-KR')
+  const date = new Date(dateStr)
+  if (Number.isNaN(date.getTime())) return 'Invalid Date'
+  return `${fmtKoDate(date)} ${date.toLocaleTimeString('ko-KR')}`
 }
 
 /** M월 D일 축약형 — 차트 축 등 */

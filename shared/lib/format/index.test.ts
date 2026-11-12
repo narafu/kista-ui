@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, splitMoneyUnit, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, splitMoneyUnit, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -155,6 +155,12 @@ describe('fmtSignedPercentPoint', () => {
 describe('fmtDate', () => {
   it('formats a date-only string as that calendar day regardless of viewer timezone', () => {
     expect(fmtDate('2026-10-31')).toBe('2026. 10. 31.')
+  })
+})
+
+describe('fmtDateTime', () => {
+  it('CLDR 버전과 무관하게 "YYYY. M. D. 오전 h:mm:ss"로 쓴다', () => {
+    expect(fmtDateTime('2026-08-01T06:05:09Z')).toBe('2026. 8. 1. 오전 6:05:09')
   })
 })
 

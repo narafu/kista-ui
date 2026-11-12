@@ -6,7 +6,7 @@ import { Info } from 'lucide-react'
 import { Surface } from '@shared/ui/Surface'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { fmtCompactUsd, fmtSignedPercent } from '@shared/lib/format'
+import { fmtCompactUsd, fmtKoDate, fmtSignedPercent } from '@shared/lib/format'
 import { sma } from '@shared/lib/indicators'
 import { cn } from '@shared/lib/utils'
 import { fmtCompactUsdTick, fmtPercentTick, stepDecimals } from './niceTicks'
@@ -31,8 +31,7 @@ const fmtFunding = (ratio: number) => signedPct(ratio, 4)
 // 배수·비율은 1이 기준인 무단위 값이라 소수 둘째 자리까지
 const fmtMultiple = (v: number | null) => (v == null ? '-' : `${v.toFixed(2)}x`)
 const fmtUtcDate = (date: string) => `${date.replace(/-/g, '.')} UTC`
-const fmtKstDate = (instant: string) =>
-  new Date(instant).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'numeric', day: 'numeric' })
+const fmtKstDate = (instant: string) => fmtKoDate(new Date(instant), 'Asia/Seoul')
 const fmtKstTime = (instant: string) =>
   new Date(instant).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false })
 
