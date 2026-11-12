@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* 문서(md)의 클래스 예시가 유틸리티로 생성되지 않게 한다 — `text-[var(--…)]` 같은 표기가 dev CSS 파싱을 깨뜨린다 */
+@source not "../docs";
 
 @custom-variant dark (&:is(.dark *));
 
