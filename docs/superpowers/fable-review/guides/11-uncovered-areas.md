@@ -75,7 +75,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 - 디코드는 서명을 검증하지 않는다. 화면 분기에만 쓰고, 데이터 접근은 지금처럼 api가 막는다. 지금의 캐시 쿠키도 같은 신뢰 수준이다.
 - `app/api/auth/reapply-done`(상태 캐시를 지우려고 있는 Route Handler)과 `auth/me`의 GET은 순수 프록시가 돼 02의 단일 프록시로 들어간다.
 
-(나)가 받아들여지지 않으면 (가)만 한다. 캐시는 남지만 쓰는 곳이 하나라 수명 불일치와 직렬화 3종은 없어진다.
+**api 답(2026-11-13, `cross-repo.md` B절 "api 답" U1): 수용.** `role` 클레임은 이미 AT에 있고 `status`를 더한다. 상태가 바뀌면 옛 AT를 거절하는 장치는 역할 변경과 같고 거절 코드도 `TOKEN_STALE_ROLE` 그대로다(UI의 401 처리 분기를 늘리지 않는다). api가 먼저 배포하고 UI의 캐시 쿠키 삭제가 뒤따른다(api 지침서 13 U1). 그래서 역할 캐시 쿠키는 api 배포를 기다리지 않고 태스크 2에서 먼저 지울 수 있다(`role`은 지금도 토큰에 있다). 상태 캐시만 태스크 3으로 남는다.
 
 ### 그렇게 정한 이유
 
@@ -113,7 +113,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 
 ### 목표 구조
 
-- **승인 대기 화면은 SSE를 쓰지 않는다.** `/api/auth/me`를 화면이 보일 때와 30초마다 조회한다(`refetchInterval`, `refetchOnWindowFocus`). 상태가 바뀌면 1절의 `landingPath`로 이동한다. `status-stream` Route Handler와 `PendingStatusWatcher`의 `EventSource`가 사라진다. 서버의 `/api/auth/status-stream`도 지울 수 있다(api 판단).
+- **승인 대기 화면은 SSE를 쓰지 않는다.** `/api/auth/me`를 화면이 보일 때와 30초마다 조회한다(`refetchInterval`, `refetchOnWindowFocus`). 상태가 바뀌면 1절의 `landingPath`로 이동한다. `status-stream` Route Handler와 `PendingStatusWatcher`의 `EventSource`가 사라진다. 서버의 `/api/auth/status-stream`은 UI가 구독을 지운 배포 뒤에 api가 지운다(api 답 U2).
   - 이유: 가입 승인은 운영에서 6월 이후 1건이다(`findings/o` 2절). 승인까지 분·시간이 걸리는 흐름에 상시 연결은 맞지 않는다. 30초 늦게 넘어가도 잃는 것이 없다.
 - **체결 스트림은 남기고, 끊김을 메운다.** 구독 hook 하나(`useTradeStream`)가 맡는다.
   - 화면이 가려지면 닫고, 다시 보이면 연다.
@@ -212,9 +212,10 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 - `shared/lib/period.ts` 하나: 프리셋 표(일 단위·월 단위·전체·직접 입력)와 `rangeOf(preset, today)`. 기준 시각은 KST 하나다(서버의 거래일 기준과 같다).
 - `PeriodToggle` 하나: 화면은 쓸 프리셋 목록만 넘긴다. 상태는 06 8절의 `useUrlState`에 둔다.
 - 날짜 문자열 만들기는 `shared/lib/format`의 한 함수다.
-- 서버가 기간 프리셋을 파라미터로 받으면(`range=3M`) `rangeOf`도 필요 없다. 05의 페이지형 전환에서 api가 정한다. PRIVACY 목록은 이미 `range` 파라미터를 받는다(05 "부수 발견").
+- **api 답(U6): 서버가 `range` 프리셋 코드를 받는다**(api T4·T5). 서버가 KST 오늘 기준으로 구간을 계산하고, 프리셋 코드와 라벨은 메타에서 온다. `from`/`to`와 함께 보내면 400이다. 지금은 `from`/`to`만 받는다(PRIVACY의 `range`는 정수라 다른 것이다).
+- 그래서 목표가 더 줄어든다. `rangeOf`를 만들지 않는다. `PeriodToggle`은 메타의 프리셋 목록을 그리고 고른 코드를 `range`로 보낸다. 직접 입력일 때만 `from`/`to`를 보낸다. UI에 남는 날짜 코드는 직접 입력의 날짜 문자열 만들기 하나다. `shared/lib/date-range.ts`의 프리셋 계산(`PRESET_DAYS`, `kstDateMinusDays`)도 지운다.
 
-감량: 약 120줄. 위험: 통계·벤치마크의 조회 구간이 하루 달라질 수 있다(UTC → KST). 의도한 수정이다. `rangeOf`의 단위 테스트에 KST 자정 전후 케이스를 둔다.
+감량: 약 180줄(`date-range.ts`의 계산 포함). 위험: 통계·벤치마크의 조회 구간이 하루 달라질 수 있다(UTC → KST). 의도한 수정이고 계산은 서버가 한다. KST 자정 전후 케이스는 서버 테스트의 몫이다(`cross-repo.md`에 짝으로 적는다).
 
 ## 7. 차트 — 틀을 한 번만 적는다
 
@@ -345,7 +346,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 |---|---|---|
 | 관리자 화면 전체(약 5,420줄, 제품의 13%) | 공용 표·페이지·오류 프리미티브를 이미 쓴다. 남은 평행(정렬 블록 7곳, 확인 다이얼로그 3개, 필터 3종, 페이지 자르기)은 06·05가 덮는다 | 별도 구조 작업 없음 |
 | 관리자 계좌 표 2벌(`widgets/admin-account-list/AdminAccountsTable.tsx` 62줄, `widgets/admin-log-list/AccountTable.tsx` 55줄) | 같은 데이터를 다른 폴더에서 그린다 | 06 태스크 2에서 `DataList` 하나로 합친다 |
-| P 매매표(`/admin/privacy-trades`, 1,925줄, 관리자의 36%) | 기준값 378건을 관리자가 손으로 넣고 고치는 도구다 | UI만으로는 유지. 기준표를 서버가 산출하거나 가져올 수 있으면 화면 대부분이 필요 없다. api에 질문으로 넘긴다 |
+| P 매매표(`/admin/privacy-trades`, 1,925줄, 관리자의 36%) | 기준표는 FIDA가 수집해 넣는 원천 데이터이고 KISTA에 산출 공식이 없다(api 답 U4). 수동 등록·수정은 FIDA 실패 대응용이고 90일에 11건이다 | **보류.** api 지침서 12 B5(수동 수정 원인 조사)가 끝난 뒤 다시 판정한다. 그때까지 화면 축소를 정하지 않는다. 표의 목록 부분은 06 `DataList` 대상에서 원래 제외돼 있다 |
 | `UrlRangeFilterBar`(98줄, `shared/ui`지만 관리자만 쓴다) | 소비 7파일 전부 관리자 | 06 8절 `useUrlState` + 6절 `PeriodToggle`로 흡수 |
 | 시장·통계 화면의 차트 외 로직(약 5,640줄) | 위젯 8개가 전부 화면 1곳 전용. 로컬 포매터 10종, 해설 문구 데이터 2파일 | 포매터는 06, 화면 전용 배치는 03, 계산은 05, 기간은 6절, 차트는 7절. 남는 것 없음 |
 | `MetaProvider`가 두 레이아웃에 각각 있음 | `(main)`과 `(admin)`이 각자 감싼다 | 로그인·승인 대기 화면은 메타가 필요 없다. 루트로 올리지 않는다 |
@@ -384,13 +385,13 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 |---|---|---|---|---|---|
 | 1 | 도구 준비 코드·경로 표 통합, 경로 누락 검사, e2e 디렉토리 통합 | `scripts/shared/**`, `scripts/{a11y-check,visual-diff}/**`, `e2e/**`, `tests/e2e/**`, `playwright.config.ts` | Sonnet | `grep -rn "dev-token\|dev-admin-token" scripts e2e \| wc -l`이 1곳, 경로 검사가 화면 35개를 전부 통과, `npm run a11y-check`·`npm run test:e2e` 통과(로컬 api) | 없음. 가장 먼저 |
 | 2 | 세션 모듈(가): 쿠키 쓰기·지우기·`landingPath`·`logout()` 한 곳 | `shared/lib/auth/**`, `proxy.ts`, `app/auth/callback/route.ts`, `app/api/auth/**`, `features/auth/logout/**` | Opus | 1절 선행 테스트 1~3 통과, `grep -rnE "Max-Age\|maxAge" --include='*.ts' app shared proxy.ts \| grep -v test`가 세션 모듈 1파일, `/code-review high` | 02 태스크 3(`kistaFetch`)과 같은 묶음이면 `logout()`을 한 번만 옮긴다 |
-| 3 | 상태·역할을 AT 클레임에서 읽기(나), 캐시 쿠키 삭제 | `proxy.ts`, `shared/lib/auth/**`, `app/(main)/layout.tsx`, `app/api/auth/{me,reapply-done}` | Opus | `grep -rn "STATUS_COOKIE\|ROLE_COOKIE" . \| grep -v test` 0건, 승인 → 화면 전환, 역할 변경 → 관리자 메뉴 반영을 로컬 api에서 확인, `/code-review high` | api가 클레임과 옛 토큰 거절을 배포한 뒤 |
+| 3 | 상태를 AT 클레임에서 읽기(나), 상태 캐시 쿠키 삭제(역할 캐시는 태스크 2에서 먼저 지운다 — `role` 클레임은 이미 있다) | `proxy.ts`, `shared/lib/auth/**`, `app/(main)/layout.tsx`, `app/api/auth/{me,reapply-done}` | Opus | `grep -rn "STATUS_COOKIE\|ROLE_COOKIE" . \| grep -v test` 0건, 승인 → 화면 전환, 역할 변경 → 관리자 메뉴 반영을 로컬 api에서 확인, `/code-review high` | api가 클레임과 옛 토큰 거절을 배포한 뒤 |
 | 4 | 승인 대기 화면을 조회 방식으로, `status-stream` 삭제 | `app/pending/**`, `app/api/auth/status-stream` | Sonnet | `grep -rn "status-stream" . \| grep -v docs` 0건, 해당 vitest | 태스크 2 |
 | 5 | 체결 스트림: 가려짐 처리, 재연결 시 무효화, 증가 간격 | `entities/trade/providers/**`, `widgets/layout/TradeNotificationBridge.tsx` | Opus | 2절 선행 테스트 2케이스 통과, 변이 확인 1회(무효화 호출 제거 시 실패) | 02 태스크 5c 뒤(무효화 표가 경로 기준이 된 뒤) |
 | 6 | 푸시 등록 경로 통일, Firebase 설정 한 곳, FCM Route Handler를 단일 프록시로 | `entities/fcm/**`, `shared/lib/firebase.ts`, `app/firebase-messaging-sw.js/route.ts`, `app/api/fcm/**`, `features/settings/notification-channel/**` | Sonnet | `grep -rn "Notification.permission" --include='*.ts*' . \| grep -v test`가 1파일, 실기기 알림 1회 | 02 태스크 2 |
 | 7 | 오류 수집 확장, `global-error`·`error.tsx` 정리 | `entities/error-log/**`, `app/{error,global-error}.tsx`, `app/(main)/error.tsx`, `app/(admin)/admin/error.tsx`, `instrumentation.ts`(신규) | Sonnet | 4절 선행 테스트, `wc -l app/global-error.tsx`가 20 이하, 고의 오류(이벤트 핸들러 throw, 서버 컴포넌트 throw)가 로컬 api의 오류 로그에 1건씩 남음 | 없음 |
 | 8 | `Amount` 컴포넌트로 금액 가림 통일 | `shared/ui/**`, `shared/lib/hooks/use-amount-hidden.ts`, `widgets/revealable-value/**`, 소비 16파일 | Sonnet | `grep -rn "RevealableValue\|maskIfHidden" . \| grep -v test` 0건 | 사용자 결정(적용 범위), 06 태스크 7(포매터) |
-| 9 | 기간 프리셋·날짜 문자열 통일 | `shared/lib/{date-range,period}.ts`, `widgets/{benchmark-comparison,stats-overview,market-holiday-calendar,crypto-market-indicators,fear-greed-card}/**`, `entities/trade/hooks/useDailyTradesRangeQuery.ts` | Sonnet | `grep -rnE "RANGE_DAYS\|BENCHMARK_PERIODS\|DAYS_OPTIONS" . \| grep -v test`가 `period.ts` 1파일, KST 자정 케이스 테스트 | 06 태스크 8(`useUrlState`) |
+| 9 | 기간 선택 통일: 메타 프리셋 + `range` 파라미터, UI 날짜 계산 삭제(api T4·T5 뒤, 05 태스크 5와 같은 묶음) | `shared/lib/{date-range,period}.ts`, `widgets/{benchmark-comparison,stats-overview,market-holiday-calendar,crypto-market-indicators,fear-greed-card}/**`, `entities/trade/hooks/useDailyTradesRangeQuery.ts` | Sonnet | `grep -rnE "RANGE_DAYS\|BENCHMARK_PERIODS\|DAYS_OPTIONS" . \| grep -v test` 0건, `grep -rn "kstDateMinusDays\|subtractMonths\|rangeToFrom" . \| grep -v test` 0건 | api T4·T5, 06 태스크 8(`useUrlState`) |
 | 10 | 차트 틀 추출과 전환 | `shared/ui/chart/**`, recharts 차트 10파일 | Opus(틀), Sonnet(전환) | `grep -rln "from 'recharts'" --include='*.tsx' . \| grep -v shared/ui/chart \| wc -l`이 2 이하(3패널·게이지), visual-diff 검토 | 06 태스크 3(`AsyncSection`), 태스크 1 |
 | 11 | 토큰 체계 통일, 임의값 치환, 미참조 삭제, lint 규칙, Pretendard 자체 호스팅 | `app/globals.css`, 클래스 문자열 282곳, `eslint.config.mjs`, `app/layout.tsx` | Opus(체계·치환 스크립트), Sonnet(잔여) | `grep -rnE "\-\[var\(--" --include='*.tsx' . \| wc -l` 0, visual-diff 라이트·다크 | 06 태스크 6과 같은 묶음, 태스크 1 |
 | 12 | react-doctor 억제를 설정으로, stub 삭제, 버전 고정 | `eslint.config.mjs`, `doctor.config.json`, `package.json`, 주석 49곳 | Sonnet | `grep -rn "eslint-disable.*react-doctor" . \| wc -l` 0, `npm run lint`가 미사용 억제 주석을 보고함(고의로 1건 넣어 확인) | 사용자 결정(react-doctor 유지 여부), 태스크 10 |
@@ -441,6 +442,6 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 |---|---|---|---|
 | E1 | 금액 숨김의 적용 범위(5절) | 가계부만(지금) / 매매 화면까지 | 매매 화면까지. 스위치는 계정 설정으로 |
 | E2 | react-doctor(10-1) | 계속 쓰고 억제를 설정으로 옮김 / 걷어냄 | 사용 여부에 따름 |
-| E3 | 승인 대기 화면의 실시간 감지(2절) | 30초 주기 조회로 바꿈 / SSE 유지 | 주기 조회 |
-| E4 | 상태·역할을 토큰 클레임으로(1절 나) | api에 요청 / 세션 모듈만 | 요청. 인증 구조 변경이라 api 판단을 먼저 받는다 |
+| E3 | 승인 대기 화면의 실시간 감지(2절) | 30초 주기 조회로 바꿈 / SSE 유지 | 주기 조회. api는 서버 엔드포인트 삭제에 동의했다(ui 먼저 배포) |
+| E4 | 상태를 토큰 클레임으로(1절 나) | 진행 / 세션 모듈만 | 진행. api가 수용했다(api 지침서 13 U1, api 먼저 배포) |
 | E5 | 보안 헤더(10-3) | infra 지침서 04 T9 실행 승인 / 보류 | 위치는 infra가 Caddy 공용 스니펫으로 정했다(F1). 남은 결정은 infra 쪽 실행 승인뿐이다 |
