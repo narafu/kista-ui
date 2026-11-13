@@ -330,7 +330,8 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 
 - 코드 근거: `next.config.ts`(12줄)에 `headers()`가 없다. kista-infra의 `Caddyfile`과 `deploy/server/caddy/*.caddy`에도 `header` 지시문이 없다(grep 0건).
 - 인증 쿠키로 주문을 내는 앱이 `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`(또는 CSP `frame-ancestors`), `Referrer-Policy`를 보내지 않는 것으로 보인다. 운영 응답 헤더를 직접 확인하지는 않았다.
-- 어디에 둘지는 infra와 정한다(Caddy 한 곳이 api·ui를 함께 덮는다). fable-infra에 전달한다. CSP 본문(스크립트 출처 제한)은 카카오 로그인·Firebase·jsdelivr 글꼴(8절에서 제거)을 조사해야 해서 별도 작업이다.
+- **infra 답(2026-11-13, `cross-repo.md` F1, infra 지침서 04의 2-8절·T9)**: 보안 헤더는 infra `Caddyfile`의 공용 스니펫 `(site)`에 둔다. `next.config.ts`에는 두지 않는다. 이 레포가 할 일은 `deploy/server/caddy/kista-ui.caddy`의 사이트 블록에 `import site <앱>` 한 줄이다. **순서가 있다**: infra가 `(site)`를 먼저 배포한 뒤에 import를 넣는다. 반대면 caddy reload가 실패해 reconcile이 롤백한다. 09 태스크 7(C 묶음)과 같은 배포에 넣는다.
+- CSP만 앱 몫이다. 본문(스크립트 출처 제한)은 카카오 로그인·Firebase·jsdelivr 글꼴(8절에서 제거)을 조사해야 해서 별도 작업이다.
 
 ### 검토함, 유지
 
@@ -430,7 +431,8 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 - 태스크 2는 02 태스크 3과, 태스크 6은 02 태스크 2와 같은 묶음이 싸다.
 - 태스크 10·11은 06(태스크 3·6) 직후, 03 이동 전에 한다(이동할 코드가 준다).
 - 태스크 3·4의 서버 쪽, P 매매표 질문, 기간 프리셋 파라미터는 `cross-repo.md` B절에 요청으로 적었다.
-- 보안 헤더(10-3)와 접근 로그(지침서 10의 D17)는 fable-infra에 전달한다.
+- 보안 헤더(10-3)와 접근 로그(지침서 10의 D17)는 fable-infra가 답했다(`cross-repo.md` F1·F2). ui 쪽 일은 caddy 스니펫 import 한 줄이고 infra 배포 뒤다.
+- infra 문서 링크·서술 정정(F5·F6)은 `deploy/server/README.md:41`, `.github/workflows/server-deploy.yml:115`가 대상이다. F5는 infra 사용자 승인 뒤, F6의 줄 번호 표는 infra 지침서 05의 9절. 08 태스크 5(문서 정리)에 넣는다.
 - 08 2단계: 태스크 2·3이 끝나면 `docs/agents/app.md`의 쿠키·캐시 서술을 세션 모듈 한 줄로 줄인다.
 
 ## 사용자 결정이 필요한 것
@@ -441,4 +443,4 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 | E2 | react-doctor(10-1) | 계속 쓰고 억제를 설정으로 옮김 / 걷어냄 | 사용 여부에 따름 |
 | E3 | 승인 대기 화면의 실시간 감지(2절) | 30초 주기 조회로 바꿈 / SSE 유지 | 주기 조회 |
 | E4 | 상태·역할을 토큰 클레임으로(1절 나) | api에 요청 / 세션 모듈만 | 요청. 인증 구조 변경이라 api 판단을 먼저 받는다 |
-| E5 | 보안 헤더(10-3) | Caddy에 추가(infra) / Next 설정에 추가 / 현 상태 확인만 | Caddy. 먼저 운영 응답 헤더를 확인한다 |
+| E5 | 보안 헤더(10-3) | infra 지침서 04 T9 실행 승인 / 보류 | 위치는 infra가 Caddy 공용 스니펫으로 정했다(F1). 남은 결정은 infra 쪽 실행 승인뿐이다 |
