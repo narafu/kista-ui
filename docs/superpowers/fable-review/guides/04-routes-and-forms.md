@@ -232,4 +232,4 @@ const form = useAppForm({
 - 선행: 02(`$api.useMutation`, 전역 실패 토스트).
 - 05와 맞물린다: 전략 폼의 규칙 사본 제거는 05, 폼 구조 통합은 여기. 05 → 04 태스크 6 순서.
 - 06: `AmountInput`, 로딩 프리셋, 확인 다이얼로그.
-- api 지침서 10: T5(메타 기본값·범위), T7(`fieldErrors`). T7에 요약 `detail` 규약이 붙는다(`cross-repo.md` B 2026-11-13 항목, fable-api 반영 대기).
+- api 지침서 10: T5(메타 기본값·범위), T7(`fieldErrors`). T7에 요약 `detail` 규약이 붙는다(`cross-repo.md` B 2026-11-13 항목, api 지침서 10의 2-5절에 반영됨 — api 커밋 `3cdbdedca`, 코드 실행은 T7).

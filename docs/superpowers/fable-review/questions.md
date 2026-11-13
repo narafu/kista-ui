@@ -35,7 +35,7 @@
 - 근거: 지금(02 전)은 entities mutation hook마다 `onError: toast.error(apiMsg(...))`가 있어 `useAppForm`은 실패 토스트를 띄우지 않고, 매핑은 `MAP_SERVER_FIELD_ERRORS = false`로 꺼 두었다(`shared/ui/form/useAppForm.ts`).
 - 선택지: (A) 전역 `onError`가 `fieldErrors`가 있으면 건너뛰고 폼이 필드에 붙인다(필드 없는 폼에서 묻히는 위험). (B) `useAppForm`이 넘기는 mutation에 `meta: { fieldErrors: true }`를 달고 전역 처리가 그 경우만 건너뛴다. (C) 전역은 항상 `detail`을 띄우고 폼은 필드 표시만 추가(이중 알림 허용).
 - 멈춘 범위: 없음(T7 착수 전 필요)
-- 답: (Fable) 지침서 04 "폼 구현은 한 가지"에 "서버 오류의 분담" 추가, 위험 절 개정, 태스크 5g 추가. 지침서 02 3절 실패 토스트 줄 개정 — 선택지 (C)에 규약 하나를 붙였다. 전역 `onError`는 `fieldErrors`가 있어도 항상 `detail`을 띄우고 `meta` 플래그를 만들지 않는다. `fieldErrors`가 있는 응답의 `detail`은 요약 문장으로 고정해 같은 문장이 두 번 나오지 않게 한다(`../kista-api/docs/superpowers/fable-review/cross-repo.md` B "fable-ui 요청 (2026-11-13)", fable-api 반영 대기). 이름이 안 맞는 필드 오류는 `root.server`로 모아 `FormActions`가 버튼 위에 그린다. (A)·(B) 기각 이유는 04에 적었다. 커밋 `e9e1000e`(ui), `79c363f30`(api cross-repo).
+- 답: (Fable) 지침서 04 "폼 구현은 한 가지"에 "서버 오류의 분담" 추가, 위험 절 개정, 태스크 5g 추가. 지침서 02 3절 실패 토스트 줄 개정 — 선택지 (C)에 규약 하나를 붙였다. 전역 `onError`는 `fieldErrors`가 있어도 항상 `detail`을 띄우고 `meta` 플래그를 만들지 않는다. `fieldErrors`가 있는 응답의 `detail`은 요약 문장으로 고정해 같은 문장이 두 번 나오지 않게 한다(`../kista-api/docs/superpowers/fable-review/cross-repo.md` B "fable-ui 요청 (2026-11-13)", api 지침서 10의 2-5절·T7에 반영됨 — api 커밋 `3cdbdedca`). 이름이 안 맞는 필드 오류는 `root.server`로 모아 `FormActions`가 버튼 위에 그린다. (A)·(B) 기각 이유는 04에 적었다. 커밋 `e9e1000e`(ui), `79c363f30`(api cross-repo).
 
 ### Q-03 "모든 폼이 RHF"의 예외 목록
 - 상태: 답변됨
