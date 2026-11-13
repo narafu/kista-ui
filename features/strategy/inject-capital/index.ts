@@ -1,1 +1,0 @@
-export { InjectCapitalForm } from './InjectCapitalForm'

@@ -10,5 +10,3 @@ export const injectCapitalFormSchema = z.object({
       else if (v <= 0) ctx.addIssue({ code: 'custom', message: '0보다 크게 입력하세요.' })
     }),
 })
-
-export type InjectCapitalFormValues = { depositAmount: number | null }

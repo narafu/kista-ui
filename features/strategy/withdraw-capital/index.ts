@@ -1,1 +1,0 @@
-export { WithdrawCapitalForm } from './WithdrawCapitalForm'

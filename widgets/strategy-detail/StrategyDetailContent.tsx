@@ -6,8 +6,7 @@ import { useState } from 'react'
 import { useAccountDetailQuery } from '@entities/account'
 import { canWithdrawCapital, supportsCapitalAdjustment, useStrategyDetailQuery } from '@entities/strategy'
 import { PageHeader } from '@widgets/page-header'
-import { InjectCapitalForm } from '@features/strategy/inject-capital'
-import { WithdrawCapitalForm } from '@features/strategy/withdraw-capital'
+import { CapitalForm, type CapitalKind } from '@features/strategy/adjust-capital'
 import { FormDialog } from '@shared/ui/FormDialog'
 import { brokerCurrency } from '@shared/lib/api-schema'
 import { Button } from '@/components/ui/button'
@@ -16,6 +15,11 @@ import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { StrategyDetail } from './StrategyDetail'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
+
+const CAPITAL_DIALOG = {
+  inject: { title: '투자금 추가', description: '진행 중인 사이클에 예수금을 추가합니다.' },
+  withdraw: { title: '투자금 인출', description: '진행 중인 사이클에서 예수금을 인출합니다.' },
+} as const
 
 interface Props {
   accountId: string
@@ -35,7 +39,8 @@ export function StrategyDetailContent({
   const account = accountQuery.data === undefined ? initialAccount : accountQuery.data
   const strategy = strategyQuery.data === undefined ? initialStrategy : strategyQuery.data
 
-  const [capitalDialog, setCapitalDialog] = useState<'inject' | 'withdraw' | null>(null)
+  // 닫히는 동안에도 제목·본문이 바뀌지 않게 마지막 종류를 남겨 둔다
+  const [capital, setCapital] = useState<{ kind: CapitalKind; open: boolean }>({ kind: 'inject', open: false })
 
   if (!account || !strategy) return null
 
@@ -60,11 +65,11 @@ export function StrategyDetailContent({
             )}
             {supportsCapitalAdjustment(strategy) && (
               <>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setCapitalDialog('inject')}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setCapital({ kind: 'inject', open: true })}>
                   투자금 추가
                 </Button>
                 {canWithdrawCapital(strategy) && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setCapitalDialog('withdraw')}>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setCapital({ kind: 'withdraw', open: true })}>
                     투자금 인출
                   </Button>
                 )}
@@ -85,20 +90,12 @@ export function StrategyDetailContent({
         : <StrategyDetail accountId={accountId} broker={account.broker} strategy={strategy} />}
 
       <FormDialog
-        open={capitalDialog === 'inject'}
-        onClose={() => setCapitalDialog(null)}
-        title="투자금 추가"
-        description="진행 중인 사이클에 예수금을 추가합니다."
+        open={capital.open}
+        onClose={() => setCapital((c) => ({ ...c, open: false }))}
+        title={CAPITAL_DIALOG[capital.kind].title}
+        description={CAPITAL_DIALOG[capital.kind].description}
       >
-        {(close) => <InjectCapitalForm accountId={accountId} strategy={strategy} currency={currency} onDone={close} />}
-      </FormDialog>
-      <FormDialog
-        open={capitalDialog === 'withdraw'}
-        onClose={() => setCapitalDialog(null)}
-        title="투자금 인출"
-        description="진행 중인 사이클에서 예수금을 인출합니다."
-      >
-        {(close) => <WithdrawCapitalForm accountId={accountId} strategy={strategy} currency={currency} onDone={close} />}
+        {(close) => <CapitalForm key={capital.kind} kind={capital.kind} accountId={accountId} strategy={strategy} currency={currency} onDone={close} />}
       </FormDialog>
     </div>
   )

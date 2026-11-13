@@ -20,4 +20,3 @@ export const createWithdrawCapitalFormSchema = (ledgerDeposit?: number, currency
   })
 }
 
-export type WithdrawCapitalFormValues = { amount: number | null }
