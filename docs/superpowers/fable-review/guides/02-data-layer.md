@@ -71,7 +71,7 @@ const save = $api.useMutation('post', '/api/finance/transactions')
 - `staleTime`: `createQueryClient`에서 `queryClient.setQueryDefaults(['get', '/api/market/holidays'], { staleTime: 24 * HOUR })`처럼 경로 접두 키로 등록한다. `docs/agents/shared.md`의 "Stale Time" 표가 코드 한 곳이 되고 문서 표는 지운다.
 - 무효화 기본 규칙: mutation이 성공하면 **같은 리소스 경로로 시작하는 GET 쿼리**를 무효화한다. `MutationCache`의 `onSuccess` 한 곳에 둔다. 리소스 경로는 mutation 경로에서 마지막 `{id}` 이후를 잘라낸 것이다(`PATCH /api/finance/transactions/{id}/share` → `/api/finance/transactions`).
 - 다른 리소스까지 무효화해야 하면 mutation 옵션 `meta: { invalidates: ['/api/runtime-config'] }`로 선언한다.
-- 실패 토스트: `MutationCache`의 `onError` 한 곳에서 서버 `detail`을 띄운다. 호출부가 문구를 넣지 않는다(UI·API 책임 분담 원칙 "오류 문구" 행). 토스트를 원하지 않는 mutation만 `meta: { silent: true }`.
+- 실패 토스트: `MutationCache`의 `onError` 한 곳에서 서버 `detail`을 띄운다. 호출부가 문구를 넣지 않는다(UI·API 책임 분담 원칙 "오류 문구" 행). 토스트를 원하지 않는 mutation만 `meta: { silent: true }`. 응답에 `fieldErrors`가 있어도 건너뛰지 않는다. 필드 표시는 폼이 더하는 것이고 토스트는 항상 뜬다(04 "서버 오류의 분담").
 - 무효화가 아니라 캐시를 직접 고쳐야 하는 mutation(계좌·전략의 등록·수정·삭제, 일시정지·재개, 알림 설정 낙관적 갱신)은 도메인 hook으로 남긴다. 현재 기준 약 15개다.
 
 ### 4. 서버 값은 캐시로만 넘긴다

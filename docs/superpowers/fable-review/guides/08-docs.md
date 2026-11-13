@@ -161,7 +161,7 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 | 9 | stale time 표·mutation hook 패턴·queryKey 규칙 삭제, 데이터 흐름 한 장으로 | 02 완료 | Sonnet | `architecture.md` 60줄 이하 |
 | 10 | 책임 분담 원칙 경로 연결, 서버로 옮겨간 규칙 서술 삭제 | 05, api T9 완료 | Haiku | 루트 `CLAUDE.md`에 `ui-api-contract.md` 경로 1회 |
 | 11 | 인터셉트 라우트 4문단 삭제, 폼 형태 기준 2줄 추가 | 04 완료 | Haiku | — |
-| 12 | 표 정렬·토스트·상태 표현 규칙 삭제, `ui.md`로 통합 | 06 완료 | Sonnet | `docs/agents`에 copy·a11y·react-query 파일 없음 |
+| 12 | 표 정렬·토스트·상태 표현 규칙 삭제, `ui.md`로 통합. `a11y.md`의 "폼" 항목(04 태스크 7b)은 `ui.md`로 옮긴다 | 06 완료 | Sonnet | `docs/agents`에 copy·a11y·react-query 파일 없음 |
 | 13 | 레이어 문서 5개 폐지, 도메인·화면 `CLAUDE.md`로 재배치, `findings/f` 항목별 새 위치 표 | 03 완료 | Opus | 목표 수치 전부 달성, `findings/f` 대응표에 빈 행 없음 |
 | 14 | 테스트 규칙(07의 계층 표) 한 절 추가 | 07 완료 | Haiku | — |
 

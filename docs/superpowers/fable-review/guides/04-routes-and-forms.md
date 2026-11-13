@@ -77,6 +77,17 @@
 
 모든 폼이 react-hook-form + zod + 아래 두 프리미티브를 쓴다.
 
+**폼의 판정 기준**: 사용자가 입력한 값을 검증해 mutation 하나로 제출하면 폼이다. 셋 중 하나라도 빠지면 폼이 아니고 `useAppForm` 대상이 아니다.
+
+| 폼이 아닌 것 | 예 | 가는 곳 |
+|---|---|---|
+| 확인 단계(입력이 "정말 할 것인가"의 확인뿐) | 계좌 삭제 타이핑 확인(`EditAccountForm`의 `deleteConfirm`), AlertDialog 확인 | 06의 확인 다이얼로그 |
+| 검증할 입력이 없는 실행(기본값이 있는 옵션 선택 + 버튼) | `InviteDialog`(만료 시간 Select) | 그대로 둔다 |
+| 값과 `onChange`를 받는 제어 편집기(자기 mutation이 없는 입력 부품) | `SuggestionListEditor`, `ValueListEditor` | 폼 안에서는 `FormField`의 children으로 쓴다 |
+| 서버 목록의 행을 고르고 덮어쓰는 화면 | `BulkRegisterForm` | 05의 일괄 등록 미리보기(api 지침서 10의 2-6절)가 화면을 다시 정한다 |
+
+이 기준으로 `AdminSettingsForm`(태스크 5e)과 계좌 등록 스테퍼(태스크 5f)는 폼이다. 예외로 두지 않는다.
+
 ```tsx
 const form = useAppForm({
   schema,                    // zod: 형식 검증만(필수·숫자·범위)
@@ -94,8 +105,15 @@ const form = useAppForm({
 </form>
 ```
 
-- `useAppForm`이 맡는 것: `zodResolver`, 제출 → `mutation.mutate`, 성공 토스트와 `onDone`, 진행 상태, 그리고 **서버 필드 오류를 필드에 붙이는 일**. 서버가 `fieldErrors[{field, detail}]`를 주면(api 지침서 10의 2-5절) `setError(field, { message: detail })`로 옮긴다. 필드에 붙지 않는 오류는 02의 전역 토스트가 띄운다.
-- `FormField`가 맡는 것: Label, 필수 표시, 힌트, 에러 문구, `aria-describedby`·`aria-invalid`·`role="alert"` 연결. 표기는 여기 한 곳에서 정한다(필수 `*`, 제출 중 문구 `…`).
+- `useAppForm`이 맡는 것: `zodResolver`, 제출 → `mutation.mutate`, 성공 토스트와 `onDone`, 진행 상태, 그리고 **서버 필드 오류를 필드에 붙이는 일**. `schema`·`mutation`·`toPayload`·`successMessage`·`onDone` 밖의 옵션은 `useForm`에 그대로 넘긴다(`values`, `resetOptions` 등). 폼별 옵션을 새로 만드는 것이 아니라 RHF 옵션의 통과다.
+- **서버 오류의 분담**(api T7 뒤, `MAP_SERVER_FIELD_ERRORS`를 지우고 항상 켠다):
+  - 실패 토스트는 02의 전역 `onError` 한 곳이 **항상** 서버 `detail`로 띄운다. `fieldErrors`가 있어도 건너뛰지 않고, mutation에 폼 표시용 `meta`를 달지 않는다. 폼이 그리지 않는 필드의 오류가 묻히지 않게 하기 위해서다.
+  - `fieldErrors[{field, detail}]`가 있는 응답의 `detail`은 요약 문장이다("입력값을 확인해 주세요." — `cross-repo.md` B 2026-11-13 항목). 그래서 토스트는 "오류가 있다", 필드는 "무엇이 틀렸다"를 말하고 같은 문장이 두 번 나오지 않는다.
+  - `useAppForm`은 `field`가 폼 필드 이름과 같으면 `setError(field, { type: 'server', message: detail })`로 붙이고 첫 필드에 포커스를 준다(`shouldFocus`). 배열 경로는 `serverFieldErrors`가 `orders[0].price`를 `orders.0.price`로 바꾼다.
+  - 폼 필드와 이름이 맞지 않는 `fieldErrors`(요청 바디에만 있는 필드, `toPayload`가 이름을 바꾼 필드)는 `setError('root.server', ...)`로 모으고, `FormActions`가 버튼 위에 `role="alert"` 한 줄로 그린다. 폼마다 이름 대응표를 만들지 않는다.
+  - 기각: 전역 처리가 `fieldErrors`가 있으면 건너뛴다(폼이 아닌 mutation과 이름이 안 맞는 필드에서 오류가 사라진다). mutation마다 `meta: { fieldErrors: true }`를 단다(폼마다 적어야 하고, 빠뜨려도 드러나지 않으며, 이름이 안 맞는 필드의 대책이 따로 필요하다).
+- **제출 버튼은 진행 중과 잠금일 때만 비활성이다.** 잠금은 지금 무엇을 입력해도 제출할 수 없는 서버 상태다(월 마감 등). 잠금이면 이유 문장을 폼에 보인다. 빈 필수 값·형식 오류로는 비활성화하지 않는다. 제출하면 zod가 필드에 오류를 붙이고 RHF가 첫 오류 필드로 포커스를 옮긴다. 이유: 비활성 버튼은 무엇이 빠졌는지 알려주지 않고, 버튼과 Enter 제출을 따로 막아야 한다(묶음 C 리뷰 지적 2건이 이 누락이었다). `FormActions`의 `canSubmit`은 `locked`로 바꾼다.
+- `FormField`가 맡는 것: Label, 필수 표시, 힌트, 에러 문구, `aria-describedby`·`aria-invalid`·`role="alert"` 연결. 표기는 여기 한 곳에서 정한다(필수 `*`, 제출 중 문구 `…`). **선택 필드에는 표기를 두지 않는다.** `*`가 없으면 선택이다. 라벨·섹션 제목에 "(선택)"·"(필수)"를 쓰지 않고, `FormField`에 `optional` prop을 만들지 않는다. 건너뛸 수 있는 섹션이라는 안내가 필요하면 섹션 설명 문장에 쓴다.
 - 업무 규칙 검증을 zod에 넣지 않는다. 범위·기본값은 메타에서 받아 스키마를 만든다(`z.number().min(meta.min).max(meta.max)`). 교차 필드 규칙과 한도는 서버가 `fieldErrors`로 알려준다(05 지침서).
 - 생성·수정은 한 컴포넌트다. `initial`이 있으면 수정이다. `submitFormDialog`는 `useAppForm`에 흡수된다.
 - 금액·수량 입력은 06 지침서의 `AmountInput` 하나를 쓴다.
@@ -147,7 +165,8 @@ const form = useAppForm({
 - **뒤로 가기 동작이 바뀐다.** 지금은 모달을 닫으면 `router.back()`이다. 다이얼로그는 이력을 쌓지 않으므로 모바일에서 뒤로 가기를 누르면 폼이 닫히지 않고 이전 화면으로 간다. 모바일 전체 화면 시트에서 이것이 문제인지 실기기로 확인한다(선행 테스트 3번). 문제면 `FormDialog`가 열릴 때 이력 항목을 하나 쌓고 `popstate`에서 닫는다(약 15줄, `FormDialog` 한 곳).
 - **iOS PWA 뷰포트**: memory의 미해결 Bug B(실기기 필요)가 전체 화면 레이어와 관련 있을 수 있다. 모바일 시트는 실기기에서 키보드가 올라온 상태로 확인한다.
 - **복제 등록 링크**: `/finance/new?duplicateFrom=`처럼 URL로 폼 초기값을 넘기는 흐름은 폼 페이지로 남는 쪽(자산 기록)에만 있다. 다이얼로그로 가는 폼에 같은 흐름이 있는지 태스크 1에서 전수 확인한다.
-- **서버 `fieldErrors`가 없으면** 필드 옆 오류가 안 나온다. api 지침서 10의 T7 전에는 `useAppForm`이 `detail`을 토스트로만 띄우게 두고, T7 뒤에 필드 매핑을 켠다.
+- **서버 `fieldErrors`가 없으면** 필드 옆 오류가 안 나온다. api 지침서 10의 T7 전에는 필드 매핑을 꺼 두고(`MAP_SERVER_FIELD_ERRORS = false`) 실패는 `detail` 토스트로만 알린다. 토스트를 띄우는 곳은 02 전에는 entities mutation hook의 `onError`, 02 뒤에는 전역 `onError`다. `useAppForm`은 어느 때도 실패 토스트를 띄우지 않는다. T7 뒤에 "서버 오류의 분담"대로 켠다(태스크 5g).
+- api가 요약 `detail` 규약을 받지 않으면 필드 하나짜리 오류에서 같은 문장이 토스트와 필드에 함께 나온다. 동작은 깨지지 않으므로 UI 쪽 분담은 바꾸지 않는다.
 
 ## 동작 보존용 선행 테스트
 
@@ -168,10 +187,27 @@ const form = useAppForm({
 | 5a | 가계부 폼 5개 전환, 생성·수정 쌍 병합(`CategoryFormDialog`·`SystemCategoryFormDialog`) | `features/finance/**` | Sonnet | 선행 테스트 2 통과, `grep -rn "submitFormDialog" .` 0건 |
 | 5b | 관리자 개인정보 다이얼로그 쌍 병합, 그 외 수동 폼 전환 | `widgets/admin-privacy-trade-list/**`, `features/{account,asset,admin,settings}/**` | Sonnet (디렉토리별 병렬) | 해당 vitest, `grep -rnE "useState.*\(''\)" features --include='*Form*.tsx'`가 폼 필드 용도로 0건 |
 | 5c | 투자금 추가·인출을 한 컴포넌트로 | `features/strategy/{inject,withdraw}-capital/**` | Sonnet | 선행 테스트 2 통과 |
-| 6 | 전략 폼 통합(골격 1 + 종류별 섹션, 판별 유니언 스키마, 메타 기본값) | `features/strategy/create-strategy/**`, `features/strategy/reconfigure-vr/**` | Opus | 선행 테스트 1 통과, `/code-review high` |
-| 7 | 문서 갱신: `docs/agents/app.md`의 인터셉트 라우트 4문단 삭제, 폼 형태 기준과 폼 구현 규칙 추가(**폼 형태 부분 완료 2026-11-12**, 폼 구현 규칙은 태스크 4 뒤) | 08 지침서에 합친다 | Haiku | 08의 판정 |
+| 5d | 제출 버튼 규칙 통일: 값 유무·형식으로 버튼을 막는 조건을 zod 필수·형식 오류로 옮기고, `FormActions`의 `canSubmit`을 `locked`로 바꾼다. 잠금(월 마감)은 `locked`와 `onSubmit` 가드로 남긴다. 교차 필드 가드(예산 종료일 < 시작일)는 api T7까지 그대로 둔다 | `shared/ui/FormActions.tsx`, `features/finance/{save-transaction,manage-accounts,manage-categories,manage-budgets,manage-group}/**`, `features/asset/save-asset/AssetForm.tsx`, `features/account/edit-account/CredentialsCard.tsx` | Sonnet | 폼마다 "빈 값으로 제출하면 필드 오류가 보이고 요청이 나가지 않는다" 단언 1건, `grep -rn "canSubmit" --include='*.tsx' app features widgets shared \| grep -v test` 0건(전략 폼은 04-6 전까지 `locked={form.cannotSubmit}`로 이름만 옮긴다) |
+| 5e | `AdminSettingsForm`을 `useAppForm`으로: 초안·서버값 따라가기·dirty·되돌리기를 `values: settings` + `resetOptions: { keepDirtyValues: true }`·`formState.isDirty`·`reset()`으로 바꾸고, `setStrategyField` 등 경로별 setter를 `FormField name="strategies.X.fields.Y"`로 바꾼다. `validateAdminSettings` 중 형식 검증만 zod로 옮기고 나머지는 05 판정에 따른다. 저장 뒤 무효화(`activatesPendingUsersRef`)는 그 폼에 남긴다. 서버값이 바뀔 때 "편집 중이면 초안 전체 보존"이 "편집한 필드만 보존"으로 바뀐다(허용) | `features/admin/settings/**` | Opus(전 사용자의 전략 기본값을 바꾸는 요청이다) | 선행: "편집 후 저장하면 나가는 요청 바디" 단언을 전환 전에 고정. 전환 뒤 통과, `grep -n "useState" features/admin/settings/ui/AdminSettingsForm.tsx`가 펼침 상태 1건뿐 |
+| 5f | 계좌 등록 스테퍼를 폼 하나로: `CreateAccountStepper`가 `useAppForm` 하나를 갖고 단계 컴포넌트는 `control`을 받는다. "다음"은 `form.trigger([그 단계 필드])`가 통과하면 넘어간다(버튼 비활성 없음). 단계 번호만 `useState`로 남기고 `useReducer`·단계별 `useState`·`touched*`를 지운다. 연결 테스트(`useTestKisConnectionMutation`)는 Api 단계의 동작으로 남긴다. 필수 `*`는 `FormField`가 붙인다 | `features/account/create-account/**` | Sonnet | 선행: 4단계를 채워 제출하면 나가는 요청 바디 단언(있으면 재사용). `grep -rnE "useReducer\|touched" features/account/create-account --include='*.tsx' \| grep -v test` 0건 |
+| 5g | 서버 필드 오류 켜기: "서버 오류의 분담" 구현(`MAP_SERVER_FIELD_ERRORS` 삭제, 배열 경로 변환, `root.server`와 `FormActions` 표시, 첫 필드 포커스). 5d가 남긴 교차 필드 가드를 지운다 | `shared/ui/form/**`, `shared/ui/FormActions.tsx`, 가드가 남은 폼 | Sonnet | api T7과 02 완료 뒤. 단위 테스트: 이름이 맞는 필드, 배열 경로, 이름이 안 맞는 필드 각 1건 |
+| 6 | 전략 폼 통합(골격 1 + 종류별 섹션, 판별 유니언 스키마, 메타 기본값). `ReconfigureVrSections`의 섹션 제목 "(선택)" 2건을 지운다 | `features/strategy/create-strategy/**`, `features/strategy/reconfigure-vr/**` | Opus | 선행 테스트 1 통과, `/code-review high`, `grep -rnE "\((선택\|필수)\)" --include='*.tsx' app features widgets shared \| grep -v test`가 주석 외 0건 |
+| 7 | 문서 갱신. (a) `docs/agents/app.md`의 인터셉트 라우트 4문단 삭제, 폼 형태 기준 추가(**완료 2026-11-12**). (b) 폼 규칙 3줄을 `docs/agents/a11y.md`에 "폼" 항목으로 추가한다(features·widgets·shared에서 로드된다): 폼의 판정 기준과 `useAppForm`·`FormField` 사용, 제출 버튼은 진행 중·잠금에만 비활성, 필수는 `*`이고 "(선택)"·"(필수)"를 쓰지 않는다. (c) `docs/agents/shared.md`의 `form/useAppForm` 항목은 프리미티브 설명으로 두되 5d·5g가 바꾼 부분을 그때 고친다 | 08 지침서에 합친다(08 태스크 12가 (b)를 `ui.md`로 옮기고, 태스크 13이 (c)를 지운다) | Haiku | 08의 판정 |
 
 태스크 6은 05 지침서(서버 규칙 사본 제거)와 api 지침서 10의 T5(메타 기본값)·T7(`fieldErrors`) 뒤에 한다. 그 전에 하면 지울 코드를 새 구조로 옮기게 된다.
+
+5d·5e·5f는 서로 파일이 겹치지 않고 서버 선행 조건이 없다. 묶음 D(06) 앞뒤 어디에 넣어도 된다. 태스크 7의 (b) 문서 추가는 5d와 같은 커밋에 넣는다.
+
+## 판단이 갈릴 때의 기본값
+
+- **이미 Dialog인 폼도 `FormDialog` 셸로 옮긴다.** 결정 1 표의 "폼 다이얼로그"에 든 폼은 전부 같은 셸을 쓴다(모바일 전체 화면, 뒤로 가기로 닫기). 묶음 C에서 가계부 거래내역·재무계좌·카테고리와 관리자 개인정보 폼을 옮긴 것이 이 기본값이다.
+- **폼인지 애매하면** "폼의 판정 기준" 세 조건으로 가른다. 조건을 다 채우는데 전환 이득이 작아 보여도 전환한다. 예외 목록을 늘리지 않는다.
+- **폼 필드 이름은 요청 바디의 필드 이름과 같게 짓는다.** 서버 `fieldErrors`가 이름으로 붙기 때문이다. 화면 사정으로 다르게 지어야 하면 그대로 두고, 그 필드의 서버 오류는 버튼 위 한 줄로 나오게 둔다.
+- **버튼을 막던 조건을 옮길 때**: 값이 비었거나 형식이 틀린 것은 zod 오류 문구로, 서버 상태 때문에 못 하는 것은 `locked`로, 두 필드를 비교하는 것은 api T7까지 그대로 둔다.
+- **zod 오류 문구**는 "무엇을 하면 되는지"를 한 문장으로 쓴다("이름을 입력해 주세요."). 문구 규칙은 `docs/agents/copy.md`를 따른다.
+- **성공 토스트**는 mutation hook이 이미 띄우면 `successMessage`를 넘기지 않는다. 02 뒤에는 hook 쪽을 지우고 `successMessage`로 모은다.
+- **한 폼만 필요한 동작**(저장 뒤 추가 무효화, 확인 단계)은 그 폼에 적는다. 확인 단계가 있는 폼은 `<form onSubmit={form.handleSubmit(확인 열기)}>`로 열고 확인 버튼에서 `form.submit()`을 부른다.
+- **화면 모양이 바뀌는 전환**(라벨 크기, 힌트 글씨 크기)은 `FormField` 기본값을 따르고 태스크 보고에 한 줄 남긴다. 폼마다 `className`으로 예전 모양을 되살리지 않는다.
 
 ## 하지 말아야 할 것
 
@@ -196,4 +232,4 @@ const form = useAppForm({
 - 선행: 02(`$api.useMutation`, 전역 실패 토스트).
 - 05와 맞물린다: 전략 폼의 규칙 사본 제거는 05, 폼 구조 통합은 여기. 05 → 04 태스크 6 순서.
 - 06: `AmountInput`, 로딩 프리셋, 확인 다이얼로그.
-- api 지침서 10: T5(메타 기본값·범위), T7(`fieldErrors`).
+- api 지침서 10: T5(메타 기본값·범위), T7(`fieldErrors`). T7에 요약 `detail` 규약이 붙는다(`cross-repo.md` B 2026-11-13 항목, fable-api 반영 대기).
