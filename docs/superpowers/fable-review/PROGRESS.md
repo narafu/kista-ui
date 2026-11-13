@@ -94,7 +94,7 @@
 | E | 프록시 단일화 | 02-2 `resolveUpstream` 한 함수 + 프록시 Route Handler 13개 → 1개 | Opus | 인증·프록시 경로라 Opus. 01과 무관. 나중의 진입점 단일화(02-8)가 한 줄 변경이 된다 |
 | F | 문서·배포 | 08-5 중복 정리, 08-6 문단형 줄 분해(이유 보존), 08-7 memory, 09-2·3 죽은 심볼·knip 예외, 09-5·6 workflow·`NEXT_PUBLIC_*` 원본 통합 | Opus(08-6, 09-6), 나머지 Sonnet·Haiku | 독립. 09-5·6은 push가 있어야 검증된다 |
 
-권장 순서: **A → B → C → D → E**, F는 틈날 때. **A·B 완료(2026-11-12, 아래 "묶음 A 실행 기록"·"묶음 B 실행 기록")** — 다음은 C. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
+권장 순서: **A → B → C → D → E**, F는 틈날 때. **A·B·C 완료(A·B 2026-11-12, C 2026-11-13, 아래 실행 기록)** — 다음은 D. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
 
 실행 중 지침서의 전제가 코드와 맞지 않거나 "중단 조건"에 걸리면 추측으로 진행하지 말고 `questions.md`에 적고 그 태스크를 멈춘다. 그 밖의 판단은 지침서의 기본값으로 스스로 정한다(CHARTER "실행 중 질문").
 
@@ -242,6 +242,85 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 
 - 다이얼로그가 열린 채 부모가 unmount되면(예: 화면 전환) 같은 URL의 이력 칸이 하나 남는다. 뒤로 가기 한 번이 아무 일도 하지 않는다. DCA 하위 뷰와 같은 한계다.
 - 지침서 04의 태스크 7(문서)은 이번에 앞당겨 했다. 08에서 다시 하지 않는다.
+
+## 묶음 C 실행 기록 (2026-11-13)
+
+커밋: `1d8858c1`(04-4) → `e2eb96a6`(04-5c) → `c9da8857`(04-5a) → `77249aab`(04-5b). 5c는 파일이 겹치지 않아 5a·5b 위임과 병렬로 먼저 끝냈다.
+
+### 04-4 `useAppForm`·`FormField`
+
+- 위치: `shared/ui/form/useAppForm.ts`, `shared/ui/form/FormField.tsx`. `FormActions`는 `shared/ui`에 그대로 두고 `form` prop을 더했다.
+- `useAppForm({ schema, defaultValues, mutation, toPayload?, successMessage?, onDone? })`
+  - 기존 entities mutation hook 결과를 그대로 받는다. 02의 `$api.useMutation`도 같은 모양이다.
+  - 생성·수정은 호출부가 mode로 hook 하나를 골라 넘긴다. 생성 전용 값(`shareToGroup`)은 `toPayload`에서 붙인다.
+- 실패 토스트는 `useAppForm`이 띄우지 않는다. 모든 mutation hook이 이미 `onError`에서 `apiMsg`로 detail을 띄우므로, 여기서도 띄우면 두 번 뜬다.
+  - 그래서 "api T7 전에는 detail을 토스트로만"은 hook이 이미 하고 있다.
+  - 서버 `fieldErrors` → `setError`는 `serverFieldErrors()` 순수 함수와 `MAP_SERVER_FIELD_ERRORS = false`로 꺼 두었다.
+  - **T7 뒤 켤 때 할 일**: 필드에 붙은 오류를 hook 토스트가 또 띄우지 않게 hook `onError`도 고친다.
+- 진행 상태는 RHF `isSubmitting`이 아니라 `mutation.isPending`이다. hook의 async `onSuccess`(무효화)가 끝날 때까지 pending이 이어진다.
+- 확인 단계가 있는 폼은 `<form onSubmit={form.handleSubmit(열기)}>`로 열고, 확인 버튼에서 `form.submit()`을 부른다.
+- 표기:
+  - 필수는 `*`다. label 밖에 두고 `aria-hidden`, 입력에 `aria-required`를 단다(접근 이름에 `*`가 섞이지 않게).
+  - " (선택)" 꼬리는 지웠다.
+  - 제출 중 문구는 `{label} 중…`이다. 전략 폼 버튼도 기본값을 따라 '저장 중...'에서 '등록 중…'·'수정 중…'으로 바뀌었다(파일은 건드리지 않았다).
+- 단위 테스트 6건: 제출 바디, 진행, 형식 오류·aria, 서버 실패, `serverFieldErrors` 2건. 변이 확인 2건(`onDone` 제거, `isPending` 고정)이 모두 실패했다.
+- `submitFormDialog`는 5a에서 소비처를 옮긴 뒤 지웠다.
+
+### 04-5a 가계부 (Sonnet 위임)
+
+- 전환: 거래내역, 재무계좌, 카테고리, 예산, 초대 코드 입력. 거래내역·재무계좌·카테고리 Dialog는 `FormDialog` 셸로 옮겼다.
+  - 지침서 04에 기본값 절이 없어, 결정 1의 목표 표(가계부 폼 = 폼 다이얼로그)를 근거로 정했다.
+- `CategoryFormDialog`가 `system` prop으로 시스템 카테고리를 겸한다.
+  - system 모드는 그룹 목록을 조회하지 않는다. `useCanShareToGroup({ enabled })`를 추가했다(리뷰 지적).
+- `submitFormDialog`와 `SaveButton`을 지웠다.
+- 그대로 둔 것: `InviteDialog`. Select 하나와 결과 화면 2상태라 RHF로 얻는 것이 없다.
+- 비활성 제출 버튼으로만 막던 조건(월 마감, 기간 등)은 `onSubmit` 가드로 Enter 제출도 막는다(리뷰 지적, 자산 기록도 같다).
+
+### 04-5b 관리자 개인정보·그 외 (Sonnet 2개 병렬 위임)
+
+- 관리자 개인정보:
+  - 주문 추가·수정 → `PrivacyOrderFormDialog`.
+  - 기준 등록·수정 → `PrivacyBaseFormDialog`. 주문 행은 `useFieldArray`다.
+  - 제출 버튼은 항상 활성이고, 형식 오류는 제출할 때 필드에 표시한다. 그래서 빈 값·평단가 오류 문구가 새로 생겼다.
+- 전환한 폼: `EditAccountForm`, `CredentialsCard`, `AssetForm`(등록·복제·수정), `NicknameEditor`, 텔레그램 연결(설정·승인 대기가 같은 훅을 쓴다).
+- 그대로 둔 것:
+  - `AdminSettingsForm`: 런타임 설정 전체의 초안 편집기다(서버값 따라가기, `validateAdminSettings`).
+  - 계좌 삭제 타이핑 확인: 폼이 아니라 확인 단계다.
+  - 완료 판정 grep에는 `deleteConfirm` 1건만 남았다.
+- 자산 기록은 경로로 풀리지 않는 `categoryId`면 전처럼 제출을 잠근다(리뷰 지적).
+- `ApiKeyExpiryField`(계좌 등록)의 " (선택)"도 지웠다. 같은 필드인데 계좌 수정 화면과 표기가 갈리지 않게 했다.
+
+### 04-5c 투자금 추가·인출
+
+- `features/strategy/adjust-capital/CapitalForm`(`kind`)으로 합쳤다. `inject-capital`·`withdraw-capital` 슬라이스는 지웠다.
+  - 차이(요청 필드 `depositAmount`·`amount`, 문구, 인출 한도 스키마)는 `KIND` 표 하나에 둔다.
+- AlertDialog 확인 단계는 유지했다(사용자 결정).
+- 전략 상세는 `FormDialog` 하나에 마지막으로 연 종류를 띄운다. 닫히는 중에 다른 종류를 열어도 폼 상태가 섞이지 않게 `key={kind}`를 준다(리뷰 지적).
+- 테스트 두 파일을 `describe.each` 하나로 합쳤다.
+
+### 테스트·검증
+
+- 선행 테스트: 폼마다 "채우고 제출하면 나가는 요청"을 `mockApi`로 고정했다. 전환 전 코드에서 통과를 확인한 뒤 바꿨다. 손댄 테스트의 모듈 mock과 파일별 wrapper는 걷었다.
+  - 예외: 예산 shareToGroup 단언은 전환 뒤에 추가했다.
+  - 예외: 5c는 기존 묶음 B 테스트가 이미 바디를 고정하고 있었다.
+- 변이 확인: 옮긴 폼마다 1회 했고 모두 실패를 냈다. 기록은 위임 로그에 있다(세션 scratchpad라 남지 않는다).
+- 리뷰: 태스크마다 Sonnet 리뷰어로 검수했다. 실제 결함 지적 5건은 커밋 전에 고쳤다.
+- `typecheck`·`lint`·`knip` 0건.
+- 전체 vitest: 262파일, 1,911건 통과(+ `it.fails` 1건). timeout 없음.
+- e2e: worktree, 로컬 api, `--project=setup --project=chromium --workers=1`. 18/18 통과했다.
+  - account-cache 2건은 chromium의 의존 프로젝트로 같이 돌았고 이번엔 통과했다.
+  - VR 시드 skip도 없었다.
+  - 이 환경은 macOS라 `cp -cR`와 `.env`(`.env.local` 없음)를 썼다.
+
+### 남긴 것
+
+- `next/headers` 모듈 mock은 2건이다: `strategies/[sid]/edit/page.test.tsx`, `app/api/auth/refresh/route.test.ts`(Route Handler, 묶음 B 집계에서 빠졌다). 서버 페이지 테스트는 늘지 않아 결정 대기 그대로다.
+- 미검증(실기기 필요): 새로 `FormDialog`로 옮긴 가계부·관리자 다이얼로그의 모바일 전체 화면과 키보드.
+- 바뀐 화면 모양:
+  - `TelegramSection`의 작은 muted 라벨이 `FormField` 기본 라벨로 바뀌었다.
+  - 힌트 글씨가 `text-sm`에서 `text-xs`로 바뀐 곳이 있다(계좌·자산).
+  - 화면 확인은 하지 않았다.
+- 다음: 묶음 D(06). 04-6은 api T5·T7·T10 뒤.
 
 ## 측정 산출물
 
