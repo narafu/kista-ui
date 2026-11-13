@@ -82,14 +82,14 @@ describe('ApiStep', () => {
     const onNext = vi.fn()
     const user = userEvent.setup()
     render(<ApiStep data={{ ...baseData, apiKey: '1234567890', apiSecret: 'abcdefghij' }} onNext={onNext} onBack={vi.fn()} />)
-    await user.type(screen.getByLabelText('API 키 만료일 (선택)'), '2027-03-01')
+    await user.type(screen.getByLabelText('API 키 만료일'), '2027-03-01')
     await user.click(screen.getByRole('button', { name: '다음' }))
     expect(onNext).toHaveBeenCalledWith({ apiKey: '1234567890', apiSecret: 'abcdefghij', apiKeyExpiresOn: '2027-03-01' })
   })
 
   it('만료일이 추정값이 아닌 broker(업비트)는 만료일 입력란이 없다', () => {
     render(<ApiStep data={{ ...baseData, broker: 'UPBIT' }} onNext={vi.fn()} onBack={vi.fn()} />)
-    expect(screen.queryByLabelText('API 키 만료일 (선택)')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('API 키 만료일')).not.toBeInTheDocument()
   })
 
   it('업비트는 허용 IP와 필요한 권한을 안내하고 출금 권한을 켜지 말라고 강조한다', () => {

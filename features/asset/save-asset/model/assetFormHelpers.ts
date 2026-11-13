@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import {
   SYSTEM_LOAN_CATEGORY_ID,
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
@@ -8,6 +9,22 @@ import {
 import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, FinanceAccount, Market, MonthlyClosing } from '@entities/finance'
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
+
+// 형식 검증만 — 필수 값이 빠지면 제출 버튼이 잠긴다(canSubmit). 서버 규칙은 넣지 않는다.
+// 변환이 없어 입력 타입과 출력 타입이 같다.
+export const assetFormSchema = z.object({
+  entryDate: z.string().min(1),
+  categoryId: z.string().min(1),
+  accountId: z.string(),
+  assetClass: z.custom<AssetClass>(),
+  market: z.custom<Market>(),
+  strategy: z.string(),
+  memo: z.string(),
+  amountDigits: z.string().min(1),
+  // 생성·복제 모드에서만 payload에 얹는다
+  shareToGroup: z.boolean(),
+})
+export type AssetFormValues = z.infer<typeof assetFormSchema>
 
 // 계좌 Select 미선택("미지정") 센티널 — Base UI Select는 빈 문자열 value를 허용하지 않는다.
 export const NO_ACCOUNT_VALUE = 'NONE'
@@ -38,25 +55,18 @@ export function accountOptionLabel(account: FinanceAccount): string {
   return [account.name, account.institution, account.owner].filter(Boolean).join(' · ')
 }
 
-interface AssetFormInitialValues {
-  entryDate: string
-  accountId: string
-  assetClass: AssetClass
-  market: Market
-  strategy: string
-  memo: string
-  amountDigits: string
-}
-
-export function initialFormValues(initial: AssetSnapshot | undefined, today: string): AssetFormInitialValues {
+export function initialFormValues(initial: AssetSnapshot | undefined, today: string): AssetFormValues {
   return {
     entryDate: initial?.entryDate ?? today,
+    categoryId: initial?.categoryId ?? '',
     accountId: initial?.accountId ?? NO_ACCOUNT_VALUE,
     assetClass: initial?.assetClass ?? 'CASH',
     market: initial?.market ?? 'DOMESTIC',
     strategy: initial?.strategy ?? '',
     memo: initial?.memo ?? '',
     amountDigits: initial ? String(initial.amount) : '',
+    // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선)
+    shareToGroup: true,
   }
 }
 
@@ -92,16 +102,7 @@ export function categoryChangeEffect(prevRoot: string | undefined, next: string[
   }
 }
 
-interface PayloadInput {
-  categoryId: string
-  accountId: string
-  entryDate: string
-  assetClass: AssetClass
-  market: Market
-  strategy: string
-  memo: string
-  amountDigits: string
-}
+type PayloadInput = Omit<AssetFormValues, 'shareToGroup'>
 
 export function buildAssetPayload(v: PayloadInput): AssetSnapshotRequest {
   return {

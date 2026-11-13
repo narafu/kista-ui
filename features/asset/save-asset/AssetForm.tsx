@@ -1,15 +1,15 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { useMemo } from 'react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { FormActions } from '@shared/ui/FormActions'
+import { FormField } from '@shared/ui/form/FormField'
+import { useAppForm } from '@shared/ui/form/useAppForm'
 import { InputWithUnit } from '@shared/ui/InputUnitSuffix'
 import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { useMeta } from '@entities/meta'
@@ -24,10 +24,10 @@ import {
   useMonthlyClosingsQuery,
   useUpdateAssetSnapshotMutation,
 } from '@entities/finance'
-import type { AssetClass, AssetSnapshot, FinanceAccount, FinanceCategory, Market } from '@entities/finance'
+import type { AssetSnapshot, AssetSnapshotRequest, FinanceAccount, FinanceCategory } from '@entities/finance'
 import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery } from '@entities/user'
 import { AccountField, ComboField, MarketAssetClassFields } from './AssetFormFields'
-import { FIXED_ASSET_META, MODE_LABEL, MODE_PENDING_LABEL, buildAssetPayload, categoryChangeEffect, initialFormValues, isEntryLocked } from './model/assetFormHelpers'
+import { FIXED_ASSET_META, MODE_LABEL, MODE_PENDING_LABEL, assetFormSchema, buildAssetPayload, categoryChangeEffect, initialFormValues, isEntryLocked } from './model/assetFormHelpers'
 import type { AssetFormMode } from './model/assetFormHelpers'
 
 export type { AssetFormMode }
@@ -65,166 +65,106 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 여전히 자유 입력이라 유저 정보 로딩 전에는 알려진 기본값으로 폴백한다.
   const strategySuggestions = useMeQuery().data?.strategySuggestions ?? DEFAULT_STRATEGY_SUGGESTIONS
 
-  const init = initialFormValues(initial, todayKst())
-  const [entryDate, setEntryDate] = useState(init.entryDate)
+  const createMutation = useCreateAssetSnapshotMutation()
+  const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
+  // 그룹 소속일 때만 스위치를 노출한다 — edit 모드는 groupId가 이미 고정돼 있어 대상 아님.
+  const canShareToGroup = useCanShareToGroup()
+  const form = useAppForm({
+    schema: assetFormSchema,
+    defaultValues: initialFormValues(initial, todayKst()),
+    mutation: mode === 'edit' ? updateMutation : createMutation,
+    toPayload: ({ shareToGroup, ...values }): AssetSnapshotRequest & { shareToGroup?: boolean } => {
+      const payload = buildAssetPayload(values)
+      return mode === 'edit' ? payload : { ...payload, shareToGroup: canShareToGroup && shareToGroup }
+    },
+    successMessage: mode === 'edit' ? '자산 기록이 수정되었습니다' : mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다',
+    onDone: onSuccess,
+  })
+  const [entryDate, categoryId, amountDigits] = form.watch(['entryDate', 'categoryId', 'amountDigits'])
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const monthClosed = isEntryLocked(monthlyClosings, closingScopeGroupId, entryDate, mode, initial)
-  const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categories, initial?.categoryId)
+  // 경로로 풀리지 않는 categoryId(삭제된 카테고리·목록 로드 실패)는 제출을 잠근다 — 전환 전과 같이 경로 기준으로 판정
+  const { selectedPath, setSelectedPath, cascadeLevels, categoryId: pathCategoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
   const fixedAssetMeta = FIXED_ASSET_META[selectedPath[0] ?? '']
-  const [accountId, setAccountId] = useState(init.accountId)
-  const [assetClass, setAssetClass] = useState<AssetClass>(init.assetClass)
-  const [market, setMarket] = useState<Market>(init.market)
-  const [strategy, setStrategy] = useState(init.strategy)
-  const [memo, setMemo] = useState(init.memo)
-  const [amountDigits, setAmountDigits] = useState(init.amountDigits)
+  const isPending = form.isPending
 
-  // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — edit 모드는 groupId가 이미 고정돼 있어 대상 아님.
-  const canShareToGroup = useCanShareToGroup()
-  const [shareToGroup, setShareToGroup] = useState(true)
-
-  const createMutation = useCreateAssetSnapshotMutation()
-  const updateMutation = useUpdateAssetSnapshotMutation(initial?.id ?? '')
-  const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
-
-  const canSubmit = entryDate !== '' && categoryId !== '' && amountDigits !== '' && !monthClosed
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!canSubmit) return
-
-    const payload = buildAssetPayload({ categoryId, accountId, entryDate, assetClass, market, strategy, memo, amountDigits })
-
-    if (mode === 'edit') {
-      updateMutation.mutate(payload, {
-        onSuccess: () => {
-          toast.success('자산 기록이 수정되었습니다')
-          onSuccess()
-        },
-      })
-      return
-    }
-
-    createMutation.mutate({ ...payload, shareToGroup: canShareToGroup && shareToGroup }, {
-      onSuccess: () => {
-        toast.success(mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다')
-        onSuccess()
-      },
-    })
-  }
+  const canSubmit = entryDate !== '' && categoryId !== '' && pathCategoryId !== '' && amountDigits !== '' && !monthClosed
 
   const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())}>
       <div className="max-w-xl">
         <div className={cn(cardClass, 'space-y-4')}>
-          <div className="space-y-2">
-            <Label htmlFor="entryDate">기준일</Label>
-            <Input
-              id="entryDate"
-              type="date"
-              value={entryDate}
-              onChange={(e) => setEntryDate(e.target.value)}
-              disabled={isPending}
-              className="h-11"
-            />
-          </div>
+          <FormField control={form.control} name="entryDate" label="기준일" required>
+            {(f) => <Input {...f} type="date" disabled={isPending} className="h-11" />}
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="category">카테고리</Label>
-            <div className="space-y-2">
+          <FormField control={form.control} name="categoryId" label="카테고리" required id="category">
+            {(f) => (
               <CascadingCategorySelect
                 levels={cascadeLevels}
                 path={selectedPath}
                 onPathChange={(next) => {
                   const effect = categoryChangeEffect(selectedPath[0], next)
-                  if (effect.clearStrategy) setStrategy('')
+                  if (effect.clearStrategy) form.setValue('strategy', '')
                   if (effect.fixed) {
-                    setAssetClass(effect.fixed.assetClass)
-                    setMarket(effect.fixed.market)
+                    form.setValue('assetClass', effect.fixed.assetClass)
+                    form.setValue('market', effect.fixed.market)
                   }
                   setSelectedPath(next)
+                  f.onChange(next.at(-1) ?? '')
                 }}
                 allowClear={false}
-                id="category"
+                id={f.id}
                 className="w-full h-11"
                 disabled={isPending}
               />
-            </div>
-            {categoriesFailed && (
-              <p className="text-xs text-destructive">카테고리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
             )}
-          </div>
-
-          {!fixedAssetMeta && (
-            <MarketAssetClassFields
-              meta={meta}
-              market={market}
-              assetClass={assetClass}
-              onMarketChange={setMarket}
-              onAssetClassChange={setAssetClass}
-              disabled={isPending}
-            />
+          </FormField>
+          {categoriesFailed && (
+            <p className="text-xs text-destructive">카테고리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
 
-          <AccountField accounts={accounts} accountsByType={accountsByType} value={accountId} onChange={setAccountId} disabled={isPending} loadFailed={accountsFailed} />
+          {!fixedAssetMeta && <MarketAssetClassFields control={form.control} meta={meta} disabled={isPending} />}
 
-          <div className="space-y-2">
-            <Label htmlFor="memo">메모 (선택)</Label>
-            <Input
-              id="memo"
-              placeholder="자유롭게 메모를 남겨보세요"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              disabled={isPending}
-              maxLength={255}
-              className="h-11"
-            />
-          </div>
+          <AccountField control={form.control} accounts={accounts} accountsByType={accountsByType} disabled={isPending} loadFailed={accountsFailed} />
 
-          {showStrategy && (
-            <ComboField
-              id="strategy"
-              label="운용전략 (선택)"
-              placeholder="예: VR, 자유 메모"
-              value={strategy}
-              onChange={setStrategy}
-              suggestions={strategySuggestions}
-              selectLabel="운용전략 목록에서 선택"
-              disabled={isPending}
-              maxLength={50}
-              helperText="자동매매 전략과 무관한 자유 메모입니다."
-            />
-          )}
+          <FormField control={form.control} name="memo" label="메모">
+            {(f) => <Input {...f} placeholder="자유롭게 메모를 남겨보세요" disabled={isPending} maxLength={255} className="h-11" />}
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="amount">금액</Label>
-            <InputWithUnit unit="원" unitId="amountUnit">
-              <Input
-                aria-describedby="amountUnit"
-                id="amount"
-                inputMode="numeric"
-                placeholder="0"
-                value={formatAmountDisplay(amountDigits)}
-                onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
-                onFocus={selectAllOnFocus}
-                disabled={isPending}
-                className="h-11 pr-8 text-right tabular-nums"
-              />
-            </InputWithUnit>
-          </div>
+          {showStrategy && <ComboField control={form.control} placeholder="예: VR, 자유 메모" suggestions={strategySuggestions} disabled={isPending} />}
+
+          <FormField control={form.control} name="amountDigits" label="금액" id="amount">
+            {(f) => (
+              <InputWithUnit unit="원" unitId="amountUnit">
+                <Input
+                  {...f}
+                  aria-describedby={[f['aria-describedby'], 'amountUnit'].filter(Boolean).join(' ')}
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={formatAmountDisplay(f.value)}
+                  onChange={(e) => f.onChange(digitsOnly(e.target.value))}
+                  onFocus={selectAllOnFocus}
+                  disabled={isPending}
+                  className="h-11 pr-8 text-right tabular-nums"
+                />
+              </InputWithUnit>
+            )}
+          </FormField>
 
           {mode !== 'edit' && canShareToGroup && (
-            <ShareToGroupSwitch id="assetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
+            <ShareToGroupSwitch id="assetShareToGroup" checked={form.watch('shareToGroup')} onCheckedChange={(checked) => form.setValue('shareToGroup', checked)} disabled={isPending} />
           )}
 
           {/* 저장이 막힌 이유를 버튼 바로 위에서 알린다 */}
           {monthClosed && <MonthClosedNotice />}
 
-          <FormActions onCancel={onCancel} isPending={isPending} canSubmit={canSubmit} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
+          <FormActions onCancel={onCancel} form={form} canSubmit={canSubmit} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
         </div>
       </div>
     </form>

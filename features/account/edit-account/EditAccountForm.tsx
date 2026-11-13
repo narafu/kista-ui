@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { z } from 'zod'
 import { AlertTriangle } from 'lucide-react'
 import { Spinner } from '@shared/ui/Spinner'
 import { Button } from '@/components/ui/button'
@@ -22,7 +23,9 @@ import {
 import { cn } from '@shared/lib/utils'
 import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
-import { ApiKeyExpiryField, isEstimatedExpiry, useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
+import { FormField } from '@shared/ui/form/FormField'
+import { useAppForm } from '@shared/ui/form/useAppForm'
+import { isEstimatedExpiry, kstToday, useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { strategyKeys } from '@entities/strategy'
 import { statsKeys } from '@entities/stats'
@@ -35,33 +38,30 @@ interface Props {
   account: Account
 }
 
+const schema = z.object({
+  nickname: z.string().trim().min(1, '계좌 별칭을 입력하세요.'),
+  apiKeyExpiresOn: z.string(),
+})
+
 export function EditAccountForm({ account }: Props) {
-  // eslint-disable-next-line react-doctor/no-derived-useState
-  const [nickname, setNickname] = useState(account.nickname)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  // 삭제 확인 타이핑은 폼 필드가 아니라 확인 절차라 RHF 밖에 둔다
   const [deleteConfirm, setDeleteConfirm] = useState('')
-  // 저장된 추정 만료일은 미리 채우지 않는다 — 과거 날짜가 그대로 전송돼 별칭 수정까지 실패하는 걸 막는다
-  const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState('')
   const showExpiry = isEstimatedExpiry(useMeta().findBroker(account.broker)?.apiKeyExpirySource)
   const router = useRouter()
   const queryClient = useQueryClient()
 
   const updateMutation = useUpdateAccountMutation(account.id)
   const deleteMutation = useDeleteAccountMutation(account.id)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!nickname.trim()) return
-    updateMutation.mutate(
-      { nickname: nickname.trim(), ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) },
-      {
-        onSuccess: () => {
-          toast.success('계좌가 수정되었습니다')
-          router.push(`/accounts/${account.id}`)
-        },
-      },
-    )
-  }
+  const form = useAppForm({
+    schema,
+    // 저장된 추정 만료일은 미리 채우지 않는다 — 과거 날짜가 그대로 전송돼 별칭 수정까지 실패하는 걸 막는다
+    defaultValues: { nickname: account.nickname, apiKeyExpiresOn: '' },
+    mutation: updateMutation,
+    toPayload: ({ nickname, apiKeyExpiresOn }) => ({ nickname, ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) }),
+    successMessage: '계좌가 수정되었습니다',
+    onDone: () => router.push(`/accounts/${account.id}`),
+  })
 
   function handleDelete() {
     if (deleteConfirm !== account.nickname) return
@@ -81,20 +81,12 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <div className="max-w-xl space-y-4">
-      <form onSubmit={handleSubmit} className={cn(CARD_CLASS, 'space-y-4')}>
+      <form onSubmit={form.submit} className={cn(CARD_CLASS, 'space-y-4')}>
         <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
 
-        <div className="space-y-2">
-          <Label htmlFor="nickname">계좌 별칭</Label>
-          <Input
-            id="nickname"
-            className="h-12"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            disabled={updateMutation.isPending}
-            maxLength={100}
-          />
-        </div>
+        <FormField control={form.control} name="nickname" label="계좌 별칭" required>
+          {(f) => <Input {...f} className="h-12" disabled={form.isPending} maxLength={100} />}
+        </FormField>
 
         {account.accountNoMasked != null && (
           <div className="space-y-2">
@@ -110,14 +102,16 @@ export function EditAccountForm({ account }: Props) {
         )}
 
         {showExpiry && (
-          <ApiKeyExpiryField id="edit-expires-on" value={apiKeyExpiresOn} onChange={setApiKeyExpiresOn} hint="증권사에서 확인한 실제 만료일을 입력하세요" disabled={updateMutation.isPending} />
+          <FormField control={form.control} name="apiKeyExpiresOn" id="edit-expires-on" label="API 키 만료일" hint="증권사에서 확인한 실제 만료일을 입력하세요">
+            {(f) => <Input {...f} type="date" min={kstToday()} className="h-12" disabled={form.isPending} />}
+          </FormField>
         )}
 
         <p className="text-sm text-muted-foreground">
           전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
         </p>
 
-        <FormActions cancelHref={`/accounts/${account.id}`} isPending={updateMutation.isPending} canSubmit label="저장" className="pt-2" />
+        <FormActions cancelHref={`/accounts/${account.id}`} form={form} label="저장" className="pt-2" />
       </form>
 
       {!isMockBroker(account.broker) && <CredentialsCard account={account} />}

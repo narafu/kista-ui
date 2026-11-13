@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Send, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@shared/ui/Badge'
+import { FormActions } from '@shared/ui/FormActions'
+import { FormField } from '@shared/ui/form/FormField'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { useDeleteTelegramMutation } from '@entities/user'
 import type { NotificationChannel } from '@entities/user'
@@ -78,41 +79,15 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
 
       {/* 미연결 — 입력 폼 */}
       {!hasTelegram && (
-        <div className="flex flex-col gap-3">
-          <div>
-            <Label htmlFor="bot-token" className="mb-1 text-sm font-normal text-muted-foreground">Bot Token</Label>
-            <Input
-              id="bot-token"
-              placeholder="123456:ABC-DEF..."
-              className="h-10 text-sm"
-              value={form.botToken}
-              onChange={(e) => form.setBotToken(e.target.value)}
-              disabled={form.isLoading}
-              maxLength={512}
-              aria-invalid={!!form.botTokenError}
-              aria-describedby={form.botTokenError ? 'bot-token-error' : undefined}
-            />
-            {form.botTokenError && <p id="bot-token-error" className="mt-1 text-xs text-[var(--status-error)]">{form.botTokenError}</p>}
-          </div>
-          <div>
-            <Label htmlFor="chat-id" className="mb-1 text-sm font-normal text-muted-foreground">Chat ID</Label>
-            <Input
-              id="chat-id"
-              placeholder="-100123456789"
-              className="h-10 text-sm"
-              value={form.chatId}
-              onChange={(e) => form.setChatId(e.target.value)}
-              disabled={form.isLoading}
-              maxLength={50}
-              aria-invalid={!!form.chatIdError}
-              aria-describedby={form.chatIdError ? 'chat-id-error' : undefined}
-            />
-            {form.chatIdError && <p id="chat-id-error" className="mt-1 text-xs text-[var(--status-error)]">{form.chatIdError}</p>}
-          </div>
-          <Button size="form" className="w-fit px-5" onClick={form.save} disabled={form.isLoading}>
-            {form.isLoading ? '연결 중...' : '연결하기'}
-          </Button>
-        </div>
+        <form onSubmit={form.submit} className="flex flex-col gap-3">
+          <FormField control={form.control} name="botToken" id="bot-token" label="Bot Token" className="space-y-1">
+            {(f) => <Input {...f} placeholder="123456:ABC-DEF..." className="h-10 text-sm" disabled={form.isPending} maxLength={512} />}
+          </FormField>
+          <FormField control={form.control} name="chatId" id="chat-id" label="Chat ID" className="space-y-1">
+            {(f) => <Input {...f} placeholder="-100123456789" className="h-10 text-sm" disabled={form.isPending} maxLength={50} />}
+          </FormField>
+          <FormActions form={form} label="연결하기" pendingLabel="연결 중…" className="w-fit" />
+        </form>
       )}
     </div>
   )

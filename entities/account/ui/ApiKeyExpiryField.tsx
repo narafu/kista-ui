@@ -13,7 +13,7 @@ interface Props {
 export function ApiKeyExpiryField({ id, value, onChange, hint, disabled }: Props) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>API 키 만료일 (선택)</Label>
+      <Label htmlFor={id}>API 키 만료일</Label>
       <Input id={id} type="date" min={kstToday()} className="h-12" value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} />
       <p className="text-sm text-muted-foreground">{hint}</p>
     </div>

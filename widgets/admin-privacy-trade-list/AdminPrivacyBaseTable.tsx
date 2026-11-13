@@ -23,10 +23,8 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
-import { CreatePrivacyBaseDialog } from './CreatePrivacyBaseDialog'
-import { EditPrivacyBaseDialog } from './EditPrivacyBaseDialog'
-import { EditPrivacyOrderDialog } from './EditPrivacyOrderDialog'
-import { AddPrivacyOrderDialog } from './AddPrivacyOrderDialog'
+import { PrivacyBaseFormDialog } from './PrivacyBaseFormDialog'
+import { PrivacyOrderFormDialog } from './PrivacyOrderFormDialog'
 import { latestYearlyResetByTicker } from './model/privacyChartSeries'
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
@@ -241,32 +239,19 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
       <PaginationBar page={currentPage} totalPages={totalPages} />
 
       {createOpen && (
-        <CreatePrivacyBaseDialog open={createOpen} onOpenChange={setCreateOpen} />
+        <PrivacyBaseFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />
       )}
 
       {editBase && (
-        <EditPrivacyBaseDialog
-          base={editBase}
-          open
-          onOpenChange={(next) => { if (!next) setEditBaseId(null) }}
-        />
+        <PrivacyBaseFormDialog base={editBase} open onClose={() => setEditBaseId(null)} />
       )}
 
       {editOrder && (
-        <EditPrivacyOrderDialog
-          baseId={editOrder.baseId}
-          order={editOrder.order}
-          open
-          onOpenChange={(next) => { if (!next) setEditOrderRef(null) }}
-        />
+        <PrivacyOrderFormDialog baseId={editOrder.baseId} order={editOrder.order} open onClose={() => setEditOrderRef(null)} />
       )}
 
       {addOrderBase && (
-        <AddPrivacyOrderDialog
-          baseId={addOrderBase.id}
-          open
-          onOpenChange={(next) => { if (!next) setAddOrderBaseId(null) }}
-        />
+        <PrivacyOrderFormDialog baseId={addOrderBase.id} open onClose={() => setAddOrderBaseId(null)} />
       )}
 
       <ConfirmDeleteDialog
