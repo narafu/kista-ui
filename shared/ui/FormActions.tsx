@@ -11,8 +11,10 @@ interface Props {
   cancelHref?: string
   // 하위 화면에서 상위로 돌아가는 버튼이면 '이전' — 동작은 취소와 같다
   cancelLabel?: string
-  isPending: boolean
-  canSubmit: boolean
+  // useAppForm 폼은 form만 넘긴다(진행 상태를 거기서 읽는다). 전략 폼(04-6 전)은 isPending을 직접 넘긴다
+  form?: { isPending: boolean }
+  isPending?: boolean
+  canSubmit?: boolean
   label: string
   pendingLabel?: string
   // 되돌릴 수 없는 작업(VR 재설정 등)은 destructive로 위계를 표시한다
@@ -22,7 +24,8 @@ interface Props {
 
 // 폼 맨 끝에 놓이는 취소(outline) + 제출(spinner) 버튼 행 — 모바일·PC 모두 화면에 띄우지(fixed) 않고
 // 콘텐츠 흐름 안에 둔다. AssetForm·StrategyForm·EditAccountForm·ReconfigureVrForm이 공유한다.
-export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', isPending, canSubmit, label, pendingLabel = '저장 중...', submitVariant = 'default', className }: Props) {
+export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form, isPending: pendingProp, canSubmit = true, label, pendingLabel = `${label} 중…`, submitVariant = 'default', className }: Props) {
+  const isPending = form?.isPending ?? pendingProp ?? false
   const cancelClassName = cn(buttonVariants({ variant: 'outline', size: 'form' }), 'flex-1')
   return (
     <div className={cn('flex gap-3', className)}>
