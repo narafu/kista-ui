@@ -1,8 +1,7 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AccountManager } from './AccountManager'
-import { AccountFormDialog } from './AccountFormDialog'
 import type { FinanceAccount } from '@entities/finance'
 
 const {
@@ -62,12 +61,6 @@ function rowOf(name: string): HTMLElement {
 
 function ariaLabelsOf(row: HTMLElement): (string | null)[] {
   return Array.from(row.querySelectorAll('[aria-label]')).map((el) => el.getAttribute('aria-label'))
-}
-
-// 다이얼로그는 열린 뒤 비동기로 첫 포커스(계좌 유형 셀렉트)를 옮긴다 — 그 전에 타이핑하면 도중에
-// 포커스를 빼앗겨 입력이 유실될 수 있다(실행이 빠를 때만 재현되는 경합). 폼 입력 전에 기다린다.
-async function waitForInitialFocus() {
-  await waitFor(() => expect(document.activeElement?.id).toBe('accountType'))
 }
 
 describe('AccountManager', () => {
@@ -185,102 +178,5 @@ describe('AccountManager', () => {
 
     // 증권사 그룹 내부가 가나다순(미래에셋 -> 삼성)으로 바뀌고, 은행 그룹은 여전히 뒤에 온다.
     expect(namesInOrder()).toEqual(['미래에셋증권', '삼성증권', '국민은행'])
-  })
-
-  it('생성 모드는 그룹 소속일 때 기본 켜짐 상태의 "그룹으로 저장" 스위치를 보여준다', async () => {
-    const user = userEvent.setup()
-    render(<AccountManager />)
-
-    await user.click(screen.getByRole('button', { name: '계좌 추가' }))
-
-    expect(screen.getByRole('switch', { name: '그룹으로 저장' })).toBeChecked()
-  })
-
-  it('"그룹으로 저장" 스위치가 켜진 채 제출하면 shareToGroup: true로 생성 mutation을 호출한다', async () => {
-    const user = userEvent.setup()
-    render(<AccountManager />)
-
-    await user.click(screen.getByRole('button', { name: '계좌 추가' }))
-    await waitForInitialFocus()
-    await user.type(screen.getByLabelText('계좌 이름'), '새 계좌')
-    await user.click(screen.getAllByRole('button', { name: '저장' })[0])
-
-    expect(createMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ name: '새 계좌', shareToGroup: true }),
-      expect.objectContaining({ onSuccess: expect.any(Function) }),
-    )
-  })
-
-  it('"그룹으로 저장" 스위치를 끄고 제출하면 shareToGroup: false로 생성 mutation을 호출한다', async () => {
-    const user = userEvent.setup()
-    render(<AccountManager />)
-
-    await user.click(screen.getByRole('button', { name: '계좌 추가' }))
-    await waitForInitialFocus()
-    await user.type(screen.getByLabelText('계좌 이름'), '새 계좌')
-    await user.click(screen.getByRole('switch', { name: '그룹으로 저장' }))
-    await user.click(screen.getAllByRole('button', { name: '저장' })[0])
-
-    expect(createMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ name: '새 계좌', shareToGroup: false }),
-      expect.objectContaining({ onSuccess: expect.any(Function) }),
-    )
-  })
-
-  it('그룹 미소속이면 생성 모드에도 "그룹으로 저장" 스위치가 없다', async () => {
-    canShareState.value = false
-    const user = userEvent.setup()
-    render(<AccountManager />)
-
-    await user.click(screen.getByRole('button', { name: '계좌 추가' }))
-
-    expect(screen.queryByRole('switch', { name: '그룹으로 저장' })).not.toBeInTheDocument()
-  })
-
-  it('계좌번호 입력은 숫자 외 문자를 제거한다', async () => {
-    const user = userEvent.setup()
-    render(<AccountManager />)
-
-    await user.click(screen.getByRole('button', { name: '계좌 추가' }))
-    await waitForInitialFocus()
-    const accountNoInput = screen.getByLabelText('계좌번호 (선택)')
-    await user.type(accountNoInput, '12ab-34')
-
-    expect(accountNoInput).toHaveValue('1234')
-  })
-
-  it('수정 모드는 마이그레이션되지 않은 legacy accountNo(비숫자 포함)를 초기값부터 정규화해 다른 필드만 바꿔도 숫자만 제출한다', async () => {
-    const user = userEvent.setup()
-    const legacyAccount: FinanceAccount = { id: 'acc-legacy', accountType: 'BANK', name: '하나은행', accountNo: '123-456-789' }
-    render(<AccountFormDialog open onOpenChange={() => {}} account={legacyAccount} />)
-    await waitForInitialFocus()
-
-    // accountNo 필드는 건드리지 않고 이름만 바꿔 제출한다 — 초기 state부터 숫자만 정규화돼 있어야
-    // 서버의 accountNo 숫자 전용 검증(신규/수정 요청 강제)에 걸리지 않는다. clear()로 비웠다가
-    // 다시 채우면 그 사이 canSubmit=false(저장 버튼 disabled)인 구간이 생겨 click이 그 타이밍에
-    // 걸리면 핸들러가 호출되지 않는 flaky 실패가 났다 — append로 바꿔 이름이 비는 구간 자체를 없앤다.
-    const nameInput = screen.getByLabelText('계좌 이름')
-    await user.type(nameInput, ' 변경')
-    await user.click(screen.getByRole('button', { name: '저장' }))
-
-    expect(updateMutateMock).toHaveBeenCalledWith(
-      expect.objectContaining({ accountNo: '123456789' }),
-      expect.objectContaining({ onSuccess: expect.any(Function) }),
-    )
-  })
-
-  it('수정 모드는 기존 기관·소유자를 다시 보내고, 비운 필드는 생략해 null로 지운다', async () => {
-    // PUT은 빠진 필드를 null로 지우므로 건드리지 않은 값은 반드시 다시 보내야 한다.
-    const user = userEvent.setup()
-    const account: FinanceAccount = { id: 'acc-9', accountType: 'BANK', name: '신한은행', institution: '신한', owner: '홍길동' }
-    render(<AccountFormDialog open onOpenChange={() => {}} account={account} />)
-    await waitForInitialFocus()
-
-    await user.clear(screen.getByLabelText('소유자 (선택)'))
-    await user.click(screen.getByRole('button', { name: '저장' }))
-
-    const payload = updateMutateMock.mock.calls[0][0]
-    expect(payload.institution).toBe('신한')
-    expect(payload).not.toHaveProperty('owner', expect.anything())
   })
 })

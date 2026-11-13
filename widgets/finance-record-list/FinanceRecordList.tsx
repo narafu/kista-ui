@@ -302,22 +302,20 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
       {editDialog.target && (
         <TransactionFormDialog
           open
-          onOpenChange={editDialog.onOpenChange}
+          onClose={editDialog.close}
           type={type}
           initial={editDialog.target}
-          onSuccess={() => editDialog.close()}
         />
       )}
 
       {duplicateDialog.target && (
         <TransactionFormDialog
           open
-          onOpenChange={duplicateDialog.onOpenChange}
+          onClose={duplicateDialog.close}
           type={type}
           duplicateFrom={duplicateDialog.target}
           windowFrom={registerWindowFrom}
           windowTo={registerWindowTo}
-          onSuccess={() => duplicateDialog.close()}
         />
       )}
       <ConfirmDeleteDialog

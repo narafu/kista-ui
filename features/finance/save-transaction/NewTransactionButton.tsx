@@ -30,11 +30,10 @@ export function NewTransactionButton({ type, className, windowFrom, windowTo }: 
       {open && (
         <TransactionFormDialog
           open
-          onOpenChange={setOpen}
+          onClose={() => setOpen(false)}
           type={type}
           windowFrom={windowFrom}
           windowTo={windowTo}
-          onSuccess={() => setOpen(false)}
         />
       )}
     </>

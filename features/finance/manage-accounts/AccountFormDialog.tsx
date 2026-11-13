@@ -1,180 +1,124 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { z } from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { SaveButton } from '@shared/ui/SaveButton'
+import { FormDialog } from '@shared/ui/FormDialog'
+import { FormActions } from '@shared/ui/FormActions'
+import { FormField } from '@shared/ui/form/FormField'
+import { useAppForm } from '@shared/ui/form/useAppForm'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { digitsOnly } from '@shared/lib/format'
-import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import { useMeta } from '@entities/meta'
 import { useCanShareToGroup, useCreateFinanceAccountMutation, useUpdateFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount, FinanceAccountRequest, FinanceAccountType } from '@entities/finance'
 
+const schema = z.object({
+  accountType: z.string(),
+  name: z.string().trim().min(1, '계좌 이름을 입력하세요.'),
+  institution: z.string(),
+  accountNo: z.string(),
+  owner: z.string(),
+  memo: z.string(),
+  shareToGroup: z.boolean(),
+})
+
 interface Props {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onClose: () => void
   account?: FinanceAccount // undefined = 생성 모드
 }
 
-export function AccountFormDialog({ open, onOpenChange, account }: Props) {
-  const { meta } = useMeta()
-  const [accountType, setAccountType] = useState<FinanceAccountType>(
-    account?.accountType ?? (meta.financeAccountTypes[0]?.code as FinanceAccountType) ?? 'BANK'
+export function AccountFormDialog({ open, onClose, account }: Props) {
+  return (
+    <FormDialog open={open} onClose={onClose} title={account ? '계좌 수정' : '계좌 추가'} description="계좌 유형, 계좌 이름을 입력하세요.">
+      {(close) => <AccountForm account={account} onDone={close} />}
+    </FormDialog>
   )
-  const [name, setName] = useState(account?.name ?? '')
-  const [institution, setInstitution] = useState(account?.institution ?? '')
-  // 기존 DB의 accountNo는 마이그레이션되지 않아 비숫자를 포함할 수 있다(서버는 신규/수정 요청만
-  // 숫자 전용으로 강제) — 초기값부터 digitsOnly로 정규화해야 필드를 건드리지 않고 다른 값만
-  // 고쳐 제출해도 400을 맞지 않는다.
-  const [accountNo, setAccountNo] = useState(() => digitsOnly(account?.accountNo ?? ''))
-  const [owner, setOwner] = useState(account?.owner ?? '')
-  const [memo, setMemo] = useState(account?.memo ?? '')
+}
 
+function AccountForm({ account, onDone }: { account?: FinanceAccount; onDone: () => void }) {
+  const { meta } = useMeta()
   // 생성 모드에서만 노출, 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) —
   // 수정 모드는 groupId가 이미 고정돼 있어 대상 아님(BudgetForm와 동일 패턴).
   const canShareToGroup = useCanShareToGroup()
-  const [shareToGroup, setShareToGroup] = useState(true)
-
   const createMutation = useCreateFinanceAccountMutation()
   const updateMutation = useUpdateFinanceAccountMutation(account?.id ?? '')
-  const isPending = account ? updateMutation.isPending : createMutation.isPending
-  const canSubmit = name.trim() !== ''
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!canSubmit) return
-
-    const payload: FinanceAccountRequest = {
-      accountType,
-      name: name.trim(),
-      institution: institution.trim() || undefined,
-      accountNo: accountNo.trim() || undefined,
-      owner: owner.trim() || undefined,
-      memo: memo.trim() || undefined,
-    }
-
-    submitFormDialog({
-      mode: account ? 'edit' : 'create',
-      payload,
-      createMutation,
-      updateMutation,
-      createExtra: { shareToGroup: canShareToGroup && shareToGroup },
-      messages: { create: '계좌가 추가되었습니다', edit: '계좌가 수정되었습니다' },
-      onSuccess: () => onOpenChange(false),
-    })
-  }
+  const form = useAppForm({
+    schema,
+    defaultValues: {
+      accountType: account?.accountType ?? meta.financeAccountTypes[0]?.code ?? 'BANK',
+      name: account?.name ?? '',
+      institution: account?.institution ?? '',
+      // 기존 DB의 accountNo는 마이그레이션되지 않아 비숫자를 포함할 수 있다(서버는 신규/수정 요청만
+      // 숫자 전용으로 강제) — 초기값부터 digitsOnly로 정규화해야 필드를 건드리지 않고 다른 값만
+      // 고쳐 제출해도 400을 맞지 않는다.
+      accountNo: digitsOnly(account?.accountNo ?? ''),
+      owner: account?.owner ?? '',
+      memo: account?.memo ?? '',
+      shareToGroup: true,
+    },
+    mutation: account ? updateMutation : createMutation,
+    toPayload: (v) => {
+      const payload: FinanceAccountRequest = {
+        accountType: v.accountType as FinanceAccountType,
+        name: v.name,
+        institution: v.institution.trim() || undefined,
+        accountNo: v.accountNo.trim() || undefined,
+        owner: v.owner.trim() || undefined,
+        memo: v.memo.trim() || undefined,
+      }
+      return account ? payload : { ...payload, shareToGroup: canShareToGroup && v.shareToGroup }
+    },
+    successMessage: account ? '계좌가 수정되었습니다' : '계좌가 추가되었습니다',
+    onDone,
+  })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{account ? '계좌 수정' : '계좌 추가'}</DialogTitle>
-            <DialogDescription>계좌 유형, 계좌 이름을 입력하세요.</DialogDescription>
-          </DialogHeader>
+    <form onSubmit={form.submit} className="space-y-4">
+      <FormField control={form.control} name="accountType" label="계좌 유형">
+        {(f) => (
+          <Select
+            items={meta.financeAccountTypes.map((t) => ({ value: t.code, label: t.label }))}
+            value={f.value}
+            onValueChange={(value) => { if (value) f.onChange(value) }}
+          >
+            <SelectTrigger id={f.id} className="w-full h-11" disabled={form.isPending}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {meta.financeAccountTypes.map((t) => <SelectItem key={t.code} value={t.code}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+      </FormField>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="accountType">계좌 유형</Label>
-              <Select
-                items={meta.financeAccountTypes.map((t) => ({ value: t.code, label: t.label }))}
-                value={accountType}
-                onValueChange={(value) => { if (value) setAccountType(value as FinanceAccountType) }}
-              >
-                <SelectTrigger id="accountType" className="w-full h-11" disabled={isPending}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {meta.financeAccountTypes.map((t) => <SelectItem key={t.code} value={t.code}>{t.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+      <FormField control={form.control} name="name" id="accountName" label="계좌 이름" required>
+        {(f) => <Input {...f} disabled={form.isPending} maxLength={50} className="h-11" />}
+      </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountName">계좌 이름</Label>
-              <Input
-                id="accountName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                disabled={isPending}
-                maxLength={50}
-                className="h-11"
-              />
-            </div>
+      <FormField control={form.control} name="institution" id="accountInstitution" label="기관">
+        {(f) => <Input {...f} disabled={form.isPending} maxLength={50} className="h-11" />}
+      </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountInstitution">기관 (선택)</Label>
-              <Input
-                id="accountInstitution"
-                value={institution}
-                onChange={(e) => setInstitution(e.target.value)}
-                disabled={isPending}
-                maxLength={50}
-                className="h-11"
-              />
-            </div>
+      <FormField control={form.control} name="accountNo" label="계좌번호">
+        {(f) => <Input {...f} onChange={(e) => f.onChange(digitsOnly(e.target.value))} inputMode="numeric" disabled={form.isPending} maxLength={50} className="h-11" />}
+      </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountNo">계좌번호 (선택)</Label>
-              <Input
-                id="accountNo"
-                inputMode="numeric"
-                value={accountNo}
-                onChange={(e) => setAccountNo(digitsOnly(e.target.value))}
-                disabled={isPending}
-                maxLength={50}
-                className="h-11"
-              />
-            </div>
+      <FormField control={form.control} name="owner" id="accountOwner" label="소유자">
+        {(f) => <Input {...f} disabled={form.isPending} maxLength={50} className="h-11" />}
+      </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountOwner">소유자 (선택)</Label>
-              <Input
-                id="accountOwner"
-                value={owner}
-                onChange={(e) => setOwner(e.target.value)}
-                disabled={isPending}
-                maxLength={50}
-                className="h-11"
-              />
-            </div>
+      <FormField control={form.control} name="memo" id="accountMemo" label="메모">
+        {(f) => <Input {...f} disabled={form.isPending} maxLength={100} className="h-11" />}
+      </FormField>
 
-            <div className="space-y-2">
-              <Label htmlFor="accountMemo">메모 (선택)</Label>
-              <Input
-                id="accountMemo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                disabled={isPending}
-                maxLength={100}
-                className="h-11"
-              />
-            </div>
+      {!account && canShareToGroup && (
+        <ShareToGroupSwitch id="accountShareToGroup" checked={form.watch('shareToGroup')} onCheckedChange={(v) => form.setValue('shareToGroup', v)} disabled={form.isPending} />
+      )}
 
-            {!account && canShareToGroup && (
-              <ShareToGroupSwitch id="accountShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-              취소
-            </Button>
-            <SaveButton isPending={isPending} disabled={!canSubmit} />
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <FormActions form={form} onCancel={onDone} label="저장" canSubmit={!!form.watch('name').trim()} className="pt-2" />
+    </form>
   )
 }

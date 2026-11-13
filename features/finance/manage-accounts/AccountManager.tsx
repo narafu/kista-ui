@@ -177,7 +177,7 @@ export function AccountManager() {
       {formTarget && (
         <AccountFormDialog
           open
-          onOpenChange={(next) => { if (!next) setFormTarget(null) }}
+          onClose={() => setFormTarget(null)}
           account={formTarget === 'new' ? undefined : formTarget}
         />
       )}

@@ -1,42 +1,36 @@
 'use client'
 
-import { useState } from 'react'
-import { toast } from 'sonner'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FormField } from '@shared/ui/form/FormField'
+import { useAppForm } from '@shared/ui/form/useAppForm'
 import { useRespondToInvitationMutation } from '@entities/finance'
 
-export function AcceptInvitationForm() {
-  const [code, setCode] = useState('')
-  const mutation = useRespondToInvitationMutation()
+const schema = z.object({ code: z.string().trim().min(1, '초대 코드를 입력하세요.') })
 
-  function accept() {
-    if (!code.trim() || mutation.isPending) return
-    mutation.mutate({ code: code.trim(), status: 'ACCEPTED' }, {
-      onSuccess: () => {
-        toast.success('그룹에 참여했습니다')
-        setCode('')
-      },
-    })
-  }
+export function AcceptInvitationForm() {
+  const form = useAppForm({
+    schema,
+    defaultValues: { code: '' },
+    mutation: useRespondToInvitationMutation(),
+    toPayload: (v) => ({ code: v.code, status: 'ACCEPTED' as const }),
+    successMessage: '그룹에 참여했습니다',
+    onDone: (): void => form.reset(),
+  })
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor="invitationCode">초대 코드가 있으신가요?</Label>
-      <div className="flex gap-2">
-        <Input
-          id="invitationCode"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="초대 코드 입력"
-          disabled={mutation.isPending}
-          className="h-11 flex-1"
-        />
-        <Button type="button" className="h-11" disabled={mutation.isPending || !code.trim()} onClick={accept}>
-          참여
-        </Button>
-      </div>
-    </div>
+    <form onSubmit={form.submit}>
+      <FormField control={form.control} name="code" id="invitationCode" label="초대 코드가 있으신가요?">
+        {(f) => (
+          <div className="flex gap-2">
+            <Input {...f} placeholder="초대 코드 입력" disabled={form.isPending} className="h-11 flex-1" />
+            <Button type="submit" className="h-11" disabled={form.isPending || !form.watch('code').trim()}>
+              참여
+            </Button>
+          </div>
+        )}
+      </FormField>
+    </form>
   )
 }

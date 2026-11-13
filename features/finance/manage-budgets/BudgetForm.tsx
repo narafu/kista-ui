@@ -1,15 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { z } from 'zod'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { FormActions } from '@shared/ui/FormActions'
+import { FormField } from '@shared/ui/form/FormField'
+import { useAppForm } from '@shared/ui/form/useAppForm'
 import { InputWithUnit } from '@shared/ui/InputUnitSuffix'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
-import { submitFormDialog } from '@shared/lib/form/submitFormDialog'
 import {
   monthStartDate,
   useCanShareToGroup,
@@ -19,6 +20,14 @@ import {
   useUpdateFinanceBudgetMutation,
 } from '@entities/finance'
 import type { FinanceBudget, FinanceBudgetRequest, FlowType } from '@entities/finance'
+
+// 금액은 입력 중 콤마 표시를 위해 숫자 문자열로 들고 있다가 제출 때 Number로 바꾼다
+const schema = z.object({
+  applyStartDate: z.string().min(1),
+  applyEndDate: z.string(),
+  amount: z.string(),
+  shareToGroup: z.boolean(),
+})
 
 interface Props {
   type: FlowType
@@ -46,49 +55,45 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
   const mode = initial ? 'edit' : 'create'
   const seed = initial ?? duplicateFrom
 
+  // 카테고리 계단식 선택은 RHF 밖 상태다 — 제출 때 toPayload가 현재 categoryId를 읽는다
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId } = useCategoryPathState(categoryTree, seed?.categoryId ?? defaultCategoryId)
-
-  // 월 예산이라 신규 등록은 이번 달 1일을 기본 시작일로 둔다.
-  const [applyStartDate, setApplyStartDate] = useState(seed?.applyStartDate || monthStartDate(todayKst().slice(0, 7)))
-  const [applyEndDate, setApplyEndDate] = useState(seed?.applyEndDate ?? '')
-  // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(canSubmit).
-  const [amountDigits, setAmountDigits] = useState(seed && seed.amount > 0 ? String(seed.amount) : '')
 
   // 그룹 소속일 때만 노출, 기본값 켜짐(그룹 저장 우선) — 수정 모드는 groupId가 이미 고정돼 있어 대상 아님.
   const canShareToGroup = useCanShareToGroup()
-  const [shareToGroup, setShareToGroup] = useState(true)
-
   const createMutation = useCreateFinanceBudgetMutation()
   const updateMutation = useUpdateFinanceBudgetMutation(initial?.id ?? '')
-  const isPending = mode === 'edit' ? updateMutation.isPending : createMutation.isPending
 
+  const form = useAppForm({
+    schema,
+    defaultValues: {
+      // 월 예산이라 신규 등록은 이번 달 1일을 기본 시작일로 둔다.
+      applyStartDate: seed?.applyStartDate || monthStartDate(todayKst().slice(0, 7)),
+      applyEndDate: seed?.applyEndDate ?? '',
+      // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(canSubmit).
+      amount: seed && seed.amount > 0 ? String(seed.amount) : '',
+      shareToGroup: true,
+    },
+    mutation: mode === 'edit' ? updateMutation : createMutation,
+    toPayload: (v) => {
+      const payload: FinanceBudgetRequest = {
+        categoryId,
+        applyStartDate: v.applyStartDate,
+        applyEndDate: v.applyEndDate || undefined,
+        amount: Number(v.amount),
+      }
+      return mode === 'edit' ? payload : { ...payload, shareToGroup: canShareToGroup && v.shareToGroup }
+    },
+    successMessage: mode === 'edit' ? '예산이 수정되었습니다' : '예산이 추가되었습니다',
+    onDone,
+  })
+
+  const applyStartDate = form.watch('applyStartDate')
+  const applyEndDate = form.watch('applyEndDate')
   const endBeforeStart = applyEndDate !== '' && applyEndDate < applyStartDate
-  const canSubmit = categoryId !== '' && applyStartDate !== '' && !endBeforeStart && Number(amountDigits) > 0
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!canSubmit) return
-
-    const payload: FinanceBudgetRequest = {
-      categoryId,
-      applyStartDate,
-      applyEndDate: applyEndDate || undefined,
-      amount: Number(amountDigits),
-    }
-
-    submitFormDialog({
-      mode,
-      payload,
-      createMutation,
-      updateMutation,
-      createExtra: { shareToGroup: canShareToGroup && shareToGroup },
-      messages: { create: '예산이 추가되었습니다', edit: '예산이 수정되었습니다' },
-      onSuccess: onDone,
-    })
-  }
+  const canSubmit = categoryId !== '' && applyStartDate !== '' && !endBeforeStart && Number(form.watch('amount')) > 0
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="budgetCategory">카테고리</Label>
         <CascadingCategorySelect
@@ -98,67 +103,56 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
           allowClear={false}
           id="budgetCategory"
           className="w-full h-11"
-          disabled={isPending}
+          disabled={form.isPending}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="applyStartDate">적용 시작일</Label>
-        <Input
-          id="applyStartDate"
-          type="date"
-          min={MIN_APPLY_DATE}
-          max={MAX_APPLY_DATE}
-          value={applyStartDate}
-          onChange={(e) => setApplyStartDate(e.target.value)}
-          disabled={isPending}
-          className="h-11"
-        />
-      </div>
+      <FormField control={form.control} name="applyStartDate" label="적용 시작일" required>
+        {(f) => <Input {...f} type="date" min={MIN_APPLY_DATE} max={MAX_APPLY_DATE} disabled={form.isPending} className="h-11" />}
+      </FormField>
 
-      <div className="space-y-2">
-        <Label htmlFor="applyEndDate">적용 종료일 (선택)</Label>
-        <Input
-          id="applyEndDate"
-          type="date"
-          min={applyStartDate || MIN_APPLY_DATE}
-          max={MAX_APPLY_DATE}
-          value={applyEndDate}
-          onChange={(e) => setApplyEndDate(e.target.value)}
-          disabled={isPending}
-          aria-invalid={endBeforeStart || undefined}
-          aria-describedby="applyEndDateHint"
-          className="h-11"
-        />
-        {endBeforeStart ? (
-          <p id="applyEndDateHint" className="text-xs text-destructive">종료일은 시작일 이후여야 합니다.</p>
-        ) : (
-          <p id="applyEndDateHint" className="text-xs text-muted-foreground">비워두면 무기한 적용</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="budgetAmount">월 예산</Label>
-        <InputWithUnit unit="원" unitId="budgetAmountUnit">
+      <FormField
+        control={form.control}
+        name="applyEndDate"
+        label="적용 종료일"
+        hint={endBeforeStart ? <span className="text-destructive">종료일은 시작일 이후여야 합니다.</span> : '비워두면 무기한 적용'}
+      >
+        {(f) => (
           <Input
-            aria-describedby="budgetAmountUnit"
-            id="budgetAmount"
-            inputMode="numeric"
-            placeholder="0"
-            value={formatAmountDisplay(amountDigits)}
-            onChange={(e) => setAmountDigits(digitsOnly(e.target.value))}
-            onFocus={selectAllOnFocus}
-            disabled={isPending}
-            className="h-11 pr-8 text-right tabular-nums"
+            {...f}
+            type="date"
+            min={applyStartDate || MIN_APPLY_DATE}
+            max={MAX_APPLY_DATE}
+            disabled={form.isPending}
+            aria-invalid={f['aria-invalid'] || endBeforeStart || undefined}
+            className="h-11"
           />
-        </InputWithUnit>
-      </div>
+        )}
+      </FormField>
+
+      <FormField control={form.control} name="amount" id="budgetAmount" label="월 예산" required>
+        {(f) => (
+          <InputWithUnit unit="원" unitId="budgetAmountUnit">
+            <Input
+              {...f}
+              aria-describedby={[f['aria-describedby'], 'budgetAmountUnit'].filter(Boolean).join(' ')}
+              inputMode="numeric"
+              placeholder="0"
+              value={formatAmountDisplay(f.value)}
+              onChange={(e) => f.onChange(digitsOnly(e.target.value))}
+              onFocus={selectAllOnFocus}
+              disabled={form.isPending}
+              className="h-11 pr-8 text-right tabular-nums"
+            />
+          </InputWithUnit>
+        )}
+      </FormField>
 
       {mode === 'create' && canShareToGroup && (
-        <ShareToGroupSwitch id="budgetShareToGroup" checked={shareToGroup} onCheckedChange={setShareToGroup} disabled={isPending} />
+        <ShareToGroupSwitch id="budgetShareToGroup" checked={form.watch('shareToGroup')} onCheckedChange={(v) => form.setValue('shareToGroup', v)} disabled={form.isPending} />
       )}
 
-      <FormActions onCancel={onDone} isPending={isPending} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} pendingLabel={mode === 'edit' ? '수정 중…' : '추가 중…'} className="pt-2" />
+      <FormActions form={form} onCancel={onDone} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} className="pt-2" />
     </form>
   )
 }

@@ -13,7 +13,7 @@ import { collectSubtreeIds, sortCategoryTree, useDeleteSystemFinanceCategoryMuta
 import type { FinanceCategory, FinanceCategoryType } from '@entities/finance'
 import { CategoryRow } from './CategoryRow'
 import { DeleteCategoryDialog } from './DeleteCategoryDialog'
-import { SystemCategoryFormDialog } from './SystemCategoryFormDialog'
+import { CategoryFormDialog } from './CategoryFormDialog'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 
 // 관리자 전용 시스템(공통) 카테고리 CRUD — CategoryManager와 거의 동일한 구조이되
@@ -80,13 +80,13 @@ export function SystemCategoryManager() {
       )}
 
       {formTarget && (
-        <SystemCategoryFormDialog
+        <CategoryFormDialog
           open
-          onOpenChange={(next) => { if (!next) setFormTarget(null) }}
+          onClose={() => setFormTarget(null)}
           type={type}
           l1Categories={l1Categories}
           category={formTarget === 'new' ? null : formTarget}
-          onSuccess={() => setFormTarget(null)}
+          system
         />
       )}
 

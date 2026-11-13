@@ -56,6 +56,27 @@ describe('BudgetForm', () => {
     expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
   })
 
+  it('그룹 소속이면 생성 제출에 shareToGroup=true 쿼리가 붙는다', async () => {
+    const user = userEvent.setup()
+    const { requests } = setup({ 'GET /api/finance/groups': [{ id: 'g1' }], 'POST /api/finance/budgets': source })
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
+    await categoryLabel('식비')
+    await screen.findByRole('switch', { name: '그룹으로 저장' })
+    await user.click(screen.getByRole('button', { name: '추가' }))
+    await waitFor(() => expect(requests.some((r) => r.method === 'POST')).toBe(true))
+    expect(requests.find((r) => r.method === 'POST')!.query.get('shareToGroup')).toBe('true')
+  })
+
+  it('적용 종료일이 있으면 그대로 보내고, 비우면 키를 생략한다', async () => {
+    const user = userEvent.setup()
+    const { requests } = setup({ 'POST /api/finance/budgets': source })
+    renderApp(<BudgetForm type="EXPENSE" duplicateFrom={{ ...source, applyEndDate: '2026-12-31' }} onDone={vi.fn()} />)
+    await categoryLabel('식비')
+    await user.click(screen.getByRole('button', { name: '추가' }))
+    await waitFor(() => expect(requests.some((r) => r.method === 'POST')).toBe(true))
+    expect(requests.find((r) => r.method === 'POST')!.body).toEqual({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-01-01', applyEndDate: '2026-12-31' })
+  })
+
   it('수정 제출은 PUT으로 그 예산을 고치고 성공하면 onDone을 부른다', async () => {
     const user = userEvent.setup()
     const onDone = vi.fn()
@@ -121,7 +142,7 @@ describe('BudgetForm', () => {
     setup()
     renderApp(<BudgetForm type="EXPENSE" duplicateFrom={{ ...source, applyStartDate: '2026-05-01' }} onDone={vi.fn()} />)
 
-    await user.type(screen.getByLabelText('적용 종료일 (선택)'), '2026-04-30')
+    await user.type(screen.getByLabelText('적용 종료일'), '2026-04-30')
 
     expect(screen.getByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()

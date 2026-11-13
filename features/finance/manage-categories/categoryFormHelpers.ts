@@ -20,6 +20,8 @@ export function buildCategoryPayload(
   type: FinanceCategoryType,
   name: string,
   sortOrder: string,
+  // 시스템 카테고리는 0부터, 그룹 카테고리는 1부터 허용한다
+  minSortOrder = 1,
 ): FinanceCategoryRequest {
   // PUT은 parentId/type을 서버가 무시하지만 요청 스키마상 필수라 기존 값을 그대로 실어 보낸다.
   const createParentId = parentId === NO_PARENT_VALUE ? undefined : parentId
@@ -27,6 +29,6 @@ export function buildCategoryPayload(
     parentId: mode === 'edit' ? category?.parentId : createParentId,
     type,
     name: name.trim(),
-    sortOrder: Math.max(1, Math.trunc(Number(sortOrder)) || 1),
+    sortOrder: Math.max(minSortOrder, Math.trunc(Number(sortOrder)) || minSortOrder),
   }
 }

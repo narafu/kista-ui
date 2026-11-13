@@ -40,14 +40,15 @@ export function useFinanceBudgetsQuery() {
   return useQuery(budgetListQueryOptions())
 }
 
-export function useFinanceGroupsQuery() {
-  return useQuery(financeGroupListQueryOptions())
+export function useFinanceGroupsQuery({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ ...financeGroupListQueryOptions(), enabled })
 }
 
 // 그룹 소속이어야 개인 소유 거래내역/예산을 공유 전환할 수 있다 — 공유 버튼 게이팅을
 // 호출부(FinanceRecordList/BudgetManager)마다 중복 계산하지 않고 여기서 한 번만 정의한다.
-export function useCanShareToGroup(): boolean {
-  const { data: groups } = useFinanceGroupsQuery()
+// enabled=false면 그룹 목록을 조회하지 않고 false — 관리자 시스템 카테고리처럼 그룹 개념이 없는 화면용
+export function useCanShareToGroup({ enabled = true }: { enabled?: boolean } = {}): boolean {
+  const { data: groups } = useFinanceGroupsQuery({ enabled })
   return (groups?.length ?? 0) > 0
 }
 

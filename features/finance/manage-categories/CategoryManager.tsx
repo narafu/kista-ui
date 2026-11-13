@@ -107,11 +107,10 @@ export function CategoryManager() {
       {formTarget && (
         <CategoryFormDialog
           open
-          onOpenChange={(next) => { if (!next) setFormTarget(null) }}
+          onClose={() => setFormTarget(null)}
           type={type}
           l1Categories={l1Categories}
           category={formTarget === 'new' ? null : formTarget}
-          onSuccess={() => setFormTarget(null)}
         />
       )}
 
