@@ -314,7 +314,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 
 ### 남긴 것
 
-- `next/headers` 모듈 mock은 2건이다: `strategies/[sid]/edit/page.test.tsx`, `app/api/auth/refresh/route.test.ts`(Route Handler, 묶음 B 집계에서 빠졌다). 서버 페이지 테스트는 늘지 않아 결정 대기 그대로다.
+- `next/headers` 모듈 mock은 2건이다: `strategies/[sid]/edit/page.test.tsx`, `app/api/auth/refresh/route.test.ts`(Route Handler, 묶음 B 집계에서 빠졌다). **사용자 확정(2026-11-13)**: 파일별 mock으로 둔다. `next/headers`를 쓰는 테스트가 3건 이상이 되면 `vitest.setup.ts` 전역 대역(기본 토큰 + 테스트별 덮어쓰기)으로 옮긴다. 2건 중 `route.test.ts`는 테스트마다 쿠키를 바꿔 전역화 이득이 없다.
 - 미검증(실기기 필요): 새로 `FormDialog`로 옮긴 가계부·관리자 다이얼로그의 모바일 전체 화면과 키보드.
 - 바뀐 화면 모양:
   - `TelegramSection`의 작은 muted 라벨이 `FormField` 기본 라벨로 바뀌었다.
