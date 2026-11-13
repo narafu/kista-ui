@@ -44,7 +44,7 @@ API_BASE_URL=https://api.kista-app.com
 2. Docker 이미지 빌드(`.env.production.public`에서 읽은 9개 `NEXT_PUBLIC_*`를 build-args로 주입, 이와 별도로 `DEPLOYMENT_VERSION`=커밋 SHA를 `deploymentId`용으로 주입) → GHCR push
 3. `deploy` — kista-infra에 `repository_dispatch(deploy)`로 `{app=kista-ui, config=이 커밋, roles=kista-ui=이 커밋, sha=이 커밋}`을 보내고 끝난다(대기하지 않음). 결과는 kista-infra가 이 커밋에 commit status `deploy/production`(pending → success/failure, 링크는 infra run)으로 되돌려 쓴다. 커밋의 초록불 = 서버 적용·헬스 게이트 통과이고, workflow run의 초록불은 "요청 전송"까지만 뜻한다. 확인: `gh api repos/narafu/kista-ui/commits/<sha>/status`
 4. kista-infra — SHA·이미지 검증, state보다 옛 요청 무시(신선도 병합), config SHA로 bundle 구성 → 서버 `reconcile.sh`: 첫 compose 호출에서 필수 변수 보간 검사(비어 있으면 아무것도 바꾸지 않고 실패) → kista-ui는 `bluegreen` 대상이라 `up --dry-run`으로 변경 판정 후 `--scale kista-ui=2 --no-recreate`로 새 컨테이너를 옆에 띄움 → Docker 헬스 healthy 10초 간격 최대 5분 → 실패 시 새 컨테이너만 제거(옛 컨테이너가 계속 서비스), 성공 시 옛 컨테이너 stop/rm·`current` 전환·미사용 이미지 태그 정리 → `state/kista-ui.yml` 커밋
-5. 교체 중 서비스 DNS 이름 `kista-ui`가 두 컨테이너를 모두 가리키고, Caddy(kista-infra `Caddyfile`, upstream `keepalive off`)가 종료 중 컨테이너로의 connection refused를 재시도로 흡수한다. 옛 컨테이너는 SIGTERM 후 처리 중 요청을 끝내고 `stop_grace_period` 35s 안에 종료(SSE는 끊기고 클라이언트가 재연결) — 설계 `kista-infra/docs/superpowers/specs/2026-10-02-kista-api-blue-green-design.md`
+5. 교체 중 서비스 DNS 이름 `kista-ui`가 두 컨테이너를 모두 가리키고, Caddy(라우팅은 이 레포 `deploy/server/caddy/kista-ui.caddy`, upstream `keepalive off`는 kista-infra `(upstream)` snippet)가 종료 중 컨테이너로의 connection refused를 재시도로 흡수한다. 옛 컨테이너는 SIGTERM 후 처리 중 요청을 끝내고 `stop_grace_period` 35s 안에 종료(SSE는 끊기고 클라이언트가 재연결) — 설계 `kista-infra/docs/superpowers/specs/2026-10-02-kista-api-blue-green-design.md`
 
 매매 시간대 배포 가드는 없다 — kista-ui는 로그인·조회 UI일 뿐 트레이딩 로직을 직접 실행하지 않는다.
 

@@ -1,0 +1,10 @@
+# kista-ui 도메인 라우팅 — kista-ui 레포 소유. kista-infra reconcile.sh가 config SHA의 이 파일을 /opt/kista-infra/routes/kista-ui.caddy에 설치하고
+# caddy reload한다. {$UI_DOMAIN}은 caddy 컨테이너 환경(kista-infra infra.env)에서 온다.
+# upstream 공용 설정(keepalive off·lb_try·health 주기)은 kista-infra Caddyfile의 `(upstream)` snippet이 소유한다 — 여기서는 health_uri만 넘긴다.
+# /api/health는 Docker healthcheck와 같은 대상(인증 불필요 Route Handler)
+{$UI_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy kista-ui:3000 {
+		import upstream /api/health
+	}
+}
