@@ -170,7 +170,7 @@ screens/<화면>/CLAUDE.md       그 화면의 quirk 본문(있는 화면만)
 1. **archive 71파일(31,230줄)과 감사 보고서 삭제: 승인됨(2026-11-12).** 삭제 커밋 해시를 `PROGRESS.md`에 적는다. 감사의 미해결 항목은 06과 대조해 남는 것만 백로그 한 줄로 옮긴다.
 2. ~~`specs/2026-07-12-reject-reason-design.md`~~: 폐기 결정(2026-11-12), 삭제함.
 3. ~~감사 보고서의 미해결 P2 항목~~: 닫음. 2026-11-12 코드 대조에서 S-02·S-03·S-04·A-03·A-16 전부 해소 확인.
-4. **`.claude`의 나머지 에이전트·스킬**(`next-component-boundary`, `ui-markup-specialist`, `ui-audit`, `typecheck-and-report`, `playwright-cli` 2,015줄)을 쓰고 있는지.
+4. (2026-11-13) `react-doctor` 스킬은 지침서 11 태스크 12에서 지운다(사용자 결정 E2). **`.claude`의 나머지 에이전트·스킬**(`next-component-boundary`, `ui-markup-specialist`, `ui-audit`, `typecheck-and-report`, `playwright-cli` 2,015줄)을 쓰고 있는지.
 5. **전역 `~/.claude/CLAUDE.md`**(16.6KB, 매 세션 로드)는 이 레포 밖이라 손대지 않았다. 프로젝트 문서와 겹치는 4곳(`findings/h` R13)을 어느 쪽에 둘지는 사용자가 정한다.
 
 ## 하지 말아야 할 것

@@ -319,7 +319,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 - 실행 명령은 `npx react-doctor@latest`다(`package.json:11`). 버전이 고정돼 있지 않아 규칙이 어느 날 바뀐다.
 - 목표: 억제를 `doctor.config.json`의 파일·규칙 단위 예외로 옮긴다(이미 `components/ui/**`에 4개 규칙이 그렇게 돼 있다). 7절 뒤에는 recharts 예외가 `shared/ui/chart/**` 한 줄이다. stub을 지우고 `reportUnusedDisableDirectives`를 켠다. react-doctor를 devDependency로 버전 고정한다.
 - 줄 단위 억제가 설정 파일로 표현되지 않는 규칙이 남으면 실행 세션이 react-doctor 문서를 확인해 정한다(`questions.md` 대상).
-- **사용자 결정**: react-doctor를 계속 쓰는지. 쓰지 않으면 stub·주석 49건·설정·스킬을 함께 지운다(08 결정 4와 같은 종류).
+- **사용자 결정(2026-11-13): 걷어낸다.** CI 검사는 PR에만 걸리는데 이 레포의 변경은 대부분 main 직접 커밋이라(커밋 2,011개 중 머지 34개) 평소 변경이 검사를 거치지 않는다. 그 대가로 억제 주석 49건과 ESLint 미사용 억제 감지 꺼짐을 지고 있었다. 접근성·hooks·Next 규칙은 ESLint(jsx-a11y strict, react-hooks, next)와 `a11y-check`가 이미 본다.
 
 ### 10-2. 환경값
 
@@ -394,7 +394,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 | 9 | 기간 선택 통일: 메타 프리셋 + `range` 파라미터, UI 날짜 계산 삭제(api T4·T5 뒤, 05 태스크 5와 같은 묶음) | `shared/lib/{date-range,period}.ts`, `widgets/{benchmark-comparison,stats-overview,market-holiday-calendar,crypto-market-indicators,fear-greed-card}/**`, `entities/trade/hooks/useDailyTradesRangeQuery.ts` | Sonnet | `grep -rnE "RANGE_DAYS\|BENCHMARK_PERIODS\|DAYS_OPTIONS" . \| grep -v test` 0건, `grep -rn "kstDateMinusDays\|subtractMonths\|rangeToFrom" . \| grep -v test` 0건 | api T4·T5, 06 태스크 8(`useUrlState`) |
 | 10 | 차트 틀 추출과 전환 | `shared/ui/chart/**`, recharts 차트 10파일 | Opus(틀), Sonnet(전환) | `grep -rln "from 'recharts'" --include='*.tsx' . \| grep -v shared/ui/chart \| wc -l`이 2 이하(3패널·게이지), visual-diff 검토 | 06 태스크 3(`AsyncSection`), 태스크 1 |
 | 11 | 토큰 체계 통일, 임의값 치환, 미참조 삭제, lint 규칙, Pretendard 자체 호스팅 | `app/globals.css`, 클래스 문자열 282곳, `eslint.config.mjs`, `app/layout.tsx` | Opus(체계·치환 스크립트), Sonnet(잔여) | `grep -rnE "\-\[var\(--" --include='*.tsx' . \| wc -l` 0, visual-diff 라이트·다크 | 06 태스크 6과 같은 묶음, 태스크 1 |
-| 12 | react-doctor 억제를 설정으로, stub 삭제, 버전 고정 | `eslint.config.mjs`, `doctor.config.json`, `package.json`, 주석 49곳 | Sonnet | `grep -rn "eslint-disable.*react-doctor" . \| wc -l` 0, `npm run lint`가 미사용 억제 주석을 보고함(고의로 1건 넣어 확인) | 사용자 결정(react-doctor 유지 여부), 태스크 10 |
+| 12 | react-doctor 걷어내기: stub 플러그인과 `reportUnusedDisableDirectives: 'off'` 삭제, `react-doctor/*` 억제 주석 49줄 삭제, `doctor.config.json`·`.react-doctor/`·`.github/workflows/react-doctor.yml`·`package.json`의 `doctor` 스크립트·`.claude/skills/react-doctor/` 삭제, `docs/agents/commands.md`·`finance-widgets.md`의 언급 정리 | 위 파일들 | Haiku | `git grep -n "react-doctor" -- ':!docs/superpowers'` 0건, `npm run lint` 통과, 고의로 쓸모없는 `eslint-disable` 1건을 넣었을 때 lint가 보고하는지 확인 후 되돌림 | 없음(태스크 10과 무관해졌다) |
 | 13 | 환경값 접근 한 곳, `.env.example` 정합 | `shared/lib/env.ts`, 직접 접근 15줄, `.env.example` | Haiku | `grep -rn "process.env" --include='*.ts*' app entities shared features widgets \| grep -v "shared/lib/env.ts" \| grep -v test` 0건 | 09 태스크 6과 같은 묶음 |
 
 ## 판단이 갈릴 때의 기본값
@@ -441,7 +441,7 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 | # | 결정 | 결과 |
 |---|---|---|
 | E1 | 금액 숨김의 적용 범위(5절) | **승인** — 매매 화면(계좌 요약·전략 상세·통계)까지. 스위치는 계정 설정으로 옮긴다. 태스크 8의 범위가 이것이다 |
-| E2 | react-doctor(10-1) | **열림** — 권고가 "사용 여부에 따름"이었다. 태스크 12는 답 뒤에 한다 |
+| E2 | react-doctor(10-1) | **결정** — 걷어낸다(태스크 12) |
 | E3 | 승인 대기 화면의 실시간 감지(2절) | **승인** — 30초 주기 조회. 서버 엔드포인트는 ui 배포 뒤 api가 지운다 |
 | E4 | 상태를 토큰 클레임으로(1절 나) | **승인** — api 지침서 13 U1, api 먼저 배포 |
 | E5 | 보안 헤더(10-3) | **승인(ui 쪽)** — 위치는 infra Caddy 공용 스니펫. 실행은 infra 지침서 04 T9이고 그쪽 결정 목록에서 따로 승인받는다 |
