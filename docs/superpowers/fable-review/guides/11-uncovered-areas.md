@@ -1,5 +1,7 @@
 # 11. 지침서 01~09가 다루지 않은 영역
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/p-uncovered-runtime.md`(지형표, 인증·SSE·알림·오류·앱 셸·관리자·시장 통계·shared), `findings/q-uncovered-assets.md`(차트·스타일 토큰·scripts·e2e·설정·의존성·public).
 
 01~09는 "서버 데이터를 화면에 붙이는 길"(타입 → 데이터 층 → 폼·목록 → 계층)을 다뤘다. 이 지침서는 그 길 밖에 있는 것을 다룬다: 세션, 실시간 연결, 오류 수집, 차트, 디자인 토큰, 개발 도구.
@@ -445,3 +447,39 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 | E3 | 승인 대기 화면의 실시간 감지(2절) | **승인** — 30초 주기 조회. 서버 엔드포인트는 ui 배포 뒤 api가 지운다 |
 | E4 | 상태를 토큰 클레임으로(1절 나) | **승인** — api 지침서 13 U1, api 먼저 배포 |
 | E5 | 보안 헤더(10-3) | **승인(ui 쪽)** — 위치는 infra Caddy 공용 스니펫. 실행은 infra 지침서 04 T9이고 그쪽 결정 목록에서 따로 승인받는다 |
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/t-guide-premises-07-11.md`. 사용자 결정 E1~E5는 닫혔다. 서버와 무관하게 지금 할 수 있는 것: 태스크 1, 2, 7, 12(로드맵 S2).
+
+전제 정정(완료 판정이 0이 되지 않는 곳):
+
+- 태스크 1: `grep -rn "dev-token\|dev-admin-token" scripts e2e`는 README 두 줄(`scripts/a11y-check/README.md:30`, `scripts/visual-diff/README.md:40`)에 걸려 1이 되지 않는다. `git grep -n "dev-token\|dev-admin-token" -- 'scripts/**/*.mjs' 'e2e/**/*.ts' 'tests/**/*.ts' | wc -l`이 1이면 통과다. "화면 35개"는 10의 1·2와 12가 화면을 줄인 뒤의 수로 센다.
+- 태스크 4: `status-stream`은 생성물과 도구에 남는다. 판정은 `git grep -n "status-stream" -- . ':!docs' ':!shared/lib/api-types.ts' ':!openapi.json'` 0건이다. 같이 지울 것: `scripts/visual-diff/scenarios.mjs:51`의 `stubStatusStream`과 `README.md:67`, `deploy/server/docker-compose.yml:21`의 주석, `docs/agents/app.md:29`. 생성 타입에서는 api가 엔드포인트를 지운 뒤 사라진다(ui 먼저. `cross-repo.md`에 적는다).
+- 태스크 12: 대상에 `.claude/settings.json:4`의 react-doctor 허용 규칙이 빠져 있다. 같이 지운다. `docs/agents/commands.md`의 lint 문장("react-doctor 규칙은 stub으로 등록")과 `CLAUDE.md`·`README.md`의 언급도 판정에 넣는다: `git grep -n -i "react-doctor\|doctor" -- . ':!docs/superpowers' ':!package-lock.json'` 0건.
+- 태스크 9: 대상에 `app/(main)/stats/page.tsx`가 빠져 있다. `crypto-market-indicators`는 12가 지워서 대상에서 빠진다. 서버의 `range` 프리셋 코드는 아직 계약에 없다(PRIVACY의 정수 `range` 한 곳뿐).
+- 태스크 10: recharts 차트는 지금 12파일이다. 코인의 `IndicatorLineChart.tsx`가 12로 사라지면 틀로 옮길 것은 9파일이다. 판정 "2 이하(3패널·게이지)"는 그대로다.
+- **태스크 2·3과 PENDING 사용자의 `role`**: 본문은 "역할 캐시 쿠키는 태스크 2에서 먼저 지운다, `role` 클레임은 이미 있다"고 한다. ACTIVE 사용자에게는 맞다. 그런데 api 13 U1이 배포되면 **PENDING 사용자의 토큰에는 `role` 클레임이 없다.** 태스크 2에서 `landingPath`와 `proxy.ts:35-64`의 상태·역할 판정이 role 없는 토큰을 만나도 갱신·리다이렉트를 되풀이하지 않게 한다: 상태가 PENDING·REJECTED면 role을 읽지 않는다. 테스트에 "role 없는 PENDING 토큰" 1건을 넣는다.
+- api 13 U1 뒤로 PENDING 사용자는 승인 대기 화면이 쓰는 경로 말고는 403을 받는다. ui가 부르는 경로 목록은 `findings/t` 6-7절에 있고 api 레포 `cross-repo.md`에 회신했다(2026-11-14). 태스크 4(주기 조회)·6(FCM)에서 PENDING 화면이 부르는 경로가 늘거나 바뀌면 `cross-repo.md`의 그 목록을 고친다. `clientFetch`의 전역 401 처리는 403에 반응하지 않는지 확인한다(반응하면 로그아웃 반복이 된다).
+- 태스크 3의 선행은 `status` 클레임이다(api U1). 토큰은 타입에 보이지 않으므로 api 레포 `cross-repo.md` E절의 완료 표시로 확인한다. 표시가 없으면 하지 않는다.
+
+같은 커밋에서 고칠 것(가드):
+
+- 태스크 12와 03의 7이 같은 `eslint.config.mjs`를 고친다. 12가 먼저다. `reportUnusedDisableDirectives`를 켜면 쓰이지 않는 억제 주석이 전부 오류가 된다. 주석을 지우는 것과 같은 커밋이어야 lint가 통과한다.
+- 태스크 6: `app/api/fcm/**` 2개를 단일 프록시로 옮기면 02의 route 수가 준다. 02의 2가 끝난 뒤에 한다.
+- 태스크 11: `app/globals.css:6`의 `@source not "../docs"`를 지우지 않는다. 임의값 금지 lint 규칙은 위반 0 뒤에 켠다.
+- 태스크 13: 09의 6과 같은 묶음이다. `.env.example`에서 `TRADING_API_BASE_URL`을 빼는 것은 02의 8이다.
+
+기본값은 본문 "판단이 갈릴 때의 기본값" 절. 더할 것:
+
+- 태스크 8(금액 가림, E1 승인: 매매 화면까지): 스위치를 계정 설정으로 옮기는 것은 조작 위치가 달라지는 변경이고 승인된 범위다. 가림 상태의 기본값(꺼짐)과 저장 위치는 지금 것을 유지한다.
+- 태스크 7(오류 수집): 수집 요청이 실패해도 화면에 아무것도 보이지 않게 한다(지금 동작). PENDING 화면에서도 `POST /api/client-errors`가 나간다.
+- 코인 위젯에 걸친 항목(기간 프리셋, 차트 틀, `fear-greed-card`의 crypto)은 12 전이면 건드리지 않는다(V8).
+
+중단 조건의 대체 경로:
+
+- 1·2·3절의 "실브라우저와 실제 로그인이 있어야 확인된다"(380행), 인증 흐름 수동 확인(103~109행) → 로드맵 4-5의 2. 인증 코드는 e2e `auth-guard.spec.ts` 전후 통과가 끝나기 전에 push를 요청하지 않는다. 테스트의 케이스를 지우지 않는 규칙은 그대로다.
+- 서비스 워커 실기기 확인(154행) → 로드맵 4-5의 3.
+- 태스크 2에서 기존 인증 테스트가 깨진다 → 되돌린다. 동작이 애매하면 지금 동작을 보존한다(본문 기본값).
+
+배포: 태스크 2·3은 인증 경로라 `/code-review high`. 태스크 3은 api U1 배포 뒤, 태스크 4는 ui 먼저(api가 `status-stream`을 뒤에 지운다), 태스크 9는 05의 5와 같은 날이다(로드맵 4-4). 보안 헤더(E5)는 infra가 하고 ui는 `kista-ui.caddy`에 import 한 줄이다(10의 10과 같은 조건).

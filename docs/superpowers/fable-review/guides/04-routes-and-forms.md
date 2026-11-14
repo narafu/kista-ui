@@ -1,5 +1,7 @@
 # 04. 라우트와 폼 — 폼 형태를 둘로, 폼 구현을 하나로
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/c-parallel-structures.md` 4~5절과 5절 보충, `findings/g-ux-pattern-variance.md` 2·4절, `findings/d-single-use-abstractions.md` 5절, `findings/a-vertical-trace.md` 화면 4.
 
 **결정 1(인터셉트 라우트 폐지)은 2026-11-12 사용자가 승인했다.** 아래 "승인되지 않으면" 문단은 기록으로만 남긴다.
@@ -233,3 +235,37 @@ const form = useAppForm({
 - 05와 맞물린다: 전략 폼의 규칙 사본 제거는 05, 폼 구조 통합은 여기. 05 → 04 태스크 6 순서.
 - 06: `AmountInput`, 로딩 프리셋, 확인 다이얼로그.
 - api 지침서 10: T5(메타 기본값·범위), T7(`fieldErrors`). T7에 요약 `detail` 규약이 붙는다(`cross-repo.md` B 2026-11-13 항목, api 지침서 10의 2-5절에 반영됨 — api 커밋 `3cdbdedca`, 코드 실행은 T7).
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/r-implementation-review.md`(구현 대조), `findings/s-guide-premises-01-06.md`. 태스크 1·2·3·4·5a·5b·5c는 끝났다. 남은 것: 5d(+7b), 5e, 5f, 5g, 6.
+
+본문에 남은 옛 문장(실제 구현이 기준이다):
+
+- 59행 결정 1 표의 "닉네임": 다이얼로그가 아니라 인라인 편집이다(`NicknameEditor`). 그대로 둔다.
+- 74행·165행: `FormDialog`는 `open`·`onClose`·children `(close) => …`를 받고, 처음부터 `useSubviewHistory`로 이력 한 칸을 쌓는다(사용자 확정). 닫힌 뒤 늦게 도착한 `onDone`을 막는 회차 가드가 있다(`shared/ui/FormDialog.tsx`).
+- 74행·153행의 "`subviewHistory`를 지운다": 지우지 않는다. `FormDialog`와 DCA 규칙 편집 하위 뷰가 쓴다.
+- 95행·232행의 "`$api.useMutation`", "선행: 02": `useAppForm`은 지금 entities mutation hook의 결과를 받고 02보다 먼저 실행됐다. 02가 끝나면 호출부가 `$api.useMutation(...)`을 넘긴다(02 보정 절).
+- 167행 "복제 링크는 자산 기록에만": 예산에도 있었고 다이얼로그 전환에서 prop으로 바꿨다.
+- 186행 "`FormActions`를 form 객체를 받게 변경": 지금은 `form` prop을 **더했고** 옛 `isPending`·`canSubmit`이 같이 있다. 전략 폼 4곳이 옛 prop을 쓴다. 태스크 6이 끝나면 옛 prop을 지운다.
+
+태스크 5d 보정:
+
+- 대상이 더 있다. `git grep -n canSubmit -- '*.tsx' ':!*.test.*'`의 전부다 — 본문의 가계부·자산 기록·`CredentialsCard` 말고 `features/finance/manage-categories/CategoryFormDialog.tsx:115`, `features/finance/manage-accounts/AccountFormDialog.tsx:121`, 그리고 전략 쪽 `StrategyForm.tsx:194`·`DcaStrategyForm.tsx:211`·`sections/DcaRuleEditor.tsx:59`·`reconfigure-vr/ReconfigureVrForm.tsx:151`. 전략 쪽 4곳은 본문대로 이름만 `locked`로 옮긴다(조건은 04-6에서 정리). 판정은 위 명령 0건.
+- 묶음 C가 `onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())}` 가드를 넣었다(`TransactionFormDialog.tsx:105`, `BudgetForm.tsx:96`, `AssetForm.tsx:99`). 5d는 이것을 둘로 가른다: **빈 값·형식 조건은 zod로 옮겨 제출 시 필드 오류로 보이고, 잠금 조건(월 마감, 기간 밖, 경로로 풀리지 않는 `categoryId`)은 `locked`와 `onSubmit` 가드에 남긴다**(Enter 제출도 막아야 한다).
+- 제출 버튼이 비활성임을 단언하는 테스트가 바뀐다: `BudgetForm.test.tsx`, `AssetForm.test.tsx`, `EditAccountForm.test.tsx`, `AccountInfoStep.test.tsx`, `ApiStep.test.tsx`의 `toBeDisabled`. 빈 값 케이스는 "제출하면 필드 오류가 보이고 요청이 나가지 않는다"로 바꾸고, 잠금 케이스는 그대로 둔다. 스테퍼 두 파일은 5f의 것이라 5d에서 건드리지 않는다.
+- 7b(`docs/agents/a11y.md`의 "폼" 항목 3줄)를 같은 커밋에 넣는다. `docs/agents/app.md:40`의 "가계부 다이얼로그는 아직 일반 `Dialog`" 문장은 낡았다. 같이 지운다.
+
+태스크 5e·5f·5g·6 보정:
+
+- 5e: 선행 테스트("편집 후 저장하면 나가는 요청 바디")를 전환 전 코드에서 통과시키지 못하면 전환하지 않는다. `DCA_TICKER_SUGGESTIONS`와 `allowedIp`는 12가 고친다.
+- 5f: 계좌 등록 단계는 KIS·업비트·바이낸스 분기를 담고 있다(`steps/ApiStep.tsx`, `AccountInfoStep.tsx`). 12(코인)와 05 태스크 9(KIS)가 끝난 뒤에 한다(로드맵 S10). 그 전에 하면 지울 단계를 RHF로 옮기게 된다.
+- 5g: 선행은 `git grep -c fieldErrors -- shared/lib/api-types.ts`가 0이 아닌 것(api T7)과 02 완료다. 그 전에는 `MAP_SERVER_FIELD_ERRORS = false`인 지금 상태가 대체 동작이다. 전역 토스트는 `fieldErrors`가 있어도 항상 띄운다(본문 "서버 오류의 분담"). `PROGRESS.md` 묶음 C의 "hook `onError`도 고친다"는 따르지 않는다.
+- 6: 선행 테스트 1의 "DCA 주식·크립토"에서 크립토를 뺀다(12). 본문의 `screens/`는 03 뒤의 이름이다. 03 전이면 지금 위치(`features/strategy/**`, `widgets/**`)에서 한다. 선행인 api T5는 둘로 나뉘었다: root 소유 값(enum 라벨, `userStatuses`)은 먼저 오고 VR 램프 기본값표는 api 05 단계 M 뒤에 온다. 그래서 6에서 VR 램프 기본값의 ui 사본(`vrRamp.ts`)은 M 뒤까지 남긴다. T10(`trading-cycle-validations`)은 `api-types.ts`에 0건이다.
+- `features/strategy/adjust-capital/CapitalForm.tsx:88`의 `as unknown as z.ZodType<…>` 캐스트는 6이나 10의 5에서 그 파일을 고칠 때 없앨 수 있으면 없앤다.
+
+기본값은 본문 "판단이 갈릴 때의 기본값" 절. 더할 것: 폼을 여는 곳이 둘 이상이면 다이얼로그 조립(제목·설명·폼)을 한 컴포넌트에 둔다(`BudgetFormDialog`가 뒤늦게 생긴 이유).
+
+중단 조건의 대체 경로: 실기기 확인(166·175행)은 로드맵 4-5의 3. 197행(태스크 6은 05·T5·T7·T10 뒤)은 대체 경로가 없다. 올 때까지 6을 하지 않는다.
+
+배포: 5d·5e는 조작 결과가 달라진다(사용자 승인 2026-11-13). 전후 스크린샷을 완료 보고에 붙인다. ui 단독.

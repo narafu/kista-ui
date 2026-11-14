@@ -1,5 +1,7 @@
 # 09. 불필요 파일과 배포 자산
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/i-unused-files.md`(참조 grep 전수), kista-infra의 `docs/superpowers/fable-review/findings/cross-repo-deploy.md`(배포 자산, fable-infra 전달), `findings/j-ui-api-principle-violations.md` 13절(삭제되는 증권사).
 
 **삭제의 실제 실행은 사용자 승인 뒤에 한다.**
@@ -127,3 +129,32 @@ fable-infra가 알린 것 중 이 레포에서 고칠 것:
 - 태스크 7은 kista-infra 지침서, C4는 api 지침서 04와 05 지침서 태스크 9.
 - 태스크 8은 07.
 - kista-api 프로세스 구조 결정(D1)이 나면 `TRADING_API_BASE_URL` 관련 항목(B1, 태스크 4, 02의 `resolveUpstream`)을 한 번에 정리한다.
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/t-guide-premises-07-11.md`. 끝난 것: 태스크 4, C1(`42fc30cd`), C2(`fc4456df` — `required-env` 삭제, compose 필수 보간), 구조 문제 1·6(`5804575f` — Caddy 스니펫은 이 레포가 가진다).
+
+전제 정정:
+
+- **A1(`fmtCompactUsdNarrow` 삭제)은 그대로 할 수 없다.** 제품이 쓴다: `shared/lib/format/index.ts:31`의 `fmtCompactMoneyNarrow`가 USD 분기에서 부르고 그것을 `widgets/market-holiday-calendar/WeeklyMarketCalendar.tsx:6`이 쓴다. 죽는 것은 같은 함수의 USDT 분기이고 12가 지운다. A1은 대상에서 뺀다. 12 뒤에 `fmtCompactMoneyNarrow`가 USD 한 갈래만 남으면 그때 둘을 하나로 접는다.
+- A4의 `subviewHistory`: 파일은 남는다. `pushSubviewEntry`·`SUBVIEW_HISTORY_KEY`가 파일 밖에서 안 쓰이는 것은 맞다. export만 뗀다(태스크 8). 62행 "04가 `subviewHistory.ts`를 지운다"는 틀렸다.
+- A6(`.react-doctor/false-positives.md`)은 11의 12가 디렉토리째 지운다.
+- **`contract.bats`의 경로는 `.github/tests/contract.bats`다.** `deploy/server/contract.bats`는 없다. 판정은 `bats .github/tests`다. `server-deploy.yml`의 `deploy-checks` 잡이 이미 돌린다. 태스크 5의 "`ci.yml`에 bats 추가"는 PR 단계에 없다는 뜻으로 아직 유효하다.
+- 태스크 7(C1~C3)에서 남은 것은 C3뿐이다. C3의 `UI_DOMAIN`: 이 레포 서버 `.env`의 값은 여전히 소비처가 없지만 **이름은 쓰인다**(`deploy/server/caddy/kista-ui.caddy:5`의 `{$UI_DOMAIN}`, 값은 caddy 컨테이너의 infra.env에서 온다. `contract.bats:25`가 단언한다). `.env`에서 키를 빼고 `deploy/server/README.md:32,35`의 "아무것도 소비하지 않는다"를 "Caddy 스니펫이 infra 쪽 값을 읽는다"로 고친다. 스니펫과 bats는 건드리지 않는다.
+- B6: `axe-core`를 `package.json`에 명시한다(11의 9절, `scripts/a11y-check`가 쓴다). `sharp`와 같은 태스크 3에서 한다.
+- C4(삭제되는 증권사 참조)의 수치(38·48파일)는 다시 센다. 코인은 12, KIS는 05의 9가 맡고 이 지침서는 하지 않는다.
+- 태스크 4의 "D1 결정이 '진입점 하나'면 키 삭제"는 02의 8(api 05 단계 M 뒤)이다. 그때 `contract.bats:10`을 같이 고친다.
+
+같은 커밋에서 고칠 것(가드): `knip.json`의 예외를 지우는 것과 그 대상을 지우는 것은 같은 커밋이다. workflow·compose를 고치면 `bats .github/tests`와 `docker compose -f deploy/server/docker-compose.yml config`를 돌린다(compose는 필수 보간이라 `API_BASE_URL=x TRADING_API_BASE_URL=x` 같은 임시 값을 앞에 준다).
+
+기본값:
+
+- 태스크 1(사용자 결정 B1·B2·B4·B7)은 답이 없으면 건드리지 않는다(로드맵 4-6의 표). 태스크 2·3·8은 그 결정과 무관하게 한다.
+- 태스크 6(`NEXT_PUBLIC_*` 원본 하나로): 전후 빌드에서 공개 값이 같은지는 `docker build` 없이 `next build` 산출물의 `grep`으로도 볼 수 있다. 로컬에서 확인하지 못하면 커밋하지 않는다(배포가 깨지는 경로다).
+
+중단 조건의 대체 경로:
+
+- "실제 push로 확인한다"(92·103행, 태스크 5·6·7) → 실행 세션은 push하지 않는다. 로컬 검증까지 하고 커밋한 뒤 완료 보고에 "push 뒤 확인할 것"(문서만 바꾼 push에서 배포 workflow가 돌지 않는지, 배포 1회 성공)을 적는다. **한 push에 workflow 변경 하나만** 나가게 커밋을 나누고, 사용자가 push한 뒤의 세션이 `gh run list --workflow=server-deploy.yml --limit 3`으로 확인한다. 실패하면 그 커밋을 `git revert`한 커밋을 준비해 사용자에게 push를 요청한다.
+- "삭제의 실제 실행은 사용자 승인 뒤"(5행) → A2·A3·A5·A7과 B5·B6은 제품 참조 0이 명령으로 확인되는 것이라 진행한다. 그 밖의 삭제는 묻는다.
+
+배포: 태스크 2·3·8은 화면과 무관하다. 태스크 5·6·7은 위와 같다.

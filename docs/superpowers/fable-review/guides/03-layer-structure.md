@@ -1,5 +1,7 @@
 # 03. 계층 구조 — 기술 역할 5계층을 범위 3계층으로 바꾼다
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/d-single-use-abstractions.md` (전 절), `findings/a-vertical-trace.md` 종합 4번, `findings/f-retained-decisions.md` 아키텍처 절.
 
 ## 현재 구조와 문제
@@ -151,3 +153,38 @@ shared/              도메인을 모르는 것
 - 코드 지침서 중 마지막에 실행한다: 01 → 02 → 05 → 04 → 06 → **03** → 07.
 - 07(테스트)의 mock 경로 정리는 이 지침서의 이동과 같은 파일을 건드린다. 07의 공용 테스트 인프라 태스크를 03 이동 직후에 붙여 mock 경로를 한 번만 고친다.
 - 08(문서)은 이 지침서의 태스크 9를 포함한다.
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/s-guide-premises-01-06.md`. 01·02·04·05·06과 12가 끝난 뒤, 전용 worktree에서만 한다.
+
+전제 정정:
+
+- `.claude/agents/fsd-boundary-checker`·`fsd-scaffold` 스킬은 이미 없다(2026-11-12 삭제). 태스크 9의 그 항목은 건너뛴다.
+- 수치는 착수할 때 다시 센다. 2026-11-14 기준: features 슬라이스 30개(31 아님), `features/settings` 6개, `index.ts` 104개, `vi.mock(` 350문(그중 `@entities` 128). 태스크 1의 이동 표가 원본이고 본문의 수치는 참고다.
+- 도메인 표의 `market` 행에 있는 `crypto-market-indicators`는 12가 지운다. 10이 `/strategies`(태스크 1)·`/admin/pending`(태스크 2)을 지우고 새 구역을 더한다. 이동 표는 그 뒤의 파일로 만든다.
+- 본문은 묶음 B·C가 만든 것을 모른다: `shared/ui/FormDialog.tsx`, `shared/ui/form/{useAppForm,FormField}`, `shared/lib/subviewHistory.ts`(남는다), 루트 `testing/`. 전부 지금 자리에 둔다.
+- `shared/model/placed-order.ts`는 01의 3c 뒤에 남아 있는지 보고 이동 표에 넣는다.
+- 기각한 대안 2의 근거(`@modal` 인터셉트 라우트)는 사라졌다. 결론은 그대로다.
+- 규칙 5·6의 세기가 어긋난다. 확정: alias는 `@screens/*`·`@domains/*`·`@shared/*`·`@testing/*` 넷이고 `@/lib/*`·`@/components/*`(shadcn)는 그대로 둔다.
+
+같은 커밋에서 고칠 것(가드):
+
+- **alias는 `tsconfig.json:25-33`과 `vitest.config.ts:17-23` 두 곳에 따로 적혀 있다.** 태스크 7에서 둘 다 고친다. 한쪽만 고치면 typecheck는 통과하고 vitest가 깨진다.
+- `eslint.config.mjs:16-17,74-76`의 계층 glob. 새 경계 규칙에는 `testing/**`가 `domains/meta`를 import하는 예외를 넣는다(지금은 경계 규칙 자체가 없어 예외도 없다).
+- `knip.json:5`·`package.json:19`의 `shared/lib/api-types.ts`(옮기면), `components.json`의 alias, `scripts/{a11y-check,visual-diff}`의 경로 표, 디렉토리별 `CLAUDE.md` 15개의 `@import`.
+- 11의 12(react-doctor 삭제)가 같은 `eslint.config.mjs`를 고친다. 그쪽이 먼저다.
+
+완료 판정 보정:
+
+- 태스크 6의 "실코드 barrel 수 이하"에는 기준값이 없다. 판정을 "재수출만 있는 `index.ts`가 0개"로 한다. 코드가 든 `index.ts`(예: `shared/lib/format/index.ts`)는 남는다. 찾는 법: `for f in $(git ls-files | grep '/index.ts$'); do grep -qvE "^(export .* from |import |//|$)" "$f" || echo "$f"; done`의 출력이 0줄(여러 줄 재수출은 눈으로 한 번 더 본다).
+- 태스크 9의 문서 목록은 08의 13이 맡는다. 다만 경로 문자열이 든 문서는 `architecture.md`·레이어 문서 5개 말고도 `shared.md`·`strategy.md`·`finance*.md`·`deployment.md`가 있다. 이동 스크립트(태스크 2)가 `docs/agents/*.md`와 `CLAUDE.md`의 경로 문자열도 치환한다.
+
+중단 조건의 대체 경로:
+
+- 순환 import가 드러난다(102행) → 그 import를 이동 표의 "도메인 순서 위반"으로 보고 표를 고친다(태스크 1의 규칙). 표를 고쳐도 안 풀리면 그 도메인의 이동만 되돌리고 다음 도메인으로 간다. 남은 도메인은 `questions.md`에 "사용자 결정 필요"로 적는다.
+- 이동 뒤 테스트 케이스 수가 줄었다 → 되돌린다. 이동은 케이스를 줄이지 않는다.
+- 다른 세션이 코드를 고치고 있다(100행) → 로드맵 4-5의 5.
+- 번들 크기가 늘었다(선행 테스트 3) → barrel 삭제(태스크 6) 전후를 비교해 원인이 이동인지 본다. 10% 안이면 기록하고 진행한다. 넘으면 그 태스크를 되돌린다.
+
+배포: 화면이 같다. 다만 전 파일이 움직이므로 e2e 1회가 끝나기 전에는 push를 요청하지 않는다(로드맵 4-5의 2).

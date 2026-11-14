@@ -1,5 +1,7 @@
 # 06. UX 프리미티브 — 같은 상황은 같은 컴포넌트가 그린다
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/g-ux-pattern-variance.md` (전 절), `findings/c-parallel-structures.md` 5~6절.
 
 ## 현재 구조와 문제
@@ -198,3 +200,33 @@
 - 04의 `FormField`가 `AmountInput`을, 폼 페이지 `loading.tsx`가 스켈레톤 프리셋을 쓴다. 04와 06의 프리미티브 태스크(04-4, 06-1·3·4·5)를 먼저 하고 화면 전환을 뒤에 한다.
 - 07: 문구·구조 단언 정리를 이 지침서의 화면 전환과 같은 묶음으로.
 - 03보다 먼저 한다(이동할 코드가 준다).
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/s-guide-premises-01-06.md`. 서버와 무관한 것은 태스크 1·3·4·5·6·7이다(로드맵 S4). 태스크 2의 페이지형 표와 태스크 8의 페이지네이션 삭제는 05의 5(api T4, 같은 날 배포) 뒤다.
+
+전제 정정:
+
+- **태스크 4의 `ConfirmDialog`는 방식이 둘이어야 한다.** 본문의 모양(`mutation`·`variables`를 받아 진행·실패·닫기를 안에서 처리)은 버튼 하나로 끝나는 확인에 맞다. 폼 안의 확인 단계(`features/strategy/adjust-capital/CapitalForm.tsx:126`, `reconfigure-vr/ReconfigureVrForm.tsx:158`)는 사용자 결정으로 남았고 `form.handleSubmit(확인 열기)` → 확인 버튼이 `form.submit()`을 부르는 흐름이다(04의 기본값 절). 그래서 `ConfirmDialog`에 `onConfirm` 콜백과 `pending`을 받는 방식을 같이 둔다. 그러면 판정 "`<AlertDialog` 0건"이 그대로 선다. 대상은 지금 14파일이다(`git grep -n "<AlertDialog[ >]" -- '*.tsx' ':!*.test.*' ':!components/ui' ':!shared/ui'`).
+- 10의 9(가계부 삭제의 실행 취소)가 가계부 삭제 확인 다이얼로그를 없앤다. 가계부 삭제 다이얼로그(`DeleteAccountDialog`, `DeleteCategoryDialog` 등)는 `ConfirmDialog`로 옮기되 공을 들이지 않는다.
+- **태스크 5의 자릿수 출처는 메타의 `amountScale`이 아니다.** api 15가 그 필드를 지운다. 통화 → 자릿수 표 `CURRENCY_SCALE`(`shared/lib/api-schema.ts:98`)을 쓴다. `entities/meta/model/marketRules.ts`는 12가 정리한다.
+- 태스크 7의 "`CryptoIndicatorCards.tsx`의 `fmt*` 9개를 도메인 `format.ts`로"는 하지 않는다. 12가 그 위젯을 지운다.
+- 태스크 7의 새 lint 규칙(`toFixed`·`toLocaleString` 금지)은 본문에 selector가 없다. `eslint.config.mjs:27`의 `restrict(...)`에 `CallExpression[callee.property.name='toFixed']` 꼴로 더하고, 허용할 파일(`shared/lib/format/**`)은 `ignores`로 뺀다. 위반을 0으로 만든 뒤 켠다. 날짜·시각 표기는 CLDR 기본 패턴에 기대지 않고 직접 조립한다(`9a81ad47`). 제품에 `toLocaleDateString`·`toLocaleString`이 13곳 남아 있다. 이 태스크에서 같이 본다.
+- 66행 "서버 재시작 안내"의 Caddy 문법·재시도 대기 시간은 확정되지 않았다. `ENGINE_RESTARTING`도 `api-types.ts`에 0건이다. 502/503 안내는 상태 코드만으로 판정하게 만들고 오류 코드 분기는 서버가 온 뒤에 더한다.
+- 태스크 8의 "내비 항목 단일화"와 10의 1(`/strategies` 삭제)·15(비회원 내비)는 같은 배열을 고친다. 같은 커밋으로 묶는다.
+
+같은 커밋에서 고칠 것: 프리미티브로 옮겨 간 규칙을 말하는 문서(`docs/agents/react-query.md`의 "오류 화면은 `isError && !data`일 때만", `a11y.md`의 표 region 속성, `copy.md`의 토스트 어미)는 그 규칙이 컴포넌트 안으로 들어간 커밋에서 "`DataList`가 한다" 한 줄로 줄인다. 파일을 합치는 것은 08의 12다.
+
+기본값:
+
+- 프리미티브는 소비처 2개 이상을 실제로 옮겨 본 뒤 커밋한다(`FormDialog`의 API가 세 번 바뀌었다).
+- 틀에 담기지 않는 화면은 그대로 둔다(본문 규칙). 판정 grep에서 뺀 파일과 이유를 이 절에 적는다.
+- 토스트 어미·문구를 바꾸면 문구를 단언하는 테스트가 깨진다. 같은 커밋에서 고친다(동작이 같고 표기만 바뀐 것).
+
+중단 조건의 대체 경로:
+
+- 147행 "전후 스크린샷을 사용자에게 보여 확인받는다" → 로드맵 4-5의 4(만들어 두고 진행).
+- 150행 visual-diff 차이가 크다 → 태스크 6(`Surface`)은 화면 묶음별로 나눠 커밋한다. 의도하지 않은 차이(간격이 무너짐)는 되돌린다.
+- 로컬 api가 필요한 화면(155행) → 로드맵 4-5의 2.
+
+배포: 태스크 1·3~7은 ui 단독이고 모양만 달라진다. 태스크 2의 페이지형과 8은 05의 5와 같은 날이다.

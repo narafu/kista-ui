@@ -1,5 +1,7 @@
 # 01. 타입 SSOT — 생성 타입을 직접 쓰고 수기 타입·정규화를 없앤다
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/b-type-duplication.md` (전 절), `findings/a-vertical-trace.md` 종합 2번.
 
 ## 현재 구조와 문제
@@ -111,3 +113,34 @@ export const listStrategies = (accountId: string, token?: string) =>
 - 02(데이터 층)는 이 지침서의 api 함수 단순화를 전제로 한다. 01을 끝낸 뒤 02를 한다.
 - 05(서버 규칙·코드값 사본)는 태스크 4의 연장이다. 메타에 없는 값 집합의 라벨·옵션 배열은 05에서 다룬다.
 - 07(테스트)은 이 지침서가 지운 테스트를 제외하고 계산한다.
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/s-guide-premises-01-06.md`. 서버 T1·T2는 끝났다(api `1915ba682`). 그런데 `openapi.json`·`shared/lib/api-types.ts`는 2026-11-11 재생성본이라 그 이전 상태다(스키마 프로퍼티 826개 중 optional 690개, 83.5%). 태스크 1부터 시작한다.
+
+전제 정정:
+
+- **태스크 1의 판정 명령은 쓸 수 없다.** `grep -c '?:' shared/lib/api-types.ts`는 2,720이고 경로·쿼리 파라미터의 `?: never`까지 센다. 스키마 밖이 약 2,030줄이고 재생성으로 바뀌지 않는다. 판정을 이렇게 바꾼다: 재생성 뒤 같은 명령이 **2,200 이하**(스키마 optional이 826의 20%인 165 이하).
+- 태스크 1의 `npm run fetch:spec`은 로컬 api 2개(8080·8081)가 떠 있어야 한다(`scripts/fetch-spec.mjs:7-9`). 사용자가 띄운다(로드맵 4-5의 2). 재생성 뒤 `git diff --stat openapi.json`으로 스키마 이름이 바뀐 것이 있는지 보고, 바뀐 이름은 소비처를 같은 커밋에서 고친다.
+- 태스크 2: `entities/admin/model/types.ts:5-7`의 로컬 `Schema`는 공용 `Schema<K>`와 이름만 같고 `Required<>`로 감싼 변형이다. 재생성 뒤 필수 표기가 정확해졌으면 `Required<>`가 필요 없다. 공용으로 바꾸고 typecheck가 깨지는 필드는 서버가 아직 필수로 표기하지 않은 것이다. 그 목록을 api 레포 `cross-repo.md` B절에 적고, 그 필드만 호출부에서 좁힌다(`NullableFields` 소비 5곳: `types.ts:20,25,40,43,51`).
+- 태스크 3b 판정: account에는 `normalize`라는 이름이 없다. 변환은 `toNum` 인라인이다(`entities/account/api/index.ts:44,62-64`). 판정에 `git grep -n "toNum" -- entities/account entities/trade` 0건을 더한다.
+- 태스크 4 판정: `'BUY' | 'SELL'`은 지금 제품에 7곳이다. `entities/trade/model/types.ts:2`는 `'INFO' | 'FAIL'`이 붙은 로그 종류라 대상이 아니다(판정에서 뺀다). `shared/lib/api-schema.ts:25-34`의 `ExactUnion` 고정 장치는 수기 `OrderType`을 지우면 지킬 것이 없어지므로 같이 지운다. 테스트 파일은 판정에서 뺀다.
+- 태스크 6: `.claude/skills/dto-sync-check/`는 이미 없다. 문서 대상에 `docs/agents/entities.md:7`, `docs/agents/strategy.md:7`(`normalizeStrategy`를 함께 고치라는 문장), `docs/agents/shared.md:71`(enum은 `api-schema.ts`에서)을 더한다.
+- "정규화 함수 16개"는 지금 13개 + account의 인라인 변환이다. "배열 → Record 3건"에 이름이 둘만 적혀 있다(`getPrices`는 `entities/account/api/index.ts:41`, `getCryptoPrices`는 `entities/trade/api/index.ts:95`).
+
+같은 커밋에서 고칠 것:
+
+- `scripts/visual-diff/fixtures/trading.mjs:14,19,23`·`fixtures/api.mjs:46`의 가짜 응답이 문자열 숫자(`'28.1500'`)다. 태스크 3c에서 number로 바꾼다. 안 바꾸면 전후 비교가 옛 와이어로 계속 돈다.
+- 묶음 A의 빌더(`entities/{strategy,order}/model/fixtures.ts`, `entities/meta/__fixtures__/testMeta.ts`)는 타입을 바꾸는 태스크에서 같이 바꾼다.
+- 정규화 테스트는 `entities/{strategy,order,trade}/api/index.test.ts`(751줄) 말고도 `shared/model/placed-order.test.ts`(61줄)·`shared/lib/normalize.test.ts`(28줄)가 있다.
+
+기본값:
+
+- 재생성 뒤에도 optional이 20%를 넘으면 전체를 멈추지 않는다. 넘는 DTO 목록을 `cross-repo.md`에 적고, 필수 표기가 된 도메인부터 3a를 한다(3a는 도메인별로 독립이다). `Required<Schema<…>>`를 퍼뜨리지 않는 규칙은 그대로다.
+- 숫자 필드가 number로 내려오는지는 api를 띄우지 않고 `openapi.json`의 해당 스키마 `"type"`으로 본다.
+- 코인 타입·쿼리(`getCryptoPrices`, 코인 포트폴리오)는 12가 지운다. 12 전에 이 지침서를 하면 전환하지 않고 그대로 둔다(V8).
+- `=== undefined` grep은 3파일뿐이라 좁다. 필수로 바뀐 필드의 `??`·`!= null` 방어는 typecheck가 잡지 않는다. 일부러 찾아 지우지 않는다(해롭지 않다).
+
+중단 조건의 대체 경로: 76행("optional 비율이 그대로면 실행할 수 없다")은 위 기본값 첫 줄로 바꾼다. 80행(로컬 api)은 로드맵 4-5의 2.
+
+배포: ui 단독. 화면이 같다.

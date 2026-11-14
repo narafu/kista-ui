@@ -1,5 +1,7 @@
 # 02. 데이터 층 — 경로가 곧 키다. api 함수·queryKeys·queryOptions·얇은 hook을 없앤다
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 근거 측정: `findings/a-vertical-trace.md` 종합 2·3번, `findings/c-parallel-structures.md` 1~3절, `findings/d-single-use-abstractions.md` 6절.
 
 ## 현재 구조와 문제
@@ -181,3 +183,38 @@ kista-api 지침서 10(`kista-api/docs/superpowers/fable-review/guides/10-ui-con
 - 05는 이 지침서가 남긴 "모양 변환 함수 약 150줄"과 목록 → 상세 조회를 서버 변경으로 더 줄인다.
 - kista-api는 web·worker 두 role이 경로로 나눠 받고 Caddy가 분기한다(api 지침서 05 개정판). UI 진입점은 Caddy 하나다. 태스크 8이 api 05 단계 M과 짝이다.
 - `cross-repo.md`에 추가할 요청: 단건 조회 엔드포인트 2개(`GET /api/accounts/{id}`, `GET /api/trading-cycles/{id}`), 오류 `detail`을 사용자용 문장으로 보장.
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/s-guide-premises-01-06.md`.
+
+전제 정정:
+
+- 태스크 2: 프록시 Route Handler는 13개가 맞다(`git grep -l createProxyRoute -- 'app/api' ':!*.test.*'`). `route.ts`는 22개이고 프록시가 아닌 것이 9개다(`auth/{logout,me,reapply-done,refresh,status-stream}`, `fcm/tokens` 2개, `health`, `trades/stream`). 그래서 판정 "10 이하"는 그대로다. 프록시가 아닌 9개는 이 태스크에서 손대지 않는다(11의 2·4·6이 줄인다). 12가 먼저 끝났으면 프록시는 12개다.
+- 위험 절의 단건 조회: `GET /api/trading-cycles/{id}`는 이미 스펙에 있다(`shared/lib/api-types.ts:1664-1672`). 서버에 요청할 것은 `GET /api/accounts/{id}` 하나다(api 10 T11). 전략 단건은 태스크 5c에서 목록 `find` 대신 이 GET을 쓴다. 계좌 단건은 T11이 `api-types.ts`에 들어올 때까지 목록 쿼리 + `select`다.
+- 태스크 6 판정: `StrategyFormPage`의 prop 이름은 `initial`이라 `initialAccount\|initialStrategy` grep에 걸리지 않는다. 대상에는 포함한다(`features/strategy/create-strategy/StrategyFormPage.tsx:13-21`). 10의 B1(삭제된 리소스 URL의 안내 화면)을 판정에 더한다: 없는 계좌·전략 id로 들어가면 오류 경계가 아니라 "삭제되었거나 없는 항목" 안내와 목록 링크가 뜬다(케이스 1건).
+- 태스크 8 대상: `docs/agents/deployment.md`에는 `TRADING_API_BASE_URL` 문자열이 없다. 대신 지침서가 빠뜨린 곳이 7곳이다 — `.github/tests/contract.bats:10`(필수 보간 단언), `README.md:18,59`, `playwright.config.ts:35`, `scripts/visual-diff/run.mjs:124`, `shared/lib/proxy/createProxyRoute.test.ts:58,60,82`, `app/(main)/accounts/[id]/strategies/[sid]/edit/page.test.tsx:21`, `deploy/server/README.md:32`. 같은 커밋에서 고친다. `scripts/visual-diff/proxy.mjs`의 가짜 서버 2개도 하나로 합친다.
+- **이 지침서는 `useAppForm`을 모른다.** 묶음 C 뒤로 폼 15파일이 entities mutation hook의 결과를 `useAppForm({ mutation })`에 넘긴다(`shared/ui/form/useAppForm.ts:23-27`의 `MutationLike`). 태스크 1에서 `$api.useMutation`의 반환이 `MutationLike`에 맞는지 확인하고, 태스크 5에서 hook을 지울 때 그 15파일이 `$api.useMutation(...)`을 직접 넘기게 한다.
+- 실패 토스트: 지금은 hook마다 `onError: toast.error(apiMsg(...))`가 띄운다. 태스크 3의 전역 `MutationCache` `onError`를 켜는 것과 hook의 `onError`를 지우는 것은 **도메인별로 같은 커밋**이어야 토스트가 두 번 뜨지 않는다. 전역 처리는 `fieldErrors`가 있어도 항상 `detail`을 띄운다(04 "서버 오류의 분담"). `PROGRESS.md` 묶음 C의 "hook `onError`도 고친다"는 그 답 이전 기록이라 따르지 않는다.
+
+같은 커밋에서 고칠 것(가드):
+
+- `testing/mockApi.ts`는 전역 `fetch`를 바꿔 끼운다. 새 `kistaFetch`·`openapi-fetch` 클라이언트가 `fetch`를 모듈 로드 때 잡아 두면 mock이 듣지 않는다. 호출 시점에 `globalThis.fetch`를 읽게 한다. 태스크 3의 선행 테스트에 "mockApi로 등록한 응답이 `$api` 호출에 온다" 1건을 넣는다.
+- `eslint.config.mjs:16`의 `runtimeFiles`에 `shared/**`가 없다. 서버 fetch를 `shared/api/**`에 두면 `next/cache` 금지 규칙(`:69-70`)과 `router.refresh()` 금지(`:74`)가 닿지 않는다. 그 glob에 `shared/api/**`를 더한다.
+- `kistaFetch`가 `next/headers`를 쓰면 그것을 mock하는 테스트가 3건째가 된다. 그때는 `vitest.setup.ts` 전역 대역으로 옮긴다(사용자 확정 2026-11-13, `PROGRESS.md` 묶음 C "남긴 것").
+- 문서: `docs/agents/architecture.md` "API 계층", `entities.md:22`, `shared.md:22,47`은 태스크 7이 아니라 해당 코드를 지우는 커밋에서 고친다.
+
+기본값:
+
+- 코인 쿼리(`getCryptoPrices`, 코인 포트폴리오, 코인 지표)와 `app/api/crypto-market-indicators`는 12가 지운다. 12 전이면 `$api`로 옮기지 않는다(V8).
+- 62행의 SSE 확인(Caddy 내부 리스너를 지나는 `trades/stream`·`status-stream`): 버퍼링·끊김이 보이면 SSE 2개만 지금 경로를 유지하고 태스크 8의 나머지를 한다. 증상을 api 레포 `cross-repo.md` F절에 적는다.
+- 141행의 `useSuspenseQuery` 확인은 `node_modules/openapi-react-query` 소스로 한다(문서보다 소스).
+- 태스크 4의 `findings/k-invalidation-map.md`는 지침서가 만들라고 한 산출물이다. 만든다.
+
+중단 조건의 대체 경로:
+
+- 태스크 8의 선행(api 05 단계 M)이 오지 않는다 → 태스크 8만 남겨 둔다. 1~7에 영향이 없다.
+- 목록 규약 전환(5a·5c의 봉투 변경)은 api와 같은 날이다 → ui 커밋을 준비하고 `cross-repo.md`에 적는다. api가 아직이면 그 목록만 지금 모양으로 두고 나머지 전환을 끝낸다.
+- 401 갱신·로그아웃 흐름을 옮기다 테스트가 깨진다 → 되돌린다. 이 흐름은 그대로 옮기는 것이 원칙이다(174행).
+
+배포: 태스크 1~7은 ui 단독이고 화면이 같다. 태스크 2·3은 인증·프록시 경로라 `/code-review high`를 돌린다(본문 그대로).

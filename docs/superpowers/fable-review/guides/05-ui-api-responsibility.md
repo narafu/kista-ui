@@ -1,5 +1,7 @@
 # 05. UI·API 책임 분담 — 서버가 아는 것을 UI가 다시 계산하지 않는다
 
+> **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
+
 기준 문서: `kista-api/docs/superpowers/fable-review/ui-api-principles.md`(사용자 지시로 정한 공통 원칙), 서버 쪽 규약 `kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md`.
 근거 측정: `findings/j-ui-api-principle-violations.md`(위반 전수), `findings/b-type-duplication.md` 4·6절.
 
@@ -200,3 +202,46 @@ PRIVACY `days` 파라미터(2026-11-12 정리): 코드를 다시 확인하니 `l
 - 04 태스크 6(전략 폼 통합)은 이 지침서 태스크 2·8과 한 묶음으로 실행한다.
 - 06의 `DataList` 페이지형 모드가 태스크 5의 화면 쪽 수단이다.
 - 08: 원칙 문서가 `kista-api/docs/agents/ui-api-contract.md`로 옮겨지면 kista-ui 루트 `CLAUDE.md`가 그 경로를 가리킨다.
+
+## 실행 전 보정 (2026-11-14 — 본문과 다르면 이 절이 우선)
+
+공통 규칙은 `00-roadmap.md` 4절. 측정 원본은 `findings/s-guide-premises-01-06.md`. 이 지침서의 태스크는 서버가 먼저다. 2026-11-14 기준 api는 T1·T2만 끝났다. 태스크마다 착수 전에 아래 표의 명령으로 서버 계약이 들어왔는지 본다(0이면 건너뛴다. 로드맵 4-2의 V6).
+
+| 태스크 | 확인(`git grep -c "<패턴>" -- shared/lib/api-types.ts`) | 2026-11-14 |
+|---|---|---|
+| 1 | `userStatuses` | 0 |
+| 2 | 메타에 runtime-config의 값이 실렸는지(스키마 `MetaResponse`를 읽는다) | 없음 |
+| 3 | `allowedActions`, `blockedActions`, `reasonCode` | 0 |
+| 4 | `fieldErrors` | 0 |
+| 5 | 목록 응답이 `items` 봉투인지(해당 operation의 응답 스키마) | `CycleHistoryPageResponse`만 |
+| 6 | 가계부 집계 엔드포인트(2-1절의 경로) | 없음 |
+| 8 | `trading-cycle-validations` | 0 |
+| 10 | `reapplyAvailableAt` | 0 |
+
+전제 정정:
+
+- **7절과 현재 구조 표의 "`dcaFormat.ts:73-93`을 지운다"는 철회한다.** 그 줄(`earliestNextExecution`·`latestLastExecution`)은 서버가 준 값 중 고르는 표시 코드이고 DCA 카드의 다음 실행일이 이것으로 나온다(10의 D10 정정). 경로는 `entities/strategy/model/dcaFormat.ts`다.
+- **태스크 9의 범위는 KIS만이다.** 업비트는 바이낸스와 함께 12가 지운다. 판정 명령을 바꾼다: `git grep -n -w "KIS" -- '*.ts' '*.tsx' '*.mjs' ':!shared/lib/api-types.ts'` 0건, `git grep -n "KIS" -- app/pending docs/agents README.md` 0건. 원래 명령은 따옴표 리터럴만 잡아 `scripts/shared/seed.mjs`(24건), `app/pending/page.tsx:16`의 문구, `e2e/ledger-budget.spec.ts:10-15`를 놓친다. `/pending` 문구는 "증권사 계좌 연결"로 바꾼다(10의 B3. "거래소"는 코인 삭제로 뺀다).
+- 4절·태스크 3에 10의 B2를 더한다: **지원하는 동작은 항상 보이고, 지금 못 하면 비활성 + 서버가 준 사유**다. 미지원(그 종류에 없는 동작)만 숨긴다. 서버가 미지원과 차단을 구분해 준다(api T6, U3 답).
+- 태스크 1 판정의 `\b`는 macOS에서 듣지 않는다. `git grep -n -E "_LABEL([^A-Za-z_]|$)" -- '*.ts' '*.tsx' ':!*.test.*'`로 센다(지금 65줄). 기대값은 숫자가 아니라 "남은 것이 서버 코드값의 라벨이 아니다"다. 남긴 맵의 이름과 이유를 커밋 메시지에 적는다.
+- 현재 구조 절의 "PRIVACY 목록에서 UI가 `?days=`를 보낸다"는 틀렸고 같은 문서 118행이 정정했다(호출부가 없었고 죽은 인자는 지웠다).
+- 태스크 2: api T5가 둘로 나뉘었다. root 소유 값은 먼저 메타로 오고 trading-core 소유 값(VR 램프 기본값표 등)은 api 05 단계 M 뒤에 온다. 온 만큼만 옮긴다. 판정 "`ls entities/runtime-config`가 없음"은 M 뒤에야 선다. 그 전에는 "메타로 온 값의 사본이 `entities/runtime-config`에 없다"가 판정이다.
+- 태스크 5: 화면 수단인 `DataList`는 06의 1이 먼저 만든다(로드맵 S4). 10의 7(자산 기록 목록 검색)을 여기서 같이 한다. 서버의 페이지 요청 타입 이름은 `PageQuery`다(ui에는 스키마 이름으로만 보인다).
+- 태스크 8은 04의 6과 한 묶음이고, 그 앞에 태스크 2(T5)가 있어야 한다.
+- 태스크 4의 "`apiMsg(` 1곳"은 02의 전역 `onError`가 있어야 선다.
+
+같은 커밋에서 고칠 것: 지우는 규칙을 말하는 문서 문장(`docs/agents/finance.md`·`finance-widgets.md`·`shared.md`·`entities.md`의 12개월 윈도우 키, `cycles` 번호 페이지네이션, runtime-config 서술)은 08로 미루지 않고 코드를 지우는 커밋에서 지운다.
+
+기본값:
+
+- 서버가 준 필드 이름·모양이 이 지침서와 다르면 생성 타입을 따르고 지침서 문장을 고친다.
+- ui 테스트를 지우기 전에 서버가 같은 케이스를 갖는지 본다(`cross-repo.md` B절 "테스트 짝 확인"). `git -C ../kista-api grep -n "<케이스의 핵심어>" -- '*Test.java'`로 찾고, 없으면 그 케이스는 지우지 않고 `cross-repo.md`에 적는다.
+- 가계부 집계(태스크 6)의 명세는 이 지침서 2-1절의 입출력이다. api는 다른 명세가 없으면 그것을 그대로 쓴다. 서버 응답과 지금 ui 집계의 값이 다르면(선행 테스트 1) 어느 쪽이 맞는지 정하지 말고 차이 표를 만들어 사용자에게 묻는다.
+- 코인 분기가 섞인 파일(`dcaFormat.ts`, `api-schema.ts`)은 12 전이면 코인 줄을 그대로 둔다(V8).
+
+중단 조건의 대체 경로:
+
+- 같은 날 배포(138·161행)를 맞출 수 없다 → ui 커밋을 준비해 두고 `cross-repo.md`에 "ui 준비됨"을 적는다. push는 사용자가 api와 함께 한다. api가 먼저 나가 화면이 깨졌으면 사용자에게 알리고 ui push를 요청한다.
+- 서버가 오지 않는다 → 이 지침서 밖의 서버 무관 태스크를 한다(로드맵 2절 S1~S6). 서버 변경이 배포되기 전에 ui 사본을 먼저 지우지 않는 규칙(178행)은 그대로다.
+
+배포: 서버가 더한 것을 쓰는 태스크(1·3·4·6·7·8·10)는 api 뒤. 태스크 5는 같은 날. 태스크 9는 api 04 단계 A와 같은 날(로드맵 4-4).

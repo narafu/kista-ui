@@ -1,6 +1,6 @@
 # Fable 전면 검토 진행 원장 (kista-ui)
 
-공통 기준: `../kista-api/docs/superpowers/fable-review/CHARTER.md`. 새 세션은 CHARTER → 이 파일 → `guides/` 순으로 읽는다. `findings/`는 지침서가 인용하는 근거다.
+공통 기준: `../kista-api/docs/superpowers/fable-review/CHARTER.md`. 새 세션은 CHARTER → 이 파일 → `guides/00-roadmap.md`(실행 순서, Fable 없이 실행하는 규칙) → 실행할 지침서의 맨 끝 "실행 전 보정" 절 → 본문 순으로 읽는다. `findings/`는 지침서가 인용하는 근거다. **실행 순서와 규칙은 로드맵이 기준이다. 아래 실행 기록은 그때의 사실이고 규칙이 아니다.**
 
 추가 기준(사용자 지시, fable-api 경유):
 - `kista-api/docs/superpowers/fable-review/ui-api-principles.md` — 기본값은 API, UI는 화면 상태·표시·상호작용만.
@@ -39,6 +39,8 @@
 | 07 | 테스트 | `guides/07-tests.md` | 테스트 약 9,300줄 | 인프라 태스크는 02 직후, 전환은 03 직후 |
 | 08 | 문서 정리 | `guides/08-docs.md` | 자동 로드 약 250~330줄, archive 31,400줄 | 1단계 독립, 2단계는 각 코드 지침서 뒤 |
 | 09 | 불필요 파일·배포 자산 | `guides/09-unused-files-and-deploy.md` | 소량 | 일부 infra·api와 동시 |
+| 12 | 코인 제거(2026-11-14 추가, api 15 대응) | `guides/12-crypto-removal.md` | 제품 약 1,800~2,300줄, 테스트 약 1,500줄 | push 전 운영 코인 계좌 0건. **가장 먼저 실행** |
+| 00 | 로드맵: 실행 순서, 충돌 정리, Fable 없이 실행하는 규칙 | `guides/00-roadmap.md` | — | — |
 
 합계(추정): 제품 약 11,000~12,000줄(41,400의 27~29%), 테스트 제외 파일 709 → 약 500, 테스트 30,240 → 약 21,000.
 
@@ -98,7 +100,7 @@
 
 권장 순서: **A → B → C → D → E**, F는 틈날 때. **A·B·C 완료(A·B 2026-11-12, C 2026-11-13, 아래 실행 기록)** — 다음은 D. A는 다른 묶음의 테스트 비용을 줄이고, B·C는 승인된 결정 중 서버와 무관한 가장 큰 감량이다.
 
-실행 중 지침서의 전제가 코드와 맞지 않거나 "중단 조건"에 걸리면 추측으로 진행하지 말고 `questions.md`에 적고 그 태스크를 멈춘다. 그 밖의 판단은 지침서의 기본값으로 스스로 정한다(CHARTER "실행 중 질문").
+(2026-11-14 개정) 실행 중 지침서의 전제가 코드와 맞지 않으면 실행 세션이 보정하고 지침서를 고친다. 중단 조건은 "되돌린다 → 지침서의 대체 경로 → 없으면 사용자" 순이다. 규칙은 `guides/00-roadmap.md` 4절, `questions.md`는 결정 기록이다. Fable 세션의 답을 기다리지 않는다.
 
 Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-3, 02-2 (+ 08-6, 09-6).
 
@@ -258,7 +260,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 실패 토스트는 `useAppForm`이 띄우지 않는다. 모든 mutation hook이 이미 `onError`에서 `apiMsg`로 detail을 띄우므로, 여기서도 띄우면 두 번 뜬다.
   - 그래서 "api T7 전에는 detail을 토스트로만"은 hook이 이미 하고 있다.
   - 서버 `fieldErrors` → `setError`는 `serverFieldErrors()` 순수 함수와 `MAP_SERVER_FIELD_ERRORS = false`로 꺼 두었다.
-  - **T7 뒤 켤 때 할 일**: 필드에 붙은 오류를 hook 토스트가 또 띄우지 않게 hook `onError`도 고친다.
+  - **T7 뒤 켤 때 할 일**: 필드에 붙은 오류를 hook 토스트가 또 띄우지 않게 hook `onError`도 고친다. → **정정(2026-11-14)**: 이 문장은 Q-02 답 이전 기록이다. 확정은 "전역 토스트는 `fieldErrors`가 있어도 항상 `detail`을 띄운다"(지침서 04 "서버 오류의 분담"). hook `onError`를 이 목적으로 고치지 않는다.
 - 진행 상태는 RHF `isSubmitting`이 아니라 `mutation.isPending`이다. hook의 async `onSuccess`(무효화)가 끝날 때까지 pending이 이어진다.
 - 확인 단계가 있는 폼은 `<form onSubmit={form.handleSubmit(열기)}>`로 열고, 확인 버튼에서 `form.submit()`을 부른다.
 - 표기:
@@ -374,6 +376,30 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - **지침서 10·11의 사용자 결정은 전부 닫혔다.**
 - 서버와 무관하게 지금 실행 가능: 지침서 10 태스크 3, 지침서 11 태스크 1·7·12. 승인 태스크 중 서버와 무관한 것은 지침서 10 태스크 3, 지침서 11 태스크 1·7이다.
 
+## 추가 요청 3차 (2026-11-14, 사용자, fable-api 경유) — 완료
+
+배경: Fable 한도가 끝나면 `questions.md`에 답할 세션이 없다. 실행 세션(Opus/Sonnet)이 묻지 않고 진행하도록 지침서에 답을 미리 넣는다. api에서 한 것(`../kista-api/docs/superpowers/fable-review/PROGRESS.md` "추가 요청 3차")을 ui에도 똑같이 했다.
+
+| 항목 | 산출물 |
+|---|---|
+| 1 질문 일반화 | 유형 9개(V1 코드 전제, V2 기준 없음, V3 "모든 X"의 범위, V4 지침서 간 충돌, V5 문서 위치, V6 서버 계약 없음, V7 실기기·로컬 api, V8 코인·KIS, V9 화면 변화). 공통 규칙은 `guides/00-roadmap.md` 4절(api 로드맵 9절을 참조하고 ui에서 다른 것만 적었다). 유형 표는 `questions.md` 머리. `questions.md`는 결정 기록으로 바꿨다 |
+| 2 구현 평가 | `findings/r-implementation-review.md` |
+| 3 미구현 지침 보완 | 지침서 01~11 전부의 맨 끝에 "실행 전 보정" 절과 머리의 안내 한 줄. 전제 전수는 `findings/s-guide-premises-01-06.md`·`findings/t-guide-premises-07-11.md` |
+| 추가 | `guides/12-crypto-removal.md`(신규). api의 코인 전체 삭제(15)에 대응하는 ui 태스크가 어느 지침서에도 없었다 |
+
+- 구현 평가 요지: 끝난 태스크 11개(04의 1~5c, 07의 1·2·3·5). 제품 41,933 → 40,600줄(−1,333, 파일 −43), 테스트 30,240줄 그대로. 04 묶음 B·C의 감량은 예상의 73%이고 선행 테스트 때문에 테스트는 +287줄. 지침서와 다르게 구현된 13건은 전부 지침서가 틀렸거나 비어 있던 곳이다. 틀린 전제 15건 중 9건은 착수 전 grep 한 줄로 걸러진다. 위 "기준선"의 "제품 약 41,400줄"은 41,934줄이 맞다(`findings/e`의 세는 법).
+- 지침서 본문을 뒤집은 정정(각 보정 절과 로드맵 3절에 있다): ① 10의 태스크 3·D4(크립토 지표 조건부)는 없앤다 — 뒤에 나온 코인 삭제 결정이 우선 ② 05 태스크 9는 KIS만, 코인은 12 ③ 05의 `dcaFormat.ts:73-93` 삭제 철회 ④ 09 A1(`fmtCompactUsdNarrow`) 삭제 철회 — 제품이 쓴다 ⑤ 09·04의 `subviewHistory`는 파일을 남긴다 ⑥ 06 `ConfirmDialog`에 `onConfirm` 방식 추가(폼 안 확인 단계), `AmountInput`의 자릿수는 메타가 아니라 `CURRENCY_SCALE` ⑦ 01 태스크 1의 판정 명령 교체(2,200 이하) ⑧ 04의 5d 대상에 `canSubmit` 6곳 추가, 잠금 조건의 `onSubmit` 가드는 남긴다, 5f는 코인·KIS 삭제 뒤 ⑨ 02의 단건 요청은 `GET /api/accounts/{id}` 하나(전략 단건은 이미 있다), `TRADING_API_BASE_URL` 대상 7곳 추가, `useAppForm` 소비 15파일 ⑩ 10의 태스크 14(반려 사유)·11의 태스크 4(`status-stream`)는 ui가 먼저 지운다 — 판정에서 생성물을 뺀다 ⑪ 11의 태스크 2: PENDING 토큰에 `role`이 없어진다 ⑫ 완료 판정은 `git grep`으로 바꿔 돌린다(생성물·docs 제외, `\b` 금지).
+- 이번 세션에서 직접 확인한 것: `canSubmit` 사용처 전수, `GET /api/trading-cycles/{id}`가 스펙에 있음, `<AlertDialog` 14파일, 프록시 route 13개·전체 22개(서브에이전트의 "12개"는 `backtest`를 빠뜨린 오보였다), 비회원 대시보드가 `MarketChartCard`로 `/api/market/candles`를 부름, `CURRENCY_SCALE`의 위치, `.claude/settings.json:4`.
+- 확인하지 못한 것(보정 절에 기본값을 적었다): 운영의 코인 계좌 잔존 여부(12의 T0), api 13 U1(status 클레임)의 구현 여부, infra의 `(site)` 스니펫 배포 여부, 03의 번들 크기 기준.
+- api에 회신한 것(`cross-repo.md` G절 "ui 회신 (2026-11-14)"): G5(비회원 대시보드가 차트를 쓴다), 계좌 범위 `daily-trades` 호출 0건, HTTP 400에 기대는 분기 0건, 승인 대기 사용자가 부르는 경로 9개, G4·G7·G9, 그리고 코인 화면 제거는 아직 미실행(지침서 12)이라는 것.
+- memory: "완료 작업 재작업 금지"의 코인 항목에 2026-11-14 삭제 결정을 적었다.
+- 서브에이전트 3개(Sonnet)가 측정했다. 진행 중 서브에이전트: 없음.
+- **남은 Fable 작업: 없음.** 다음은 실행이다. 순서는 로드맵 2절: S1(코인 제거, 지침서 12) → S2(11의 12·1, 09의 2·3) → S3(04의 5d·5e) → S4(06 프리미티브) → S5(02의 2). 01은 사용자가 로컬 api를 띄운 세션에서.
+
+### e2e 대기 (로드맵 4-5의 2)
+
+없음. 실행 세션이 로컬 api 없이 커밋한 화면 변경이 생기면 커밋 해시와 돌릴 명령을 여기 적는다.
+
 ## 측정 산출물
 
 | 파일 | 내용 |
@@ -392,6 +418,9 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 | `findings/o-usage-evidence.md` | 운영 DB 읽기 전용 집계(사용 흔적) |
 | `findings/p-uncovered-runtime.md` | 01~09 미덮임 영역 지형표, 인증·SSE·알림·오류·앱 셸·관리자·시장 통계 |
 | `findings/q-uncovered-assets.md` | 차트·스타일 토큰·scripts·e2e·설정·의존성·public |
+| `findings/r-implementation-review.md` | 구현 대조: 커밋 ↔ 태스크, 다르게 구현된 곳, 예상 감량 대 실제, 틀린 전제 15건 |
+| `findings/s-guide-premises-01-06.md` | 지침서 01~06의 전제·가드·중단 조건·서버 선행·충돌 전수 |
+| `findings/t-guide-premises-07-11.md` | 지침서 07~11의 같은 전수, 코인·KIS 지형, 승인 대기 경로 |
 
 지침서가 실행 중 만들라고 한 산출물: `m-form-inventory.md`(04 태스크 1, 작성함). 아직 없음: `k-invalidation-map.md`(02 태스크 4), `l-move-map.csv`(03 태스크 1).
 
