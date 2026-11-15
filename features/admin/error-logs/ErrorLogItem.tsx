@@ -13,7 +13,8 @@ interface Props {
 }
 
 export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled = false }: Props) {
-  const hasContext = Object.keys(log.context).length > 0
+  const context = log.context ?? {}
+  const hasContext = Object.keys(context).length > 0
 
   return (
     <div className="px-4 py-3 hover:bg-muted/30 transition-colors">
@@ -40,7 +41,7 @@ export function ErrorLogItem({ log, checked = false, onCheckedChange, disabled =
           {/* context — 값이 전부 문자열(API 계약)이라 "key: value" 한 줄씩 표시한다 */}
           {hasContext && (
             <pre className="mt-1 text-xs text-muted-foreground bg-muted/40 rounded px-2 py-1 font-mono whitespace-pre-wrap break-words">
-              {Object.entries(log.context).map(([key, value]) => `${key}: ${value}`).join('\n')}
+              {Object.entries(context).map(([key, value]) => `${key}: ${value}`).join('\n')}
             </pre>
           )}
 

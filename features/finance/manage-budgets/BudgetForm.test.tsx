@@ -58,7 +58,7 @@ describe('BudgetForm', () => {
 
   it('그룹 소속이면 생성 제출에 shareToGroup=true 쿼리가 붙는다', async () => {
     const user = userEvent.setup()
-    const { requests } = setup({ 'GET /api/finance/groups': [{ id: 'g1' }], 'POST /api/finance/budgets': source })
+    const { requests } = setup({ 'GET /api/finance/groups': [{ id: 'g1', name: '우리집' }], 'POST /api/finance/budgets': source })
     renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
     await categoryLabel('식비')
     await screen.findByRole('switch', { name: '그룹으로 저장' })

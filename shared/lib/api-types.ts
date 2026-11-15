@@ -2330,13 +2330,13 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         DcaConditionRequest: {
-            /** @enum {string} */
-            indicator?: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
-            /** @enum {string} */
-            operator?: "LTE" | "LT" | "GTE" | "GT";
+            /** @enum {string|null} */
+            indicator?: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED" | null;
+            /** @enum {string|null} */
+            operator?: "LTE" | "LT" | "GTE" | "GT" | null;
             /** Format: int32 */
-            smaPeriod?: number;
-            threshold?: number;
+            smaPeriod?: number | null;
+            threshold?: number | null;
         };
         DcaConfigRequest: {
             /** @description DCA 규칙 목록 (1~10개, 입력 순서 보존) */
@@ -2344,34 +2344,34 @@ export interface components {
         };
         DcaRuleRequest: {
             /** @description 규칙 키 — 신규 null, 수정 시 기존 값 재전송(현재 버전에 없으면 400) */
-            ruleKey?: string;
+            ruleKey?: string | null;
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
             frequency: "DAILY" | "WEEKLY" | "MONTHLY";
-            /** @enum {string} */
-            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            /** @enum {string|null} */
+            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY" | null;
             /** Format: int32 */
-            dayOfMonth?: number;
+            dayOfMonth?: number | null;
             /** @enum {string} */
             orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /**
              * Format: int32
              * @description 코인 실행 시각 (KST 0~23, 코인 필수). 주식 주문유형이면 무시
              */
-            executionHour?: number;
+            executionHour?: number | null;
             sizing: components["schemas"]["DcaSizingRequest"];
             /** @enum {string} */
             shortfall: "PARTIAL" | "REJECT";
-            conditions?: components["schemas"]["DcaConditionRequest"][];
+            conditions?: components["schemas"]["DcaConditionRequest"][] | null;
         };
         DcaSizingRequest: {
             /** @enum {string} */
             type: "AMOUNT" | "HOLDING_PERCENT";
             /** @description AMOUNT 전용 회차 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수 5,000 이상) */
-            amount?: number;
+            amount?: number | null;
             /** @description HOLDING_PERCENT 전용 원장 보유 비율 (0 초과 100 이하) */
-            percent?: number;
+            percent?: number | null;
         };
         TradingCycleRequest: {
             /**
@@ -2383,421 +2383,421 @@ export interface components {
             /**
              * @description 거래 종목 (null이면 런타임 기본값, PRIVACY=SOXL/VR=TQQQ 외 명시값은 400)
              * @example TQQQ
-             * @enum {string}
+             * @enum {string|null}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH" | null;
             /**
              * @description 초기 입금액 (PRIVACY: 배수 자동 산출 기준, VR: 예수금=초기 pool, DCA: 시작 원장 예수금 — 계좌 통화, 0 이상, 생략=0)
              * @example 2000
              */
-            initialDeposit?: number;
+            initialDeposit?: number | null;
             /**
              * @description 연속 사이클 정책 (null이면 NONE)
              * @example NONE
-             * @enum {string}
+             * @enum {string|null}
              */
-            cycleSeedType?: "NONE" | "MAINTAIN" | "MAX";
+            cycleSeedType?: "NONE" | "MAINTAIN" | "MAX" | null;
             /**
              * Format: int32
              * @description 분할 수 (null이면 런타임 기본값)
              * @example 20
              */
-            divisionCount?: number;
+            divisionCount?: number | null;
             /**
              * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작, 주식 정수·코인 소수 8자리까지 — 숫자 또는 소수 문자열)
              * @example 10
              */
-            initialHoldings?: number;
+            initialHoldings?: number | null;
             /**
              * @description 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)
              * @example 45.5
              */
-            initialAvgPrice?: number;
+            initialAvgPrice?: number | null;
             /**
              * Format: int32
              * @description VR: 리밸런싱 주기 (주 단위, 1 이상)
              * @example 4
              */
-            intervalWeeks?: number;
+            intervalWeeks?: number | null;
             /**
              * @description VR: 매수·매도 사다리 밴드 폭 (%, 예: 15.00)
              * @example 15
              */
-            bandWidth?: number;
+            bandWidth?: number | null;
             /**
              * Format: int32
              * @description VR: 주기당 추가 예수금 (USD, 음수=인출, 0=없음)
              * @example 0
              */
-            recurringAmount?: number;
+            recurringAmount?: number | null;
             /**
              * Format: int32
              * @description VR: 램프 시작 시점 gradient(G) 값 (생략 시 인출식=40, 그 외=10)
              * @example 10
              */
-            initialGradient?: number;
+            initialGradient?: number | null;
             /**
              * Format: int32
              * @description VR: gradient 램프 시작 전 유예 주수 (생략 시 52)
              * @example 52
              */
-            gGraceWeeks?: number;
+            gGraceWeeks?: number | null;
             /**
              * Format: int32
              * @description VR: gradient가 한 단계(1) 상승하는 주기 (생략 시 26)
              * @example 26
              */
-            gStepWeeks?: number;
+            gStepWeeks?: number | null;
             /**
              * Format: int32
              * @description VR: gradient 램프 상한값 (생략 시 적립식/거치식=20, 인출식=50)
              * @example 20
              */
-            gMax?: number;
+            gMax?: number | null;
             /**
              * @description VR: 램프 시작 시점 poolLimitRate 값 (생략 시 적립식=1.0/거치식=0.75/인출식=0.1)
              * @example 0.75
              */
-            initialPoolLimitRate?: number;
+            initialPoolLimitRate?: number | null;
             /**
              * Format: int32
              * @description VR: poolLimitRate 램프 시작 전 유예 주수 (생략 시 52)
              * @example 52
              */
-            pGraceWeeks?: number;
+            pGraceWeeks?: number | null;
             /**
              * Format: int32
              * @description VR: poolLimitRate가 한 단계(5%p) 하강하는 주기 (생략 시 26)
              * @example 26
              */
-            pStepWeeks?: number;
+            pStepWeeks?: number | null;
             /**
              * @description VR: poolLimitRate 램프 하한값 (생략 시 적립식/거치식=0.5, 인출식=0.1)
              * @example 0.5
              */
-            poolLimitFloor?: number;
+            poolLimitFloor?: number | null;
             /**
              * Format: date
              * @description 시작예정일, 기본값=오늘, 오늘 이후만 허용
              * @example 2026-08-01
              */
-            scheduledStartDate?: string;
+            scheduledStartDate?: string | null;
             /**
              * @description VR: 초기 V값 직접 지정 (지정 시 전일종가×보유수량 계산을 대체, 생략 시 평가금 기준. 첫 매수 후 산정하려면 평가금·예수금과 함께 생략)
              * @example 5000
              */
-            initialVrValue?: number;
+            initialVrValue?: number | null;
             /** @description DCA 설정 (type=DCA일 때 필수, 그 외 무시) */
-            dca?: components["schemas"]["DcaConfigRequest"];
+            dca?: components["schemas"]["DcaConfigRequest"] | null;
         };
         DcaConditionResponse: {
             /** @enum {string} */
-            indicator?: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
+            indicator: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
             /** @enum {string} */
-            operator?: "LTE" | "LT" | "GTE" | "GT";
+            operator: "LTE" | "LT" | "GTE" | "GT";
             /** Format: int32 */
-            smaPeriod?: number;
-            threshold?: number;
+            smaPeriod?: number | null;
+            threshold?: number | null;
         };
         DcaResponse: {
-            rules?: components["schemas"]["DcaRuleResponse"][];
-            currentHoldings?: number;
-            avgPrice?: number;
+            rules: components["schemas"]["DcaRuleResponse"][];
+            currentHoldings?: number | null;
+            avgPrice?: number | null;
         };
         DcaRuleResponse: {
-            ruleKey?: string;
+            ruleKey: string;
             /** @enum {string} */
-            direction?: "BUY" | "SELL";
+            direction: "BUY" | "SELL";
             /** @enum {string} */
-            frequency?: "DAILY" | "WEEKLY" | "MONTHLY";
-            /** @enum {string} */
-            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            frequency: "DAILY" | "WEEKLY" | "MONTHLY";
+            /** @enum {string|null} */
+            dayOfWeek?: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY" | null;
             /** Format: int32 */
-            dayOfMonth?: number;
+            dayOfMonth?: number | null;
             /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** Format: int32 */
-            executionHour?: number;
-            sizing?: components["schemas"]["Sizing"];
+            executionHour?: number | null;
+            sizing: components["schemas"]["Sizing"];
             /** @enum {string} */
-            shortfall?: "PARTIAL" | "REJECT";
-            conditions?: components["schemas"]["DcaConditionResponse"][];
-            nextExecution?: components["schemas"]["NextExecution"];
-            lastExecution?: components["schemas"]["LastExecution"];
+            shortfall: "PARTIAL" | "REJECT";
+            conditions: components["schemas"]["DcaConditionResponse"][];
+            nextExecution?: components["schemas"]["NextExecution"] | null;
+            lastExecution?: components["schemas"]["LastExecution"] | null;
         };
         LastExecution: {
             /** Format: date */
-            kstTradeDate?: string;
-            status?: string;
-            skipReason?: string;
+            kstTradeDate: string;
+            status: string;
+            skipReason?: string | null;
         };
         NextExecution: {
             /** Format: date */
-            usSessionDate?: string;
+            usSessionDate: string;
             /** Format: date */
-            kstTradeDate?: string;
+            kstTradeDate: string;
         };
         Sizing: {
             /** @enum {string} */
-            type?: "AMOUNT" | "HOLDING_PERCENT";
-            amount?: number;
-            percent?: number;
+            type: "AMOUNT" | "HOLDING_PERCENT";
+            amount?: number | null;
+            percent?: number | null;
         };
         TradingCycleResponse: {
             /**
              * Format: uuid
              * @description 거래 사이클 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 소속 계좌 ID
              */
-            accountId?: string;
+            accountId: string;
             /**
              * @description 전략 종류
              * @example INFINITE
              */
-            type?: string;
+            type: string;
             /**
              * @description 사이클 상태
              * @example ACTIVE
              */
-            status?: string;
+            status: string;
             /**
              * @description 거래 종목
              * @example TQQQ
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 초기 입금액
              * @example 2000
              */
-            initialDeposit?: number;
+            initialDeposit?: number | null;
             /**
              * Format: date
              * @description 사이클 시작일 (미래면 시작예정일 — 시작예정일 밤 미국장부터 매매 시작)
              * @example 2026-08-01
              */
-            startDate?: string;
+            startDate?: string | null;
             /**
              * @description 연속 사이클 정책
              * @example NONE
              */
-            cycleSeedType?: string;
+            cycleSeedType: string;
             /**
              * Format: int32
              * @description 분할 수 (INFINITE 전략만 non-null)
              * @example 20
              */
-            divisionCount?: number;
+            divisionCount?: number | null;
             /**
              * @description 리버스모드 활성 여부 (소진 후 모드)
              * @example false
              */
-            isReverseMode?: boolean;
+            isReverseMode: boolean;
             /**
              * Format: double
              * @description 현재 회차 (INFINITE 전략만, 이력 없으면 null)
              * @example 3.5
              */
-            currentRound?: number;
+            currentRound?: number | null;
             /**
              * Format: int32
              * @description 최신 포지션 보유 수량
              * @example 0
              */
-            currentHoldings?: number;
+            currentHoldings?: number | null;
             /** @description VR 전략 상세 (VR 전략만 non-null) */
-            vr?: components["schemas"]["VrSummary"];
+            vr?: components["schemas"]["VrSummary"] | null;
             /** @description DCA 전략 상세 (DCA 전략만 non-null) */
-            dca?: components["schemas"]["DcaResponse"];
+            dca?: components["schemas"]["DcaResponse"] | null;
             /**
              * @description 진행 중인 사이클 존재 여부 — false면 사이클 없음 또는 최신 사이클 종료(투자금 추가 불가, NO_ACTIVE_CYCLE과 동일 기준)
              * @example true
              */
-            cycleInProgress?: boolean;
+            cycleInProgress: boolean;
             /**
              * @description 최신 포지션 장부 예수금 (계좌 통화 — 주식 USD·코인 KRW/USDT, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전·장중 취소된 매수 주문 금액은 인출 시 추가로 제외)
              * @example 1500
              */
-            ledgerDeposit?: number;
+            ledgerDeposit?: number | null;
             /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:00 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 지정가 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
-            todayOpenBatchMissed?: boolean;
+            todayOpenBatchMissed?: boolean | null;
         };
         VrSummary: {
             /** @description V값 (실력 기준선) */
-            value?: number;
+            value: number;
             /**
              * @description 밴드 폭 (%)
              * @example 15
              */
-            bandWidth?: number;
+            bandWidth: number;
             /**
              * Format: int32
              * @description 리밸런싱 주기 (주 단위)
              * @example 4
              */
-            intervalWeeks?: number;
+            intervalWeeks: number;
             /**
              * Format: int32
              * @description 주기당 추가 예수금 (USD, 음수=인출)
              * @example 0
              */
-            recurringAmount?: number;
+            recurringAmount: number;
             /** @description pool 상한 금액 (USD) */
-            poolLimit?: number;
+            poolLimit: number;
             /** @description 현재 pool(예수금, USD) — 최신 포지션 기준, 개장값(initialDeposit)과 다름 */
-            currentPool?: number;
+            currentPool?: number | null;
             /**
              * @description pool 상한 비율(0~1) — 현재 사이클 고정 스냅샷
              * @example 0.75
              */
-            poolLimitRate?: number;
+            poolLimitRate: number;
             /**
              * Format: int32
              * @description 실력공식 경사 계수 (G) — 현재 사이클 고정 스냅샷
              * @example 10
              */
-            gradient?: number;
+            gradient: number;
             /**
              * Format: int32
              * @description 램프 시작 시점(경과 0주) gradient(G) 값
              * @example 10
              */
-            initialGradient?: number;
+            initialGradient: number;
             /**
              * Format: int32
              * @description gradient 램프 시작 전 유예 주수
              * @example 52
              */
-            gGraceWeeks?: number;
+            gGraceWeeks: number;
             /**
              * Format: int32
              * @description gradient가 한 단계 상승하는 주기 (주 단위)
              * @example 26
              */
-            gStepWeeks?: number;
+            gStepWeeks: number;
             /**
              * Format: int32
              * @description gradient 램프 상한값
              * @example 20
              */
-            gMax?: number;
+            gMax: number;
             /**
              * @description 램프 시작 시점(경과 0주) poolLimitRate 값
              * @example 0.75
              */
-            initialPoolLimitRate?: number;
+            initialPoolLimitRate: number;
             /**
              * Format: int32
              * @description poolLimitRate 램프 시작 전 유예 주수
              * @example 52
              */
-            pGraceWeeks?: number;
+            pGraceWeeks: number;
             /**
              * Format: int32
              * @description poolLimitRate가 한 단계 하강하는 주기 (주 단위)
              * @example 26
              */
-            pStepWeeks?: number;
+            pStepWeeks: number;
             /**
              * @description poolLimitRate 램프 하한값
              * @example 0.5
              */
-            poolLimitFloor?: number;
+            poolLimitFloor: number;
         };
         VrConfigRequest: {
             /**
              * @description 밴드 폭 (%) — 미지정 시 현재값 유지
              * @example 15
              */
-            bandWidth?: number;
+            bandWidth?: number | null;
             /**
              * Format: int32
              * @description 리밸런싱 주기 (주) — 미지정 시 현재값 유지
              * @example 4
              */
-            intervalWeeks?: number;
+            intervalWeeks?: number | null;
             /**
              * Format: int32
              * @description 주기당 추가 예수금 (USD, 음수=인출) — 미지정 시 현재값 유지
              * @example 0
              */
-            recurringAmount?: number;
+            recurringAmount?: number | null;
             /**
              * Format: int32
              * @description 램프: 경과 0주 gradient — 미지정 시 현재값 유지
              * @example 10
              */
-            initialGradient?: number;
+            initialGradient?: number | null;
             /**
              * Format: int32
              * @description 램프: gradient 유예 주수 — 미지정 시 현재값 유지
              * @example 52
              */
-            gGraceWeeks?: number;
+            gGraceWeeks?: number | null;
             /**
              * Format: int32
              * @description 램프: gradient 단계 주기 — 미지정 시 현재값 유지
              * @example 26
              */
-            gStepWeeks?: number;
+            gStepWeeks?: number | null;
             /**
              * Format: int32
              * @description 램프: gradient 상한 — 미지정 시 현재값 유지
              * @example 20
              */
-            gMax?: number;
+            gMax?: number | null;
             /**
              * @description 램프: 경과 0주 poolLimitRate — 미지정 시 현재값 유지
              * @example 0.75
              */
-            initialPoolLimitRate?: number;
+            initialPoolLimitRate?: number | null;
             /**
              * Format: int32
              * @description 램프: poolLimitRate 유예 주수 — 미지정 시 현재값 유지
              * @example 52
              */
-            pGraceWeeks?: number;
+            pGraceWeeks?: number | null;
             /**
              * Format: int32
              * @description 램프: poolLimitRate 단계 주기 — 미지정 시 현재값 유지
              * @example 26
              */
-            pStepWeeks?: number;
+            pStepWeeks?: number | null;
             /**
              * @description 램프: poolLimitRate 하한 — 미지정 시 현재값 유지
              * @example 0.5
              */
-            poolLimitFloor?: number;
+            poolLimitFloor?: number | null;
             /**
              * Format: int32
              * @description 투자금 추가: 매수단가 편입할 주식 수 (null=추가 없음)
              * @example 10
              */
-            injectShares?: number;
+            injectShares?: number | null;
             /**
              * @description 투자금 추가: 위 주식의 매수단가 (injectShares>0이면 필수)
              * @example 45.5
              */
-            injectSharePrice?: number;
+            injectSharePrice?: number | null;
             /**
              * @description 투자금 추가: 추가 예수금 (USD, null/0=추가 없음)
              * @example 500
              */
-            injectDeposit?: number;
+            injectDeposit?: number | null;
             /**
              * Format: int32
              * @description 투자금 인출: 보유 수량에서 차감할 주식 수 (null=인출 없음, 보유 수량 초과 불가)
              * @example 5
              */
-            withdrawShares?: number;
+            withdrawShares?: number | null;
             /**
              * @description 투자금 인출: 예수금 차감액 (USD, null/0=인출 없음, 보유 예수금 초과 불가)
              * @example 200
              */
-            withdrawDeposit?: number;
+            withdrawDeposit?: number | null;
         };
         AccountRequest: {
             /**
@@ -2809,63 +2809,63 @@ export interface components {
              * @description 계좌번호 — Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
              * @example 131-01-001931
              */
-            accountNo?: string;
+            accountNo?: string | null;
             /**
              * @description API 앱 키 (Toss Client ID / 업비트 Access Key / 메리츠 App Key / 바이낸스 API Key)
              * @example PSxxxxxxxxxx
              */
-            appKey?: string;
+            appKey?: string | null;
             /** @description API 앱 시크릿 (Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret / 바이낸스 Secret Key) */
-            secretKey?: string;
+            secretKey?: string | null;
             /**
              * @description 증권사 — null이면 MOCK 기본값 적용
              * @example TOSS
-             * @enum {string}
+             * @enum {string|null}
              */
-            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
+            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE" | null;
             /**
              * Format: date
              * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
              * @example 2027-11-10
              */
-            apiKeyExpiresOn?: string;
+            apiKeyExpiresOn?: string | null;
         };
         AccountResponse: {
             /**
              * Format: uuid
              * @description 계좌 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * @description 계좌 별명
              * @example 내 메인 계좌
              */
-            nickname?: string;
+            nickname: string;
             /**
              * @description 마스킹된 계좌번호 (업비트는 null)
              * @example ****0614
              */
-            accountNoMasked?: string;
+            accountNoMasked?: string | null;
             /**
              * @description 전체 계좌번호 (본인 계좌, 토글 표시용 — 업비트는 null)
              * @example 74420614
              */
-            accountNo?: string;
+            accountNo?: string | null;
             /**
              * @description 증권사
              * @example TOSS
              */
-            broker?: string;
+            broker: string;
             /**
              * @description 계좌 기준 통화(증권사 파생)
              * @example USD
              */
-            currency?: string;
+            currency: string;
             /**
              * Format: date-time
              * @description 거래소 API 키 만료 시각 (업비트는 API 조회, 토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
              */
-            apiKeyExpiresAt?: string;
+            apiKeyExpiresAt?: string | null;
         };
         CredentialsRequest: {
             /** @description 새 API 앱 키 (Toss Client ID / 업비트 Access Key) */
@@ -2877,37 +2877,37 @@ export interface components {
              * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
              * @example 2027-11-10
              */
-            apiKeyExpiresOn?: string;
+            apiKeyExpiresOn?: string | null;
         };
         ExecuteOrdersResponse: {
             /** @description 증권사에 접수된 주문 목록 */
-            orders?: components["schemas"]["PlacedOrderItem"][];
+            orders: components["schemas"]["PlacedOrderItem"][];
         };
         PlacedOrderItem: {
             /**
              * Format: uuid
              * @description 주문 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * @description 거래 종목
              * @example TQQQ
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 매수/매도 방향
              * @example BUY
              */
-            direction?: string;
+            direction: string;
             /**
              * @description 주문 유형
              * @example LOC
              */
-            orderType?: string;
+            orderType: string;
             /** @description 주문 수량 */
-            quantity?: number;
+            quantity: number;
             /** @description 주문 가격 */
-            price?: number;
+            price: number;
         };
         CapitalWithdrawalRequest: {
             /**
@@ -2921,374 +2921,374 @@ export interface components {
              * @description 추가할 예수금 (USD, null=추가 없음)
              * @example 500
              */
-            depositAmount?: number;
+            depositAmount?: number | null;
             /**
              * Format: int32
              * @description 추가할 주식 수 (null=추가 없음, sharePrice와 함께 지정)
              * @example 10
              */
-            shares?: number;
+            shares?: number | null;
             /**
              * @description 추가할 주식의 매수단가 (shares와 함께 지정)
              * @example 45.5
              */
-            sharePrice?: number;
+            sharePrice?: number | null;
         };
         TestConnectionRequest: {
             /**
              * @description 증권사
              * @example TOSS
-             * @enum {string}
+             * @enum {string|null}
              */
-            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
+            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE" | null;
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
-            appKey?: string;
+            appKey?: string | null;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
-            appSecret?: string;
+            appSecret?: string | null;
         };
         AccountCashCheckSummary: {
             /** @description 증권사 USD 주문가능금액 (조회 시점, 접수 완료 주문은 증권사가 차감) */
-            availableUsd?: number;
+            availableUsd: number;
             /** @description 계좌 전체 오늘 BUY 필요 금액 (PLANNED·SUBMITTING BUY + 전략별 원장 반영 후 신규 BUY, USD) — SUBMITTING은 증권사 차감 여부가 불확실해 보수적으로 포함 */
-            requiredBuyUsd?: number;
+            requiredBuyUsd: number;
             /** @description requiredBuyUsd 중 INFINITE 보정 주문(LOC 1주) 지정가 합계 — 보정 제외 금액은 requiredBuyUsd − correctionBuyUsd. 접수 시에는 지정가 전체가 주문가능금액에서 묶이지만 실제 체결은 전략별 단위금액 안에서 끝난다. 보정 주문이 없으면 0 */
-            correctionBuyUsd?: number;
+            correctionBuyUsd: number;
             /** @description false면 배치 접수 시 증권사가 BUY를 거절할 수 있다 */
-            sufficient?: boolean;
+            sufficient: boolean;
         };
         AccountHoldingsCheckSummary: {
             /** @description 증권사 판매 가능 수량 (조회 시점, 미체결 매도 차감 전 보유 수량) */
-            availableQuantity?: number;
+            availableQuantity: number;
             /** @description 종목 전체 오늘 SELL 필요 수량 (PLANNED·SUBMITTING·PLACED SELL + 신규 SELL) — 판매 가능 수량이 미체결 매도를 차감하기 전 보유 수량이라 접수 완료(PLACED) SELL도 포함한다. 장중 일부 체결된 PLACED SELL은 주문 수량 전체로 세므로 보수적으로(부족 쪽으로) 표시될 수 있다 */
-            requiredSellQuantity?: number;
+            requiredSellQuantity: number;
             /** @description false면 배치 접수 시 증권사가 SELL을 거절할 수 있다 */
-            sufficient?: boolean;
+            sufficient: boolean;
         };
         LedgerCheckSummary: {
             /** @description 전략 원장 잔여 (같은 날 저장된 BUY 차감 후, USD) */
-            remainingLedger?: number;
+            remainingLedger: number;
             /** @description 오늘 신규 BUY 원본 합계 (USD) */
-            requiredBuyUsd?: number;
+            requiredBuyUsd: number;
             /** @description false면 원장 부족으로 BUY 전체가 거절된다 */
-            sufficient?: boolean;
+            sufficient: boolean;
             /** @description true면 원장에 맞춰 BUY가 축소돼 저장된다 */
-            trimmed?: boolean;
+            trimmed: boolean;
         };
         NextOrderItem: {
             /**
              * @description 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             /**
              * @description 주문 유형
              * @example LOC
              * @enum {string}
              */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /**
              * @description 매수/매도 방향
              * @example BUY
              * @enum {string}
              */
-            direction?: "BUY" | "SELL";
+            direction: "BUY" | "SELL";
             /**
              * Format: int32
              * @description 주문 수량
              */
-            quantity?: number;
+            quantity: number;
             /** @description 주문 가격 (LOC/MOC는 참고용) */
-            price?: number;
+            price: number;
             /**
              * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치)
              * @example AT_CLOSE
              * @enum {string}
              */
-            timing?: "AT_CLOSE" | "AT_OPEN";
+            timing: "AT_CLOSE" | "AT_OPEN";
         };
         NextOrdersResponse: {
             /**
              * Format: date
              * @description 다음 매매 예정일 (KST 기준)
              */
-            tradeDate?: string;
+            tradeDate: string;
             /** @description INFINITE 전략 포지션 스냅샷 (PRIVACY 전략 또는 skip 시 null) */
-            position?: components["schemas"]["PositionSnapshot"];
+            position?: components["schemas"]["PositionSnapshot"] | null;
             /** @description 생성 예정 주문 목록 */
-            orders?: components["schemas"]["NextOrderItem"][];
+            orders: components["schemas"]["NextOrderItem"][];
             /**
              * @description 주문 생성 skip 사유 (정상이면 null, MARKET_CLOSED=다음 거래일 휴장)
              * @example NO_PRIVACY_BASE
-             * @enum {string}
+             * @enum {string|null}
              */
-            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED" | "PRIVACY_BASE_BLOCKED" | "MARKET_CLOSED";
+            skipReason?: "NO_CYCLE_HISTORY" | "NO_PRIVACY_BASE" | "SCHEDULED_START_NOT_REACHED" | "CYCLE_ENDED" | "PRIVACY_BASE_BLOCKED" | "MARKET_CLOSED" | null;
             /** @description 오늘 이미 등록된 PLANNED·PLACED 주문 목록 */
-            todayOrders?: components["schemas"]["TodayOrderItem"][];
+            todayOrders: components["schemas"]["TodayOrderItem"][];
             /** @description 계좌 내 타 전략의 당일 PLANNED BUY 합계 (USD) */
-            otherStrategiesPlannedBuyUsd?: number;
+            otherStrategiesPlannedBuyUsd: number;
             /** @description 전략 원장 대비 BUY 경고 (DCA·신규 BUY 없음·skip이면 null) */
-            ledgerCheck?: components["schemas"]["LedgerCheckSummary"];
+            ledgerCheck?: components["schemas"]["LedgerCheckSummary"] | null;
             /** @description 계좌 주문가능 USD 대비 오늘 BUY 경고 — 계좌 단위(계좌 내 모든 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 BUY 없음·증권사 조회 실패면 null */
-            accountCashCheck?: components["schemas"]["AccountCashCheckSummary"];
+            accountCashCheck?: components["schemas"]["AccountCashCheckSummary"] | null;
             /** @description 계좌 보유(판매 가능) 수량 대비 오늘 SELL 경고 — (계좌, 종목) 단위(같은 종목 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 SELL 없음·증권사 조회 실패면 null */
-            accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"];
+            accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"] | null;
         };
         PositionSnapshot: {
             /**
              * @description 거래 종목
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             /** @description 보유 수량 */
-            holdings?: number;
+            holdings: number;
             /** @description 평균 매입가 (0회차: 전일종가) */
-            averagePrice?: number;
+            averagePrice: number;
             /** @description 통합주문가능금액 */
-            deposit?: number;
+            deposit: number;
             /** @description 가격 보정률 (전반: 양수, 후반: 0 이하) */
-            priceOffsetRate?: number;
+            priceOffsetRate: number;
             /**
              * Format: double
              * @description 현재 회차 (소수점 허용)
              * @example 3.5
              */
-            currentRound?: number;
+            currentRound: number;
             /** @description 1회 매수 단위금액 (총자산 / 분할 수) */
-            unitAmount?: number;
+            unitAmount: number;
             /** @description 기준가 (LOC 주문 가격 기준) */
-            referencePrice?: number;
+            referencePrice: number;
             /** @description 목표가 (지정가 매도 기준) */
-            targetPrice?: number;
+            targetPrice: number;
             /** @description 총 자산 (예수금 + 매입금액) */
-            totalAssets?: number;
+            totalAssets: number;
         };
         TodayOrderItem: {
             /**
              * Format: uuid
              * @description 주문 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * @description 거래 종목
              * @example TQQQ
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 매수/매도 방향
              * @example BUY
              */
-            direction?: string;
+            direction: string;
             /**
              * @description 주문 유형
              * @example LOC
              */
-            orderType?: string;
+            orderType: string;
             /** @description 주문 수량 */
-            quantity?: number;
+            quantity: number;
             /** @description 주문 가격 */
-            price?: number;
+            price: number;
             /**
              * @description 주문 상태 (취소 가능 여부 판단용)
              * @example PLANNED
              * @enum {string}
              */
-            status?: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
+            status: "PLANNED" | "SUBMITTING" | "PLACED" | "FILLED" | "PARTIALLY_FILLED" | "FAILED" | "CANCELLED";
             /**
              * @description 접수 시점 (AT_OPEN=개장 선접수, AT_CLOSE=마감 배치)
              * @example AT_CLOSE
              * @enum {string}
              */
-            timing?: "AT_CLOSE" | "AT_OPEN";
+            timing: "AT_CLOSE" | "AT_OPEN";
         };
         StrategyOrderItem: {
             /**
              * Format: uuid
              * @description 주문 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: date
              * @description 매매일 (KST 기준)
              */
-            tradeDate?: string;
+            tradeDate: string;
             /**
              * @description 매수/매도 방향
              * @example BUY
              */
-            direction?: string;
+            direction: string;
             /**
              * @description 주문 유형
              * @example LOC
              */
-            orderType?: string;
+            orderType: string;
             /** @description 주문 수량 */
-            quantity?: number;
+            quantity: number;
             /** @description 주문 가격 */
-            price?: number;
+            price: number;
             /**
              * @description 주문 상태
              * @example PLACED
              */
-            status?: string;
+            status: string;
             /** @description 체결 수량 (미체결이면 null) */
-            filledQuantity?: number;
+            filledQuantity?: number | null;
             /** @description 체결 가격 (미체결이면 null) */
-            filledPrice?: number;
+            filledPrice?: number | null;
         };
         StrategyOrdersResponse: {
             /** @description 전략의 주문 목록 */
-            orders?: components["schemas"]["StrategyOrderItem"][];
+            orders: components["schemas"]["StrategyOrderItem"][];
         };
         CycleHistoryPageResponse: {
             /** @description 거래내역 항목 목록 */
-            items?: components["schemas"]["CycleHistoryResponse"][];
+            items: components["schemas"]["CycleHistoryResponse"][];
             /** @description 다음 페이지 조회용 커서 (마지막 페이지면 null) */
-            nextCursor?: string;
+            nextCursor?: string | null;
             /** @description 다음 페이지 존재 여부 */
-            hasMore?: boolean;
+            hasMore: boolean;
         };
         CycleHistoryResponse: {
             /** @description 기록 시각 (ISO-8601) */
-            createdAt?: string;
+            createdAt: string;
             /**
              * @description 종목 코드
              * @example TQQQ
              */
-            ticker?: string;
+            ticker?: string | null;
             /**
              * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 deposit이 항상 0
              * @example INFINITE
              */
-            strategyType?: string;
+            strategyType?: string | null;
             /** @description 보유 수량 */
-            holdings?: number;
+            holdings: number;
             /** @description 종가 (null 가능) */
-            closingPrice?: number;
+            closingPrice?: number | null;
             /** @description 평균 매입 단가 (보유수량 0이면 null) */
-            avgPrice?: number;
+            avgPrice?: number | null;
             /** @description 통합주문가능금액 */
-            deposit?: number;
+            deposit: number;
         };
         DcaExecutionItem: {
-            ruleKey?: string;
+            ruleKey: string;
             /** @enum {string} */
-            direction?: "BUY" | "SELL";
+            direction: "BUY" | "SELL";
             /** Format: date */
-            kstTradeDate?: string;
+            kstTradeDate: string;
             /** Format: date */
-            usSessionDate?: string;
-            status?: string;
-            skipReason?: string;
-            detail?: string;
-            referencePrice?: number;
-            quantity?: number;
-            order?: components["schemas"]["OrderSummary"];
+            usSessionDate: string;
+            status: string;
+            skipReason?: string | null;
+            detail?: string | null;
+            referencePrice?: number | null;
+            quantity?: number | null;
+            order?: components["schemas"]["OrderSummary"] | null;
         };
         DcaExecutionPageResponse: {
-            content?: components["schemas"]["DcaExecutionItem"][];
+            content: components["schemas"]["DcaExecutionItem"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int32 */
-            size?: number;
+            size: number;
             /** Format: int64 */
-            totalElements?: number;
+            totalElements: number;
         };
         OrderSummary: {
             /** Format: uuid */
-            id?: string;
-            status?: string;
-            filledQuantity?: number;
-            filledPrice?: number;
+            id: string;
+            status: string;
+            filledQuantity?: number | null;
+            filledPrice?: number | null;
         };
         StatsSummaryResponse: {
-            totalRealizedPnl?: number;
-            totalUnrealizedPnl?: number;
-            activePrincipal?: number;
-            byType?: components["schemas"]["TypeStats"][];
-            availableCurrencies?: ("KRW" | "USD" | "JPY" | "USDT")[];
+            totalRealizedPnl: number;
+            totalUnrealizedPnl: number;
+            activePrincipal: number;
+            byType: components["schemas"]["TypeStats"][];
+            availableCurrencies: ("KRW" | "USD" | "JPY" | "USDT")[];
         };
         TypeStats: {
-            type?: string;
-            typeDescription?: string;
+            type: string;
+            typeDescription: string;
             /** Format: int32 */
-            closedCycleCount?: number;
+            closedCycleCount: number;
             /** Format: int32 */
-            activeCycleCount?: number;
-            winRate?: number;
-            avgReturnRate?: number;
-            avgDurationDays?: number;
-            realizedPnl?: number;
-            unrealizedPnl?: number;
+            activeCycleCount: number;
+            winRate?: number | null;
+            avgReturnRate?: number | null;
+            avgDurationDays?: number | null;
+            realizedPnl: number;
+            unrealizedPnl: number;
         };
         EquityCurvePoint: {
             /** Format: date */
-            date?: string;
-            totalAsset?: number;
-            principal?: number;
+            date: string;
+            totalAsset: number;
+            principal: number;
         };
         EquityCurveResponse: {
-            points?: components["schemas"]["EquityCurvePoint"][];
+            points: components["schemas"]["EquityCurvePoint"][];
         };
         CyclePerformanceItem: {
             /** Format: uuid */
-            cycleId?: string;
+            cycleId: string;
             /** Format: uuid */
-            accountId?: string;
-            strategyType?: string;
-            ticker?: string;
+            accountId: string;
+            strategyType: string;
+            ticker?: string | null;
             /** Format: date */
-            startDate?: string;
+            startDate: string;
             /** Format: date */
-            endDate?: string;
-            startAmount?: number;
-            endAmount?: number;
-            pnl?: number;
-            returnRate?: number;
+            endDate?: string | null;
+            startAmount: number;
+            endAmount?: number | null;
+            pnl?: number | null;
+            returnRate?: number | null;
             /** Format: int32 */
-            durationDays?: number;
-            closed?: boolean;
+            durationDays: number;
+            closed: boolean;
         };
         CyclePerformancePageResponse: {
-            items?: components["schemas"]["CyclePerformanceItem"][];
+            items: components["schemas"]["CyclePerformanceItem"][];
             /** Format: int32 */
-            page?: number;
+            page: number;
             /** Format: int64 */
-            totalElements?: number;
+            totalElements: number;
             /** Format: int32 */
-            totalPages?: number;
+            totalPages: number;
         };
         DailyTransactionResponse: {
             /** @description 일별 체결 내역 목록 */
-            items?: components["schemas"]["ItemDto"][];
+            items: components["schemas"]["ItemDto"][];
         };
         ItemDto: {
             /** @description 매매일 (KST 기준) */
-            tradeDate?: string;
+            tradeDate: string;
             /**
              * @description 매수/매도 방향
              * @example BUY
              * @enum {string}
              */
-            direction?: "BUY" | "SELL";
+            direction: "BUY" | "SELL";
             /**
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             /** @description 종목명 */
-            symbolName?: string;
+            symbolName: string;
             /** @description 체결수량 (코인은 소수) */
-            quantity?: number;
+            quantity: number;
             /** @description 체결단가 (계좌 통화) */
-            price?: number;
+            price: number;
             /** @description 거래금액 (계좌 통화) */
-            tradeAmount?: number;
+            tradeAmount: number;
             /**
              * @description 계좌 통화
              * @example USD
              * @enum {string}
              */
-            currency?: "KRW" | "USD" | "JPY" | "USDT";
+            currency: "KRW" | "USD" | "JPY" | "USDT";
         };
         CryptoMarketIndicatorsCoinbasePremium: {
             /** @description 현재 코인베이스 프리미엄 (%) — (코인베이스 <코인>-USD ÷ (바이낸스 <코인>USDT × 코인베이스 USDT-USD) − 1) × 100 */
@@ -3311,14 +3311,14 @@ export interface components {
             /** @description 일 평균 해시레이트 (EH/s) */
             hashrateEh: number;
             /** @description 30일 이동평균 (이력 30일 미만이면 null) */
-            sma30: number | null;
+            sma30?: number | null;
             /** @description 60일 이동평균 (이력 60일 미만이면 null) */
-            sma60: number | null;
+            sma60?: number | null;
             /**
              * @description CAPITULATION: sma30 < sma60 (채굴자 항복), RECOVERY: 그 외 (sma60 없으면 null)
              * @enum {string|null}
              */
-            state: "CAPITULATION" | "RECOVERY" | null;
+            state?: "CAPITULATION" | "RECOVERY" | null;
             /** @description 매수 신호 — CAPITULATION → RECOVERY 전환 후 BTC 종가 10일 SMA > 20일 SMA가 처음 충족되는 날(전환일에 이미 충족이면 그날, 아니면 이후 RECOVERY 유지 중 첫 충족일, 다시 CAPITULATION이면 취소) */
             buySignal: boolean;
         };
@@ -3340,7 +3340,7 @@ export interface components {
              */
             date: string;
             /** @description 공식 환율 기준 김프 (%, 환율 없는 날 null) */
-            official: number | null;
+            official?: number | null;
             /** @description 테더 기준 김프 (%) */
             tether: number;
         };
@@ -3353,11 +3353,11 @@ export interface components {
             /** @description 그날 종가 (USDT) */
             close: number;
             /** @description 200주 이동평균 (USDT, 1400일 단순평균 — 이력 1400일 미만이면 null) */
-            wma200: number | null;
+            wma200?: number | null;
             /** @description 종가 / 200주 이동평균 배수 (200주 이동평균이 null이면 null) */
-            wma200Multiple: number | null;
+            wma200Multiple?: number | null;
             /** @description Mayer Multiple — 종가 / 200일 이동평균 (이력 200일 미만이면 null) */
-            mayerMultiple: number | null;
+            mayerMultiple?: number | null;
             /** @description 최고 종가(ATH) 대비 하락률 (%, 0 이하) */
             athDrawdownPercent: number;
         };
@@ -3444,7 +3444,7 @@ export interface components {
         };
         CryptoMarketIndicatorsPremiumPair: {
             /** @description 공식 환율 기준 김프 (%, 환율 장애 시 null) */
-            official: number | null;
+            official?: number | null;
             /** @description 테더 기준 김프 (%) */
             tether: number;
         };
@@ -3455,17 +3455,17 @@ export interface components {
              */
             asOf: string;
             /** @description 테더 프리미엄 (실패 시 null) */
-            usdtPremium: components["schemas"]["CryptoMarketIndicatorsPremium"] | null;
+            usdtPremium?: components["schemas"]["CryptoMarketIndicatorsPremium"] | null;
             /** @description 종목별 지표 */
             tickers: components["schemas"]["CryptoMarketIndicatorsTicker"][];
             /** @description BTC 반감기 카운트다운 (실패 시 null) */
-            halving: components["schemas"]["CryptoMarketIndicatorsHalving"] | null;
+            halving?: components["schemas"]["CryptoMarketIndicatorsHalving"] | null;
             /** @description BTC 도미넌스 — BTC 시가총액 비중 (%) (CMC 키 없음·실패 시 null) */
-            btcDominance: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
+            btcDominance?: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
             /** @description 알트코인 시즌 지수 0~100 (CMC — 상위 100 알트 중 90일간 BTC를 이긴 비율, 75↑ 알트 시즌·25↓ 비트코인 시즌). 이력은 비공식 API라 실패 시 빈 배열 (현재값 조회 실패 시 null) */
-            altcoinSeason: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
+            altcoinSeason?: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
             /** @description Hash Ribbons — 해시레이트(EH/s) 30·60일 이동평균, CAPITULATION: sma30 < sma60(채굴자 항복), buySignal: 항복→회복 전환 후 BTC 10일 SMA > 20일 SMA가 되는 첫날 (실패 시 null) */
-            hashRibbons: components["schemas"]["CryptoMarketIndicatorsHashRibbons"] | null;
+            hashRibbons?: components["schemas"]["CryptoMarketIndicatorsHashRibbons"] | null;
         };
         CryptoMarketIndicatorsTicker: {
             /**
@@ -3474,17 +3474,17 @@ export interface components {
              */
             ticker: string;
             /** @description 김치 프리미엄 (실패 시 null) */
-            kimchiPremium: components["schemas"]["CryptoMarketIndicatorsKimchiPremium"] | null;
+            kimchiPremium?: components["schemas"]["CryptoMarketIndicatorsKimchiPremium"] | null;
             /** @description 펀딩비 (실패 시 null) */
-            fundingRate: components["schemas"]["CryptoMarketIndicatorsFundingRate"] | null;
+            fundingRate?: components["schemas"]["CryptoMarketIndicatorsFundingRate"] | null;
             /** @description 미결제약정 (실패 시 null) */
-            openInterest: components["schemas"]["CryptoMarketIndicatorsOpenInterest"] | null;
+            openInterest?: components["schemas"]["CryptoMarketIndicatorsOpenInterest"] | null;
             /** @description 장기 밸류에이션 — 직전 완성 일봉 종가 기준 (실패 시 null) */
-            valuation: components["schemas"]["CryptoMarketIndicatorsValuation"] | null;
+            valuation?: components["schemas"]["CryptoMarketIndicatorsValuation"] | null;
             /** @description 롱/숏 계좌 비율 — 계좌 수(사람) 기준, 포지션 규모(돈) 기준인 펀딩비와 다름 (실패 시 null) */
-            longShortRatio: components["schemas"]["CryptoMarketIndicatorsLongShortRatio"] | null;
+            longShortRatio?: components["schemas"]["CryptoMarketIndicatorsLongShortRatio"] | null;
             /** @description 테더 보정 코인베이스 프리미엄 — 미국 현물 수요 (실패 시 null) */
-            coinbasePremium: components["schemas"]["CryptoMarketIndicatorsCoinbasePremium"] | null;
+            coinbasePremium?: components["schemas"]["CryptoMarketIndicatorsCoinbasePremium"] | null;
         };
         CryptoMarketIndicatorsValuation: {
             /** @description 현재 값 — 실시간이 아니라 직전 완성 일봉 기준 (history 마지막 점과 같음) */
@@ -3494,50 +3494,50 @@ export interface components {
         };
         BacktestPoint: {
             /** Format: date */
-            date?: string;
-            totalAsset?: number;
-            principal?: number;
+            date: string;
+            totalAsset: number;
+            principal: number;
         };
         BacktestResponse: {
-            points?: components["schemas"]["BacktestPoint"][];
-            summary?: components["schemas"]["BacktestSummary"];
+            points: components["schemas"]["BacktestPoint"][];
+            summary: components["schemas"]["BacktestSummary"];
             /** @description 두 번째 사이클부터 각 사이클이 시작된 날짜(points의 date와 같은 축, 오름차순). 첫 사이클 시작일(points[0].date)은 포함하지 않는다. 개수 = summary.cycleCount - 1 (cycleCount는 진행 중인 마지막 사이클까지 센다). 사이클 전환이 없으면 빈 배열 */
-            cycleStartDates?: string[];
-            warnings?: string[];
+            cycleStartDates: string[];
+            warnings: string[];
         };
         BacktestSummary: {
-            finalAsset?: number;
-            totalInvested?: number;
-            totalReturnRate?: number;
-            cagr?: number;
-            mdd?: number;
+            finalAsset: number;
+            totalInvested: number;
+            totalReturnRate: number;
+            cagr?: number | null;
+            mdd: number;
             /** Format: int32 */
-            tradeCount?: number;
+            tradeCount: number;
             /** Format: int32 */
-            cycleCount?: number;
+            cycleCount: number;
         };
         StrategySeedPreviewResponse: {
             /**
              * @description 거래 종목
              * @example SOXL
              */
-            ticker?: string;
+            ticker: string;
             /** @description 기준가 (계산 불가 시 null) */
-            basePrice?: number;
+            basePrice?: number | null;
             /** @description 최소 필요 투자금 (계산 불가 시 null) */
-            minSeed?: number;
+            minSeed?: number | null;
             /**
              * @description 계산 불가 사유 (정상이면 null)
              * @example NO_PRIVACY_BASE
              */
-            skipReason?: string;
+            skipReason?: string | null;
             /** @description 가용 예수금(계좌 통화 — 주식 USD·코인 KRW/USDT) = 주문 가능 현금(증권사 매수가능금액·거래소 견적 통화 잔고) − 계좌 전략 원장 예수금 합 (모의계좌·조회 실패면 null). 입력 예수금이 넘으면 경고만 한다 */
-            availableCash?: number;
+            availableCash?: number | null;
         };
         /** @description 복수 종목 현재가 조회 응답 */
         MultiPriceResponse: {
             /** @description 종목별 현재가 목록 */
-            prices?: components["schemas"]["TickerPrice"][];
+            prices: components["schemas"]["TickerPrice"][];
         };
         TickerPrice: {
             /**
@@ -3545,98 +3545,98 @@ export interface components {
              * @example TQQQ
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             /**
              * @description 현재가 (USD)
              * @example 120.5
              */
-            price?: number;
+            price?: number | null;
         };
         PortfolioSummaryDto: {
             /** @description 총자산 (KRW) */
-            totalAsset?: number;
+            totalAsset: number;
             /** @description 총평가손익 (KRW) */
-            totalEvalProfit?: number;
+            totalEvalProfit: number;
             /** @description 총수익률 (%) */
-            totalReturnRate?: number;
+            totalReturnRate: number;
             /** @description USD 총자산 (포지션 평가금 + 예수금) */
-            totalAssetActual?: number;
+            totalAssetActual: number;
             /** @description USD 평가손익 합계 */
-            evalProfitUsdSum?: number;
+            evalProfitUsdSum: number;
             /** @description USD 예수금 */
-            deposit?: number;
+            deposit: number;
             /** @description USD 평가금 (포지션 evalAmountUsd 합계) */
-            posEvalUsd?: number;
+            posEvalUsd: number;
             /** @description 환율 (1 USD = ? KRW) */
-            exchangeRateKrwPerUsd?: number;
+            exchangeRateKrwPerUsd: number;
         };
         PortfolioSummaryResponse: {
             /** @description 종목별 잔고 목록 */
-            positions?: components["schemas"]["PositionDto"][];
+            positions: components["schemas"]["PositionDto"][];
             /** @description 계좌 전체 요약 */
-            summary?: components["schemas"]["PortfolioSummaryDto"];
+            summary: components["schemas"]["PortfolioSummaryDto"];
         };
         PositionDto: {
             /**
              * @description 종목코드
              * @enum {string}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             /** @description 잔고수량 */
-            holdings?: number;
+            holdings: number;
             /** @description 평균단가 (USD) */
-            avgPrice?: number;
+            avgPrice: number;
             /** @description 현재가 (USD) */
-            currentPrice?: number;
+            currentPrice: number;
             /** @description 외화평가금액 */
-            evalAmountUsd?: number;
+            evalAmountUsd: number;
             /** @description 평가손익 (USD) */
-            profitLossUsd?: number;
+            profitLossUsd: number;
             /** @description 평가손익률 (%) */
-            profitRate?: number;
+            profitRate: number;
             /**
              * @description 해외거래소코드
              * @example AMEX
              */
-            exchangeCode?: string;
+            exchangeCode?: string | null;
         };
         AccountLedgerTotalsResponse: {
             /**
              * @description 계좌 통화
              * @example USD
              */
-            currency?: string;
+            currency: string;
             /** @description 예수금 (전략 합산) — ARCHIVED 제외 전략들의 최신 원장 예수금 합 */
-            deposit?: number;
+            deposit: number;
             /** @description 평가금 (전략 합산) — 원장 보유 × 현재가 합 (시세 조회 실패·누락이면 null) */
-            evaluation?: number;
+            evaluation?: number | null;
             /** @description 미배정 현금 — 주문 가능 현금 − 원장 예수금 합 (모의계좌·조회 실패면 null) */
-            unassignedCash?: number;
+            unassignedCash?: number | null;
         };
         CryptoPrice: {
             /**
              * @description 종목
              * @example BTC
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 현재가 (KRW)
              * @example 150000000
              */
-            price?: number;
+            price: number;
         };
         CryptoPricesResponse: {
             /** @description 종목별 현재가 — 시세가 없는 종목은 빠진다 */
-            prices?: components["schemas"]["CryptoPrice"][];
+            prices: components["schemas"]["CryptoPrice"][];
         };
         CryptoHoldingResponse: {
             /**
              * @description 종목
              * @example BTC
              */
-            ticker?: string;
+            ticker: string;
             /** @description 보유 수량 (소수 8자리) */
-            quantity?: number;
+            quantity: number;
             /** @description 평균 매수가 (계좌 통화 = currency, 거래소 값 없으면 원장 평단, 둘 다 없으면 null) */
             avgBuyPrice?: number | null;
             /** @description 현재가 (계좌 통화 = currency, 시세 없으면 null) */
@@ -3649,30 +3649,30 @@ export interface components {
              * @description 계좌 통화 (Currency name — KRW|USDT)
              * @example USDT
              */
-            currency?: string;
+            currency: string;
             /** @description 예수금 (계좌 통화, 가용 + 주문 대기) */
-            cash?: number;
+            cash: number;
             /** @description 코인별 보유 */
-            holdings?: components["schemas"]["CryptoHoldingResponse"][];
+            holdings: components["schemas"]["CryptoHoldingResponse"][];
             /** @description 총자산 (계좌 통화) = 예수금 + 평가액 합 */
-            totalAsset?: number;
+            totalAsset: number;
         };
         CancelOrdersResponse: {
             /**
              * Format: int32
              * @description 취소 접수 성공 건수
              */
-            cancelledCount?: number;
+            cancelledCount: number;
             /**
              * Format: int32
              * @description 취소 실패 건수 (이미 체결되었거나 증권사 오류)
              */
-            failedCount?: number;
+            failedCount: number;
             /**
              * Format: int32
              * @description 취소 실패 중 증권사 자격증명 오류(키 만료·철회) 건수 — 재시도해도 풀리지 않아 계좌 키 재등록 필요
              */
-            credentialFailedCount?: number;
+            credentialFailedCount: number;
         };
         TelegramUpdateRequest: {
             /** @description 사용자 텔레그램 봇 토큰 */
@@ -3700,53 +3700,53 @@ export interface components {
              * @description 금액 (원화 정수 절대값, 0 이상)
              * @example 344000
              */
-            amount?: number;
+            amount: number;
             /** @description 메모 (선택) */
-            memo?: string;
+            memo?: string | null;
         };
         FinanceTransactionResponse: {
             /**
              * Format: uuid
              * @description 거래내역 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 카테고리 ID
              */
-            categoryId?: string;
+            categoryId: string;
             /**
              * Format: uuid
              * @description 그룹 ID (null이면 개인 소유 — 본인만 조회·전환 가능)
              */
-            groupId?: string;
+            groupId?: string | null;
             /**
              * Format: date
              * @description 거래 날짜
              * @example 2026-08-01
              */
-            transactionDate?: string;
+            transactionDate: string;
             /**
              * Format: int64
              * @description 금액 (원화 정수 절대값)
              * @example 344000
              */
-            amount?: number;
+            amount: number;
             /** @description 메모 */
-            memo?: string;
+            memo?: string | null;
         };
         FinanceCategoryRequest: {
             /**
              * Format: uuid
              * @description 상위 카테고리 ID (L1이면 null, 등록 시에만 사용 — 수정 시 무시)
              */
-            parentId?: string;
+            parentId?: string | null;
             /**
              * @description 카테고리 타입 (등록 시 필수, 수정 시 무시)
              * @example EXPENSE
-             * @enum {string}
+             * @enum {string|null}
              */
-            type?: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+            type?: "INCOME" | "EXPENSE" | "SAVING" | "ASSET" | null;
             /**
              * @description 카테고리명
              * @example 식비
@@ -3757,45 +3757,45 @@ export interface components {
              * @description 정렬 순서
              * @example 10
              */
-            sortOrder?: number;
+            sortOrder: number;
         };
         FinanceCategoryResponse: {
             /**
              * Format: uuid
              * @description 카테고리 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 그룹 ID (시스템 전역 카테고리면 null)
              */
-            groupId?: string;
+            groupId?: string | null;
             /**
              * Format: uuid
              * @description 상위 카테고리 ID (L1이면 null)
              */
-            parentId?: string;
+            parentId?: string | null;
             /**
              * @description 카테고리 타입
              * @example EXPENSE
              * @enum {string}
              */
-            type?: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+            type: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
             /**
              * @description 카테고리명
              * @example 식비
              */
-            name?: string;
+            name: string;
             /**
              * Format: int32
              * @description 정렬 순서
              * @example 10
              */
-            sortOrder?: number;
+            sortOrder: number;
             /** @description 시스템 전역 카테고리 여부 (true면 수정·삭제 불가) */
-            system?: boolean;
+            system: boolean;
             /** @description 하위 카테고리 목록 (임의 depth로 재귀 중첩) */
-            children?: components["schemas"]["FinanceCategoryResponse"][];
+            children: components["schemas"]["FinanceCategoryResponse"][];
         };
         FinanceBudgetRequest: {
             /**
@@ -3814,48 +3814,48 @@ export interface components {
              * @description 적용 종료일 (null이면 무기한)
              * @example 2026-12-31
              */
-            applyEndDate?: string;
+            applyEndDate?: string | null;
             /**
              * Format: int64
              * @description 월 할당 예산 (원화 정수, 0 초과)
              * @example 350000
              */
-            amount?: number;
+            amount: number;
         };
         FinanceBudgetResponse: {
             /**
              * Format: uuid
              * @description 예산 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 카테고리 ID
              */
-            categoryId?: string;
+            categoryId: string;
             /**
              * Format: uuid
              * @description 그룹 ID (null이면 개인 소유 — 본인만 조회·전환 가능)
              */
-            groupId?: string;
+            groupId?: string | null;
             /**
              * Format: date
              * @description 적용 시작일
              * @example 2026-01-01
              */
-            applyStartDate?: string;
+            applyStartDate: string;
             /**
              * Format: date
              * @description 적용 종료일 (null이면 무기한)
              * @example 2026-12-31
              */
-            applyEndDate?: string;
+            applyEndDate?: string | null;
             /**
              * Format: int64
              * @description 월 할당 예산 (원화 정수)
              * @example 350000
              */
-            amount?: number;
+            amount: number;
         };
         AssetSnapshotRequest: {
             /**
@@ -3867,7 +3867,7 @@ export interface components {
              * Format: uuid
              * @description 계좌 ID (선택 — 전세임차보증금 등 계좌 없는 자산은 null)
              */
-            accountId?: string;
+            accountId?: string | null;
             /**
              * Format: date
              * @description 기준 날짜
@@ -3890,79 +3890,79 @@ export interface components {
              * @description 운용전략 (자유 입력, 선택 — 실제 자동매매 전략과 무관한 개인 메모)
              * @example VR
              */
-            strategy?: string;
+            strategy?: string | null;
             /** @description 메모 (선택) */
-            memo?: string;
+            memo?: string | null;
             /**
              * Format: int64
              * @description 금액 (원화 정수, 0 이상)
              * @example 1000000
              */
-            amount?: number;
+            amount: number;
         };
         AssetSnapshotResponse: {
             /**
              * Format: uuid
              * @description 자산 기록 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 그룹 ID (없으면 개인 소유)
              */
-            groupId?: string;
+            groupId?: string | null;
             /**
              * Format: uuid
              * @description 카테고리 ID
              */
-            categoryId?: string;
+            categoryId: string;
             /**
              * Format: uuid
              * @description 최상위(L1) 카테고리 ID — 대출이면 순자산 계산 시 부채로 취급
              */
-            rootCategoryId?: string;
+            rootCategoryId: string;
             /** @description 카테고리명 */
-            categoryName?: string;
+            categoryName: string;
             /**
              * Format: uuid
              * @description 계좌 ID (없으면 null)
              */
-            accountId?: string;
+            accountId?: string | null;
             /** @description 계좌명 (없으면 null) */
-            accountName?: string;
+            accountName?: string | null;
             /** @description 계좌 기관 (계좌가 없거나 기관 미입력이면 null) */
-            accountInstitution?: string;
+            accountInstitution?: string | null;
             /** @description 계좌 소유자 (계좌가 없거나 소유자 미입력이면 null) */
-            accountOwner?: string;
+            accountOwner?: string | null;
             /**
              * Format: date
              * @description 기준 날짜
              * @example 2026-08-01
              */
-            entryDate?: string;
+            entryDate: string;
             /**
              * @description 자산군
              * @example EQUITY
              */
-            assetClass?: string;
+            assetClass: string;
             /**
              * @description 시장
              * @example GLOBAL
              */
-            market?: string;
+            market: string;
             /**
              * @description 운용전략
              * @example VR
              */
-            strategy?: string;
+            strategy?: string | null;
             /** @description 메모 */
-            memo?: string;
+            memo?: string | null;
             /**
              * Format: int64
              * @description 금액 (원화 정수)
              * @example 1000000
              */
-            amount?: number;
+            amount: number;
         };
         FinanceAccountRequest: {
             /**
@@ -3977,50 +3977,50 @@ export interface components {
              */
             name: string;
             /** @description 계좌번호 (선택, 숫자만) */
-            accountNo?: string;
+            accountNo?: string | null;
             /** @description 메모 (선택) */
-            memo?: string;
+            memo?: string | null;
             /**
              * @description 기관 (선택, 자유 입력)
              * @example 토스증권
              */
-            institution?: string;
+            institution?: string | null;
             /**
              * @description 소유자 (선택, 자유 입력)
              * @example 본인
              */
-            owner?: string;
+            owner?: string | null;
         };
         FinanceAccountResponse: {
             /**
              * Format: uuid
              * @description 계좌 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 그룹 ID (개인 소유면 null)
              */
-            groupId?: string;
+            groupId?: string | null;
             /**
              * @description 계좌 타입
              * @example SECURITIES
              * @enum {string}
              */
-            accountType?: "SECURITIES" | "BANK" | "INSURANCE" | "EXCHANGE";
+            accountType: "SECURITIES" | "BANK" | "INSURANCE" | "EXCHANGE";
             /**
              * @description 계좌명
              * @example 토스증권 일반계좌
              */
-            name?: string;
+            name: string;
             /** @description 계좌번호 */
-            accountNo?: string;
+            accountNo?: string | null;
             /** @description 메모 */
-            memo?: string;
+            memo?: string | null;
             /** @description 기관 */
-            institution?: string;
+            institution?: string | null;
             /** @description 소유자 */
-            owner?: string;
+            owner?: string | null;
         };
         AdminSettingsRequest: {
             /** @description 가입 승인 정책 설정 */
@@ -4034,7 +4034,7 @@ export interface components {
                 [key: string]: components["schemas"]["StrategyRequest"];
             };
             /** @description ETF 벤치마크 비교 자산 설정 (생략 시 기존 값 유지) */
-            benchmarks?: components["schemas"]["BenchmarkRequest"];
+            benchmarks?: components["schemas"]["BenchmarkRequest"] | null;
         };
         AuthRequest: {
             /** @description 신규 가입 승인 필요 여부 */
@@ -4091,24 +4091,24 @@ export interface components {
             /** @description 사용자 입력 허용 여부 */
             customizable: boolean;
             /** @description 허용 값 목록 */
-            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
+            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
             /**
              * @description 신규 생성 기본값
              * @enum {string}
              */
-            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
         };
         FieldRequests: {
             /** @description 종목 생성 필드 설정 */
-            ticker?: components["schemas"]["FieldRequestStrategyTicker"];
+            ticker?: components["schemas"]["FieldRequestStrategyTicker"] | null;
             /** @description 무한매수 분할 수 필드 설정 (INFINITE 전용) */
-            divisionCount?: components["schemas"]["FieldRequestInteger"];
+            divisionCount?: components["schemas"]["FieldRequestInteger"] | null;
             /** @description VR 정기 입출금 방향 필드 설정 (VR 전용) */
-            recurringMode?: components["schemas"]["FieldRequestRecurringMode"];
+            recurringMode?: components["schemas"]["FieldRequestRecurringMode"] | null;
             /** @description VR 밴드 폭 필드 설정 (%, VR 전용) */
-            bandWidth?: components["schemas"]["FieldRequestBigDecimal"];
+            bandWidth?: components["schemas"]["FieldRequestBigDecimal"] | null;
             /** @description VR 롤오버 주기 필드 설정 (주 단위, VR 전용) */
-            intervalWeeks?: components["schemas"]["FieldRequestInteger"];
+            intervalWeeks?: components["schemas"]["FieldRequestInteger"] | null;
         };
         StrategyRequest: {
             /** @description 신규 전략 생성 허용 여부 */
@@ -4118,58 +4118,58 @@ export interface components {
         };
         AuthResponse: {
             /** @description 가입 승인 필수 여부 */
-            approvalRequired?: boolean;
+            approvalRequired: boolean;
         };
         BenchmarkFieldResponseString: {
             /** @description 허용 값 목록 */
-            allowedValues?: string[];
+            allowedValues: string[];
             /** @description 비교 기본값 */
-            defaultValue?: string;
+            defaultValue: string;
         };
         BenchmarkResponse: {
             /** @description ETF 벤치마크 비교 자산 설정 */
-            etf?: components["schemas"]["BenchmarkFieldResponseString"];
+            etf: components["schemas"]["BenchmarkFieldResponseString"];
         };
         BrokerResponse: {
             /** @description 증권사 신규 계좌 등록 허용 여부 */
-            enabled?: boolean;
+            enabled: boolean;
             /**
              * @description 거래소 API 키에 등록할 서버 공인 IP (업비트만, 그 외 생략)
              * @example 168.107.63.152
              */
-            allowedIp?: string;
+            allowedIp?: string | null;
         };
         FieldResponses: {
             /** @description 종목 생성 설정 (customizable/allowedValues/defaultValue) */
-            ticker?: components["schemas"]["StrategyFieldSettingsObject"];
+            ticker?: components["schemas"]["StrategyFieldSettingsObject"] | null;
             /** @description 무한매수 분할 수 생성 설정 */
-            divisionCount?: components["schemas"]["StrategyFieldSettingsObject"];
+            divisionCount?: components["schemas"]["StrategyFieldSettingsObject"] | null;
             /** @description VR 정기 입출금 방향 생성 설정 */
-            recurringMode?: components["schemas"]["StrategyFieldSettingsObject"];
+            recurringMode?: components["schemas"]["StrategyFieldSettingsObject"] | null;
             /** @description VR 밴드 폭 생성 설정 (%) */
-            bandWidth?: components["schemas"]["StrategyFieldSettingsObject"];
+            bandWidth?: components["schemas"]["StrategyFieldSettingsObject"] | null;
             /** @description VR 롤오버 주기 생성 설정 (주 단위) */
-            intervalWeeks?: components["schemas"]["StrategyFieldSettingsObject"];
+            intervalWeeks?: components["schemas"]["StrategyFieldSettingsObject"] | null;
         };
         RuntimeSettingsResponse: {
             /** @description 가입·인증 공개 설정 */
-            auth?: components["schemas"]["AuthResponse"];
+            auth: components["schemas"]["AuthResponse"];
             /** @description 증권사별 공개 설정 */
-            brokers?: {
+            brokers: {
                 [key: string]: components["schemas"]["BrokerResponse"];
             };
             /** @description 전략 타입별 생성 정책 설정 */
-            strategies?: {
+            strategies: {
                 [key: string]: components["schemas"]["RuntimeStrategySettings"];
             };
             /** @description ETF 벤치마크 비교 자산 설정 */
-            benchmarks?: components["schemas"]["BenchmarkResponse"];
+            benchmarks: components["schemas"]["BenchmarkResponse"];
         };
         RuntimeStrategySettings: {
             /** @description 신규 전략 생성 허용 여부 */
-            enabled?: boolean;
+            enabled: boolean;
             /** @description 전략 타입별 생성 필드 정책 (적용 안 되는 필드는 생략) */
-            fields?: components["schemas"]["FieldResponses"];
+            fields: components["schemas"]["FieldResponses"];
         };
         StrategyFieldSettingsObject: {
             customizable?: boolean;
@@ -4203,36 +4203,36 @@ export interface components {
              * @description 초대 유효 시간 (시간 단위)
              * @example 72
              */
-            expiresInHours?: number;
+            expiresInHours: number;
         };
         FinanceGroupInvitationResponse: {
             /** @description 공유용 초대 코드 */
-            code?: string;
+            code: string;
             /**
              * Format: date-time
              * @description 초대 만료 시각
              */
-            expiresAt?: string;
+            expiresAt: string;
         };
         AssetItem: {
             /** Format: uuid */
             categoryId: string;
             /** Format: uuid */
-            accountId?: string;
+            accountId?: string | null;
             /** Format: date */
             entryDate: string;
             /** @enum {string} */
             assetClass: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
             /** @enum {string} */
             market: "DOMESTIC" | "GLOBAL";
-            strategy?: string;
-            memo?: string;
+            strategy?: string | null;
+            memo?: string | null;
             /** Format: int64 */
-            amount?: number;
+            amount: number;
         };
         BulkFinanceRegisterRequest: {
-            assets?: components["schemas"]["AssetItem"][];
-            transactions?: components["schemas"]["TransactionItem"][];
+            assets?: components["schemas"]["AssetItem"][] | null;
+            transactions?: components["schemas"]["TransactionItem"][] | null;
         };
         TransactionItem: {
             /** Format: uuid */
@@ -4240,15 +4240,15 @@ export interface components {
             /** Format: date */
             transactionDate: string;
             /** Format: int64 */
-            amount?: number;
-            memo?: string;
+            amount: number;
+            memo?: string | null;
         };
         BulkFinanceRegisterResponse: {
             /** Format: int32 */
-            assetSuccessCount?: number;
+            assetSuccessCount: number;
             /** Format: int32 */
-            transactionSuccessCount?: number;
-            failures?: string[];
+            transactionSuccessCount: number;
+            failures: string[];
         };
         FcmTokenRequest: {
             /** @description FCM 디바이스 토큰 */
@@ -4263,60 +4263,60 @@ export interface components {
             /** @description 오류 유형 (error.name) */
             errorType: string;
             /** @description 오류 메시지 */
-            message?: string;
+            message?: string | null;
             /** @description 스택트레이스 */
-            stackTrace?: string;
+            stackTrace?: string | null;
             /** @description 발생 위치 메타 (pathname, digest 등) */
             context?: {
                 [key: string]: string;
-            };
+            } | null;
         };
         RefreshResponse: {
             /** @description 새로 발급된 JWT 액세스 토큰 */
-            accessToken?: string;
+            accessToken: string;
             /**
              * @description 토큰 타입
              * @example bearer
              */
-            tokenType?: string;
+            tokenType: string;
             /**
              * Format: int64
              * @description 토큰 유효 기간 (초)
              * @example 604800
              */
-            expiresIn?: number;
+            expiresIn: number;
         };
         KakaoCallbackRequest: {
             /**
              * @description 카카오 OAuth 인가 코드
              * @example xxxxxxxxxxxxxxxxxxxxxxxx
              */
-            code?: string;
+            code?: string | null;
             /**
              * @description 카카오 리다이렉트 URI
              * @example https://example.com/oauth/kakao
              */
-            redirectUri?: string;
+            redirectUri?: string | null;
         };
         KakaoLoginResponse: {
             /**
              * @description 발급된 JWT 액세스 토큰
              * @example eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEifQ.sig
              */
-            accessToken?: string;
+            accessToken: string;
             /**
              * @description 토큰 타입
              * @example bearer
              */
-            tokenType?: string;
+            tokenType: string;
             /**
              * Format: int64
              * @description 토큰 유효 기간 (초)
              * @example 604800
              */
-            expiresIn?: number;
+            expiresIn: number;
             /** @description 로그인한 사용자 정보 */
-            user?: components["schemas"]["UserResponse"];
+            user: components["schemas"]["UserResponse"];
         };
         UserResponse: {
             /**
@@ -4324,66 +4324,66 @@ export interface components {
              * @description 사용자 고유 ID
              * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
              */
-            id?: string;
+            id: string;
             /**
              * @description 닉네임
              * @example 홍길동
              */
-            nickname?: string;
+            nickname?: string | null;
             /**
              * @description 계정 상태 (PENDING/ACTIVE/REJECTED)
              * @example ACTIVE
              * @enum {string}
              */
-            status?: "PENDING" | "ACTIVE" | "REJECTED";
+            status: "PENDING" | "ACTIVE" | "REJECTED";
             /**
              * @description 텔레그램 알림 설정 여부
              * @example true
              */
-            hasTelegram?: boolean;
+            hasTelegram: boolean;
             /**
              * @description 역할 (USER/ADMIN)
              * @example USER
              * @enum {string}
              */
-            role?: "USER" | "ADMIN";
+            role: "USER" | "ADMIN";
             /**
              * @description 텔레그램 봇 username (null이면 미연결)
              * @example narafu_kista_bot
              */
-            telegramBotUsername?: string;
+            telegramBotUsername?: string | null;
             /**
              * @description 알림 채널 (TELEGRAM/FCM/ALL/NONE)
              * @example TELEGRAM
              * @enum {string}
              */
-            notificationChannel?: "NONE" | "TELEGRAM" | "FCM" | "ALL";
+            notificationChannel: "NONE" | "TELEGRAM" | "FCM" | "ALL";
             /** @description 알림 타입별 on/off (예: {"TRADING_ALERT": true}) */
-            notificationPrefs?: {
+            notificationPrefs: {
                 [key: string]: boolean;
             };
             /** @description 반려 사유 (REJECTED 상태에서만 의미, null 가능) */
-            rejectReason?: string;
+            rejectReason?: string | null;
             /** @description 자산 등록 폼 운용전략 추천 목록 */
-            strategySuggestions?: string[];
+            strategySuggestions: string[];
         };
         TokenResponse: {
             /**
              * @description JWT 액세스 토큰
              * @example eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEifQ.sig
              */
-            accessToken?: string;
+            accessToken: string;
             /**
              * @description 토큰 타입
              * @example bearer
              */
-            tokenType?: string;
+            tokenType: string;
             /**
              * Format: int64
              * @description 토큰 유효 기간 (초)
              * @example 604800
              */
-            expiresIn?: number;
+            expiresIn: number;
         };
         AdminManualTradeCorrectionRequest: {
             /**
@@ -4420,124 +4420,124 @@ export interface components {
             /** @description 체결 가격 */
             price: number;
             /** @description 브로커 측 원본 주문 ID (선택) */
-            externalOrderId?: string;
+            externalOrderId?: string | null;
             /** @description 메모 (선택) */
-            memo?: string;
+            memo?: string | null;
         };
         AdminTradeCorrectionResponse: {
             /**
              * Format: uuid
              * @description 대상 사용자 ID
              */
-            userId?: string;
+            userId: string;
             /**
              * Format: uuid
              * @description 대상 계좌 ID
              */
-            accountId?: string;
+            accountId: string;
             /**
              * Format: uuid
              * @description 대상 전략 ID
              */
-            strategyId?: string;
+            strategyId: string;
             /**
              * Format: int32
              * @description 처리된 체결 건수
              */
-            processedCount?: number;
+            processedCount: number;
             /** @description 보정 후 최종 보유 수량 */
-            finalHoldings?: number;
+            finalHoldings: number;
             /** @description 보정 후 최종 평단가 */
-            finalAvgPrice?: number;
+            finalAvgPrice?: number | null;
             /** @description 보정 후 최종 예수금 (USD) */
-            finalDeposit?: number;
+            finalDeposit: number;
             /**
              * @description 보정 후 전략 상태
              * @example ACTIVE
              */
-            strategyStatus?: string;
+            strategyStatus: string;
             /** @description 보정으로 사이클이 종료됐는지 여부 */
-            cycleEnded?: boolean;
+            cycleEnded: boolean;
             /**
              * Format: date
              * @description 사이클 종료일 (cycleEnded=false면 null)
              */
-            cycleEndDate?: string;
+            cycleEndDate?: string | null;
         };
         FidaOrderRequest: {
             /** Format: date */
             releaseDate: string;
             /** @enum {string} */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
-            avgPrice?: number;
+            avgPrice?: number | null;
             /** Format: int32 */
-            holdings?: number;
-            orders?: components["schemas"]["PlannedOrder"][];
+            holdings: number;
+            orders: components["schemas"]["PlannedOrder"][];
         };
         PlannedOrder: {
             /** @enum {string} */
-            direction?: "BUY" | "SELL";
+            direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType?: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             /** Format: int32 */
-            quantity?: number;
-            price?: number;
+            quantity?: number | null;
+            price: number;
+        };
+        AdminPrivacyBaseOrderLine: {
+            /**
+             * Format: uuid
+             * @description 주문 명세 ID
+             */
+            id: string;
+            /**
+             * @description 매매 방향
+             * @example BUY
+             */
+            direction: string;
+            /**
+             * @description 주문 유형
+             * @example LOC
+             */
+            orderType: string;
+            /** @description 주문 가격 */
+            price: number;
+            /**
+             * Format: int32
+             * @description 주문 수량 (nullable)
+             */
+            quantity?: number | null;
         };
         AdminPrivacyBaseResponse: {
             /**
              * Format: uuid
              * @description 기준 매매표 마스터 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: date
              * @description 발행일 원본 (DB release_date 그대로, KST 변환 없음)
              */
-            releaseDate?: string;
+            releaseDate: string;
             /**
              * @description 거래 종목
              * @example SOXL
              */
-            ticker?: string;
+            ticker: string;
             /** @description 기준가 */
-            currentCycleStart?: number;
+            currentCycleStart: number;
             /** @description 사이클 실현 손익 (USD) */
-            currentCycleRealizedPnl?: number;
+            currentCycleRealizedPnl: number;
             /** @description 평단가 (nullable) */
-            avgPrice?: number;
+            avgPrice?: number | null;
             /**
              * Format: int32
              * @description 보유 수량
              */
-            holdings?: number;
+            holdings: number;
             /** @description 계획 주문 명세 목록 */
-            orders?: components["schemas"]["OrderLine"][];
-        };
-        OrderLine: {
-            /**
-             * Format: uuid
-             * @description 주문 명세 ID
-             */
-            id?: string;
-            /**
-             * @description 매매 방향
-             * @example BUY
-             */
-            direction?: string;
-            /**
-             * @description 주문 유형
-             * @example LOC
-             */
-            orderType?: string;
-            /** @description 주문 가격 */
-            price?: number;
-            /**
-             * Format: int32
-             * @description 주문 수량 (nullable)
-             */
-            quantity?: number;
+            orders: components["schemas"]["AdminPrivacyBaseOrderLine"][];
         };
         PrivacyOrderAddRequest: {
             /** @enum {string} */
@@ -4546,14 +4546,14 @@ export interface components {
             orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
             price: number;
             /** Format: int32 */
-            quantity?: number;
+            quantity?: number | null;
         };
         NotificationPrefRequest: {
             /**
              * @description 해당 알림 타입 수신 여부
              * @example true
              */
-            enabled?: boolean;
+            enabled: boolean;
         };
         NotificationChannelRequest: {
             /**
@@ -4571,26 +4571,26 @@ export interface components {
         };
         MonthlyClosingRequest: {
             /** @description 완료 여부 */
-            completed?: boolean;
+            completed: boolean;
         };
         MonthlyClosingResponse: {
             /**
              * @description 연월
              * @example 2026-08
              */
-            month?: string;
+            month: string;
             /** @description 완료 여부 */
-            completed?: boolean;
+            completed: boolean;
             /**
              * Format: date-time
              * @description 완료 전환 시각 (미완료면 null)
              */
-            closedAt?: string;
+            closedAt?: string | null;
             /**
              * Format: uuid
              * @description 그룹 마감이면 그룹 ID, 개인 마감이면 null
              */
-            groupId?: string;
+            groupId?: string | null;
         };
         FinanceGroupInvitationStatusRequest: {
             /**
@@ -4605,78 +4605,78 @@ export interface components {
              * Format: uuid
              * @description 그룹 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * @description 그룹명
              * @example 가계부
              */
-            name?: string;
+            name: string;
         };
         AdminStatusRequest: {
             /**
              * @description 변경할 계정 상태
              * @example ACTIVE
-             * @enum {string}
+             * @enum {string|null}
              */
-            status?: "PENDING" | "ACTIVE" | "REJECTED";
+            status?: "PENDING" | "ACTIVE" | "REJECTED" | null;
             /** @description 반려 사유 (status=REJECTED일 때만 사용, ACTIVE면 무시) */
-            reason?: string;
+            reason?: string | null;
         };
         AdminRoleRequest: {
             /**
              * @description 부여할 역할
-             * @enum {string}
+             * @enum {string|null}
              */
-            role?: "USER" | "ADMIN";
+            role?: "USER" | "ADMIN" | null;
         };
         PrivacyBaseUpdateRequest: {
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
-            avgPrice?: number;
+            avgPrice?: number | null;
             /** Format: int32 */
-            holdings?: number;
+            holdings: number;
         };
         PrivacyOrderUpdateRequest: {
             price: number;
             /** Format: int32 */
-            quantity?: number;
+            quantity?: number | null;
         };
         StrategyStatusRequest: {
             /**
              * @description 변경할 전략 상태 — ACTIVE(재개) / PAUSED(일시중지)
              * @example PAUSED
-             * @enum {string}
+             * @enum {string|null}
              */
-            status?: "ACTIVE" | "PAUSED" | "ARCHIVED";
+            status?: "ACTIVE" | "PAUSED" | "ARCHIVED" | null;
         };
         SseEmitter: {
             /** Format: int64 */
             timeout?: number;
         };
         HousingBenchmarkComparisonResponse: {
-            scope?: string;
+            scope: string;
             strategy?: components["schemas"]["HousingBenchmarkStrategyInfo"] | null;
-            benchmark?: components["schemas"]["HousingBenchmarkDefinition"];
-            period?: components["schemas"]["HousingBenchmarkPeriod"];
+            benchmark: components["schemas"]["HousingBenchmarkDefinition"];
+            period: components["schemas"]["HousingBenchmarkPeriod"];
             summary?: components["schemas"]["HousingBenchmarkSummary"] | null;
-            points?: components["schemas"]["HousingBenchmarkPoint"][];
-            currentExchangeRate: components["schemas"]["HousingBenchmarkCurrentExchangeRate"] | null;
-            quality?: components["schemas"]["HousingBenchmarkQuality"];
+            points: components["schemas"]["HousingBenchmarkPoint"][];
+            currentExchangeRate?: components["schemas"]["HousingBenchmarkCurrentExchangeRate"] | null;
+            quality: components["schemas"]["HousingBenchmarkQuality"];
             emptyReason?: string | null;
         };
         HousingBenchmarkCurrentExchangeRate: {
-            midRate?: number;
+            midRate: number;
             /** Format: date-time */
-            fetchedAt?: string;
+            fetchedAt: string;
             /** @enum {string} */
-            source?: "TOSS_INVEST";
+            source: "TOSS_INVEST";
         };
         HousingBenchmarkDefinition: {
-            assetType?: string;
+            assetType: string;
             regionCode?: string | null;
             regionName?: string | null;
             symbol?: string | null;
-            label?: string;
+            label: string;
             /** Format: date */
             sourceUpdatedDate?: string | null;
         };
@@ -4686,223 +4686,223 @@ export interface components {
             /** Format: date */
             toDate?: string | null;
             /** Format: int32 */
-            pointCount?: number;
+            pointCount: number;
         };
         HousingBenchmarkPoint: {
             /** Format: date */
-            baseDate?: string;
-            investmentIndex?: number;
-            benchmarkIndex?: number;
+            baseDate: string;
+            investmentIndex: number;
+            benchmarkIndex: number;
             investmentPeriodReturn?: number | null;
             benchmarkPeriodReturn?: number | null;
         };
         HousingBenchmarkQuality: {
-            method?: string;
-            investmentCurrency?: string;
-            benchmarkCurrency?: string;
-            notice?: string;
+            method: string;
+            investmentCurrency: string;
+            benchmarkCurrency: string;
+            notice: string;
         };
         HousingBenchmarkStrategyInfo: {
             /** Format: uuid */
-            id?: string;
-            type?: string;
-            ticker?: string;
+            id: string;
+            type: string;
+            ticker: string;
         };
         HousingBenchmarkSummary: {
-            investmentCumulativeReturn?: number;
-            benchmarkCumulativeReturn?: number;
-            excessReturn?: number;
+            investmentCumulativeReturn: number;
+            benchmarkCumulativeReturn: number;
+            excessReturn: number;
             investmentAnnualizedReturn?: number | null;
             benchmarkAnnualizedReturn?: number | null;
-            investmentMaxDrawdown?: number;
-            benchmarkMaxDrawdown?: number;
+            investmentMaxDrawdown: number;
+            benchmarkMaxDrawdown: number;
         };
         HousingBenchmarkSeriesPoint: {
             /** Format: date */
-            baseMonth?: string;
-            firstQuintilePrice?: number;
-            secondQuintilePrice?: number;
-            thirdQuintilePrice?: number;
-            fourthQuintilePrice?: number;
-            fifthQuintilePrice?: number;
+            baseMonth: string;
+            firstQuintilePrice: number;
+            secondQuintilePrice: number;
+            thirdQuintilePrice: number;
+            fourthQuintilePrice: number;
+            fifthQuintilePrice: number;
         };
         HousingBenchmarkSeriesResponse: {
-            points?: components["schemas"]["HousingBenchmarkSeriesPoint"][];
+            points: components["schemas"]["HousingBenchmarkSeriesPoint"][];
             /** Format: date */
-            sourceUpdatedDate?: string;
+            sourceUpdatedDate?: string | null;
         };
         HousingBenchmarkRegionItem: {
-            code?: string;
-            name?: string;
+            code: string;
+            name: string;
         };
         HousingBenchmarkRegionsResponse: {
-            regions?: components["schemas"]["HousingBenchmarkRegionItem"][];
+            regions: components["schemas"]["HousingBenchmarkRegionItem"][];
         };
         HousingPriceIndexSeriesPoint: {
             /** Format: date */
-            baseDate?: string;
-            indexValue?: number;
+            baseDate: string;
+            indexValue: number;
         };
         HousingPriceIndexSeriesResponse: {
-            points?: components["schemas"]["HousingPriceIndexSeriesPoint"][];
+            points: components["schemas"]["HousingPriceIndexSeriesPoint"][];
             /** Format: date */
-            sourceUpdatedDate?: string;
+            sourceUpdatedDate?: string | null;
         };
         EtfPriceSeriesPoint: {
             /** Format: date */
-            tradeDate?: string;
-            close?: number;
+            tradeDate: string;
+            close: number;
         };
         EtfPriceSeriesResponse: {
-            points?: components["schemas"]["EtfPriceSeriesPoint"][];
+            points: components["schemas"]["EtfPriceSeriesPoint"][];
         };
         BrokerMeta: {
             /**
              * @description enum name() 값
              * @example UPBIT
              */
-            code?: string;
+            code: string;
             /** @description 한국어 표시 이름 */
-            label?: string;
+            label: string;
             /** @description UI 모바일 약칭 */
-            description?: string;
+            description: string;
             /**
              * @description 거래 시장
              * @example CRYPTO_KRW
              */
-            market?: string;
+            market: string;
             /**
              * @description 계좌 기준 통화
              * @example KRW
              */
-            currency?: string;
+            currency: string;
             /**
              * @description 시장 최소 주문 금액 (견적 통화, plain 문자열 — 0은 하한 없음)
              * @example 5000
              */
-            minOrderAmount?: string;
+            minOrderAmount: string;
             /**
              * Format: int32
              * @description 주문 금액 소수 자릿수 (KRW 0, USDT 2)
              * @example 0
              */
-            amountScale?: number;
+            amountScale: number;
             /**
              * @description API 키 만료일 출처 (NONE·BROKER_API·ESTIMATED)
              * @example BROKER_API
              */
-            apiKeyExpirySource?: string;
+            apiKeyExpirySource: string;
         };
         DcaIndicatorMeta: {
             /**
              * @description enum name() 값
              * @example SMA
              */
-            code?: string;
+            code: string;
             /** @description 한국어 표시 이름 */
-            label?: string;
+            label: string;
             /** @description 비교 방식 설명 */
-            description?: string;
+            description: string;
             /** @description SMA 기간 옵션 (SMA 외에는 빈 목록) */
-            smaPeriods?: number[];
+            smaPeriods: number[];
         };
         EnumMeta: {
             /**
              * @description enum name() 값
              * @example TOSS
              */
-            code?: string;
+            code: string;
             /** @description 한국어 표시 이름 */
-            label?: string;
+            label: string;
             /** @description 설명 (null 가능) */
-            description?: string;
+            description?: string | null;
         };
         MetaBundle: {
             /** @description 전략 타입 목록 */
-            strategyTypes?: components["schemas"]["StrategyTypeMeta"][];
+            strategyTypes: components["schemas"]["StrategyTypeMeta"][];
             /** @description 티커 목록 */
-            tickers?: components["schemas"]["TickerMeta"][];
+            tickers: components["schemas"]["TickerMeta"][];
             /** @description 증권사 목록 */
-            brokers?: components["schemas"]["BrokerMeta"][];
+            brokers: components["schemas"]["BrokerMeta"][];
             /** @description 전략 상태 목록 */
-            strategyStatuses?: components["schemas"]["EnumMeta"][];
+            strategyStatuses: components["schemas"]["EnumMeta"][];
             /** @description 연속 사이클 정책 목록 */
-            cycleSeedTypes?: components["schemas"]["EnumMeta"][];
+            cycleSeedTypes: components["schemas"]["EnumMeta"][];
             /** @description 자산군 목록 */
-            assetClasses?: components["schemas"]["EnumMeta"][];
+            assetClasses: components["schemas"]["EnumMeta"][];
             /** @description 시장 목록 */
-            markets?: components["schemas"]["EnumMeta"][];
+            markets: components["schemas"]["EnumMeta"][];
             /** @description 재무 계좌 유형 목록 */
-            financeAccountTypes?: components["schemas"]["EnumMeta"][];
+            financeAccountTypes: components["schemas"]["EnumMeta"][];
             /** @description 재무 카테고리 유형 목록 */
-            financeCategoryTypes?: components["schemas"]["EnumMeta"][];
+            financeCategoryTypes: components["schemas"]["EnumMeta"][];
             /** @description 주문 유형 목록 */
-            orderTypes?: components["schemas"]["EnumMeta"][];
+            orderTypes: components["schemas"]["EnumMeta"][];
             /** @description 주문 방향 목록 */
-            orderDirections?: components["schemas"]["EnumMeta"][];
+            orderDirections: components["schemas"]["EnumMeta"][];
             /** @description 주문 상태 목록 */
-            orderStatuses?: components["schemas"]["EnumMeta"][];
+            orderStatuses: components["schemas"]["EnumMeta"][];
             /** @description 주문 접수 시점 목록 */
-            orderTimings?: components["schemas"]["EnumMeta"][];
+            orderTimings: components["schemas"]["EnumMeta"][];
             /** @description DCA 실행 주기 목록 */
-            dcaFrequencies?: components["schemas"]["EnumMeta"][];
+            dcaFrequencies: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 연산자 목록 */
-            dcaOperators?: components["schemas"]["EnumMeta"][];
+            dcaOperators: components["schemas"]["EnumMeta"][];
             /** @description DCA 회차 미주문 사유 목록 */
-            dcaSkipReasons?: components["schemas"]["EnumMeta"][];
+            dcaSkipReasons: components["schemas"]["EnumMeta"][];
             /** @description DCA 회차 판정 상태 목록 */
-            dcaExecutionStatuses?: components["schemas"]["EnumMeta"][];
+            dcaExecutionStatuses: components["schemas"]["EnumMeta"][];
             /** @description DCA 규칙 규모 유형 목록 */
-            dcaSizingTypes?: components["schemas"]["EnumMeta"][];
+            dcaSizingTypes: components["schemas"]["EnumMeta"][];
             /** @description DCA 규칙 부족 정책 목록 */
-            dcaShortfallPolicies?: components["schemas"]["EnumMeta"][];
+            dcaShortfallPolicies: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 지표 목록 */
-            dcaIndicators?: components["schemas"]["DcaIndicatorMeta"][];
+            dcaIndicators: components["schemas"]["DcaIndicatorMeta"][];
         };
         StrategyTypeMeta: {
             /**
              * @description enum name() 값
              * @example INFINITE
              */
-            code?: string;
+            code: string;
             /**
              * @description 한국어 표시 이름
              * @example 무한매수법
              */
-            label?: string;
+            label: string;
             /** @description 전략 설명 */
-            description?: string;
+            description: string;
             /** @description 사용 가능한 티커 name() 목록 (정렬됨) */
-            availableTickers?: string[];
+            availableTickers: string[];
             /** @description basePrice 소스가 기준매매표인지 (UI basePrice 분기 SSOT) */
-            requiresPrivacyBase?: boolean;
+            requiresPrivacyBase: boolean;
             /** @description 티커 고정 여부 (선택 불가, 단일 티커) */
-            tickerFixed?: boolean;
+            tickerFixed: boolean;
             /** @description 리버스모드 배지 표시 가드 */
-            supportsReverseMode?: boolean;
+            supportsReverseMode: boolean;
             /** @description 분할 수 옵션 (빈 목록이면 분할 개념 없음) */
-            divisionCounts?: number[];
+            divisionCounts: number[];
             /** @description 사용자 선택 주문유형 name() 목록 (빈 목록이면 선택 없음) */
-            orderTypes?: string[];
+            orderTypes: string[];
             /** @description 사용자 선택 방향 name() 목록 (빈 목록이면 선택 없음) */
-            directions?: string[];
+            directions: string[];
             /** @description DCA 실행 주기 name() 목록 */
-            frequencies?: string[];
+            frequencies: string[];
             /** @description DCA 조건 지표 name() 목록 */
-            conditionIndicators?: string[];
+            conditionIndicators: string[];
         };
         TickerMeta: {
             /**
              * @description enum name() 값
              * @example SOXL
              */
-            code?: string;
+            code: string;
             /** @description 종목 설명 */
-            description?: string;
+            description: string;
             /** @description 익절 목표 수익률 */
-            targetProfitRate?: number;
+            targetProfitRate: number;
             /** @description 거래 가능 시장 목록 (Market name()) */
-            markets?: string[];
+            markets: string[];
         };
         MarketSessionResponse: {
             /**
@@ -4910,168 +4910,168 @@ export interface components {
              * @description 현재 시각 기준 KST 거래일 (그 날짜 실제 마감 30분 전부터 익일, 휴장일은 04:30 KST 기준)
              * @example 2026-07-20
              */
-            tradeDateKst?: string;
+            tradeDateKst: string;
             /** @description tradeDateKst에 미국 장이 열리는지 (휴장일·주말이면 false) */
-            tradingDay?: boolean;
+            tradingDay: boolean;
         };
         FearGreedResponse: {
             /** @description CNN 공포탐욕지수 현재값 + 추이 이력 */
-            cnn?: components["schemas"]["SourceView"];
+            cnn: components["schemas"]["SourceView"];
             /** @description 크립토 공포탐욕지수 현재값 + 추이 이력 */
-            crypto?: components["schemas"]["SourceView"];
+            crypto: components["schemas"]["SourceView"];
         };
         Point: {
             /** @description 기록 시각 (ISO-8601) */
-            date?: string;
+            date: string;
             /**
              * Format: int32
              * @description 지수 값 (0~100)
              * @example 50
              */
-            value?: number;
+            value: number;
             /**
              * @description 등급
              * @example NEUTRAL
              */
-            rating?: string;
+            rating: string;
         };
         SourceView: {
             /** @description 최신 시점 값 (이력이 없으면 null) */
-            current?: components["schemas"]["Point"];
+            current?: components["schemas"]["Point"] | null;
             /** @description 추이 이력 (오름차순 정렬) */
-            history?: components["schemas"]["Point"][];
+            history: components["schemas"]["Point"][];
         };
         TossCandleResponse: {
             /**
              * Format: date
              * @description 기준일
              */
-            date?: string;
+            date: string;
             /** @description 시가 */
-            open?: number;
+            open: number;
             /** @description 고가 */
-            high?: number;
+            high: number;
             /** @description 저가 */
-            low?: number;
+            low: number;
             /** @description 종가 */
-            close?: number;
+            close: number;
             /**
              * Format: int64
              * @description 거래량
              */
-            volume?: number;
+            volume: number;
         };
         FinanceGroupMemberResponse: {
             /**
              * Format: uuid
              * @description 사용자 ID
              */
-            userId?: string;
+            userId: string;
             /** @description 닉네임 */
-            nickname?: string;
+            nickname?: string | null;
             /**
              * @description 그룹 내 역할
              * @example OWNER
              */
-            role?: string;
+            role: string;
         };
         AdminUserResponse: {
             /**
              * Format: uuid
              * @description 사용자 고유 ID
              */
-            id?: string;
+            id: string;
             /** @description 닉네임 */
-            nickname?: string;
+            nickname?: string | null;
             /**
              * @description 계정 상태
              * @enum {string}
              */
-            status?: "PENDING" | "ACTIVE" | "REJECTED";
+            status: "PENDING" | "ACTIVE" | "REJECTED";
             /**
              * @description 역할
              * @enum {string}
              */
-            role?: "USER" | "ADMIN";
+            role: "USER" | "ADMIN";
             /**
              * Format: date-time
              * @description 가입 일시
              */
-            createdAt?: string;
+            createdAt: string;
         };
         AdminTradeResponse: {
             /**
              * Format: uuid
              * @description 주문 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 계좌 소유자 사용자 ID
              */
-            userId?: string;
+            userId?: string | null;
             /**
              * Format: uuid
              * @description 소속 계좌 ID
              */
-            accountId?: string;
+            accountId: string;
             /**
              * Format: uuid
              * @description 소속 전략 ID (조회 실패 시 null)
              */
-            strategyId?: string;
+            strategyId?: string | null;
             /**
              * Format: uuid
              * @description 소속 전략 사이클 ID (리오더 예산 cycleRemaining 키, 사이클 미연결 시 null)
              */
             strategyCycleId?: string | null;
             /** @description 계좌 소유자 닉네임 */
-            ownerNickname?: string;
+            ownerNickname?: string | null;
             /**
              * @description 전략 종류 (조회 실패 시 null)
              * @example INFINITE
              */
-            strategyType?: string;
+            strategyType?: string | null;
             /**
              * Format: date
              * @description 거래일 (KST)
              */
-            tradeDate?: string;
+            tradeDate: string;
             /**
              * @description 거래 종목
              * @example SOXL
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 매매 방향
              * @example BUY
              */
-            direction?: string;
+            direction: string;
             /**
              * @description 주문 유형
              * @example LOC
              */
-            orderType?: string;
+            orderType: string;
             /**
              * @description 접수 시점
              * @example AT_OPEN
              */
-            timing?: string;
+            timing: string;
             /** @description 주문 수량 */
-            quantity?: number;
+            quantity: number;
             /** @description 주문 가격 */
-            price?: number;
+            price: number;
             /**
              * @description 주문 상태
              * @example FILLED
              */
-            status?: string;
+            status: string;
             /** @description 브로커 측 주문 ID */
-            externalOrderId?: string;
+            externalOrderId?: string | null;
             /** @description 체결 수량 (미체결 시 null) */
-            filledQuantity?: number;
+            filledQuantity?: number | null;
             /** @description 체결 가격 (미체결 시 null) */
-            filledPrice?: number;
+            filledPrice?: number | null;
             /**
              * @description price·filledPrice 통화 (Currency name, 계좌를 찾지 못하면 null)
              * @example USDT
@@ -5083,178 +5083,178 @@ export interface components {
              * Format: uuid
              * @description 오류 로그 고유 ID
              */
-            id?: string;
+            id: string;
             /** @description 예외 클래스 단순명 */
-            errorType?: string;
+            errorType: string;
             /** @description 예외 메시지 */
-            message?: string;
+            message?: string | null;
             /** @description 전체 스택트레이스 */
-            stackTrace?: string;
+            stackTrace?: string | null;
             /** @description 발생 위치 메타데이터 */
             context?: {
                 [key: string]: string;
-            };
+            } | null;
             /**
              * Format: date-time
              * @description 기록 일시
              */
-            createdAt?: string;
+            createdAt: string;
         };
         AuditLogResponse: {
             /**
              * Format: uuid
              * @description 감사 로그 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 액션을 수행한 관리자 사용자 ID
              */
-            adminId?: string;
+            adminId?: string | null;
             /**
              * @description 액션 유형
              * @example RUNTIME_SETTINGS_UPDATE
              */
-            action?: string;
+            action: string;
             /** @description 액션 대상 리소스 종류 */
-            targetType?: string;
+            targetType?: string | null;
             /**
              * Format: uuid
              * @description 액션 대상 리소스 ID
              */
-            targetId?: string;
+            targetId?: string | null;
             /** @description 액션 상세 데이터 */
             payload?: {
                 [key: string]: unknown;
-            };
+            } | null;
             /**
              * Format: date-time
              * @description 기록 일시
              */
-            createdAt?: string;
+            createdAt: string;
         };
         AdminAccountItem: {
             /**
              * Format: uuid
              * @description 계좌 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 소유자 사용자 ID
              */
-            userId?: string;
+            userId: string;
             /** @description 소유자 닉네임 (사용자 조회 실패 시 "(알 수 없음)") */
-            ownerNickname?: string;
+            ownerNickname?: string | null;
             /** @description 계좌 별칭 */
-            nickname?: string;
+            nickname: string;
             /**
              * @description 마스킹된 계좌번호
              * @example ****1234
              */
-            accountNoMasked?: string;
+            accountNoMasked?: string | null;
             /**
              * @description 원본 계좌번호 (ADMIN 전용)
              * @example 12345678-01
              */
-            accountNo?: string;
+            accountNo?: string | null;
             /**
              * @description 브로커 코드
              * @example TOSS
              */
-            broker?: string;
+            broker?: string | null;
         };
         AnomaliesResponse: {
             /** @description 전략이 PAUSED 상태인 계좌 목록 */
-            pausedAccounts?: components["schemas"]["AdminAccountItem"][];
+            pausedAccounts: components["schemas"]["AdminAccountItem"][];
             /** @description 최근 N일(기본 7일) 거래 없는 ACTIVE 전략 계좌 목록 */
-            inactiveAccounts?: components["schemas"]["AdminAccountItem"][];
+            inactiveAccounts: components["schemas"]["AdminAccountItem"][];
         };
         AdminDashboardResponse: {
             /**
              * Format: int64
              * @description 전체 사용자 수
              */
-            totalUsers?: number;
+            totalUsers: number;
             /**
              * Format: int64
              * @description 승인 대기 수
              */
-            pendingCount?: number;
+            pendingCount: number;
             /**
              * Format: int64
              * @description 승인된 수
              */
-            activeCount?: number;
+            activeCount: number;
             /**
              * Format: int64
              * @description 거절된 수
              */
-            rejectedCount?: number;
+            rejectedCount: number;
             /**
              * Format: int64
              * @description 전체 계좌 수
              */
-            totalAccounts?: number;
+            totalAccounts: number;
         };
         AdminAccountResponse: {
             /**
              * Format: uuid
              * @description 계좌 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * Format: uuid
              * @description 소유자 사용자 ID
              */
-            userId?: string;
+            userId: string;
             /** @description 소유자 닉네임 */
-            ownerNickname?: string;
+            ownerNickname?: string | null;
             /** @description 계좌 별칭 */
-            nickname?: string;
+            nickname: string;
             /**
              * @description 마스킹된 계좌번호
              * @example ****1234
              */
-            accountNoMasked?: string;
+            accountNoMasked?: string | null;
             /**
              * @description 브로커 코드
              * @example TOSS
              */
-            broker?: string;
+            broker?: string | null;
             /** @description 계좌에 등록된 전략 목록 */
-            strategies?: components["schemas"]["AdminStrategyResponse"][];
+            strategies: components["schemas"]["AdminStrategyResponse"][];
         };
         AdminStrategyResponse: {
             /**
              * Format: uuid
              * @description 전략 고유 ID
              */
-            id?: string;
+            id: string;
             /**
              * @description 전략 종류
              * @example INFINITE
              */
-            type?: string;
+            type: string;
             /**
              * @description 전략 상태
              * @example ACTIVE
              */
-            status?: string;
+            status: string;
             /**
              * @description 거래 종목
              * @example SOXL
              */
-            ticker?: string;
+            ticker: string;
             /**
              * @description 사이클 종료 후 재등록 정책
              * @example NONE
              */
-            cycleSeedType?: string;
+            cycleSeedType: string;
         };
         PingResponse: {
-            status?: string;
-            adminId?: string;
+            status: string;
+            adminId: string;
         };
         /** @enum {string} */
         ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE" | "BROKER_WITHDRAWAL_ENABLED";
@@ -8955,7 +8955,7 @@ export interface operations {
             query?: {
                 type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 accountId?: string;
-                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
                 status?: "ACTIVE" | "CLOSED";
                 page?: number;
                 size?: number;
@@ -9047,7 +9047,7 @@ export interface operations {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
                 from: string;
                 to: string;
                 seed?: number;
@@ -9113,7 +9113,7 @@ export interface operations {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
                 divisionCount?: number;
             };
             header?: never;
@@ -9142,7 +9142,7 @@ export interface operations {
                  * @description 조회할 종목 코드 목록 (TQQQ/SOXL/USD)
                  * @example TQQQ,SOXL,USD
                  */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
             };
             header?: never;
             path: {
@@ -9403,7 +9403,7 @@ export interface operations {
                  * @description 조회할 코인 종목 (BTC/ETH)
                  * @example BTC,ETH
                  */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BTC" | "ETH")[];
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
             };
             header?: never;
             path: {

@@ -25,7 +25,7 @@ function budget(overrides: Partial<FinanceBudget>): FinanceBudget {
 
 // 예산 목록·카테고리·그룹을 서버 응답으로 깔고 화면을 그린 뒤 로딩이 끝날 때까지 기다린다.
 // 전역 useSearchParams 대역은 URL을 구독하지 않아 replaceState만으로는 다시 그려지지 않는다 — 실제 Next처럼 갱신되게 replaceState 뒤에 rerender한다. 같은 element 참조는 React가 건너뛰므로 매번 새로 만든다.
-async function renderManager(budgets: FinanceBudget[], { groups = [], handlers = {} }: { groups?: { id: string }[]; handlers?: ApiHandlers } = {}) {
+async function renderManager(budgets: FinanceBudget[], { groups = [], handlers = {} }: { groups?: { id: string; name: string }[]; handlers?: ApiHandlers } = {}) {
   const api = mockApi({
     'GET /api/finance/categories': categoryTree,
     'GET /api/finance/budgets': budgets,
@@ -62,7 +62,7 @@ describe('BudgetManager', () => {
   })
 
   it('공유 가능 상태에서는 공유·복제·수정·삭제 순서로 아이콘 버튼이 나타난다', async () => {
-    await renderManager([budget({})], { groups: [{ id: 'g1' }] })
+    await renderManager([budget({})], { groups: [{ id: 'g1', name: '우리집' }] })
 
     await waitFor(() => expect(labelsIn(screen.getByText('식비').closest('li') as HTMLElement)).toEqual(['공유', '복제', '수정', '삭제']))
   })

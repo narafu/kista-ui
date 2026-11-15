@@ -1,7 +1,7 @@
 'use client'
 
 import { Clock } from 'lucide-react'
-import { useAdminUsersQuery } from '@entities/admin'
+import { useAdminUsersQuery, userLabel } from '@entities/admin'
 import { ApproveRejectButtons } from '@features/admin/approve-reject'
 import { fmtDate } from '@shared/lib/format'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
@@ -51,12 +51,12 @@ export function AdminPendingList({ max }: Props) {
             className="rounded-[var(--r-lg)] border border-border bg-background px-5 py-4 flex items-center justify-between gap-4"
           >
             <div className="min-w-0">
-              <p className="font-semibold truncate">{user.nickname}</p>
+              <p className="font-semibold truncate">{user.nickname ?? '-'}</p>
               <p className="text-sm text-muted-foreground mt-0.5">
                 가입일 {fmtDate(user.createdAt)}
               </p>
             </div>
-            <ApproveRejectButtons userId={user.id} nickname={user.nickname} />
+            <ApproveRejectButtons userId={user.id} nickname={userLabel(user.nickname, user.id)} />
           </div>
         ))}
       </div>

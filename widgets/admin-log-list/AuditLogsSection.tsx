@@ -61,7 +61,7 @@ export function AuditLogsSection({
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1 font-mono">
-                    admin: {log.adminId.slice(0, 8)}…
+                    admin: {log.adminId ? `${log.adminId.slice(0, 8)}…` : '-'}
                   </p>
                   {log.payload && Object.keys(log.payload).length > 0 && (
                     <pre className="mt-1 text-sm text-muted-foreground bg-muted/40 rounded p-1 whitespace-pre-wrap break-all">

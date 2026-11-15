@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useAdminUsersQuery } from '@entities/admin'
+import { useAdminUsersQuery, userLabel } from '@entities/admin'
 import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
 import { WithdrawUserButton } from '@features/admin/withdraw-user'
@@ -39,11 +39,15 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
   const sorted = useMemo(() => {
     if (sortKey === 'default') return users
     const dir = sortDirection === 'asc' ? 1 : -1
-    const text = (u: AdminUser) => sortKey === 'status' ? ADMIN_USER_STATUS_LABEL[u.status]
+    const text = (u: AdminUser): string | null => sortKey === 'status' ? ADMIN_USER_STATUS_LABEL[u.status]
       : sortKey === 'role' ? USER_ROLE_LABEL[u.role] : u.nickname
-    return [...users].sort((a, b) => sortKey === 'createdAt'
-      ? dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-      : dir * text(a).localeCompare(text(b), 'ko'))
+    return [...users].sort((a, b) => {
+      if (sortKey === 'createdAt') return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      const av = text(a), bv = text(b)
+      if (av == null) return bv == null ? 0 : 1 // null은 방향과 무관하게 맨 아래
+      if (bv == null) return -1
+      return dir * av.localeCompare(bv, 'ko')
+    })
   }, [users, sortKey, sortDirection])
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
   const head = { activeKey: sortKey, direction: sortDirection, onSort: (k: SortKey) => { handleSort(k); setPage(1) } }
@@ -84,7 +88,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
           <tbody className="divide-y divide-border">
             {paged.map((user) => (
               <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                <TableDataCell className="font-medium whitespace-nowrap">{user.nickname}</TableDataCell>
+                <TableDataCell className="font-medium whitespace-nowrap">{user.nickname ?? '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
                 </TableDataCell>
@@ -97,7 +101,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
                 <TableDataCell className="whitespace-nowrap">
                   <ChangeRoleButton
                     userId={user.id}
-                    nickname={user.nickname}
+                    nickname={userLabel(user.nickname, user.id)}
                     currentRole={user.role}
                     isSelf={currentUserId === user.id}
                   />
@@ -105,7 +109,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
                 <TableDataCell className="whitespace-nowrap">
                   <WithdrawUserButton
                     userId={user.id}
-                    nickname={user.nickname}
+                    nickname={userLabel(user.nickname, user.id)}
                     isSelf={currentUserId === user.id}
                   />
                 </TableDataCell>

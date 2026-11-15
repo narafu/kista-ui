@@ -15,7 +15,7 @@ const source: FinanceTransaction = { id: 't1', categoryId: 'cat-food', transacti
 function setup(handlers: Parameters<typeof mockApi>[0] = {}, { groups = false }: { groups?: boolean } = {}) {
   return mockApi({
     'GET /api/finance/categories': categoryTree,
-    'GET /api/finance/groups': groups ? [{ id: 'g1' }] : [],
+    'GET /api/finance/groups': groups ? [{ id: 'g1', name: '우리집' }] : [],
     'GET /api/finance/monthly-closings': [],
     ...handlers,
   })

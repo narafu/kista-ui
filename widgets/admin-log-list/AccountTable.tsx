@@ -36,7 +36,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
         <tbody className="divide-y divide-border">
           {sorted.map((a) => (
             <tr key={a.id} className="hover:bg-muted/30">
-              <TableDataCell className="font-medium">{a.ownerNickname}</TableDataCell>
+              <TableDataCell className="font-medium">{a.ownerNickname ?? '-'}</TableDataCell>
               <TableDataCell className="whitespace-nowrap">{a.nickname || '-'}</TableDataCell>
               <TableDataCell className="font-mono text-sm text-muted-foreground">
                 {a.accountNo == null ? '-' : (

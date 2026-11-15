@@ -9,7 +9,7 @@ import { AcceptInvitationForm } from './AcceptInvitationForm'
 describe('AcceptInvitationForm', () => {
   it('코드를 넣고 참여하면 수락 요청을 보내고 입력을 비운다', async () => {
     const user = userEvent.setup()
-    const { requests } = mockApi({ 'PATCH /api/finance/invitations/{code}': { id: 'g1' } })
+    const { requests } = mockApi({ 'PATCH /api/finance/invitations/{code}': { id: 'g1', name: '우리집' } })
     renderApp(<AcceptInvitationForm />)
 
     expect(screen.getByRole('button', { name: '참여' })).toBeDisabled()

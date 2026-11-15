@@ -89,7 +89,7 @@ export function AdminTradesTable({ trades, sort }: Props) {
                 className="hover:bg-muted/30 transition-colors"
               >
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{fmtDate(trade.tradeDate)}</TableDataCell>
-                <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname}</TableDataCell>
+                <TableDataCell className="font-medium whitespace-nowrap">{trade.ownerNickname ?? '-'}</TableDataCell>
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{trade.strategyType ? labelOf('strategyTypes', trade.strategyType) : '-'}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">{trade.ticker}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">

@@ -10,6 +10,7 @@ import {
   useUpdateAdminStrategyStatusMutation,
 } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
+import { userLabel } from '@entities/admin'
 import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
@@ -61,14 +62,15 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
   // 기간 필터에 걸린 거래만으로 후보를 만들면 그 기간에 거래가 없는 사용자는 선택지에서 고를 수 없다 — 전체 계좌 소유자와 합친다
   const userOptions = uniqBy(
     [
+      // uniqBy는 먼저 온 항목을 남긴다 — 닉네임이 확실한 계좌 소유자를 앞에 둔다
+      ...(allAccountsQuery.data ?? []).map((account) => ({ id: account.userId, label: userLabel(account.ownerNickname, account.userId) })),
       // 계좌를 찾지 못한 거래(userId null)는 고를 계좌가 없어 후보에서 뺀다
-      ...trades.flatMap((trade) => (trade.userId ? [{ id: trade.userId, label: trade.ownerNickname }] : [])),
-      ...(allAccountsQuery.data ?? []).map((account) => ({ id: account.userId, label: account.ownerNickname })),
+      ...trades.flatMap((trade) => (trade.userId ? [{ id: trade.userId, label: userLabel(trade.ownerNickname, trade.userId) }] : [])),
     ],
     (user) => user.id,
   )
   const brokerOptions = uniqBy(
-    accounts.map((account) => account.broker),
+    accounts.flatMap((account) => (account.broker ? [account.broker] : [])),
     (broker) => broker,
   )
   const filteredAccounts = selectedBroker

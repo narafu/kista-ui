@@ -89,7 +89,10 @@ describe('AccountDetailContent', () => {
   it('전략 합산 조회가 실패하면 ledgerTotalsError를 넘긴다', async () => {
     mockApi({
       'GET /api/accounts/{accountId}/ledger-totals': apiError(500),
-      'GET /api/accounts/{accountId}/portfolio': {},
+      'GET /api/accounts/{accountId}/portfolio': {
+        positions: [],
+        summary: { totalAsset: 0, totalEvalProfit: 0, totalReturnRate: 0, totalAssetActual: 0, evalProfitUsdSum: 0, deposit: 0, posEvalUsd: 0, exchangeRateKrwPerUsd: 0 },
+      },
     })
     renderContent({ ...serverAccount, broker: 'TOSS' })
 

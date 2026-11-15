@@ -17,7 +17,7 @@ const tree: FinanceCategory[] = [
 const existing: FinanceCategory = { id: 'c9', parentId: 'group-1', type: 'EXPENSE', name: '식비', sortOrder: 4, system: false, children: [] }
 
 function setup(handlers: Parameters<typeof mockApi>[0] = {}, groups = true) {
-  return mockApi({ 'GET /api/finance/categories': [], 'GET /api/admin/finance/categories': [], 'GET /api/finance/groups': groups ? [{ id: 'g1' }] : [], ...handlers })
+  return mockApi({ 'GET /api/finance/categories': [], 'GET /api/admin/finance/categories': [], 'GET /api/finance/groups': groups ? [{ id: 'g1', name: '우리집' }] : [], ...handlers })
 }
 
 function renderGroup(category: FinanceCategory | null) {

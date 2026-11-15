@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { listAdminAccounts } from '@entities/admin'
+import { listAdminAccounts, userLabel } from '@entities/admin'
 import type { AdminAccount } from '@entities/admin'
 import { AdminAccountsTable } from '@widgets/admin-account-list'
 import { SectionError } from '@shared/ui/SectionError'
@@ -34,7 +34,7 @@ export default async function AdminAccountsPage({
   const loaded: AdminAccount[] | null = token ? await listAdminAccounts(token, resolvedFrom, resolvedTo).catch(() => null) : []
   const all = loaded ?? []
   // 닉네임은 유저 간 중복 가능 — 필터 식별자는 반드시 userId로 구분한다(ownerNickname은 표시용 라벨만).
-  const owners = [...new Map(all.map((a) => [a.userId, a.ownerNickname])).entries()]
+  const owners = [...new Map(all.map((a) => [a.userId, userLabel(a.ownerNickname, a.userId)])).entries()]
     .map(([userId, label]) => ({ userId, label }))
     .sort((a, b) => a.label.localeCompare(b.label, 'ko'))
 

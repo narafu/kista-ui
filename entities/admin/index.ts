@@ -11,6 +11,7 @@ export type {
   AppErrorLog,
 } from './model/types'
 export { adminKeys } from './model/queryKeys'
+export { userLabel } from './model/userLabel'
 export type { AdminUsersQueryParams } from './model/queryKeys'
 export { adminErrorLogsQueryOptions, adminStatsQueryOptions, adminTradesQueryOptions, adminUsersQueryOptions } from './model/queryOptions'
 export {
