@@ -2807,7 +2807,7 @@ export interface components {
             nickname: string;
             /**
              * @description 계좌번호 — Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
-             * @example 74420614-01
+             * @example 131-01-001931
              */
             accountNo?: string;
             /**
