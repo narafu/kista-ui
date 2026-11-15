@@ -18,7 +18,7 @@ const privacyBases = [
 
 // 오류 로그: 로컬 DB 로그는 최근 며칠 치만 남아 날마다 바뀌고 비어 있을 수도 있다 — 컨텍스트·스택 유무 분기를 고정 3건으로 채운다
 const errorLogs = [
-  { id: 'fx-err-1', errorType: 'KisApiException', message: 'KIS 토큰 확보 실패(송신 전): KIS 토큰 발급 실패', stackTrace: 'com.kista.tradingcore.broker.domain.model.kis.KisApiException: KIS 토큰 확보 실패\n\tat com.kista.tradingcore.broker.adapter.out.kis.KisHttpClient.executeWithRetry(KisHttpClient.java:114)', context: { caller: 'TradingExceptionHandler' }, createdAt: '2026-10-01T00:16:12Z' },
+  { id: 'fx-err-1', errorType: 'TossApiException', message: '토스 토큰 확보 실패(송신 전): 토스 토큰 발급 실패', stackTrace: 'com.kista.tradingcore.broker.domain.model.toss.TossApiException: 토스 토큰 확보 실패\n\tat com.kista.tradingcore.broker.adapter.out.toss.TossHttpClient.executeWithRetry(TossHttpClient.java:114)', context: { caller: 'TradingExceptionHandler' }, createdAt: '2026-10-01T00:16:12Z' },
   { id: 'fx-err-2', errorType: 'ClientError', message: "TypeError: Cannot read properties of undefined (reading 'map')", stackTrace: null, context: { path: '/dashboard', userAgent: 'Mozilla/5.0' }, createdAt: '2026-09-30T08:02:45Z' },
   { id: 'fx-err-3', errorType: 'IllegalStateException', message: '전략 상태가 ACTIVE가 아니어서 주문을 건너뛰었습니다', stackTrace: 'java.lang.IllegalStateException: strategy not active\n\tat com.kista.trading.Strategy.order(Strategy.java:42)', context: {}, createdAt: '2026-09-29T23:30:00Z' },
 ]

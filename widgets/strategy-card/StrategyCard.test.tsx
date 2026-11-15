@@ -97,7 +97,7 @@ describe('StrategyCard mobile row', () => {
   })
 
   it('keeps the round label on a single line in the mobile row', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     const roundBadges = screen.getAllByText('10.3회차')
 
@@ -106,7 +106,7 @@ describe('StrategyCard mobile row', () => {
   })
 
   it('places only the seed badge in the mobile top row', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     const topRow = screen.getByTestId('strategy-card-mobile-top-row')
     const mainRow = screen.getByTestId('strategy-card-mobile-main-row')
@@ -123,7 +123,7 @@ describe('StrategyCard mobile row', () => {
   it('shows VR marker without rendering division count', () => {
     render(<StrategyCard
       accountId="account-1"
-      broker="KIS"
+      broker="TOSS"
       strategy={{
         ...strategy,
         type: 'VR',
@@ -159,7 +159,7 @@ describe('StrategyCard mobile row', () => {
   it('hides next cycle row for VR cards', () => {
     render(<StrategyCard
       accountId="account-1"
-      broker="KIS"
+      broker="TOSS"
       strategy={{
         ...strategy,
         type: 'VR',
@@ -200,7 +200,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
     // 정상은 배지 없이 스크린리더 텍스트만
@@ -218,7 +218,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     // 색만으로 전달하지 않도록 같은 판정을 배지 텍스트로도 보여준다 (모바일·PC 레이아웃 각각)
@@ -237,7 +237,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     expect(screen.getAllByText('계좌 예수금 부족')).toHaveLength(2)
@@ -255,7 +255,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
     expect(screen.getAllByText('보정 주문 거절 가능')).toHaveLength(2)
@@ -272,7 +272,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     expect(screen.getAllByText('보유 수량 부족')).toHaveLength(2)
@@ -292,7 +292,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
   })
@@ -311,7 +311,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     const borderAccent = screen.getByTestId('strategy-order-border-accent')
     expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
@@ -331,7 +331,7 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     const borderAccent = screen.getByTestId('strategy-order-border-accent')
     expect(borderAccent).not.toHaveAttribute('style', expect.stringContaining('border-color: var(--status-ok);'))
@@ -352,13 +352,13 @@ describe('StrategyCard mobile row', () => {
       },
     }
 
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.getAllByText('미접수 주문')).toHaveLength(2)
   })
 
   it('shows the reverse mode badge on mobile as well as PC', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, isReverseMode: true }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, isReverseMode: true }} />)
 
     expect(screen.getByTestId('strategy-card-mobile-top-row')).toHaveTextContent('리버스모드')
     expect(screen.getAllByText('리버스모드')).toHaveLength(2)
@@ -367,7 +367,7 @@ describe('StrategyCard mobile row', () => {
 
 describe('StrategyCard start seed label', () => {
   it('does not show the initial deposit on mobile or PC', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.queryByText('시작 예수금')).not.toBeInTheDocument()
     expect(screen.queryByText('$2,103.00')).not.toBeInTheDocument()
@@ -391,26 +391,26 @@ describe('StrategyCard scheduled start badge', () => {
 
   it('shows the "시작예정" badge when startDate is in the future', () => {
     const futureDate = addDaysToKstDate(7)
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, startDate: futureDate }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, startDate: futureDate }} />)
 
     expect(screen.getAllByText(/시작예정$/)[0]).toBeInTheDocument()
   })
 
   it('hides the badge when startDate is today', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, startDate: todayKst() }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, startDate: todayKst() }} />)
 
     expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
   })
 
   it('hides the badge when startDate is in the past', () => {
     const pastDate = addDaysToKstDate(-7)
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, startDate: pastDate }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, startDate: pastDate }} />)
 
     expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
   })
 
   it('hides the badge when startDate is absent', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.queryByText(/시작예정$/)).not.toBeInTheDocument()
   })
@@ -432,7 +432,7 @@ describe('StrategyCard status', () => {
   })
 
   it('does not highlight an active strategy with a strip or status badge', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={strategy} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={strategy} />)
 
     expect(screen.queryByTestId('strategy-status-strip')).not.toBeInTheDocument()
     expect(screen.queryByText('운영중')).not.toBeInTheDocument()
@@ -448,13 +448,13 @@ describe('StrategyCard status', () => {
       },
       isLoading: false,
     }
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, status: 'PAUSED' }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, status: 'PAUSED' }} />)
 
     expect(screen.queryByTestId('strategy-order-border-accent')).not.toBeInTheDocument()
   })
 
   it('marks a paused strategy with a muted strip and a localized badge', () => {
-    render(<StrategyCard accountId="account-1" broker="KIS" strategy={{ ...strategy, status: 'PAUSED' }} />)
+    render(<StrategyCard accountId="account-1" broker="TOSS" strategy={{ ...strategy, status: 'PAUSED' }} />)
 
     expect(screen.getByTestId('strategy-status-strip')).toHaveAttribute('style', expect.stringContaining('background: var(--muted-foreground);'))
     expect(screen.getAllByText('일시중지').length).toBeGreaterThan(0)
@@ -473,25 +473,25 @@ describe('StrategyCard DCA', () => {
   beforeEach(() => previewMock.mockClear())
 
   it('일시중지된 DCA 카드는 회색 스트립과 상태 배지를 보여준다', () => {
-    render(<StrategyCard accountId="a1" broker="KIS" strategy={{ ...dcaStrategy, status: 'PAUSED' }} />)
+    render(<StrategyCard accountId="a1" broker="TOSS" strategy={{ ...dcaStrategy, status: 'PAUSED' }} />)
     expect(screen.getByTestId('strategy-status-strip')).toHaveAttribute('style', expect.stringContaining('background: var(--muted-foreground);'))
     expect(screen.getAllByText('일시중지')).toHaveLength(2) // 모바일·PC 배지 행
   })
 
   it('DCA 카드는 단건 미리보기를 호출하지 않는다', () => {
-    render(<StrategyCard accountId="a1" broker="KIS" strategy={dcaStrategy} />)
+    render(<StrategyCard accountId="a1" broker="TOSS" strategy={dcaStrategy} />)
     expect(previewMock).not.toHaveBeenCalled()
   })
 
   it('dca 요약이 없는 DCA 전략도 미리보기 없이 카드 셸을 렌더한다', () => {
-    render(<StrategyCard accountId="a1" broker="KIS" strategy={{ ...dcaStrategy, dca: undefined }} />)
+    render(<StrategyCard accountId="a1" broker="TOSS" strategy={{ ...dcaStrategy, dca: undefined }} />)
     expect(screen.getAllByText('DCA')).toHaveLength(2)
     expect(screen.getAllByText('UPRO')).toHaveLength(2)
     expect(previewMock).not.toHaveBeenCalled()
   })
 
   it('DCA 카드는 방향별 규칙 개수·다음 판정·최근 결과를 보여준다', () => {
-    render(<StrategyCard accountId="a1" broker="KIS" strategy={dcaStrategy} />)
+    render(<StrategyCard accountId="a1" broker="TOSS" strategy={dcaStrategy} />)
     expect(screen.getAllByText('매수 1')).toHaveLength(2)
     expect(screen.getByText('다음 판정')).toBeInTheDocument()
     expect(screen.getByText(fmtDate('2026-10-31'))).toBeInTheDocument()

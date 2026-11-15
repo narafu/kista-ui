@@ -1727,7 +1727,7 @@ export interface paths {
         get?: never;
         /**
          * 계좌 수정
-         * @description 별명을 수정. 계좌번호 및 KIS 자격증명은 수정 불가.
+         * @description 별명을 수정. 계좌번호 및 자격증명은 수정 불가.
          */
         put: operations["trading_update_1"];
         post?: never;
@@ -1828,7 +1828,7 @@ export interface paths {
         put?: never;
         /**
          * 계좌 등록
-         * @description KIS/Toss 계좌 및 자격증명을 AES-256 암호화하여 저장.
+         * @description 증권사 계좌 및 자격증명을 AES-256 암호화하여 저장.
          */
         post: operations["trading_register"];
         delete?: never;
@@ -2200,7 +2200,7 @@ export interface paths {
         };
         /**
          * 현재 잔고 조회
-         * @description 브로커 어댑터 경유(KIS: CTRP6504R+TTTC2101R 보정 / Toss: 보유종목+예수금 직접 산출) — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
+         * @description 브로커 어댑터 경유(Toss: 보유종목+예수금 직접 산출) — 체결 기준 현재 보유 종목별 잔고 및 평가손익 조회.
          */
         get: operations["getPresentBalance"];
         put?: never;
@@ -2806,26 +2806,26 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — KIS: XXXXXXXX-XX (예: 74420614-01), Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
+             * @description 계좌번호 — Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
              * @example 74420614-01
              */
             accountNo?: string;
             /**
-             * @description API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key / 메리츠 App Key / 바이낸스 API Key)
+             * @description API 앱 키 (Toss Client ID / 업비트 Access Key / 메리츠 App Key / 바이낸스 API Key)
              * @example PSxxxxxxxxxx
              */
             appKey?: string;
-            /** @description API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret / 바이낸스 Secret Key) */
+            /** @description API 앱 시크릿 (Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret / 바이낸스 Secret Key) */
             secretKey?: string;
             /**
-             * @description 증권사 — null이면 KIS 기본값 적용
-             * @example KIS
+             * @description 증권사 — null이면 MOCK 기본값 적용
+             * @example TOSS
              * @enum {string}
              */
-            broker?: "KIS" | "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
+            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
             /**
              * Format: date
-             * @description API 키 만료일(KST, 선택) — KIS·토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
              * @example 2027-11-10
              */
             apiKeyExpiresOn?: string;
@@ -2853,7 +2853,7 @@ export interface components {
             accountNo?: string;
             /**
              * @description 증권사
-             * @example KIS
+             * @example TOSS
              */
             broker?: string;
             /**
@@ -2863,18 +2863,18 @@ export interface components {
             currency?: string;
             /**
              * Format: date-time
-             * @description 거래소 API 키 만료 시각 (업비트는 API 조회, KIS·토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
+             * @description 거래소 API 키 만료 시각 (업비트는 API 조회, 토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
              */
             apiKeyExpiresAt?: string;
         };
         CredentialsRequest: {
-            /** @description 새 API 앱 키 (KIS App Key / Toss Client ID / 업비트 Access Key) */
+            /** @description 새 API 앱 키 (Toss Client ID / 업비트 Access Key) */
             appKey: string;
-            /** @description 새 API 앱 시크릿 (KIS App Secret / Toss Client Secret / 업비트 Secret Key) */
+            /** @description 새 API 앱 시크릿 (Toss Client Secret / 업비트 Secret Key) */
             secretKey: string;
             /**
              * Format: date
-             * @description API 키 만료일(KST, 선택) — KIS·토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
              * @example 2027-11-10
              */
             apiKeyExpiresOn?: string;
@@ -2937,10 +2937,10 @@ export interface components {
         TestConnectionRequest: {
             /**
              * @description 증권사
-             * @example KIS
+             * @example TOSS
              * @enum {string}
              */
-            broker?: "TOSS" | "KIS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
+            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE";
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
@@ -3553,7 +3553,7 @@ export interface components {
             price?: number;
         };
         PortfolioSummaryDto: {
-            /** @description 총자산 (KRW — KIS tot_asst_amt 원본 값) */
+            /** @description 총자산 (KRW) */
             totalAsset?: number;
             /** @description 총평가손익 (KRW) */
             totalEvalProfit?: number;
@@ -4809,7 +4809,7 @@ export interface components {
         EnumMeta: {
             /**
              * @description enum name() 값
-             * @example KIS
+             * @example TOSS
              */
             code?: string;
             /** @description 한국어 표시 이름 */
@@ -5160,7 +5160,7 @@ export interface components {
             accountNo?: string;
             /**
              * @description 브로커 코드
-             * @example KIS
+             * @example TOSS
              */
             broker?: string;
         };
@@ -5219,7 +5219,7 @@ export interface components {
             accountNoMasked?: string;
             /**
              * @description 브로커 코드
-             * @example KIS
+             * @example TOSS
              */
             broker?: string;
             /** @description 계좌에 등록된 전략 목록 */

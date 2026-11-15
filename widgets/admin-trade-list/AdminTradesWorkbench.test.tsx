@@ -81,7 +81,7 @@ const accounts: AdminAccount[] = [
     ownerNickname: '홍길동',
     nickname: '홍길동 계좌',
     accountNoMasked: '123-45****',
-    broker: 'KIS',
+    broker: 'TOSS',
     strategies: [],
   },
   {
@@ -90,7 +90,7 @@ const accounts: AdminAccount[] = [
     ownerNickname: '김영희',
     nickname: '김영희 계좌',
     accountNoMasked: '987-65****',
-    broker: 'KIS',
+    broker: 'TOSS',
     strategies: [],
   },
 ]
@@ -139,7 +139,7 @@ async function pick(user: ReturnType<typeof userEvent.setup>, name: string, opti
 
 async function selectBrokeredAccount(user: ReturnType<typeof userEvent.setup>) {
   await pick(user, '사용자 선택', '홍길동')
-  await pick(user, '증권사 선택', '한국투자증권')
+  await pick(user, '증권사 선택', '토스증권')
   await pick(user, '계좌 선택', '홍길동 계좌 · 123-45****')
 }
 
@@ -170,7 +170,7 @@ describe('AdminTradesWorkbench', () => {
 
     await waitFor(() => expect(listAdminAccountsMock).toHaveBeenCalled())
     await waitFor(() => expect(brokerSelect).not.toBeDisabled())
-    await pick(user, '증권사 선택', '한국투자증권')
+    await pick(user, '증권사 선택', '토스증권')
 
     await waitFor(() => expect(accountSelect).not.toBeDisabled())
 
@@ -215,7 +215,7 @@ describe('AdminTradesWorkbench', () => {
     await pick(user, '사용자 선택', '홍길동')
     await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사 선택' })).not.toBeDisabled())
     await user.click(screen.getByRole('combobox', { name: '증권사 선택' }))
-    expect(await screen.findByRole('option', { name: '한국투자증권' })).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: '토스증권' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '업비트' })).toBeInTheDocument()
   })
 
@@ -223,13 +223,13 @@ describe('AdminTradesWorkbench', () => {
     const user = userEvent.setup()
     listAdminAccountsMock.mockReset().mockResolvedValue([
       ...accounts,
-      { id: 'account-no-number', userId: 'user-1', ownerNickname: '홍길동', nickname: '메리츠 계좌', accountNoMasked: null, broker: 'KIS', strategies: [] },
+      { id: 'account-no-number', userId: 'user-1', ownerNickname: '홍길동', nickname: '메리츠 계좌', accountNoMasked: null, broker: 'TOSS', strategies: [] },
     ])
 
     renderWorkbench()
 
     await pick(user, '사용자 선택', '홍길동')
-    await pick(user, '증권사 선택', '한국투자증권')
+    await pick(user, '증권사 선택', '토스증권')
     await user.click(await screen.findByRole('combobox', { name: '계좌 선택' }))
     expect(await screen.findByRole('option', { name: '홍길동 계좌 · 123-45****' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '메리츠 계좌' })).toBeInTheDocument()
@@ -286,7 +286,7 @@ describe('AdminTradesWorkbench', () => {
     await waitFor(() => expect(within(table).queryByText('김영희')).not.toBeInTheDocument())
     expect(within(table).getAllByText('홍길동').length).toBeGreaterThan(0)
 
-    await pick(user, '증권사 선택', '한국투자증권')
+    await pick(user, '증권사 선택', '토스증권')
     await pick(user, '계좌 선택', '홍길동 계좌 · 123-45****')
     await pick(user, '전략 선택', 'INFINITE · TSLA')
 

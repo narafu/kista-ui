@@ -14,14 +14,14 @@ vi.mock('@entities/meta', async () => {
 
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({
-    data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } },
+    data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } },
   }),
 }))
 
 vi.mock('@entities/account', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/account')>()),
   useCreateAccountMutation: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),
-  useTestKisConnectionMutation: () => ({ mutate: vi.fn(), reset: vi.fn(), isPending: false, isSuccess: false, isError: false }),
+  useTestBrokerConnectionMutation: () => ({ mutate: vi.fn(), reset: vi.fn(), isPending: false, isSuccess: false, isError: false }),
 }))
 
 vi.mock('next/navigation', () => ({

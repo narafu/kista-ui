@@ -1,6 +1,6 @@
 'use client'
 
-import { Bitcoin, Building2, FlaskConical, Landmark, TrendingUp } from 'lucide-react'
+import { Bitcoin, FlaskConical, Landmark, TrendingUp } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@entities/account'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
@@ -15,7 +15,6 @@ interface Props {
 // 아이콘·설명 문구는 UI 전용 — 순서·라벨은 API(meta.brokers)에서 수신하되 모의계좌는 항상 맨 뒤
 const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType<{ className?: string }> }> = {
   TOSS: { description: 'Client ID / Client Secret 방식', Icon: TrendingUp },
-  KIS: { description: 'App Key / App Secret 방식', Icon: Building2 },
   UPBIT: { description: 'Access Key / Secret Key 방식', Icon: Bitcoin },
   BINANCE: { description: 'API Key / Secret Key 방식', Icon: Bitcoin },
   MERITZ: { description: 'App Key / App Secret 방식', Icon: Landmark },

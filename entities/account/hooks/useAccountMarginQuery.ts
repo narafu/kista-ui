@@ -11,7 +11,7 @@ import {
   updateCredentials,
   deleteAccount,
   getPrices,
-  testKisConnection,
+  testBrokerConnection,
   type PriceMap,
 } from '../api'
 import type { Account, AccountRequest, CredentialsRequest } from '../model/types'
@@ -92,8 +92,8 @@ export function useCreateAccountMutation() {
 }
 
 // side effect 없음 — UI에서 isSuccess/isError로 인라인 표시
-export function useTestKisConnectionMutation() {
+export function useTestBrokerConnectionMutation() {
   return useMutation<void, Error, { appKey: string; appSecret: string; broker?: string }>({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
-    mutationFn: ({ appKey, appSecret, broker }) => testKisConnection(appKey, appSecret, broker),
+    mutationFn: ({ appKey, appSecret, broker }) => testBrokerConnection(appKey, appSecret, broker),
   })
 }

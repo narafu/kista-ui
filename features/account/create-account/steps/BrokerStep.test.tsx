@@ -6,7 +6,6 @@ vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     meta: {
       brokers: [
-        { code: 'KIS', label: '한국투자증권' },
         { code: 'TOSS', label: '토스증권' },
         { code: 'MOCK', label: '모의계좌' },
         { code: 'UPBIT', label: '업비트' },
@@ -23,15 +22,15 @@ vi.mock('@entities/runtime-config', () => ({
 
 describe('BrokerStep runtime availability', () => {
   it('hides disabled brokers', () => {
-    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: false } } } })
+    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { UPBIT: { enabled: true }, TOSS: { enabled: false } } } })
     render(<BrokerStep onNext={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /한국투자증권/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /업비트/ })).toBeInTheDocument()
     expect(screen.queryByText('토스증권')).not.toBeInTheDocument()
   })
 
   it('renders the MOCK broker card when enabled', () => {
     useRuntimeConfigQueryMock.mockReturnValue({
-      data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true } } },
+      data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true } } },
     })
     const onNext = vi.fn()
     render(<BrokerStep onNext={onNext} />)
@@ -43,15 +42,15 @@ describe('BrokerStep runtime availability', () => {
 
   it('모의계좌는 meta 순서와 무관하게 맨 뒤에 둔다', () => {
     useRuntimeConfigQueryMock.mockReturnValue({
-      data: { brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true } } },
+      data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true } } },
     })
     render(<BrokerStep onNext={vi.fn()} />)
     const names = screen.getAllByRole('button').map((b) => b.textContent ?? '')
-    expect(names.map((n) => n.match(/한국투자증권|토스증권|업비트|모의계좌/)?.[0])).toEqual(['한국투자증권', '토스증권', '업비트', '모의계좌'])
+    expect(names.map((n) => n.match(/토스증권|업비트|모의계좌/)?.[0])).toEqual(['토스증권', '업비트', '모의계좌'])
   })
 
   it('바이낸스 카드는 활성화됐을 때만 보이고 누르면 BINANCE로 넘어간다', () => {
-    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { KIS: { enabled: true }, BINANCE: { enabled: true } } } })
+    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { BINANCE: { enabled: true } } } })
     const onNext = vi.fn()
     render(<BrokerStep onNext={onNext} />)
     screen.getByRole('button', { name: /바이낸스/ }).click()

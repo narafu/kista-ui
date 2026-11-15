@@ -22,7 +22,7 @@ vi.mock('../api', () => ({
   createAccount: vi.fn(),
   deleteAccount: vi.fn(),
   getPrices: getPricesMock,
-  testKisConnection: vi.fn(),
+  testBrokerConnection: vi.fn(),
   updateAccount: vi.fn(),
 }))
 

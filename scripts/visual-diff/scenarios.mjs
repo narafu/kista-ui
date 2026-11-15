@@ -43,8 +43,8 @@ const PAUSED = detail(seed.paused)
 const ACCT = `/accounts/${seed.infinite.accountId}`
 const BINANCE_ACCT = '/accounts/00000000-0000-4000-8000-0000000c0170'
 const NEW_STRATEGY = `${ACCT}/strategies/new`
-// MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 KIS 계좌로 연다
-const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
+// MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 TOSS 계좌로 연다
+const TOSS_NEW_STRATEGY = `/accounts/${seed.toss.accountId}/strategies/new`
 // 사용자 상태는 proxy.ts가 상태·역할 쿠키가 있으면 /me 대신 그 값을 쓴다 — dev 사용자(ACTIVE)로 대기·반려 화면을 연다
 const statusCookies = (status) => ({ 'kista-user-status': status, 'kista-user-role': 'USER' })
 // 대기 화면의 상태 SSE가 ACTIVE를 보내면 /dashboard로 이동한다 — 204로 닫아 재연결도 막는다
@@ -59,13 +59,13 @@ export const scenarios = [
   { name: 'detail-paused', path: PAUSED },
   { name: 'account-detail', path: ACCT },
   { name: 'account-new', path: '/accounts/new' },
-  { name: 'account-new-kis', path: '/accounts/new', steps: [clickRole('button', /한국투자|KIS/)] },
+  { name: 'account-new-toss', path: '/accounts/new', steps: [clickRole('button', /토스|TOSS/i)] },
   { name: 'account-new-mock', path: '/accounts/new', steps: [clickRole('button', /모의|MOCK|Mock/)] },
   { name: 'create-strategy', path: NEW_STRATEGY },
   { name: 'create-strategy-vr', path: NEW_STRATEGY, steps: [pickVr] },
   { name: 'create-strategy-vr-advanced', path: NEW_STRATEGY, steps: [pickVr, openAdvanced] },
-  { name: 'create-strategy-seed-cash', path: KIS_NEW_STRATEGY, setup: stubSeedCash },
-  { name: 'create-strategy-seed-fill', path: KIS_NEW_STRATEGY, setup: stubSeedCash, steps: [clickRole('button', /^50%$/)] },
+  { name: 'create-strategy-seed-cash', path: TOSS_NEW_STRATEGY, setup: stubSeedCash },
+  { name: 'create-strategy-seed-fill', path: TOSS_NEW_STRATEGY, setup: stubSeedCash, steps: [clickRole('button', /^50%$/)] },
   { name: 'reconfigure-vr', path: `${VR}/reconfigure-vr` },
   { name: 'finance', path: '/finance' },
   { name: 'finance-month-popover', path: '/finance', steps: [clickRole('button', /^기준 연월/)] },

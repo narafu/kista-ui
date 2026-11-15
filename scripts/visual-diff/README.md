@@ -44,9 +44,9 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 
 ## 데이터 (fixture)
 
-기본은 dev 시드 실데이터다(kista-api `scripts/dev-seed/seed.sh`, 멱등). MOCK 계좌의 ACTIVE 전략은 preview·prices 등이 실제로 200을 준다. KIS 시드 전략은 PAUSED이고 preview가 503이다. fixture는 실데이터로 만들 수 없는 것만 채운다.
+기본은 dev 시드 실데이터다(kista-api `scripts/dev-seed/seed.sh`, 멱등). MOCK 계좌의 ACTIVE 전략은 preview·prices 등이 실제로 200을 준다. TOSS 시드 전략은 PAUSED이고 preview가 503이다. fixture는 실데이터로 만들 수 없는 것만 채운다.
 
-- `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 실행 시 로컬 API에서 MOCK·KIS 시드 계좌(`[시드] 모의계좌`·`[시드] KIS 계좌`)와 전략을 조회해 정하고(실패 시 기본값), `KISTA_DEV_SEED=<json>`을 주면 그 파일로 최상위 키 단위 덮어쓰기(동작 상세는 `../a11y-check/README.md` "전제와 안전장치").
+- `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 실행 시 로컬 API에서 MOCK·TOSS 시드 계좌(`[시드] 모의계좌`·`[시드] 토스 계좌`)와 전략을 조회해 정하고(실패 시 기본값), `KISTA_DEV_SEED=<json>`을 주면 그 파일로 최상위 키 단위 덮어쓰기(동작 상세는 `../a11y-check/README.md` "전제와 안전장치").
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`=원장 부족/`trimmed`=원장 축소/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
   - `crypto`: 로컬 DB에 없는 UPBIT 코인 계좌(id `00000000-0000-4000-8000-0000000c0170`)와 코인 DCA 전략을 합성하고, MOCK 계좌에 주식 DCA 전략 1건을 덧붙인다. 코인 계좌에 주식 전용 조회(portfolio·margin·prices·daily-trades)가 오면 400을 돌려주고 `CRYPTO_GATE_VIOLATION <path>`를 프록시 `log`(`proxy.log`)에 남긴다. 시나리오가 아니라 프록시를 직접 띄워 쓴다(`startProxy({ route })` + `setMode('crypto')`). 브라우저 쪽은 `/api/runtime-config` 응답의 `brokers.UPBIT.enabled`·`strategies.DCA.enabled`를 `page.route`로 true로 바꿔야 한다.
   - `binance`: `crypto`와 같은 합성 계좌·전략을 BINANCE(USDT)로 바꾼다(계좌 통화 USDT·만료일 없음, DCA 금액 10.50, 평단 없는 보유 행 포함 crypto-portfolio). 시나리오 `binance-*`가 쓴다(계좌 상세·전략 상세·전략 생성·계좌 등록 API 키 스텝). 로컬 API(main)의 `/api/meta`에는 BINANCE·`minOrderAmount`·`amountScale`·`tickers[].markets`가, `/api/runtime-config`에는 `brokers.BINANCE`가 없어 `fixtures/api.mjs`가 이 모드에서만 보강한다(`run.mjs`가 `setMode`를 두 fixture에 함께 넘긴다 — 두 모듈은 모드 상태를 따로 가진다). 로컬 API가 이미 BINANCE를 주는 브랜치여도 보강값이 덮는다. `/api/meta`는 Next 데이터 캐시(1시간)에 첫 응답이 남아 `run.mjs`가 binance 시나리오가 선택되면 warm-up도 보강 meta로 받는다 — 같은 실행의 다른 모드 시나리오도 보강된 meta를 보지만 head/base가 같아 비교에는 영향이 없다.
@@ -65,7 +65,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 - `guest: true`는 `kista-token` 없이 비회원으로 연다(`dashboard-guest`).
 - `cookies`는 추가 쿠키다. warm-up도 같은 쿠키로 연다. `proxy.ts`는 `kista-user-status`·`kista-user-role` 쿠키가 둘 다 있으면 `/me` 대신 그 값을 쓰므로, dev 사용자(ACTIVE)로 대기·반려 화면을 연다(`pending`·`rejected`).
 - `setup(page)`는 `goto` 전에 실행한다. 브라우저 요청을 `page.route`로 덮을 때 쓴다. 예: `pending`은 상태 SSE가 ACTIVE를 보내면 `/dashboard`로 이동하므로 `/api/auth/status-stream`을 204로 닫는다.
-- 가용 예수금 힌트·채우기 버튼은 KIS 계좌에 `stubSeedCash`를 걸어 연다(`create-strategy-seed-*`).
+- 가용 예수금 힌트·채우기 버튼은 TOSS 계좌에 `stubSeedCash`를 걸어 연다(`create-strategy-seed-*`).
 - PC 표와 모바일 카드를 함께 렌더하고 한쪽을 CSS로 숨기는 화면은 `:visible` locator로 누른다. `.first()`만 쓰면 숨은 쪽이 잡힌다.
 - diff 0은 안정성만 보여준다. 양쪽이 똑같이 리다이렉트되거나 엉뚱한 상태여도 0이다. 새 시나리오는 `report.json`의 최종 URL·상태코드와 PNG를 직접 확인한다.
 

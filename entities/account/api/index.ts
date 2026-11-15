@@ -44,7 +44,7 @@ export async function getPrices(accountId: string, tickers: string[]): Promise<P
   return Object.fromEntries(raw.prices.map(({ ticker, price }) => [ticker, toNum(price)]))
 }
 
-export async function testKisConnection(appKey: string, appSecret: string, broker?: string): Promise<void> {
+export async function testBrokerConnection(appKey: string, appSecret: string, broker?: string): Promise<void> {
   await clientFetch<void>('/api/accounts/connection-tests', jsonBody('POST', { broker, appKey, appSecret }))
 }
 

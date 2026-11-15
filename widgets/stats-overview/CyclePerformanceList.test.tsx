@@ -91,7 +91,7 @@ describe('CyclePerformanceList', () => {
       isError: false,
     })
     useAccountsQueryMock.mockReturnValue({
-      data: [{ id: 'account-1', nickname: '메인계좌', accountNoMasked: '****0001', broker: 'KIS' }],
+      data: [{ id: 'account-1', nickname: '메인계좌', accountNoMasked: '****0001', broker: 'TOSS' }],
     })
 
     render(<CyclePerformanceList />)
@@ -181,7 +181,7 @@ describe('CyclePerformanceList', () => {
     })
     useAccountsQueryMock.mockReturnValue({
       data: [
-        { id: 'a1', nickname: '주식계좌', accountNoMasked: '****0001', broker: 'KIS' },
+        { id: 'a1', nickname: '주식계좌', accountNoMasked: '****0001', broker: 'TOSS' },
         { id: 'a2', nickname: '크립토계좌', accountNoMasked: null, broker: 'UPBIT' },
       ],
     })
@@ -219,7 +219,7 @@ describe('CyclePerformanceList', () => {
 
   it('보관된 전략만 "보관된 전략" 섹션에 종목·유형·계좌와 삭제 버튼으로 보여 준다', () => {
     useStatsCyclesQueryMock.mockReturnValue({ data: { items: [], page: 0, totalElements: 0, totalPages: 0 }, isLoading: false, isError: false })
-    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1', nickname: '메인', broker: 'KIS' }] })
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'account-1', nickname: '메인', broker: 'TOSS' }] })
     useAllStrategiesQueryMock.mockReturnValue({ data: [
       { id: 's1', accountId: 'account-1', type: 'INFINITE', status: 'ARCHIVED', ticker: 'SOXL' },
       { id: 's2', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ' },

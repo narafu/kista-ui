@@ -71,7 +71,7 @@ describe('trade api', () => {
     expect(result).toBe(batch)
   })
 
-  it('getAccountPortfolio normalizes KIS BigDecimal strings to numbers', async () => {
+  it('getAccountPortfolio normalizes 증권사 BigDecimal strings to numbers', async () => {
     const { getAccountPortfolio } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({
       positions: [

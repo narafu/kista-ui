@@ -40,7 +40,7 @@ vi.mock('@entities/meta', async () => {
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },
-  brokers: { KIS: { enabled: true }, TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true }, BINANCE: { enabled: true } },
+  brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true }, BINANCE: { enabled: true } },
   benchmarks: {
     etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
   },
@@ -121,7 +121,7 @@ describe('AdminSettingsForm', () => {
     render(<AdminSettingsForm />)
     expect(document.getElementById('dca-ticker-add')).toBeNull()
 
-    await user.click(screen.getByRole('switch', { name: '한국투자증권' }))
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
     expect(document.getElementById('dca-ticker-add')).not.toBeNull()
     expect(screen.getByText('기본값은 허용값에 포함되어야 합니다.')).toBeInTheDocument()
@@ -151,7 +151,7 @@ describe('AdminSettingsForm', () => {
   it('restores the last server state when changes are discarded', async () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
-    const toggle = screen.getByRole('switch', { name: '한국투자증권' })
+    const toggle = screen.getByRole('switch', { name: '토스증권' })
     await user.click(toggle)
     expect(toggle).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
@@ -253,15 +253,15 @@ describe('AdminSettingsForm', () => {
   it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<AdminSettingsForm />)
-    const kis = screen.getByRole('switch', { name: '한국투자증권' })
-    await user.click(kis)
+    const meritz = screen.getByRole('switch', { name: '메리츠증권' })
+    await user.click(meritz)
     const latest = structuredClone(settings)
     latest.brokers.TOSS.enabled = false
     queryState.data = latest
     rerender(<AdminSettingsForm />)
-    expect(kis).not.toBeChecked()
+    expect(meritz).not.toBeChecked()
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
-    expect(screen.getByRole('switch', { name: '한국투자증권' })).toBeChecked()
+    expect(screen.getByRole('switch', { name: '메리츠증권' })).toBeChecked()
     expect(screen.getByRole('switch', { name: '토스증권' })).not.toBeChecked()
   })
 

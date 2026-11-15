@@ -29,7 +29,7 @@ describe('useStrategyFormData', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('주식 계좌는 코인 티커를 빼고 시세를 조회한다', () => {
-    renderHook(() => useStrategyFormData('a1', 'KIS'))
+    renderHook(() => useStrategyFormData('a1', 'TOSS'))
     expect(useAccountPricesQuery).toHaveBeenCalledWith('a1', ['TQQQ', 'SOXL'], { enabled: true })
   })
 
@@ -44,7 +44,7 @@ describe('useStrategyFormData', () => {
   })
 
   it('주식 계좌는 주식 티커를 쓸 수 있는 유형을 모두 본다', () => {
-    const { result } = renderHook(() => useStrategyFormData('a1', 'KIS'))
+    const { result } = renderHook(() => useStrategyFormData('a1', 'TOSS'))
     expect(result.current.enabledStrategyTypes).toEqual(['INFINITE', 'DCA'])
   })
 })

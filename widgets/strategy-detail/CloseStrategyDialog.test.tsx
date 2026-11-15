@@ -6,7 +6,7 @@ function setup(props: Partial<React.ComponentProps<typeof CloseStrategyDialog>> 
   const onArchive = vi.fn()
   const onDelete = vi.fn()
   render(
-    <CloseStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" broker="KIS" hasHoldings={false}
+    <CloseStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" broker="TOSS" hasHoldings={false}
       onArchive={onArchive} onDelete={onDelete} disabled={false} isArchiving={false} isDeleting={false} {...props} />,
   )
   return { onArchive, onDelete }

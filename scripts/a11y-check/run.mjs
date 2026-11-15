@@ -21,12 +21,12 @@ const MAX_TABS = 80
 const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
 const ACCT = `/accounts/${seed.infinite.accountId}`
 const WIZARD = '/accounts/new'
-// 가용 예수금 힌트·채우기 버튼은 availableCash가 있어야 뜬다 — KIS 시드 계좌로 열고 stubSeedCash로 채운다
-const KIS_NEW_STRATEGY = `/accounts/${seed.kis.accountId}/strategies/new`
+// 가용 예수금 힌트·채우기 버튼은 availableCash가 있어야 뜬다 — TOSS 시드 계좌로 열고 stubSeedCash로 채운다
+const TOSS_NEW_STRATEGY = `/accounts/${seed.toss.accountId}/strategies/new`
 const PAGES = {
   guest: ['/login', '/dashboard'],
   user: [
-    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, KIS_NEW_STRATEGY, detail(seed.infinite), detail(seed.vr),
+    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, TOSS_NEW_STRATEGY, detail(seed.infinite), detail(seed.vr),
     '/stats', '/stats/benchmark', '/stats/backtest',
     '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
   ],
@@ -153,12 +153,12 @@ async function checkPage(page, label, vp, scheme) {
   if (scheme === 'light' && !skip.has('tab')) await checkTabOrder(page, label, vp)
 }
 
-// 계좌 등록 위저드 2~4단계: 3단계부터는 KIS 연결 테스트(POST)를 통과해야 열린다.
+// 계좌 등록 위저드 2~4단계: 3단계부터는 브로커 연결 테스트(POST)를 통과해야 열린다.
 // 그 POST만 page.route로 가짜 204를 돌려준다(page route가 context의 abort보다 먼저 잡는다). 마지막 "계좌 연결"(계좌 생성 POST)은 누르지 않는다
 async function checkAccountWizard(page, vp, scheme) {
   await page.route('**/api/accounts/connection-tests', (route) => route.fulfill({ status: 204 }))
   try {
-    await page.locator('button', { hasText: 'App Key / App Secret' }).click()
+    await page.locator('button', { hasText: 'Client ID / Client Secret' }).click()
     await page.locator('#api-key').waitFor()
     await checkPage(page, `${WIZARD}#2`, vp, scheme)
     await page.locator('#api-key').fill('a11y-check-dummy-key')
@@ -169,7 +169,7 @@ async function checkAccountWizard(page, vp, scheme) {
     await page.locator('#account-no').waitFor()
     await checkPage(page, `${WIZARD}#3`, vp, scheme)
     await page.locator('#account-nickname').fill('a11y')
-    await page.locator('#account-no').fill('1234567890')
+    await page.locator('#account-no').fill('13101001931')
     await page.getByRole('button', { name: '다음' }).click()
     await page.getByRole('button', { name: '계좌 연결' }).waitFor()
     await checkPage(page, `${WIZARD}#4`, vp, scheme)

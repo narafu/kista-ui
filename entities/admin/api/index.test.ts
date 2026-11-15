@@ -60,7 +60,7 @@ describe('entities/admin/api admin trade correction APIs', () => {
         ownerNickname: '홍길동',
         nickname: '키움 메인',
         accountNoMasked: '123-45****',
-        broker: 'KIS',
+        broker: 'TOSS',
         strategies: [],
       },
     ]

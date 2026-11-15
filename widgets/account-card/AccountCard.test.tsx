@@ -12,8 +12,8 @@ vi.mock('@entities/meta', async () => {
   const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
   return { useMeta: () => ({
     findBroker: () => ({
-      label: '한국투자',
-      description: 'KIS',
+      label: '토스증권',
+      description: 'TOSS',
     }),
     labelOf: testLabelOf,
   }) }
@@ -36,7 +36,7 @@ const baseAccount: Account = {
   id: 'account-1',
   nickname: '메인 계좌',
   accountNoMasked: '123-45',
-  broker: 'KIS',
+  broker: 'TOSS',
 }
 
 const baseStrategy: Strategy = {

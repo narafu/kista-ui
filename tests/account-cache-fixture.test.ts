@@ -59,7 +59,7 @@ describe('account cache E2E leftover cleanup', () => {
 
   it.each([
     { id: 'manual-1', nickname: 'manual-local-account', broker: 'MOCK' },
-    { id: 'real-1', nickname: 'e2e-account-cache-real', broker: 'KIS' },
+    { id: 'real-1', nickname: 'e2e-account-cache-real', broker: 'TOSS' },
   ])('refuses to clean up when an account the suite did not create exists: $nickname ($broker)', (account) => {
     expect(() => selectLeftoverAccounts([leftover, account])).toThrow(/no accounts were deleted/i)
   })

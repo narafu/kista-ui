@@ -13,21 +13,8 @@ interface Props {
   onBack: () => void
 }
 
-// KIS: 74420614-01 (XXXXXXXX-XX), Toss: 131-01-001931 (XXX-XX-XXXXXX)
+// Toss: 131-01-001931 (XXX-XX-XXXXXX)
 const ACCOUNT_CONFIG = {
-  KIS: {
-    label: '계좌번호',
-    maxLen: 11,
-    placeholder: '74420614-01',
-    pattern: /^\d{8}-\d{2}$/,
-    hint: '계좌번호-계좌구분코드 형식 (예: 74420614-01)',
-    // 숫자 10자리 입력 시 8번째 뒤에 하이픈 자동 삽입
-    format: (raw: string) => {
-      const digits = raw.replace(/\D/g, '').slice(0, 10)
-      if (digits.length <= 8) return digits
-      return `${digits.slice(0, 8)}-${digits.slice(8)}`
-    },
-  },
   TOSS: {
     label: '계좌번호',
     maxLen: 13,
@@ -54,7 +41,7 @@ export function AccountInfoStep({ data, onNext, onBack }: Props) {
   const [touchedNickname, setTouchedNickname] = useState(false)
   const [touchedAccountNo, setTouchedAccountNo] = useState(false)
 
-  const broker = (data.broker || 'KIS') as BrokerCode
+  const broker = data.broker as BrokerCode
   const isMock = isMockBroker(broker)
   // 계좌번호 설정이 없는 broker(MOCK, UPBIT, MERITZ, BINANCE)는 별칭만 받는다
   const config: AccountNoConfig | null = (ACCOUNT_CONFIG as Partial<Record<BrokerCode, AccountNoConfig>>)[broker] ?? null

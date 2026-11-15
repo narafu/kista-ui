@@ -21,7 +21,7 @@ export function ConfirmStep({ data, onBack }: Props) {
   const { labelOf, findBroker } = useMeta()
   const router = useRouter()
 
-  const broker = (data.broker || 'KIS') as BrokerCode
+  const broker = data.broker as BrokerCode
   const isMock = isMockBroker(broker)
   const hasAccountNo = !isMock && !isKeyOnlyBroker(broker)
   const expiresOn = !isMock && isEstimatedExpiry(findBroker(broker)?.apiKeyExpirySource) ? data.apiKeyExpiresOn : ''

@@ -63,9 +63,9 @@ import { useDeleteAccountMutation } from '@entities/account'
 - **stats**: `GET /api/stats/summary|equity-curve|cycles` 소비. `equity-curve`와 `cycles`는 선택 전략 타입 필터(`type=INFINITE|PRIVACY|VR`)를 공유하고, `summary`는 전략 유형 비교 목적상 항상 전체 집계를 사용한다. `summary`·`equity-curve`·`housing-benchmark`(PORTFOLIO)는 `currency`로 합산 통화를 받는다(생략 시 USD, 키 마지막 원소) — 통화 목록 `availableCurrencies`는 요청 통화와 무관해 `useStatsCurrency`가 USD summary에서 읽고, 선택이 없으면 USD가 있으면 USD, 없으면 첫 통화를 쓴다. 통화 무관 무효화는 `statsKeys.summaryAll()`. `cycles`는 추가로 `accountId`·`ticker`(서버 `StrategyTicker` enum — 잘못된 값은 400)·`status`(`ACTIVE|CLOSED`, 생략 시 전체) 필터를 받으며(`StatsCyclesFilters`, 전부 AND), 서버가 필터 후 번호 페이지네이션한다(`page` 0-based, 응답 `page`/`totalElements`/`totalPages`, 범위 밖 page는 빈 `items`). 이 엔드포인트 타입은 `api-types.ts` 생성물이 아니라 `model/types.ts` 수기 정의다. `byType[].winRate`/`avgReturnRate`/`avgDurationDays`와 `CyclePerformance`의 `pnl`/`returnRate`/`durationDays`/`endDate`/`endAmount`는 미종료 사이클에서 `null` 가능 — 렌더링 시 null 가드 필수.
 - **stats 서버 TTL**: `summary`/`equity-curve`/`housing-benchmark`는 kista-api가 사용자 단위 서버 사이드 5-10분 TTL 캐시(`TtlResultCache`)를 둔다. 체결 시에는 kista-api가 그 사용자 키를 비운다(summary·equity-curve는 SSE 발행 전에, benchmark는 Redis `trade.event` 별도 구독으로). 그 외 mutation으로는 비워지지 않아 `statsKeys.all` invalidate 직후 refetch해도 서버가 그 TTL만큼 이전 값을 반환할 수 있다 — React Query 캐시 문제로 오진하지 않는다
 
-## KIS live API quirk
+## 증권사 live API quirk
 
-- **필드명 대조**: KIS live 응답은 UI 타입과 필드명이 다를 수 있다 — 새 엔드포인트를 소비할 때 실제 응답과 필드명을 대조하고, 불일치는 `entities/*/api`의 normalizer에서 변환한다
+- **필드명 대조**: 증권사 live 응답은 UI 타입과 필드명이 다를 수 있다 — 새 엔드포인트를 소비할 때 실제 응답과 필드명을 대조하고, 불일치는 `entities/*/api`의 normalizer에서 변환한다
 - **`getPrices` 쿼리 직렬화**: 반복 파라미터만 허용
 - **MultiPriceResponse**: 응답 `{ prices: [{ticker, price}] }`를 `PriceMap`으로 정규화해야 함
 - **통화 주의**: `positions[].evalAmountUsd`는 USD, `summary.totalAsset`/`totalEvalProfit`은 KRW

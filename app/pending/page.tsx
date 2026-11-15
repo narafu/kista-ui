@@ -13,7 +13,7 @@ import { LogoutButton } from '@features/auth/logout'
 const STEPS = [
   { label: '신청 완료', description: '카카오 로그인 및 회원가입 완료', done: true },
   { label: '관리자 검토', description: '영업일 기준 1-2일 소요', done: false },
-  { label: '계좌 연동', description: 'KIS API 자격증명 입력', done: false },
+  { label: '계좌 연동', description: '증권사 API 자격증명 입력', done: false },
   { label: '운영 시작', description: '자동 매매 활성화', done: false },
 ]
 

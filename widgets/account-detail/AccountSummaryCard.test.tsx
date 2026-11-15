@@ -16,7 +16,7 @@ const account: Account = {
   nickname: '메인 계좌',
   accountNoMasked: '123-45****',
   accountNo: '123-45678901',
-  broker: 'KIS',
+  broker: 'TOSS',
 }
 
 describe('AccountSummaryCard', () => {
@@ -186,7 +186,7 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('일부 종목은 현재가 확인 불가로 총자산에서 빠졌습니다.')).toBeInTheDocument()
   })
 
-  it('KIS 계좌도 apiKeyExpiresAt이 있으면 만료 배지를 보여준다', () => {
+  it('TOSS 계좌도 apiKeyExpiresAt이 있으면 만료 배지를 보여준다', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
     try {

@@ -50,7 +50,7 @@ vi.mock('../api', () => ({
   deleteAccount: deleteAccountMock,
   updateCredentials: updateCredentialsMock,
   getPrices: vi.fn(),
-  testKisConnection: vi.fn(),
+  testBrokerConnection: vi.fn(),
 }))
 
 const accountA: Account = {

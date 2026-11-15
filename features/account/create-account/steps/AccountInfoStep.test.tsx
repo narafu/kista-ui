@@ -4,32 +4,22 @@ import { describe, expect, it, vi } from 'vitest'
 import { AccountInfoStep } from './AccountInfoStep'
 import type { StepData } from '../CreateAccountStepper'
 
-const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
+const baseData: StepData = { broker: 'TOSS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
 
 describe('AccountInfoStep', () => {
-  it('auto-inserts the KIS account number hyphen and proceeds with the formatted value', async () => {
+  it('auto-inserts the Toss account number hyphens and proceeds with the formatted value', async () => {
     const onNext = vi.fn()
     const user = userEvent.setup()
     render(<AccountInfoStep data={baseData} onNext={onNext} onBack={vi.fn()} />)
 
     await user.type(screen.getByLabelText(/계좌 별칭/), '메인 계좌')
-    await user.type(screen.getByLabelText(/계좌번호/), '7442061401')
-
-    const accountNoInput = screen.getByLabelText(/계좌번호/) as HTMLInputElement
-    expect(accountNoInput.value).toBe('74420614-01')
-
-    await user.click(screen.getByRole('button', { name: '다음' }))
-    expect(onNext).toHaveBeenCalledWith({ nickname: '메인 계좌', accountNo: '74420614-01' })
-  })
-
-  it('formats the Toss account number with two hyphens instead of the KIS pattern', async () => {
-    const user = userEvent.setup()
-    render(<AccountInfoStep data={{ ...baseData, broker: 'TOSS' }} onNext={vi.fn()} onBack={vi.fn()} />)
-
     await user.type(screen.getByLabelText(/계좌번호/), '13101001931')
 
     const accountNoInput = screen.getByLabelText(/계좌번호/) as HTMLInputElement
     expect(accountNoInput.value).toBe('131-01-001931')
+
+    await user.click(screen.getByRole('button', { name: '다음' }))
+    expect(onNext).toHaveBeenCalledWith({ nickname: '메인 계좌', accountNo: '131-01-001931' })
   })
 
   it('shows a validation error and blocks proceeding for an incomplete account number', async () => {

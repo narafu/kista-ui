@@ -20,7 +20,7 @@ describe('EditStrategyPage', () => {
     const strategy = { id: 'strategy-1', accountId: 'account-1', ticker: 'TQQQ', type: 'INFINITE', status: 'ACTIVE', currentHoldings: 2 }
     vi.stubEnv('TRADING_API_BASE_URL', 'http://api.test')
     mockApi({
-      'GET /api/accounts': [{ id: 'account-1', nickname: 'main', accountNoMasked: '1-***', broker: 'KIS' }],
+      'GET /api/accounts': [{ id: 'account-1', nickname: 'main', accountNoMasked: '1-***', broker: 'TOSS' }],
       'GET /api/accounts/{accountId}/trading-cycles': [strategy],
     } as never)
 

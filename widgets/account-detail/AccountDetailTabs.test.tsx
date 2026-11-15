@@ -37,7 +37,7 @@ const account: Account = {
   id: 'account-1',
   nickname: '메인 계좌',
   accountNoMasked: '123-45****',
-  broker: 'KIS',
+  broker: 'TOSS',
 }
 
 const strategy: Strategy = {

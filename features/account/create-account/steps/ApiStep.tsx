@@ -3,7 +3,7 @@
 import { useReducer, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ApiKeyExpiryField, isEstimatedExpiry, kstToday, useTestKisConnectionMutation } from '@entities/account'
+import { ApiKeyExpiryField, isEstimatedExpiry, kstToday, useTestBrokerConnectionMutation } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { useRuntimeConfigQuery } from '@entities/runtime-config'
@@ -17,17 +17,6 @@ interface Props {
 }
 
 const BROKER_CONFIG = {
-  KIS: {
-    title: 'KIS API 키 입력',
-    desc: '한국투자증권 Open API 자격증명을 입력하세요.',
-    keyLabel: 'App Key',
-    secretLabel: 'App Secret',
-    linkHref: 'https://securities.koreainvestment.com/main/customer/systemdown/RestAPIService.jsp',
-    linkLabel: '한국투자증권(KIS) API 키 발급',
-    needsTest: true,
-    hint: '로그인 후 API 키를 발급받을 수 있습니다.',
-    minLen: 10,
-  },
   TOSS: {
     title: '토스증권 API 키 입력',
     desc: '토스증권 Open API 자격증명을 입력하세요.',
@@ -35,7 +24,6 @@ const BROKER_CONFIG = {
     secretLabel: 'Client Secret',
     linkHref: 'https://www.tossinvest.com',
     linkLabel: '토스증권 API 키 발급',
-    needsTest: true,
     hint: '로그인 후 우측 하단 [설정 - Open API] 메뉴에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
@@ -46,7 +34,6 @@ const BROKER_CONFIG = {
     secretLabel: 'Secret Key',
     linkHref: 'https://upbit.com/mypage/open_api_management',
     linkLabel: '업비트 Open API 키 발급',
-    needsTest: true,
     hint: '로그인 후 마이페이지 [Open API 관리]에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
@@ -57,7 +44,6 @@ const BROKER_CONFIG = {
     secretLabel: 'Secret Key',
     linkHref: 'https://www.binance.com/en/my/settings/api-management',
     linkLabel: '바이낸스 API 키 발급',
-    needsTest: true,
     hint: '로그인 후 [계정 - API 관리]에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
@@ -68,7 +54,6 @@ const BROKER_CONFIG = {
     secretLabel: 'App Secret',
     linkHref: 'https://openapi.imeritz.com',
     linkLabel: '메리츠증권 Open API 키 발급',
-    needsTest: true,
     hint: '메리츠증권 Open API 포털에 로그인한 뒤 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
@@ -100,8 +85,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
     touchedKey: false,
     touchedSecret: false,
   })
-  // KIS/TOSS 모두 훅을 호출해야 함 (조건부 훅 호출 금지)
-  const testMutation = useTestKisConnectionMutation()
+  const testMutation = useTestBrokerConnectionMutation()
   const { data: runtimeConfig, isLoading: isRuntimeConfigLoading } = useRuntimeConfigQuery()
   const { findBroker } = useMeta()
   const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState(data.apiKeyExpiresOn)
@@ -113,8 +97,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   const keyValid = apiKey.length >= config.minLen
   const secretValid = apiSecret.length >= config.minLen
   const canTest = keyValid && secretValid
-  // KIS: 연결 테스트 통과 후 다음 활성화 / TOSS: 입력값만 있으면 다음 활성화
-  const canProceed = config.needsTest ? testMutation.isSuccess : canTest
+  // 모든 broker가 연결 테스트 통과 후 다음 활성화
+  const canProceed = testMutation.isSuccess
 
   const showKeyError = touchedKey && apiKey.length > 0 && !keyValid
   const showSecretError = touchedSecret && apiSecret.length > 0 && !secretValid
@@ -122,7 +106,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
   function handleFieldChange(type: 'key' | 'secret') {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
       dispatch({ type, value: e.target.value })
-      if (config.needsTest) testMutation.reset()
+      testMutation.reset()
     }
   }
 
@@ -168,19 +152,17 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
       {broker === 'BINANCE' && <BinanceKeyGuide allowedIp={runtimeConfig?.brokers.BINANCE?.allowedIp} isLoading={isRuntimeConfigLoading} />}
 
-      {config.needsTest && (
-        <ConnectionTest
-          broker={broker}
-          keyLabel={config.keyLabel}
-          secretLabel={config.secretLabel}
-          disabled={!canTest || testMutation.isPending}
-          isPending={testMutation.isPending}
-          isSuccess={testMutation.isSuccess}
-          isError={testMutation.isError}
-          error={testMutation.error}
-          onTest={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
-        />
-      )}
+      <ConnectionTest
+        broker={broker}
+        keyLabel={config.keyLabel}
+        secretLabel={config.secretLabel}
+        disabled={!canTest || testMutation.isPending}
+        isPending={testMutation.isPending}
+        isSuccess={testMutation.isSuccess}
+        isError={testMutation.isError}
+        error={testMutation.error}
+        onTest={() => testMutation.mutate({ appKey: apiKey, appSecret: apiSecret, broker })}
+      />
 
       <div className="flex gap-3">
         <Button type="button" variant="outline" size="form" className="flex-1" onClick={onBack}>

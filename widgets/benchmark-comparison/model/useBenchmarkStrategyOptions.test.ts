@@ -5,7 +5,7 @@ import { useBenchmarkStrategyOptions } from './useBenchmarkStrategyOptions'
 vi.mock('@entities/strategy', () => ({
   useAllStrategiesQuery: () => ({
     data: [
-      { id: 's1', accountId: 'kis' },
+      { id: 's1', accountId: 'toss' },
       { id: 's2', accountId: 'mock' },
       { id: 's3', accountId: 'upbit' },
     ],
@@ -14,7 +14,7 @@ vi.mock('@entities/strategy', () => ({
 vi.mock('@entities/account', () => ({
   useAccountsQuery: () => ({
     data: [
-      { id: 'kis', broker: 'KIS' },
+      { id: 'toss', broker: 'TOSS' },
       { id: 'mock', broker: 'MOCK' },
       { id: 'upbit', broker: 'UPBIT' },
     ],

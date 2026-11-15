@@ -177,7 +177,7 @@ const STRATEGIES = [
 ]
 
 const ACCOUNTS = [
-  { id: 'account-1', nickname: '메인계좌', accountNoMasked: '****0001', broker: 'KIS' as const },
+  { id: 'account-1', nickname: '메인계좌', accountNoMasked: '****0001', broker: 'TOSS' as const },
 ]
 
 function mockQuery(data: HousingBenchmarkComparisonData | undefined = COMPARISON, overrides = {}) {

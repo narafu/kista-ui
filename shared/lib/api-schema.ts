@@ -56,7 +56,6 @@ export type Currency = 'USD' | 'KRW' | 'USDT'
 // meta.brokers[].market과 같은 값이다. Server Component(계좌 상세 prefetch)에서도 판정해야 해서 정적 맵으로 둔다.
 // Record<BrokerCode, …>라 gen:types로 broker가 추가되면 typecheck가 여기서 깨진다.
 const BROKER_MARKET: Record<BrokerCode, TradingMarket> = {
-  KIS: 'US_STOCK',
   TOSS: 'US_STOCK',
   MOCK: 'US_STOCK',
   UPBIT: 'CRYPTO_KRW',

@@ -4,7 +4,6 @@ import { brokerCurrency, isCryptoBroker, isCryptoMarket, isKeyOnlyBroker } from 
 describe('isCryptoBroker', () => {
   it('업비트만 코인 거래소로 본다', () => {
     expect(isCryptoBroker('UPBIT')).toBe(true)
-    expect(isCryptoBroker('KIS')).toBe(false)
     expect(isCryptoBroker('TOSS')).toBe(false)
     expect(isCryptoBroker('MOCK')).toBe(false)
   })
@@ -21,7 +20,6 @@ describe('isKeyOnlyBroker', () => {
   it('계좌번호 없이 키만 받는 broker는 업비트·메리츠다', () => {
     expect(isKeyOnlyBroker('UPBIT')).toBe(true)
     expect(isKeyOnlyBroker('MERITZ')).toBe(true)
-    expect(isKeyOnlyBroker('KIS')).toBe(false)
     expect(isKeyOnlyBroker('TOSS')).toBe(false)
     expect(isKeyOnlyBroker('MOCK')).toBe(false)
   })
@@ -43,7 +41,7 @@ describe('바이낸스', () => {
 describe('brokerCurrency', () => {
   it('업비트는 KRW, 주식 broker는 USD다', () => {
     expect(brokerCurrency('UPBIT')).toBe('KRW')
-    expect(brokerCurrency('KIS')).toBe('USD')
+    expect(brokerCurrency('TOSS')).toBe('USD')
     expect(brokerCurrency('MOCK')).toBe('USD')
   })
 

@@ -9,7 +9,7 @@ import { renderApp } from '@testing/renderApp'
 import { EditAccountForm } from './EditAccountForm'
 import type { Account } from '@entities/account'
 
-const account: Account = { id: 'acc-1', nickname: '메인 계좌', accountNoMasked: '7442****', broker: 'KIS' }
+const account: Account = { id: 'acc-1', nickname: '메인 계좌', accountNoMasked: '131-**-****31', broker: 'TOSS' }
 const upbitAccount: Account = { id: 'u1', nickname: '코인', accountNoMasked: null, broker: 'UPBIT', apiKeyExpiresAt: null }
 
 // 저장·삭제 뒤 계좌 목록 동기화가 부르는 조회까지 한 객체로 등록한다
@@ -57,7 +57,7 @@ describe('EditAccountForm', () => {
     expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeEnabled()
   })
 
-  it('추정 만료일 broker(KIS)에서만 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
+  it('추정 만료일 broker(TOSS)에서만 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
     mockApi({})
     const { unmount } = renderApp(<EditAccountForm account={account} />)
     const inputs = screen.getAllByLabelText(expiryLabel)
@@ -89,16 +89,16 @@ describe('EditAccountForm', () => {
   it('키 재등록 시 만료일을 입력했을 때만 apiKeyExpiresOn을 보낸다', async () => {
     const { requests } = mockApi({ ...base, 'PUT /api/accounts/{id}/credentials': account as never })
     renderApp(<EditAccountForm account={account} />)
-    await userEvent.type(screen.getByLabelText('App Key'), 'new-key-1234')
-    await userEvent.type(screen.getByLabelText('App Secret'), 'new-secret-1234')
+    await userEvent.type(screen.getByLabelText('Client ID'), 'new-key-1234')
+    await userEvent.type(screen.getByLabelText('Client Secret'), 'new-secret-1234')
     await userEvent.click(screen.getByRole('button', { name: 'API 키 재등록' }))
     const puts = () => requests.filter((r) => r.method === 'PUT')
     await waitFor(() => expect(puts()).toHaveLength(1))
     expect(puts()[0].body).toEqual({ appKey: 'new-key-1234', secretKey: 'new-secret-1234' })
     // 성공하면 입력이 비워지므로 다시 채운다
-    await waitFor(() => expect(screen.getByLabelText('App Key')).toHaveValue(''))
-    await userEvent.type(screen.getByLabelText('App Key'), 'new-key-1234')
-    await userEvent.type(screen.getByLabelText('App Secret'), 'new-secret-1234')
+    await waitFor(() => expect(screen.getByLabelText('Client ID')).toHaveValue(''))
+    await userEvent.type(screen.getByLabelText('Client ID'), 'new-key-1234')
+    await userEvent.type(screen.getByLabelText('Client Secret'), 'new-secret-1234')
     await userEvent.type(screen.getAllByLabelText(expiryLabel)[1], '2027-03-01')
     await userEvent.click(screen.getByRole('button', { name: 'API 키 재등록' }))
     await waitFor(() => expect(puts()).toHaveLength(2))

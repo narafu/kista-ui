@@ -57,7 +57,7 @@ const ethRule: DcaRule = { ...rule, ruleKey: 'r2', frequency: 'DAILY', orderType
 const ethStrategy: Strategy = { ...strategy, ticker: 'ETH', dca: { rules: [ethRule], currentHoldings: 0.5, avgPrice: 4_000_000 } }
 
 // broker를 생략하면 ETH는 업비트, 그 외는 주식 계좌로 둔다
-function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 'ETH' ? 'UPBIT' : 'KIS') {
+function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 'ETH' ? 'UPBIT' : 'TOSS') {
   const tickers = [{ code: 'ETH', exchangeCode: 'UPBIT', targetProfitRate: '0', market: 'CRYPTO_KRW' }]
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(

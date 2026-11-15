@@ -25,7 +25,7 @@ features/{domain}/{slice}/
 
 ## 주요 슬라이스 quirk
 
-- **`create-account`**: KIS/TOSS/UPBIT/MERITZ는 4-step 플로우 `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. MOCK(모의계좌) 선택 시 `CreateAccountStepper`가 3-step으로 축약(`BrokerStep` → `AccountInfoStep`(별칭 전용) → `ConfirmStep`) — API 키·계좌번호 스텝을 건너뜀
+- **`create-account`**: TOSS/UPBIT/MERITZ/BINANCE는 4-step 플로우 `BrokerStep` → `ApiStep` → `AccountInfoStep` → `ConfirmStep`. MOCK(모의계좌) 선택 시 `CreateAccountStepper`가 3-step으로 축약(`BrokerStep` → `AccountInfoStep`(별칭 전용) → `ConfirmStep`) — API 키·계좌번호 스텝을 건너뜀
 - **`create-account/steps/ConfirmStep`**: `useCreateAccountMutation` 사용. 생성 성공 후 entity 캐시 동기화가 끝난 뒤 `mutate(..., { onSuccess })`에서 `/accounts/{id}`로 이동한다. MOCK은 요청 바디에서 accountNo/appKey/secretKey를 생략(`{ nickname, broker }`)하고 요약 화면에서도 해당 행을 숨김
 - **`edit-account`**: `EditAccountForm`이 수정/삭제 성공 toast와 라우팅을 담당한다. 삭제 성공 후 전략·통계·주문·거래 캐시를 무효화한 다음 `/accounts`로 이동한다. MOCK 외 broker는 API 키 재등록 섹션(`PUT /api/accounts/{id}/credentials`, `useUpdateCredentialsMutation`)을 갖고, 계좌번호가 없는 UPBIT·MERITZ는 계좌번호 행을 숨긴다
 - **`auth/reapply`**: `/api/auth/reapply-done` Route Handler 경유

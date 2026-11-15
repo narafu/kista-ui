@@ -16,7 +16,7 @@ let mockState: { isPending: boolean; isSuccess: boolean; isError: boolean } = {
 
 vi.mock('@entities/account', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/account')>()),
-  useTestKisConnectionMutation: () => ({
+  useTestBrokerConnectionMutation: () => ({
     mutate: testMutateMock,
     reset: resetMock,
     error: mockError,
@@ -37,7 +37,7 @@ vi.mock('@entities/runtime-config', () => ({
       : { data: { brokers: { UPBIT: { enabled: true, allowedIp: '168.107.63.152' }, BINANCE: { enabled: true, allowedIp: '168.107.63.152' } } }, isLoading: false },
 }))
 
-const baseData: StepData = { broker: 'KIS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
+const baseData: StepData = { broker: 'TOSS', apiKey: '', apiSecret: '', accountNo: '', nickname: '', apiKeyExpiresOn: '' }
 
 describe('ApiStep', () => {
   beforeEach(() => {
@@ -46,16 +46,16 @@ describe('ApiStep', () => {
     mockState = { isPending: false, isSuccess: false, isError: false }
   })
 
-  it('runs the KIS connection test with the entered credentials', async () => {
+  it('runs the Toss connection test with the entered credentials', async () => {
     mockState = { isPending: false, isSuccess: false, isError: false }
     const user = userEvent.setup()
     render(<ApiStep data={baseData} onNext={vi.fn()} onBack={vi.fn()} />)
 
-    await user.type(screen.getByLabelText(/App Key/), '1234567890')
-    await user.type(screen.getByLabelText(/App Secret/), 'abcdefghij')
+    await user.type(screen.getByLabelText(/Client ID/), '1234567890')
+    await user.type(screen.getByLabelText(/Client Secret/), 'abcdefghij')
     await user.click(screen.getByRole('button', { name: '연결 테스트' }))
 
-    expect(testMutateMock).toHaveBeenCalledWith({ appKey: '1234567890', appSecret: 'abcdefghij', broker: 'KIS' })
+    expect(testMutateMock).toHaveBeenCalledWith({ appKey: '1234567890', appSecret: 'abcdefghij', broker: 'TOSS' })
   })
 
   it('blocks proceeding to the next step until the connection test succeeds', () => {
@@ -77,7 +77,7 @@ describe('ApiStep', () => {
     expect(onNext).toHaveBeenCalledWith({ apiKey: '1234567890', apiSecret: 'abcdefghij', apiKeyExpiresOn: '' })
   })
 
-  it('추정 만료일 broker(KIS)는 만료일 입력란을 보여주고 입력값을 넘긴다', async () => {
+  it('추정 만료일 broker(TOSS)는 만료일 입력란을 보여주고 입력값을 넘긴다', async () => {
     mockState = { isPending: false, isSuccess: true, isError: false }
     const onNext = vi.fn()
     const user = userEvent.setup()
@@ -136,7 +136,7 @@ describe('ApiStep', () => {
 
   it.each([
     ['BINANCE', /API Key와 Secret Key를 다시 확인하세요\. 키가 맞다면 바이낸스 API 설정의 허용 IP/],
-    ['KIS', /증권사 API 인증에 실패했습니다\. App Key 또는 App Secret을 확인하세요\./],
+    ['TOSS', /증권사 API 인증에 실패했습니다\. Client ID 또는 Client Secret을 확인하세요\./],
   ] as const)('%s 연결 테스트가 자격증명 오류로 실패하면 broker에 맞는 입력 항목을 짚는다', (broker, message) => {
     mockState = { isPending: false, isSuccess: false, isError: true }
     mockError = new ApiError(422, { code: 'BROKER_CREDENTIAL_INVALID', detail: 'x' })

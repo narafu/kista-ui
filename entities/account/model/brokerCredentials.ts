@@ -6,7 +6,6 @@ export type CredentialBroker = Exclude<BrokerCode, 'MOCK'>
 
 // 계좌 등록 확인 스텝·키 재등록에서 자격증명 오류(BROKER_CREDENTIAL_INVALID)일 때 짚어줄 입력 항목
 export const BROKER_CREDENTIAL: Record<CredentialBroker, { keyLabel: string; secretLabel: string; invalidMessage: string }> = {
-  KIS: { keyLabel: 'App Key', secretLabel: 'App Secret', invalidMessage: 'App Key, App Secret 또는 계좌번호를 다시 확인하세요.' },
   TOSS: { keyLabel: 'Client ID', secretLabel: 'Client Secret', invalidMessage: 'Toss 자격증명 인증에 실패했습니다. Client ID와 Client Secret을 확인하세요.' },
   UPBIT: { keyLabel: 'Access Key', secretLabel: 'Secret Key', invalidMessage: 'Access Key와 Secret Key를 다시 확인하세요. 만료된 키는 업비트에서 새로 발급받으세요.' },
   BINANCE: { keyLabel: 'API Key', secretLabel: 'Secret Key', invalidMessage: 'API Key와 Secret Key를 다시 확인하세요. 키가 맞다면 바이낸스 API 설정의 허용 IP 목록에 안내된 IP가 있는지 확인하세요.' },

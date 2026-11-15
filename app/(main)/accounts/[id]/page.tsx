@@ -34,7 +34,7 @@ export default async function AccountDetailPage({ params }: Props) {
   // 전략별 다음 주문 미리보기 — 서버에서 미리 채워 카드 목록의 배지·배너가 첫 페인트부터 보이게 함 (계좌 단위 배치 조회 1회)
   const previewsPromise = getAccountOrderPreviews(id, token).catch(() => ({}))
 
-  // MOCK은 KIS-live 포트폴리오 대상이 아니고, 코인 계좌는 주식 포트폴리오를 부르면 400이라 코인 포트폴리오를 대신 채운다
+  // MOCK은 증권사 실시간 포트폴리오 대상이 아니고, 코인 계좌는 주식 포트폴리오를 부르면 400이라 코인 포트폴리오를 대신 채운다
   const portfolioPromise = isMockBroker(account.broker)
     ? undefined
     : isCryptoBroker(account.broker)

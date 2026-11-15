@@ -29,10 +29,10 @@ vi.mock('@entities/meta', async () => {
 })
 
 const data: StepData = {
-  broker: 'KIS',
+  broker: 'TOSS',
   apiKey: 'app-key-1234',
   apiSecret: 'app-secret-1234',
-  accountNo: '74420614-01',
+  accountNo: '131-01-001931',
   nickname: '메인 계좌',
   apiKeyExpiresOn: '',
 }
@@ -50,8 +50,8 @@ describe('ConfirmStep', () => {
         nickname: '메인 계좌',
         appKey: 'app-key-1234',
         secretKey: 'app-secret-1234',
-        accountNo: '74420614-01',
-        broker: 'KIS',
+        accountNo: '131-01-001931',
+        broker: 'TOSS',
       },
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
@@ -97,7 +97,7 @@ describe('ConfirmStep', () => {
     }
     render(<ConfirmStep data={data} onBack={vi.fn()} />)
 
-    expect(screen.getByText(/App Key, App Secret 또는 계좌번호를 다시 확인하세요/)).toBeInTheDocument()
+    expect(screen.getByText(/Toss 자격증명 인증에 실패했습니다\. Client ID와 Client Secret을 확인하세요/)).toBeInTheDocument()
   })
 
   it('MOCK broker: omits accountNo/appKey/secretKey and hides those rows', async () => {

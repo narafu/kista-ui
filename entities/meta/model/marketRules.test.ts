@@ -10,7 +10,7 @@ describe('orderAmountRuleOf', () => {
   it('메타 필드가 빠지면 통화별 폴백 최소 금액·기본 자릿수로 둔다', () => {
     expect(orderAmountRuleOf('UPBIT', { code: 'UPBIT', label: '업비트' })).toEqual({ min: 5000, scale: 0, currency: 'KRW' })
     expect(orderAmountRuleOf('BINANCE', undefined)).toEqual({ min: 5, scale: 2, currency: 'USDT' })
-    expect(orderAmountRuleOf('KIS', undefined)).toEqual({ min: 0, scale: 2, currency: 'USD' })
+    expect(orderAmountRuleOf('TOSS', undefined)).toEqual({ min: 0, scale: 2, currency: 'USD' })
   })
 })
 

@@ -9,7 +9,7 @@ import type {
   PortfolioSummary,
 } from '../model/types'
 
-// KIS live 응답은 숫자 필드를 BigDecimal string으로 내려보내는 경우가 있어 entities 계층에서 정규화한다
+// 증권사 live 응답은 숫자 필드를 BigDecimal string으로 내려보내는 경우가 있어 entities 계층에서 정규화한다
 function normalizePortfolio(raw: unknown): PortfolioSummary {
   const p = raw as {
     positions?: Array<Record<string, unknown>>

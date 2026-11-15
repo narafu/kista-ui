@@ -70,7 +70,7 @@ describe('AccountDetailContent', () => {
 
   it('reads deposit and evaluation from the portfolio cache so trade invalidation updates them without a refresh', async () => {
     mockApi(ledgerTotals)
-    const liveAccount: Account = { ...serverAccount, broker: 'KIS' }
+    const liveAccount: Account = { ...serverAccount, broker: 'TOSS' }
     const queryClient = renderContent(liveAccount, (client) => {
       client.setQueryData(tradeKeys.portfolio(liveAccount.id), { summary: { deposit: 100, posEvalUsd: 200 } })
     })
@@ -91,7 +91,7 @@ describe('AccountDetailContent', () => {
       'GET /api/accounts/{accountId}/ledger-totals': apiError(500),
       'GET /api/accounts/{accountId}/portfolio': {},
     })
-    renderContent({ ...serverAccount, broker: 'KIS' })
+    renderContent({ ...serverAccount, broker: 'TOSS' })
 
     await waitFor(() => {
       expect(tabsMock).toHaveBeenCalledWith(expect.objectContaining({ ledgerTotalsError: true }))

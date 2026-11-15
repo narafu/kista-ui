@@ -43,7 +43,7 @@ vi.mock('@entities/account', () => ({
 vi.mock('@entities/meta', () => ({
   useMeta: () => ({
     findBroker: (code: string) => ({
-      label: code === 'KIS' ? '한국투자' : code,
+      label: code === 'TOSS' ? '토스' : code,
       description: code,
     }),
   }),
@@ -58,7 +58,7 @@ const singleAccount: Account[] = [
     id: 'account-1',
     nickname: '토스 메인',
     accountNoMasked: '123-45',
-    broker: 'KIS',
+    broker: 'TOSS',
   },
 ]
 
@@ -67,13 +67,13 @@ const multiAccounts: Account[] = [
     id: 'account-1',
     nickname: '토스 메인',
     accountNoMasked: '123-45',
-    broker: 'KIS',
+    broker: 'TOSS',
   },
   {
     id: 'account-2',
-    nickname: '한투 서브',
+    nickname: '토스 서브',
     accountNoMasked: '678-90',
-    broker: 'KIS',
+    broker: 'TOSS',
   },
 ]
 
@@ -138,7 +138,7 @@ describe('AllStrategiesList', () => {
     setQueries([], multiAccounts)
     render(<AllStrategiesList />)
 
-    expect(screen.getByRole('link', { name: '한투 서브' })).toHaveAttribute('href', '/accounts/account-2/strategies/new')
+    expect(screen.getByRole('link', { name: '토스 서브' })).toHaveAttribute('href', '/accounts/account-2/strategies/new')
   })
 
   it('shows the error state when the strategy list fails to load', () => {
@@ -157,7 +157,7 @@ describe('AllStrategiesList', () => {
     render(<AllStrategiesList />)
 
     expect(screen.getByRole('heading', { name: '토스 메인' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '한투 서브' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '토스 서브' })).toBeInTheDocument()
     expect(strategyCardMock).toHaveBeenCalledWith(expect.objectContaining({
       accountId: 'account-1',
       accountLabel: undefined,
@@ -173,7 +173,7 @@ describe('AllStrategiesList', () => {
     render(<AllStrategiesList />)
 
     expect(screen.getByRole('heading', { name: '토스 메인' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: '한투 서브' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '토스 서브' })).not.toBeInTheDocument()
   })
 
   it('shows the account filter and lists all groups by default when 2+ accounts have strategies', () => {
@@ -198,7 +198,7 @@ describe('AllStrategiesList', () => {
     render(<AllStrategiesList />)
 
     expect(screen.getAllByTestId('strategy-card-stub')).toHaveLength(1)
-    expect(screen.getByRole('heading', { name: '한투 서브' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '토스 서브' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '토스 메인' })).not.toBeInTheDocument()
   })
 
@@ -207,7 +207,7 @@ describe('AllStrategiesList', () => {
     render(<AllStrategiesList />)
     const replaceState = vi.spyOn(window.history, 'replaceState')
 
-    await userEvent.click(screen.getByRole('button', { name: '한투 서브 2' }))
+    await userEvent.click(screen.getByRole('button', { name: '토스 서브 2' }))
     expect(replaceState).toHaveBeenCalledWith(null, '', '?account=account-2')
     replaceState.mockRestore()
   })

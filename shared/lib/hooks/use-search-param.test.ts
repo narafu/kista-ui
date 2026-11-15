@@ -12,11 +12,11 @@ describe('useSearchParam', () => {
   afterEach(() => vi.restoreAllMocks())
 
   it('다른 파라미터를 유지한 채 값을 바꾸고, null이면 지운다', () => {
-    searchParamsValue = 'page=2&broker=KIS'
+    searchParamsValue = 'page=2&broker=TOSS'
     const replaceState = vi.spyOn(window.history, 'replaceState')
     const { result } = renderHook(() => useSearchParam('broker'))
 
-    expect(result.current[0]).toBe('KIS')
+    expect(result.current[0]).toBe('TOSS')
     act(() => result.current[1]('UPBIT'))
     expect(replaceState).toHaveBeenLastCalledWith(null, '', '?page=2&broker=UPBIT')
     act(() => result.current[1](null))
@@ -24,7 +24,7 @@ describe('useSearchParam', () => {
   })
 
   it('마지막 파라미터를 지우면 경로만 남긴다', () => {
-    searchParamsValue = 'broker=KIS'
+    searchParamsValue = 'broker=TOSS'
     const replaceState = vi.spyOn(window.history, 'replaceState')
     const { result } = renderHook(() => useSearchParam('broker'))
 
