@@ -1,3 +1,5 @@
+import type { ApiKeyExpirySource } from '@shared/lib/api-schema'
+
 export interface EnumMeta {
   code: string
   label: string
@@ -36,8 +38,6 @@ export interface TickerMeta {
 export interface BrokerMeta extends EnumMeta {
   apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — ESTIMATED(추정, 사용자 입력 가능)·NONE
 }
-
-type ApiKeyExpirySource = 'ESTIMATED' | 'NONE'
 
 export interface MetaBundle {
   strategyTypes: StrategyTypeMeta[]

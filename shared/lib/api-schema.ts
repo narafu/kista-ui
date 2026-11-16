@@ -2,11 +2,13 @@
 // 갱신: npm run gen:types (openapi.json 교체 후 실행)
 import type { components } from './api-types'
 
-// kista-api ProblemDetail 확장 프로퍼티 code — 상수는 추가만 되고 이름 변경·삭제되지 않는다
+// kista-api ProblemDetail 확장 프로퍼티 code
 export type ErrorCode = components['schemas']['ErrorCode']
 
-// 생성 enum에 서버가 아직 지우지 않은 증권사 외 값이 남아 있어 UI가 다루는 증권사만 화이트리스트로 좁힌다
-export type BrokerCode = Extract<NonNullable<components['schemas']['AccountRequest']['broker']>, 'TOSS' | 'MOCK' | 'MERITZ'>
+export type BrokerCode = NonNullable<components['schemas']['AccountRequest']['broker']>
+
+// 메타 brokers[].apiKeyExpirySource — 스펙이 string이라 수기 정의한다(kista-api ApiKeyExpirySource enum과 맞춘다)
+export type ApiKeyExpirySource = 'ESTIMATED' | 'NONE'
 
 export type UserStatus = NonNullable<components['schemas']['UserResponse']['status']>
 export type UserRole = NonNullable<components['schemas']['UserResponse']['role']>

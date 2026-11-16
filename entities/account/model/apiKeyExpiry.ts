@@ -1,3 +1,5 @@
+import type { ApiKeyExpirySource } from '@shared/lib/api-schema'
+
 export type ApiKeyExpiryState = 'EXPIRED' | 'EXPIRING' | null
 
 const EXPIRING_WINDOW_MS = 30 * 24 * 60 * 60 * 1000 // api 만료 알림(D-30)과 같은 기준
@@ -21,6 +23,6 @@ export function kstToday(now = new Date()): string {
 }
 
 // 만료일이 추정값인 broker(메타 apiKeyExpirySource) — 사용자가 실제 만료일을 입력할 수 있다
-export function isEstimatedExpiry(source: 'ESTIMATED' | 'NONE' | undefined): boolean {
+export function isEstimatedExpiry(source: ApiKeyExpirySource | undefined): boolean {
   return source === 'ESTIMATED'
 }
