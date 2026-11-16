@@ -35,7 +35,7 @@ const conditionSchema = z.object({
 export const dcaRuleSchema = z.object({
   ruleKey: z.string().nullable(), // 수정 모드의 기존 규칙 식별자. 신규는 null
   direction: z.enum(['BUY', 'SELL']),
-  orderType: z.enum(['MOO', 'MOC'], { error: '주문 방식을 선택하세요.' }), // 서버 메타의 시장가(MARKET) 등은 거부
+  orderType: z.enum(['MOO', 'MOC'], { error: '주문 방식을 선택하세요.' }), // 시가(MOO)·종가(MOC) 외 주문 방식은 거부
   frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']),
   dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']).nullable(),
   dayOfMonth: z.string().nullable(),

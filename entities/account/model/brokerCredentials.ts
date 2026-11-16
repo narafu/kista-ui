@@ -13,7 +13,6 @@ export const BROKER_CREDENTIAL: Record<CredentialBroker, { keyLabel: string; sec
 // 증권사 공통으로 권한 부족(BROKER_PERMISSION_DENIED)을 돌려줄 수 있어 broker 공용 문구로 둔다
 const BROKER_ERROR_MESSAGE: Partial<Record<ErrorCode, string>> = {
   BROKER_PERMISSION_DENIED: 'API 키 권한이 부족합니다. 증권사의 API 키 설정에서 조회·주문 권한을 켜세요.',
-  BROKER_WITHDRAWAL_ENABLED: '출금 권한이 켜진 키는 사용할 수 없습니다. 출금 권한을 끈 키를 사용하세요.',
   BROKER_RATE_LIMITED: '요청이 많아 잠시 제한되었습니다. 잠시 후 다시 시도해주세요.',
 }
 

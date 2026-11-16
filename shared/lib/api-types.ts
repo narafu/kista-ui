@@ -1265,7 +1265,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** CNN·크립토 공포탐욕지수 조회 (현재값 + 추이) */
+        /** CNN 공포탐욕지수 조회 (현재값 + 추이) */
         get: operations["getFearGreed"];
         put?: never;
         post?: never;
@@ -1547,43 +1547,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/accounts/{accountId}/strategies/{strategyId}/trade-dates": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** 전략별 거래일 목록 조회 */
-        get: operations["listStrategyTradeDates"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/_ping": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * ADMIN 권한 확인용 핑
-         * @description hasRole("ADMIN") 가드 동작 확인용 최소 엔드포인트입니다.
-         */
-        get: operations["ping"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/finance/groups/{id}/members/{userId}": {
         parameters: {
             query?: never;
@@ -1751,7 +1714,7 @@ export interface paths {
         get?: never;
         /**
          * 계좌 API 키 수정
-         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(업비트 조회·그 외 추정 또는 입력값)을 갱신. 모의계좌는 불가.
+         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(추정 또는 입력값)을 갱신. 모의계좌는 불가.
          */
         put: operations["updateCredentials"];
         post?: never;
@@ -2097,26 +2060,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/crypto-market-indicators": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 코인 시장 지표 조회
-         * @description 김프(공식 환율·테더 기준)·테더 프리미엄·펀딩비·미결제약정·장기 밸류에이션(200주 이동평균·Mayer Multiple·ATH 대비 하락률)·롱/숏 계좌 비율·BTC 반감기 카운트다운. 실패한 섹션은 null.
-         */
-        get: operations["getCryptoMarketIndicators"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/backtest": {
         parameters: {
             query?: never;
@@ -2228,26 +2171,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/accounts/{accountId}/daily-trades": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 일별 거래내역 조회
-         * @description 저장된 체결 주문 기록 기준 지정 기간 동안의 일별 거래내역 조회 (외부 브로커 API 호출 없음).
-         */
-        get: operations["getDailyTransactions_1"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/accounts/{accountId}/cycle-history": {
         parameters: {
             query?: never;
@@ -2260,46 +2183,6 @@ export interface paths {
          * @description DB의 strategy_cycle 기반 계좌 거래 이력 조회.
          */
         get: operations["getCycleHistory"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/crypto-prices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 코인 현재가 조회
-         * @description 계좌 거래소의 공개 시세 기준 코인 현재가(KRW). 실잔고와 무관해 원장 보유 평가 폴백에 쓴다. 시세 없는 종목은 결과에서 빠진다. 주식 계좌는 400.
-         */
-        get: operations["getCryptoPrices"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/accounts/{accountId}/crypto-portfolio": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 코인 계좌 포트폴리오 조회
-         * @description 업비트 실잔고 기준 원화 예수금과 코인별 보유·평단·현재가·평가액(KRW). 주식 계좌는 400.
-         */
-        get: operations["getCryptoPortfolio"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2354,12 +2237,7 @@ export interface components {
             /** Format: int32 */
             dayOfMonth?: number | null;
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
-            /**
-             * Format: int32
-             * @description 코인 실행 시각 (KST 0~23, 코인 필수). 주식 주문유형이면 무시
-             */
-            executionHour?: number | null;
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             sizing: components["schemas"]["DcaSizingRequest"];
             /** @enum {string} */
             shortfall: "PARTIAL" | "REJECT";
@@ -2368,7 +2246,7 @@ export interface components {
         DcaSizingRequest: {
             /** @enum {string} */
             type: "AMOUNT" | "HOLDING_PERCENT";
-            /** @description AMOUNT 전용 회차 금액 (계좌 통화 — 주식 USD, 코인 KRW 원 단위 정수 5,000 이상) */
+            /** @description AMOUNT 전용 회차 금액 (계좌 통화 USD) */
             amount?: number | null;
             /** @description HOLDING_PERCENT 전용 원장 보유 비율 (0 초과 100 이하) */
             percent?: number | null;
@@ -2385,7 +2263,7 @@ export interface components {
              * @example TQQQ
              * @enum {string|null}
              */
-            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH" | null;
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | null;
             /**
              * @description 초기 입금액 (PRIVACY: 배수 자동 산출 기준, VR: 예수금=초기 pool, DCA: 시작 원장 예수금 — 계좌 통화, 0 이상, 생략=0)
              * @example 2000
@@ -2404,7 +2282,7 @@ export interface components {
              */
             divisionCount?: number | null;
             /**
-             * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작, 주식 정수·코인 소수 8자리까지 — 숫자 또는 소수 문자열)
+             * @description 중간부터 시작 — 등록 시점 기존 보유 수량 (null/0이면 빈 포지션에서 시작, 정수 — 숫자 또는 소수 문자열)
              * @example 10
              */
             initialHoldings?: number | null;
@@ -2515,9 +2393,7 @@ export interface components {
             /** Format: int32 */
             dayOfMonth?: number | null;
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
-            /** Format: int32 */
-            executionHour?: number | null;
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             sizing: components["schemas"]["Sizing"];
             /** @enum {string} */
             shortfall: "PARTIAL" | "REJECT";
@@ -2618,7 +2494,7 @@ export interface components {
              */
             cycleInProgress: boolean;
             /**
-             * @description 최신 포지션 장부 예수금 (계좌 통화 — 주식 USD·코인 KRW/USDT, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전·장중 취소된 매수 주문 금액은 인출 시 추가로 제외)
+             * @description 최신 포지션 장부 예수금 (계좌 통화 USD, 포지션 없으면 null) — 투자금 인출 최대 기준(체결 전·장중 취소된 매수 주문 금액은 인출 시 추가로 제외)
              * @example 1500
              */
             ledgerDeposit?: number | null;
@@ -2806,23 +2682,23 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 계좌번호 — Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), UPBIT·MERITZ·BINANCE: 받지 않음(오면 무시)
+             * @description 계좌번호 — Toss: XXX-XX-XXXXXX (예: 131-01-001931), MOCK: 생략 가능(서버 자동 생성), MERITZ: 받지 않음(오면 무시)
              * @example 131-01-001931
              */
             accountNo?: string | null;
             /**
-             * @description API 앱 키 (Toss Client ID / 업비트 Access Key / 메리츠 App Key / 바이낸스 API Key)
+             * @description API 앱 키 (Toss Client ID / 메리츠 App Key)
              * @example PSxxxxxxxxxx
              */
             appKey?: string | null;
-            /** @description API 앱 시크릿 (Toss Client Secret / 업비트 Secret Key / 메리츠 App Secret / 바이낸스 Secret Key) */
+            /** @description API 앱 시크릿 (Toss Client Secret / 메리츠 App Secret) */
             secretKey?: string | null;
             /**
              * @description 증권사 — null이면 MOCK 기본값 적용
              * @example TOSS
              * @enum {string|null}
              */
-            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE" | null;
+            broker?: "TOSS" | "MOCK" | "MERITZ" | null;
             /**
              * Format: date
              * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
@@ -2842,12 +2718,12 @@ export interface components {
              */
             nickname: string;
             /**
-             * @description 마스킹된 계좌번호 (업비트는 null)
+             * @description 마스킹된 계좌번호
              * @example ****0614
              */
             accountNoMasked?: string | null;
             /**
-             * @description 전체 계좌번호 (본인 계좌, 토글 표시용 — 업비트는 null)
+             * @description 전체 계좌번호 (본인 계좌, 토글 표시용)
              * @example 74420614
              */
             accountNo?: string | null;
@@ -2863,14 +2739,14 @@ export interface components {
             currency: string;
             /**
              * Format: date-time
-             * @description 거래소 API 키 만료 시각 (업비트는 API 조회, 토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
+             * @description 거래소 API 키 만료 시각 (토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
              */
             apiKeyExpiresAt?: string | null;
         };
         CredentialsRequest: {
-            /** @description 새 API 앱 키 (Toss Client ID / 업비트 Access Key) */
+            /** @description 새 API 앱 키 (Toss Client ID) */
             appKey: string;
-            /** @description 새 API 앱 시크릿 (Toss Client Secret / 업비트 Secret Key) */
+            /** @description 새 API 앱 시크릿 (Toss Client Secret) */
             secretKey: string;
             /**
              * Format: date
@@ -2940,7 +2816,7 @@ export interface components {
              * @example TOSS
              * @enum {string|null}
              */
-            broker?: "TOSS" | "MOCK" | "UPBIT" | "MERITZ" | "BINANCE" | null;
+            broker?: "TOSS" | "MOCK" | "MERITZ" | null;
             /** @description 증권사 앱 키 (신규 자격증명 테스트 시) */
             appKey?: string | null;
             /** @description 증권사 앱 시크릿 (신규 자격증명 테스트 시) */
@@ -2979,13 +2855,13 @@ export interface components {
              * @description 거래 종목
              * @enum {string}
              */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             /**
              * @description 주문 유형
              * @example LOC
              * @enum {string}
              */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             /**
              * @description 매수/매도 방향
              * @example BUY
@@ -3028,9 +2904,9 @@ export interface components {
             otherStrategiesPlannedBuyUsd: number;
             /** @description 전략 원장 대비 BUY 경고 (DCA·신규 BUY 없음·skip이면 null) */
             ledgerCheck?: components["schemas"]["LedgerCheckSummary"] | null;
-            /** @description 계좌 주문가능 USD 대비 오늘 BUY 경고 — 계좌 단위(계좌 내 모든 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 BUY 없음·증권사 조회 실패면 null */
+            /** @description 계좌 주문가능 USD 대비 오늘 BUY 경고 — 계좌 단위(계좌 내 모든 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·필요 BUY 없음·증권사 조회 실패면 null */
             accountCashCheck?: components["schemas"]["AccountCashCheckSummary"] | null;
-            /** @description 계좌 보유(판매 가능) 수량 대비 오늘 SELL 경고 — (계좌, 종목) 단위(같은 종목 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·코인·필요 SELL 없음·증권사 조회 실패면 null */
+            /** @description 계좌 보유(판매 가능) 수량 대비 오늘 SELL 경고 — (계좌, 종목) 단위(같은 종목 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·필요 SELL 없음·증권사 조회 실패면 null */
             accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"] | null;
         };
         PositionSnapshot: {
@@ -3038,7 +2914,7 @@ export interface components {
              * @description 거래 종목
              * @enum {string}
              */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             /** @description 보유 수량 */
             holdings: number;
             /** @description 평균 매입가 (0회차: 전일종가) */
@@ -3205,7 +3081,7 @@ export interface components {
             totalUnrealizedPnl: number;
             activePrincipal: number;
             byType: components["schemas"]["TypeStats"][];
-            availableCurrencies: ("KRW" | "USD" | "JPY" | "USDT")[];
+            availableCurrencies: ("KRW" | "USD" | "JPY")[];
         };
         TypeStats: {
             type: string;
@@ -3274,10 +3150,10 @@ export interface components {
              * @description 종목코드
              * @enum {string}
              */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             /** @description 종목명 */
             symbolName: string;
-            /** @description 체결수량 (코인은 소수) */
+            /** @description 체결수량 */
             quantity: number;
             /** @description 체결단가 (계좌 통화) */
             price: number;
@@ -3288,209 +3164,7 @@ export interface components {
              * @example USD
              * @enum {string}
              */
-            currency: "KRW" | "USD" | "JPY" | "USDT";
-        };
-        CryptoMarketIndicatorsCoinbasePremium: {
-            /** @description 현재 코인베이스 프리미엄 (%) — (코인베이스 <코인>-USD ÷ (바이낸스 <코인>USDT × 코인베이스 USDT-USD) − 1) × 100 */
-            current: number;
-            /** @description 일자별 추이 (UTC 일봉 종가, 진행 중 봉 제외) */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
-        };
-        CryptoMarketIndicatorsDailyIndicator: {
-            /** @description 현재 값 */
-            current: number;
-            /** @description 일자별 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
-        };
-        CryptoMarketIndicatorsDatedHashRibbon: {
-            /**
-             * Format: date
-             * @description 기준 일자
-             */
-            date: string;
-            /** @description 일 평균 해시레이트 (EH/s) */
-            hashrateEh: number;
-            /** @description 30일 이동평균 (이력 30일 미만이면 null) */
-            sma30?: number | null;
-            /** @description 60일 이동평균 (이력 60일 미만이면 null) */
-            sma60?: number | null;
-            /**
-             * @description CAPITULATION: sma30 < sma60 (채굴자 항복), RECOVERY: 그 외 (sma60 없으면 null)
-             * @enum {string|null}
-             */
-            state?: "CAPITULATION" | "RECOVERY" | null;
-            /** @description 매수 신호 — CAPITULATION → RECOVERY 전환 후 BTC 종가 10일 SMA > 20일 SMA가 처음 충족되는 날(전환일에 이미 충족이면 그날, 아니면 이후 RECOVERY 유지 중 첫 충족일, 다시 CAPITULATION이면 취소) */
-            buySignal: boolean;
-        };
-        CryptoMarketIndicatorsDatedLongShortRatio: {
-            /**
-             * Format: date
-             * @description 기준 일자
-             */
-            date: string;
-            /** @description 롱 포지션 계좌 비율 (0~1) */
-            longAccount: number;
-            /** @description 롱 계좌 수 / 숏 계좌 수 */
-            longShortRatio: number;
-        };
-        CryptoMarketIndicatorsDatedPremiumPair: {
-            /**
-             * Format: date
-             * @description 기준 일자
-             */
-            date: string;
-            /** @description 공식 환율 기준 김프 (%, 환율 없는 날 null) */
-            official?: number | null;
-            /** @description 테더 기준 김프 (%) */
-            tether: number;
-        };
-        CryptoMarketIndicatorsDatedValuation: {
-            /**
-             * Format: date
-             * @description 기준 일자 (UTC 일봉)
-             */
-            date: string;
-            /** @description 그날 종가 (USDT) */
-            close: number;
-            /** @description 200주 이동평균 (USDT, 1400일 단순평균 — 이력 1400일 미만이면 null) */
-            wma200?: number | null;
-            /** @description 종가 / 200주 이동평균 배수 (200주 이동평균이 null이면 null) */
-            wma200Multiple?: number | null;
-            /** @description Mayer Multiple — 종가 / 200일 이동평균 (이력 200일 미만이면 null) */
-            mayerMultiple?: number | null;
-            /** @description 최고 종가(ATH) 대비 하락률 (%, 0 이하) */
-            athDrawdownPercent: number;
-        };
-        CryptoMarketIndicatorsDatedValue: {
-            /**
-             * Format: date
-             * @description 기준 일자
-             */
-            date: string;
-            /** @description 값 */
-            value: number;
-        };
-        CryptoMarketIndicatorsFundingRate: {
-            /** @description 현재 펀딩비 (비율, 예: 0.0001) */
-            current: number;
-            /**
-             * Format: date-time
-             * @description 다음 펀딩 시각
-             */
-            nextFundingTime: string;
-            /** @description 일평균 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
-        };
-        CryptoMarketIndicatorsHalving: {
-            /**
-             * Format: int64
-             * @description 현재 BTC 블록 높이
-             */
-            currentHeight: number;
-            /**
-             * Format: int64
-             * @description 다음 반감기 블록 높이 (210,000 배수)
-             */
-            nextHalvingHeight: number;
-            /**
-             * Format: int64
-             * @description 남은 블록 수
-             */
-            blocksRemaining: number;
-            /**
-             * Format: date-time
-             * @description 예상 반감기 시각 (조립 시각 + 남은 블록 × 10분, 추정치)
-             */
-            estimatedAt: string;
-        };
-        CryptoMarketIndicatorsHashRibbons: {
-            /** @description 최신 점 (history 마지막과 같음) */
-            current: components["schemas"]["CryptoMarketIndicatorsDatedHashRibbon"];
-            /** @description 일자별 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedHashRibbon"][];
-        };
-        CryptoMarketIndicatorsKimchiPremium: {
-            /** @description 현재 김프 */
-            current: components["schemas"]["CryptoMarketIndicatorsPremiumPair"];
-            /** @description 일자별 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedPremiumPair"][];
-        };
-        CryptoMarketIndicatorsLongShortRatio: {
-            /** @description 최신 롱 포지션 계좌 비율 (0~1, 계좌 수 기준) */
-            longAccount: number;
-            /** @description 최신 롱 계좌 수 / 숏 계좌 수 */
-            longShortRatio: number;
-            /** @description 일자별 추이 (최근 30일 고정) */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedLongShortRatio"][];
-        };
-        CryptoMarketIndicatorsOpenInterest: {
-            /** @description 일자별 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsOpenInterestPoint"][];
-        };
-        CryptoMarketIndicatorsOpenInterestPoint: {
-            /**
-             * Format: date
-             * @description 기준 일자
-             */
-            date: string;
-            /** @description 미결제약정 명목가 (USD) */
-            valueUsd: number;
-        };
-        CryptoMarketIndicatorsPremium: {
-            /** @description 현재 테더 프리미엄 (%) */
-            current: number;
-            /** @description 일자별 추이 */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedValue"][];
-        };
-        CryptoMarketIndicatorsPremiumPair: {
-            /** @description 공식 환율 기준 김프 (%, 환율 장애 시 null) */
-            official?: number | null;
-            /** @description 테더 기준 김프 (%) */
-            tether: number;
-        };
-        CryptoMarketIndicatorsResponse: {
-            /**
-             * Format: date-time
-             * @description 조립 시각
-             */
-            asOf: string;
-            /** @description 테더 프리미엄 (실패 시 null) */
-            usdtPremium?: components["schemas"]["CryptoMarketIndicatorsPremium"] | null;
-            /** @description 종목별 지표 */
-            tickers: components["schemas"]["CryptoMarketIndicatorsTicker"][];
-            /** @description BTC 반감기 카운트다운 (실패 시 null) */
-            halving?: components["schemas"]["CryptoMarketIndicatorsHalving"] | null;
-            /** @description BTC 도미넌스 — BTC 시가총액 비중 (%) (CMC 키 없음·실패 시 null) */
-            btcDominance?: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
-            /** @description 알트코인 시즌 지수 0~100 (CMC — 상위 100 알트 중 90일간 BTC를 이긴 비율, 75↑ 알트 시즌·25↓ 비트코인 시즌). 이력은 비공식 API라 실패 시 빈 배열 (현재값 조회 실패 시 null) */
-            altcoinSeason?: components["schemas"]["CryptoMarketIndicatorsDailyIndicator"] | null;
-            /** @description Hash Ribbons — 해시레이트(EH/s) 30·60일 이동평균, CAPITULATION: sma30 < sma60(채굴자 항복), buySignal: 항복→회복 전환 후 BTC 10일 SMA > 20일 SMA가 되는 첫날 (실패 시 null) */
-            hashRibbons?: components["schemas"]["CryptoMarketIndicatorsHashRibbons"] | null;
-        };
-        CryptoMarketIndicatorsTicker: {
-            /**
-             * @description 종목
-             * @example BTC
-             */
-            ticker: string;
-            /** @description 김치 프리미엄 (실패 시 null) */
-            kimchiPremium?: components["schemas"]["CryptoMarketIndicatorsKimchiPremium"] | null;
-            /** @description 펀딩비 (실패 시 null) */
-            fundingRate?: components["schemas"]["CryptoMarketIndicatorsFundingRate"] | null;
-            /** @description 미결제약정 (실패 시 null) */
-            openInterest?: components["schemas"]["CryptoMarketIndicatorsOpenInterest"] | null;
-            /** @description 장기 밸류에이션 — 직전 완성 일봉 종가 기준 (실패 시 null) */
-            valuation?: components["schemas"]["CryptoMarketIndicatorsValuation"] | null;
-            /** @description 롱/숏 계좌 비율 — 계좌 수(사람) 기준, 포지션 규모(돈) 기준인 펀딩비와 다름 (실패 시 null) */
-            longShortRatio?: components["schemas"]["CryptoMarketIndicatorsLongShortRatio"] | null;
-            /** @description 테더 보정 코인베이스 프리미엄 — 미국 현물 수요 (실패 시 null) */
-            coinbasePremium?: components["schemas"]["CryptoMarketIndicatorsCoinbasePremium"] | null;
-        };
-        CryptoMarketIndicatorsValuation: {
-            /** @description 현재 값 — 실시간이 아니라 직전 완성 일봉 기준 (history 마지막 점과 같음) */
-            current: components["schemas"]["CryptoMarketIndicatorsDatedValuation"];
-            /** @description 일자별 추이 (각 일자는 그날까지의 일봉으로만 계산) */
-            history: components["schemas"]["CryptoMarketIndicatorsDatedValuation"][];
+            currency: "KRW" | "USD" | "JPY";
         };
         BacktestPoint: {
             /** Format: date */
@@ -3531,7 +3205,7 @@ export interface components {
              * @example NO_PRIVACY_BASE
              */
             skipReason?: string | null;
-            /** @description 가용 예수금(계좌 통화 — 주식 USD·코인 KRW/USDT) = 주문 가능 현금(증권사 매수가능금액·거래소 견적 통화 잔고) − 계좌 전략 원장 예수금 합 (모의계좌·조회 실패면 null). 입력 예수금이 넘으면 경고만 한다 */
+            /** @description 가용 예수금(계좌 통화 USD) = 주문 가능 현금(증권사 매수가능금액) − 계좌 전략 원장 예수금 합 (모의계좌·조회 실패면 null). 입력 예수금이 넘으면 경고만 한다 */
             availableCash?: number | null;
         };
         /** @description 복수 종목 현재가 조회 응답 */
@@ -3545,7 +3219,7 @@ export interface components {
              * @example TQQQ
              * @enum {string}
              */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             /**
              * @description 현재가 (USD)
              * @example 120.5
@@ -3581,7 +3255,7 @@ export interface components {
              * @description 종목코드
              * @enum {string}
              */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             /** @description 잔고수량 */
             holdings: number;
             /** @description 평균단가 (USD) */
@@ -3612,50 +3286,6 @@ export interface components {
             evaluation?: number | null;
             /** @description 미배정 현금 — 주문 가능 현금 − 원장 예수금 합 (모의계좌·조회 실패면 null) */
             unassignedCash?: number | null;
-        };
-        CryptoPrice: {
-            /**
-             * @description 종목
-             * @example BTC
-             */
-            ticker: string;
-            /**
-             * @description 현재가 (KRW)
-             * @example 150000000
-             */
-            price: number;
-        };
-        CryptoPricesResponse: {
-            /** @description 종목별 현재가 — 시세가 없는 종목은 빠진다 */
-            prices: components["schemas"]["CryptoPrice"][];
-        };
-        CryptoHoldingResponse: {
-            /**
-             * @description 종목
-             * @example BTC
-             */
-            ticker: string;
-            /** @description 보유 수량 (소수 8자리) */
-            quantity: number;
-            /** @description 평균 매수가 (계좌 통화 = currency, 거래소 값 없으면 원장 평단, 둘 다 없으면 null) */
-            avgBuyPrice?: number | null;
-            /** @description 현재가 (계좌 통화 = currency, 시세 없으면 null) */
-            currentPrice?: number | null;
-            /** @description 평가액 (계좌 통화 = currency, 통화 scale HALF_UP, 시세 없으면 null) */
-            evalAmount?: number | null;
-        };
-        CryptoPortfolioResponse: {
-            /**
-             * @description 계좌 통화 (Currency name — KRW|USDT)
-             * @example USDT
-             */
-            currency: string;
-            /** @description 예수금 (계좌 통화, 가용 + 주문 대기) */
-            cash: number;
-            /** @description 코인별 보유 */
-            holdings: components["schemas"]["CryptoHoldingResponse"][];
-            /** @description 총자산 (계좌 통화) = 예수금 + 평가액 합 */
-            totalAsset: number;
         };
         CancelOrdersResponse: {
             /**
@@ -4091,12 +3721,12 @@ export interface components {
             /** @description 사용자 입력 허용 여부 */
             customizable: boolean;
             /** @description 허용 값 목록 */
-            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
+            allowedValues: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH")[];
             /**
              * @description 신규 생성 기본값
              * @enum {string}
              */
-            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            defaultValue: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
         };
         FieldRequests: {
             /** @description 종목 생성 필드 설정 */
@@ -4133,11 +3763,6 @@ export interface components {
         BrokerResponse: {
             /** @description 증권사 신규 계좌 등록 허용 여부 */
             enabled: boolean;
-            /**
-             * @description 거래소 API 키에 등록할 서버 공인 IP (업비트만, 그 외 생략)
-             * @example 168.107.63.152
-             */
-            allowedIp?: string | null;
         };
         FieldResponses: {
             /** @description 종목 생성 설정 (customizable/allowedValues/defaultValue) */
@@ -4415,7 +4040,7 @@ export interface components {
              * @example BUY
              */
             direction: string;
-            /** @description 체결 수량 (주식 정수, 코인 소수 8자리까지) */
+            /** @description 체결 수량 (정수) */
             quantity: number;
             /** @description 체결 가격 */
             price: number;
@@ -4468,7 +4093,7 @@ export interface components {
             /** Format: date */
             releaseDate: string;
             /** @enum {string} */
-            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+            ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
             currentCycleStart: number;
             currentCycleRealizedPnl: number;
             avgPrice?: number | null;
@@ -4480,7 +4105,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             /** Format: int32 */
             quantity?: number | null;
             price: number;
@@ -4543,7 +4168,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "MARKET";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
             price: number;
             /** Format: int32 */
             quantity?: number | null;
@@ -4759,7 +4384,7 @@ export interface components {
         BrokerMeta: {
             /**
              * @description enum name() 값
-             * @example UPBIT
+             * @example MERITZ
              */
             code: string;
             /** @description 한국어 표시 이름 */
@@ -4768,7 +4393,7 @@ export interface components {
             description: string;
             /**
              * @description 거래 시장
-             * @example CRYPTO_KRW
+             * @example US_STOCK
              */
             market: string;
             /**
@@ -4783,13 +4408,13 @@ export interface components {
             minOrderAmount: string;
             /**
              * Format: int32
-             * @description 주문 금액 소수 자릿수 (KRW 0, USDT 2)
+             * @description 주문 금액 소수 자릿수 (KRW 0, USD 2)
              * @example 0
              */
             amountScale: number;
             /**
-             * @description API 키 만료일 출처 (NONE·BROKER_API·ESTIMATED)
-             * @example BROKER_API
+             * @description API 키 만료일 출처 (NONE·ESTIMATED)
+             * @example ESTIMATED
              */
             apiKeyExpirySource: string;
         };
@@ -4917,8 +4542,6 @@ export interface components {
         FearGreedResponse: {
             /** @description CNN 공포탐욕지수 현재값 + 추이 이력 */
             cnn: components["schemas"]["SourceView"];
-            /** @description 크립토 공포탐욕지수 현재값 + 추이 이력 */
-            crypto: components["schemas"]["SourceView"];
         };
         Point: {
             /** @description 기록 시각 (ISO-8601) */
@@ -5074,7 +4697,7 @@ export interface components {
             filledPrice?: number | null;
             /**
              * @description price·filledPrice 통화 (Currency name, 계좌를 찾지 못하면 null)
-             * @example USDT
+             * @example USD
              */
             currency?: string | null;
         };
@@ -5252,12 +4875,8 @@ export interface components {
              */
             cycleSeedType: string;
         };
-        PingResponse: {
-            status: string;
-            adminId: string;
-        };
         /** @enum {string} */
-        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_IP_NOT_ALLOWED" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE" | "BROKER_WITHDRAWAL_ENABLED";
+        ErrorCode: "BROKER_UNAVAILABLE" | "BROKER_CREDENTIAL_INVALID" | "BROKER_PERMISSION_DENIED" | "BROKER_RATE_LIMITED" | "DUPLICATE_ACCOUNT" | "ALREADY_ORDERED_TODAY" | "DCA_MANUAL_EXECUTION_UNSUPPORTED" | "ORDER_NOT_CANCELLABLE" | "MONTH_CLOSED" | "ACCESS_DENIED" | "COOLDOWN_ACTIVE" | "TRADING_CORE_UNAVAILABLE";
     };
     responses: never;
     parameters: never;
@@ -7475,7 +7094,7 @@ export interface operations {
             query?: {
                 scope?: "PORTFOLIO" | "STRATEGY";
                 strategyId?: string;
-                currency?: "KRW" | "USD" | "JPY" | "USDT";
+                currency?: "KRW" | "USD" | "JPY";
                 benchmarkType?: "HOUSING" | "ETF";
                 regionCode?: string;
                 symbol?: "SPY" | "QQQ" | "QLD" | "IBIT" | "ETHA";
@@ -8062,49 +7681,6 @@ export interface operations {
             };
         };
     };
-    listStrategyTradeDates: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: string;
-                strategyId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": string[];
-                };
-            };
-        };
-    };
-    ping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["PingResponse"];
-                };
-            };
-        };
-    };
     leaveGroup: {
         parameters: {
             query?: never;
@@ -8463,7 +8039,7 @@ export interface operations {
                     "*/*": components["schemas"]["AccountResponse"];
                 };
             };
-            /** @description 다른 계좌에 이미 등록된 키(업비트) */
+            /** @description 다른 계좌에 이미 등록된 키 */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -8472,7 +8048,7 @@ export interface operations {
                     "*/*": components["schemas"]["AccountResponse"];
                 };
             };
-            /** @description 키가 유효하지 않거나 IP 미허용·권한 부족 */
+            /** @description 키가 유효하지 않거나 권한 부족 */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -8906,7 +8482,7 @@ export interface operations {
     getSummary: {
         parameters: {
             query?: {
-                currency?: "KRW" | "USD" | "JPY" | "USDT";
+                currency?: "KRW" | "USD" | "JPY";
             };
             header?: never;
             path?: never;
@@ -8928,7 +8504,7 @@ export interface operations {
     getEquityCurve: {
         parameters: {
             query?: {
-                currency?: "KRW" | "USD" | "JPY" | "USDT";
+                currency?: "KRW" | "USD" | "JPY";
                 type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 from?: string;
                 to?: string;
@@ -8955,7 +8531,7 @@ export interface operations {
             query?: {
                 type?: "INFINITE" | "PRIVACY" | "VR" | "DCA";
                 accountId?: string;
-                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+                ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
                 status?: "ACTIVE" | "CLOSED";
                 page?: number;
                 size?: number;
@@ -9008,46 +8584,11 @@ export interface operations {
             };
         };
     };
-    getCryptoMarketIndicators: {
-        parameters: {
-            query?: {
-                /**
-                 * @description 조회 기간(일, 1~365)
-                 * @example 200
-                 */
-                days?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoMarketIndicatorsResponse"];
-                };
-            };
-            /** @description days 범위 오류 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoMarketIndicatorsResponse"];
-                };
-            };
-        };
-    };
     run: {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
                 from: string;
                 to: string;
                 seed?: number;
@@ -9113,7 +8654,7 @@ export interface operations {
         parameters: {
             query: {
                 type: "INFINITE" | "PRIVACY" | "VR" | "DCA";
-                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH";
+                ticker: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH";
                 divisionCount?: number;
             };
             header?: never;
@@ -9142,7 +8683,7 @@ export interface operations {
                  * @description 조회할 종목 코드 목록 (TQQQ/SOXL/USD)
                  * @example TQQQ,SOXL,USD
                  */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
+                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH")[];
             };
             header?: never;
             path: {
@@ -9296,61 +8837,6 @@ export interface operations {
             };
         };
     };
-    getDailyTransactions_1: {
-        parameters: {
-            query: {
-                /**
-                 * @description 조회 시작일
-                 * @example 2025-01-01
-                 */
-                from: string;
-                /**
-                 * @description 조회 종료일
-                 * @example 2025-01-31
-                 */
-                to: string;
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description 계좌 ID
-                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-                 */
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DailyTransactionResponse"];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DailyTransactionResponse"];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["DailyTransactionResponse"];
-                };
-            };
-        };
-    };
     getCycleHistory: {
         parameters: {
             query?: {
@@ -9392,145 +8878,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CycleHistoryPageResponse"];
-                };
-            };
-        };
-    };
-    getCryptoPrices: {
-        parameters: {
-            query: {
-                /**
-                 * @description 조회할 코인 종목 (BTC/ETH)
-                 * @example BTC,ETH
-                 */
-                tickers: ("MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | "BTC" | "ETH")[];
-            };
-            header?: never;
-            path: {
-                /**
-                 * @description 계좌 ID
-                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-                 */
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPricesResponse"];
-                };
-            };
-            /** @description 코인 계좌가 아님 또는 코인 종목이 아니거나 비어 있음 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPricesResponse"];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPricesResponse"];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPricesResponse"];
-                };
-            };
-            /** @description 거래소 API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPricesResponse"];
-                };
-            };
-        };
-    };
-    getCryptoPortfolio: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /**
-                 * @description 계좌 ID
-                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
-                 */
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description 조회 성공 */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-            /** @description 코인 계좌가 아님 */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-            /** @description 내 계좌가 아님 */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-            /** @description 계좌를 찾을 수 없음 */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-            /** @description 거래소 API 키 오류·IP 미허용·권한 부족 */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
-                };
-            };
-            /** @description 거래소 API 호출 실패 */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CryptoPortfolioResponse"];
                 };
             };
         };

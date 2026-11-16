@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { isStockTicker } from '@entities/meta'
 import { useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
@@ -161,7 +160,7 @@ export function useStrategyForm({
     availableTickers, defaultTicker, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
   } = deriveRuntimeFields(
     initial, runtimeStrategy,
-    (code) => isStockTicker(meta.tickers.find((t) => t.code === code)),
+    (code) => meta.tickers.some((t) => t.code === code),
     (typeMeta?.divisionCounts.length ?? 0) > 0,
   )
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false

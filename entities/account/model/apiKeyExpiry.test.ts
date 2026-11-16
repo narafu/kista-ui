@@ -31,7 +31,7 @@ describe('kstToday', () => {
 describe('isEstimatedExpiry', () => {
   it('ESTIMATED만 true', () => {
     expect(isEstimatedExpiry('ESTIMATED')).toBe(true)
-    expect(isEstimatedExpiry('BROKER_API')).toBe(false)
+    expect(isEstimatedExpiry('NONE')).toBe(false)
     expect(isEstimatedExpiry(undefined)).toBe(false)
   })
 })

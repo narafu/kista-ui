@@ -30,16 +30,14 @@ export interface TickerMeta {
   description?: string
   exchangeCode: string
   targetProfitRate: string
-  market?: string // deprecated(다음 api 릴리스에서 제거) — markets가 없는 응답의 폴백
-  markets?: string[] // 거래 가능 시장 — 주식 판정은 isStockTicker. 1h 메타 캐시로 빠질 수 있어 optional
 }
 
 // 1h 메타 캐시로 새 필드가 빠질 수 있어 모두 optional
 export interface BrokerMeta extends EnumMeta {
-  apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — BROKER_API(증권사 조회)·ESTIMATED(추정, 사용자 입력 가능)·NONE
+  apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — ESTIMATED(추정, 사용자 입력 가능)·NONE
 }
 
-type ApiKeyExpirySource = 'BROKER_API' | 'ESTIMATED' | 'NONE'
+type ApiKeyExpirySource = 'ESTIMATED' | 'NONE'
 
 export interface MetaBundle {
   strategyTypes: StrategyTypeMeta[]

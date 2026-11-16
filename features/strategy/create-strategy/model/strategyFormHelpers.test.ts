@@ -21,7 +21,7 @@ describe('deriveRuntimeFields defaultTicker', () => {
   })
 })
 
-describe('deriveRuntimeFields 시장 필터', () => {
+describe('deriveRuntimeFields 티커 필터', () => {
   it('허용되지 않은 티커는 목록과 기본값에서 뺀다', () => {
     const r = deriveRuntimeFields(undefined, runtime('UPRO'), (code) => code !== 'UPRO', false)
     expect(r.availableTickers).toEqual(['QLD'])

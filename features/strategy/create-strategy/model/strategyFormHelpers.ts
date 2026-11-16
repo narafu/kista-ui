@@ -64,7 +64,7 @@ export function watchVrFields(form: UseFormReturn<StrategyFormValues>): VrFields
 export function deriveRuntimeFields(
   initial: Strategy | undefined,
   runtimeStrategy: RuntimeStrategySettings | undefined,
-  isTickerAllowed: (code: string) => boolean, // 주식 시장 티커만
+  isTickerAllowed: (code: string) => boolean, // 메타에 있는 티커만
   typeUsesDivisionCount: boolean, // meta divisionCounts 비어 있지 않음 — 카드·상세와 같은 기준
 ) {
   const divisionCountSettings = runtimeStrategy?.fields.divisionCount

@@ -48,7 +48,6 @@ export const testMeta = {
     { code: 'MOC', label: 'MOC(종가시장가)' },
     { code: 'LIMIT', label: 'LIMIT(지정가)' },
     { code: 'MOO', label: 'MOO(시가시장가)' },
-    { code: 'MARKET', label: 'MARKET(시장가)' },
   ],
   orderTimings: [
     { code: 'AT_CLOSE', label: '장마감 30분 전 접수' },
@@ -76,9 +75,6 @@ export const testMeta = {
     { code: 'INSUFFICIENT_HOLDINGS', label: '보유 수량 부족' },
     { code: 'INSUFFICIENT_BALANCE', label: '예수금 부족' },
     { code: 'BELOW_ONE_SHARE', label: '1주 미만 금액' },
-    { code: 'BELOW_MIN_ORDER_AMOUNT', label: '최소 주문 금액 미달' },
-    { code: 'EXCHANGE_API_ERROR', label: '거래소 API 오류' },
-    { code: 'API_KEY_EXPIRED', label: 'API 키 인증 실패' },
   ],
   dcaSizingTypes: [
     { code: 'AMOUNT', label: '고정 금액' },

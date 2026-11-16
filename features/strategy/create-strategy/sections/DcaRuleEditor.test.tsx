@@ -9,7 +9,7 @@ const meta = {
   ...testMeta,
   strategyTypes: [{
     code: 'DCA', availableTickers: ['UPRO'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
-    divisionCounts: [], orderTypes: ['MOO', 'MOC', 'MARKET'], directions: ['BUY', 'SELL'],
+    divisionCounts: [], orderTypes: ['MOO', 'MOC'], directions: ['BUY', 'SELL'],
     frequencies: ['DAILY', 'WEEKLY', 'MONTHLY'], conditionIndicators: ['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED'],
   }],
 }

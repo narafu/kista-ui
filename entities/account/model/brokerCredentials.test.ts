@@ -17,10 +17,6 @@ describe('brokerErrorMessage', () => {
     expect(brokerErrorMessage(apiError(429, 'BROKER_RATE_LIMITED'), 'x', '실패')).toContain('잠시 후')
   })
 
-  it('출금 권한이 켜진 키는 전용 문구로 안내한다', () => {
-    expect(brokerErrorMessage(apiError(422, 'BROKER_WITHDRAWAL_ENABLED'), 'x', '실패')).toContain('출금 권한')
-  })
-
   it('그 외 코드는 서버 detail을 쓰고, detail이 없으면 fallback을 쓴다', () => {
     expect(brokerErrorMessage(apiError(409, 'DUPLICATE_ACCOUNT', '이미 등록된 계좌입니다.'), 'x', '실패'))
       .toBe('이미 등록된 계좌입니다.')
