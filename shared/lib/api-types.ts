@@ -2237,7 +2237,7 @@ export interface components {
             /** Format: int32 */
             dayOfMonth?: number | null;
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "LIMIT_VWAP";
             sizing: components["schemas"]["DcaSizingRequest"];
             /** @enum {string} */
             shortfall: "PARTIAL" | "REJECT";
@@ -2393,7 +2393,7 @@ export interface components {
             /** Format: int32 */
             dayOfMonth?: number | null;
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "LIMIT_VWAP";
             sizing: components["schemas"]["Sizing"];
             /** @enum {string} */
             shortfall: "PARTIAL" | "REJECT";
@@ -2861,7 +2861,7 @@ export interface components {
              * @example LOC
              * @enum {string}
              */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "LIMIT_VWAP";
             /**
              * @description 매수/매도 방향
              * @example BUY
@@ -4105,7 +4105,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "LIMIT_VWAP";
             /** Format: int32 */
             quantity?: number | null;
             price: number;
@@ -4168,7 +4168,7 @@ export interface components {
             /** @enum {string} */
             direction: "BUY" | "SELL";
             /** @enum {string} */
-            orderType: "LOC" | "MOC" | "LIMIT" | "MOO";
+            orderType: "LOC" | "MOC" | "LIMIT" | "MOO" | "LIMIT_VWAP";
             price: number;
             /** Format: int32 */
             quantity?: number | null;
@@ -4515,6 +4515,8 @@ export interface components {
             frequencies: string[];
             /** @description DCA 조건 지표 name() 목록 */
             conditionIndicators: string[];
+            /** @description 등록 가능 증권사 name() 목록 (빈 목록이면 전체 허용) */
+            supportedBrokers: string[];
         };
         TickerMeta: {
             /**
