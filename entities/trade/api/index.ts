@@ -1,9 +1,7 @@
-import { toCurrency } from '@shared/lib/api-schema'
 import { fetchEither } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
 import { toNum } from '@shared/lib/utils'
 import type {
-  CryptoPortfolio,
   CycleHistoryPage,
   DailyTransactionResult,
   PortfolioSummary,
@@ -72,44 +70,4 @@ export async function getDailyTransactionsBatch(
 ): Promise<DailyTransactionResult> {
   const q = new URLSearchParams({ from: params.from, to: params.to })
   return fetchEither<DailyTransactionResult>(`/api/daily-trades?${q}`, { method: 'GET' }, token)
-}
-
-// krwCash·totalAssetKrw·evalAmountKrw는 deprecated(신규 필드와 같은 값) — 신규 필드가 없으면 폴백한다
-interface CryptoPortfolioRaw {
-  currency?: string | null
-  cash?: number | string
-  totalAsset?: number | string
-  krwCash?: number | string
-  totalAssetKrw?: number | string
-  holdings?: Array<{
-    ticker: string
-    quantity: number | string
-    avgBuyPrice: number | string | null
-    currentPrice: number | string | null
-    evalAmount?: number | string | null
-    evalAmountKrw?: number | string | null
-  }>
-}
-
-// 잔고와 무관한 거래소 공개 시세 — 시세가 없는 종목은 결과에서 빠진다
-export async function getCryptoPrices(accountId: string, tickers: string[], token?: string): Promise<Record<string, number>> {
-  const q = new URLSearchParams({ tickers: tickers.join(',') })
-  const raw = await fetchEither<{ prices?: Array<{ ticker: string; price: number | string }> }>(`/api/accounts/${accountId}/crypto-prices?${q}`, { method: 'GET' }, token)
-  return Object.fromEntries((raw.prices ?? []).map((p) => [p.ticker, toNum(p.price)]))
-}
-
-export async function getCryptoPortfolio(accountId: string, token?: string): Promise<CryptoPortfolio> {
-  const raw = await fetchEither<CryptoPortfolioRaw>(`/api/accounts/${accountId}/crypto-portfolio`, { method: 'GET' }, token)
-  return {
-    currency: toCurrency(raw.currency) ?? 'KRW',
-    cash: toNum(raw.cash ?? raw.krwCash),
-    totalAsset: toNum(raw.totalAsset ?? raw.totalAssetKrw),
-    holdings: (raw.holdings ?? []).map((h) => ({
-      ticker: h.ticker,
-      quantity: toNum(h.quantity),
-      avgBuyPrice: h.avgBuyPrice == null ? null : toNum(h.avgBuyPrice),
-      currentPrice: h.currentPrice == null ? null : toNum(h.currentPrice),
-      evalAmount: toNum(h.evalAmount ?? h.evalAmountKrw),
-    })),
-  }
 }

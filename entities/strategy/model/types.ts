@@ -25,7 +25,7 @@ export interface StrategyVrSummary {
 
 // DCA(정기 적립식) — 코드 값은 kista-api 계약(spec 7장) 그대로. 라벨은 메타(labelOf)가 SSOT
 export type DcaDirection = 'BUY' | 'SELL'
-export type DcaOrderType = 'MOO' | 'MOC' | 'MARKET' // MARKET: 코인 시장가(업비트), MOO/MOC: 주식
+export type DcaOrderType = 'MOO' | 'MOC'
 export type DcaFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY'
 export type DcaWeekday = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY'
 export type DcaIndicator = 'AVG_PRICE' | 'SMA' | 'RSI' | 'FEAR_GREED'
@@ -33,7 +33,7 @@ export type DcaOperator = 'LTE' | 'LT' | 'GTE' | 'GT'
 export interface DcaCondition { indicator: DcaIndicator; operator: DcaOperator; threshold?: number; smaPeriod?: number }
 export type DcaSizingType = 'AMOUNT' | 'HOLDING_PERCENT'
 export type DcaShortfallPolicy = 'PARTIAL' | 'REJECT'
-// AMOUNT: amount(주식 USD, 크립토 원 정수), HOLDING_PERCENT: SELL 전용 percent(0 초과 100 이하)
+// AMOUNT: amount(USD), HOLDING_PERCENT: SELL 전용 percent(0 초과 100 이하)
 export interface DcaSizing { type: DcaSizingType; amount: number | null; percent: number | null }
 export interface DcaRuleRequest {
   ruleKey?: string | null // 등록: 보내지 않는다. 수정: 기존 규칙은 응답 ruleKey 재전송, 신규는 null
@@ -42,16 +42,14 @@ export interface DcaRuleRequest {
   dayOfWeek: DcaWeekday | null
   dayOfMonth: number | null
   orderType: DcaOrderType
-  executionHour?: number // 크립토 전용 실행 시각(KST 0~23). 주식은 보내지 않는다
   sizing: DcaSizing
   shortfall: DcaShortfallPolicy
   conditions: DcaCondition[]
 }
 export interface DcaConfigRequest { rules: DcaRuleRequest[] }
 export interface DcaRuleExecution { kstTradeDate: string; status: string; skipReason: string | null }
-export interface DcaRule extends Omit<DcaRuleRequest, 'ruleKey' | 'executionHour'> {
+export interface DcaRule extends Omit<DcaRuleRequest, 'ruleKey'> {
   ruleKey: string
-  executionHour: number | null
   nextExecution: { usSessionDate: string; kstTradeDate: string } | null
   lastExecution: DcaRuleExecution | null
 }
@@ -87,7 +85,7 @@ export interface StrategyRequest {
   cycleSeedType: CycleSeedType
   initialDeposit?: number  // 등록 시 또는 holdings=0 수정 시 전송
   divisionCount?: number      // 분할 수 (20/30/40, 미전송 시 백엔드 기본값 20)
-  initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션). 주식은 정수, 크립토 DCA는 소수 8자리
+  initialHoldings?: number    // 중간부터 시작 — 등록 시점 기존 보유 수량 (세 전략 공통, 등록 전용, null/0이면 빈 포지션). 주식은 정수
   initialAvgPrice?: number    // 중간부터 시작 — 등록 시점 기존 평단가 (initialHoldings>0이면 필수)
   intervalWeeks?: number      // VR 전용: 롤오버 주기 (주)
   bandWidth?: number          // VR 전용: 밴드 폭 (%)

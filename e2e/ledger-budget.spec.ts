@@ -7,7 +7,7 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
   test.use({ storageState: 'e2e/.auth/user.json' })
 
   test('시드가 가용 예수금을 넘어도 경고만 띄우고 등록 요청은 보낸다', async ({ page }) => {
-    // 크립토 계좌는 DCA 전용 폼이라 시드 입력이 없다 — 주식 계좌(MOCK·TOSS)를 고른다
+    // 주식 계좌(MOCK·TOSS)를 고른다
     const accounts: { id: string; broker: string }[] = await (await page.request.get('/api/accounts')).json()
     const accountId = accounts.find((a) => a.broker === 'MOCK' || a.broker === 'TOSS')?.id
     expect(accountId, 'dev 시드에 MOCK·TOSS 계좌가 있어야 한다').toBeTruthy()

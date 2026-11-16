@@ -1,6 +1,6 @@
 import { ApiError, clientFetch } from '@shared/lib/api-client'
 import { getApiBaseUrl } from '@shared/lib/env'
-import type { Candle, MarketSession, CryptoMarketIndicators, FearGreed } from '../model/types'
+import type { Candle, MarketSession, FearGreed } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 
 // Server Component용 — 공개 엔드포인트라 로그인 여부와 무관하게 토큰 없이 kista-api 직접 호출
@@ -34,9 +34,4 @@ export function getCandlesRangeClient(ticker: string, from: string, to: string):
 
 export function getFearGreedClient(days: number): Promise<FearGreed> {
   return clientFetch<FearGreed>(`/api/market/fear-greed?days=${days}`)
-}
-
-// kista-trading 소유(8081) — 서버가 10분 캐시하고 days(1~365)는 김프·Coinbase 프리미엄·펀딩비·밸류에이션 추이 길이만 정한다
-export function getCryptoMarketIndicatorsClient(): Promise<CryptoMarketIndicators> {
-  return clientFetch<CryptoMarketIndicators>('/api/crypto-market-indicators?days=365')
 }

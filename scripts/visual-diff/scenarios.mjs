@@ -41,7 +41,6 @@ const INF = detail(seed.infinite)
 const VR = detail(seed.vr)
 const PAUSED = detail(seed.paused)
 const ACCT = `/accounts/${seed.infinite.accountId}`
-const BINANCE_ACCT = '/accounts/00000000-0000-4000-8000-0000000c0170'
 const NEW_STRATEGY = `${ACCT}/strategies/new`
 // MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 TOSS 계좌로 연다
 const TOSS_NEW_STRATEGY = `/accounts/${seed.toss.accountId}/strategies/new`
@@ -106,18 +105,9 @@ export const scenarios = [
   ...modes('m-vr', VR, ['executed']),
   ...modes('m-list', '/strategies', ['deficit', 'executed']),
   ...modes('m-acct', ACCT, ['executed']),
-  // binance 모드: 합성 BINANCE(USDT) 계좌 — 계좌 상세·크립토 DCA 전략 상세·전략 생성·계좌 등록 API 키 스텝. meta·runtime-config는 fixtures/api.mjs가 보강
-  { name: 'binance-account', path: BINANCE_ACCT, mode: 'binance' },
-  { name: 'binance-strategy', path: `${BINANCE_ACCT}/strategies/00000000-0000-4000-8000-0000000c0171`, mode: 'binance' },
-  // 주식 DCA(합성, 시드 무한매수 계좌) — 실행 이력 2건(현재 규칙·삭제된 규칙) 렌더 확인용
-  { name: 'stock-dca-strategy', path: `/accounts/${seed.infinite.accountId}/strategies/00000000-0000-4000-8000-0000000c0172`, mode: 'binance' },
-  { name: 'binance-create-strategy', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance' },
-  { name: 'binance-strategies', path: '/strategies', mode: 'binance' },
-  // 규칙 요약 줄(방향 배지·주기·금액) 렌더 확인용 — 매수 규칙 1개를 추가해 완료한다
-  { name: 'binance-create-dca-rules', path: `${BINANCE_ACCT}/strategies/new`, mode: 'binance',
-    steps: [clickRole('button', '매수 규칙 추가'), async (p) => { await p.getByLabel('회차당 금액').fill('20'); await p.waitForTimeout(300) }, clickRole('button', '완료'), clickRole('button', '매도 규칙 추가'), clickRole('button', '보유 비율 %'), async (p) => { await p.getByLabel('보유 비율', { exact: true }).fill('50').catch(() => {}); await p.waitForTimeout(300) }, clickRole('button', '완료')] },
-  // broker 카드를 누르면 바로 다음 스텝(API 키 입력)으로 넘어간다
-  { name: 'binance-account-new', path: '/accounts/new', mode: 'binance', steps: [clickText('바이낸스')] },
+  // dca 모드: 시드 무한매수 계좌에 합성 주식 DCA 전략 1건 — 상세(실행 이력 2건: 현재 규칙·삭제된 규칙)와 목록 규칙 요약 확인용. 런타임 설정의 DCA는 fixtures/api.mjs가 보강
+  { name: 'stock-dca-strategy', path: `/accounts/${seed.infinite.accountId}/strategies/00000000-0000-4000-8000-0000000c0172`, mode: 'dca' },
+  { name: 'stock-dca-strategies', path: '/strategies', mode: 'dca' },
   ...modes('w-inf', INF, ['real', 'deficit', 'trimmed', 'executed'], { clock: true }),
   ...modes('w-list', '/strategies', ['deficit', 'executed'], { clock: true }),
 ]

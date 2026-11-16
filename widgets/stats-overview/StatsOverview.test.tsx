@@ -216,10 +216,10 @@ describe('StatsOverview', () => {
     expect(screen.queryByText('전략 유형 비교')).not.toBeInTheDocument()
   })
 
-  it('USD가 없으면 첫 통화로 조회하고, 통화를 바꾸면 그 통화로 다시 조회해 표시한다', async () => {
+  it('USD가 있으면 USD로 조회하고, 통화를 바꾸면 그 통화로 다시 조회해 표시한다', async () => {
     const user = userEvent.setup()
     fetchEitherMock.mockImplementation((url: string) => {
-      if (url.startsWith('/api/stats/summary')) return Promise.resolve({ ...SUMMARY, availableCurrencies: ['KRW', 'USDT'] })
+      if (url.startsWith('/api/stats/summary')) return Promise.resolve({ ...SUMMARY, availableCurrencies: ['KRW', 'USD'] })
       if (url.startsWith('/api/stats/equity-curve')) return Promise.resolve(CURVE)
       if (url.startsWith('/api/stats/cycles')) return Promise.resolve({ items: [], page: 0, totalElements: 0, totalPages: 0 })
       if (url.startsWith('/api/accounts') || url.startsWith('/api/trading-cycles')) return Promise.resolve([])
@@ -229,13 +229,13 @@ describe('StatsOverview', () => {
     renderWithClient(<StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />)
 
     const group = await screen.findByRole('group', { name: '통화' })
-    await waitFor(() => expect(within(group).getByRole('button', { name: 'KRW' })).toHaveAttribute('aria-pressed', 'true'))
+    await waitFor(() => expect(within(group).getByRole('button', { name: 'USD' })).toHaveAttribute('aria-pressed', 'true'))
+    expect(await screen.findByText('$3,000.00')).toBeInTheDocument()
+    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary?currency=USD', { method: 'GET' }, undefined)
+
+    await user.click(within(group).getByRole('button', { name: 'KRW' }))
     expect(await screen.findByText('3,000원')).toBeInTheDocument()
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary?currency=KRW', { method: 'GET' }, undefined)
-
-    await user.click(within(group).getByRole('button', { name: 'USDT' }))
-    expect(await screen.findByText('3,000.00 USDT')).toBeInTheDocument()
-    expect(fetchEitherMock).toHaveBeenCalledWith('/api/stats/summary?currency=USDT', { method: 'GET' }, undefined)
   })
 
   it('반올림하면 0이 되는 KRW 손실은 음수 색 없이 "+0원"으로 보여준다', async () => {

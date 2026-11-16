@@ -48,7 +48,7 @@ function renderWithClient(client: QueryClient) {
 }
 
 const toss: Account = { ...account, id: 'k1', nickname: '토스계좌 1', broker: 'TOSS' }
-const upbit: Account = { ...account, id: 'u1', nickname: '업비트 1', broker: 'UPBIT' }
+const meritz: Account = { ...account, id: 'z1', nickname: '메리츠 1', broker: 'MERITZ' }
 const toss2: Account = { ...account, id: 'k2', nickname: '토스계좌 2', broker: 'TOSS' }
 
 describe('AccountsPageContent', () => {
@@ -64,32 +64,32 @@ describe('AccountsPageContent', () => {
 
   it('hides the broker filter when accounts share one broker', () => {
     renderAccounts([toss, toss2])
-    expect(screen.queryByRole('group', { name: '증권사·거래소 필터' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('group', { name: '증권사 필터' })).not.toBeInTheDocument()
   })
 
   it('shows counts per broker and updates the url on selection', async () => {
-    renderAccounts([toss, upbit, toss2])
+    renderAccounts([toss, meritz, toss2])
     expect(screen.getByRole('button', { name: '전체 3' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '토스 2' })).toBeInTheDocument()
 
     const replaceState = vi.spyOn(window.history, 'replaceState')
-    await userEvent.click(screen.getByRole('button', { name: 'UPBIT 1' }))
-    expect(replaceState).toHaveBeenCalledWith(null, '', '?broker=UPBIT')
+    await userEvent.click(screen.getByRole('button', { name: 'MERITZ 1' }))
+    expect(replaceState).toHaveBeenCalledWith(null, '', '?broker=MERITZ')
     replaceState.mockRestore()
   })
 
   it('filters by the broker param', () => {
-    searchParamsValue = 'broker=UPBIT'
-    renderAccounts([toss, upbit, toss2])
-    expect(screen.getByText('업비트 1')).toBeInTheDocument()
+    searchParamsValue = 'broker=MERITZ'
+    renderAccounts([toss, meritz, toss2])
+    expect(screen.getByText('메리츠 1')).toBeInTheDocument()
     expect(screen.queryByText('토스계좌 1')).not.toBeInTheDocument()
   })
 
   it('treats an unknown broker param as all', () => {
     searchParamsValue = 'broker=NOPE'
-    renderAccounts([toss, upbit, toss2])
+    renderAccounts([toss, meritz, toss2])
     expect(screen.getByText('토스계좌 1')).toBeInTheDocument()
-    expect(screen.getByText('업비트 1')).toBeInTheDocument()
+    expect(screen.getByText('메리츠 1')).toBeInTheDocument()
   })
 
   it('renders the account empty state from query data rather than a server-only branch', () => {
@@ -104,7 +104,7 @@ describe('AccountsPageContent', () => {
   it('resets "더 보기" to the first page when the broker filter changes', async () => {
     const many = Array.from({ length: 13 }, (_, i) => ({ ...toss, id: `k${i}`, nickname: `토스계좌 ${i}` }))
     const client = createQueryClient()
-    client.setQueryData(accountKeys.list(), [...many, upbit])
+    client.setQueryData(accountKeys.list(), [...many, meritz])
     const { rerender } = renderWithClient(client)
 
     await userEvent.click(screen.getByRole('button', { name: /더 보기/ }))
@@ -137,10 +137,10 @@ describe('AccountsPageContent', () => {
 
   it('puts mock accounts and the mock filter option last', () => {
     const mock2: Account = { ...account, id: 'm2', nickname: '모의 2' }
-    renderAccounts([account, toss, mock2, upbit])
+    renderAccounts([account, toss, mock2, meritz])
 
-    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 4', '토스 1', 'UPBIT 1', 'MOCK 2'])
-    const names = ['토스계좌 1', '업비트 1', '캐시 계좌', '모의 2'].map((name) => screen.getByText(name))
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['전체 4', '토스 1', 'MERITZ 1', 'MOCK 2'])
+    const names = ['토스계좌 1', '메리츠 1', '캐시 계좌', '모의 2'].map((name) => screen.getByText(name))
     names.slice(1).forEach((node, i) => {
       expect(names[i].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     })

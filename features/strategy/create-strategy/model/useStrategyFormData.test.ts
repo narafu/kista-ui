@@ -13,12 +13,12 @@ vi.mock('@entities/meta', async () => ({
     meta: {
       strategyTypes: [
         { code: 'INFINITE', availableTickers: ['TQQQ', 'SOXL'] },
-        { code: 'DCA', availableTickers: ['TQQQ', 'BTC'] },
+        { code: 'DCA', availableTickers: ['TQQQ', 'XYZ'] },
       ],
       tickers: [
         { code: 'TQQQ', market: 'US_STOCK' },
         { code: 'SOXL' },
-        { code: 'BTC', market: 'CRYPTO_KRW' },
+        { code: 'XYZ', market: 'OTHER' },
       ],
     },
     findStrategyType: vi.fn(),
@@ -28,19 +28,9 @@ vi.mock('@entities/meta', async () => ({
 describe('useStrategyFormData', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('주식 계좌는 코인 티커를 빼고 시세를 조회한다', () => {
+  it('주식 외 시장 티커는 빼고 시세를 조회한다', () => {
     renderHook(() => useStrategyFormData('a1', 'TOSS'))
-    expect(useAccountPricesQuery).toHaveBeenCalledWith('a1', ['TQQQ', 'SOXL'], { enabled: true })
-  })
-
-  it('업비트 계좌는 시세 조회를 막는다', () => {
-    renderHook(() => useStrategyFormData('a1', 'UPBIT'))
-    expect(useAccountPricesQuery).toHaveBeenCalledWith('a1', expect.any(Array), { enabled: false })
-  })
-
-  it('업비트 계좌는 코인 티커를 쓸 수 있는 전략 유형만 활성으로 본다', () => {
-    const { result } = renderHook(() => useStrategyFormData('a1', 'UPBIT'))
-    expect(result.current.enabledStrategyTypes).toEqual(['DCA'])
+    expect(useAccountPricesQuery).toHaveBeenCalledWith('a1', ['TQQQ', 'SOXL'])
   })
 
   it('주식 계좌는 주식 티커를 쓸 수 있는 유형을 모두 본다', () => {

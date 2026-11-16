@@ -527,11 +527,11 @@ describe('HousingBenchmarkComparison', () => {
   })
 
   it('투자 쪽 요약·범례 통화는 서버 quality.investmentCurrency를 따른다', () => {
-    mockQuery({ ...QLD_STRATEGY_COMPARISON, quality: { ...QLD_STRATEGY_COMPARISON.quality, investmentCurrency: 'USDT' } })
+    mockQuery({ ...QLD_STRATEGY_COMPARISON, quality: { ...QLD_STRATEGY_COMPARISON.quality, investmentCurrency: 'KRW' } })
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
-    expect(screen.getByText('INFINITE · SOXL · USDT')).toBeInTheDocument()
-    expect(screen.getByText('INFINITE · SOXL (USDT): investmentIndex')).toBeInTheDocument()
+    expect(screen.getByText('INFINITE · SOXL · KRW')).toBeInTheDocument()
+    expect(screen.getByText('INFINITE · SOXL (KRW): investmentIndex')).toBeInTheDocument()
     expect(screen.queryByText('INFINITE · SOXL (USD): investmentIndex')).not.toBeInTheDocument()
   })
 

@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Info, AlertCircle } from 'lucide-react'
-import { fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { fmtMoney } from '@shared/lib/format'
 import type { TradeEvent } from '@entities/trade'
 
 interface Props {
@@ -16,9 +16,8 @@ const KIND_CONFIG = {
 export function TradeToast({ event }: Props) {
   const cfg = KIND_CONFIG[event.kind] ?? KIND_CONFIG.INFO
   const Icon = cfg.icon
-  // null(구버전 메시지·INFO/FAIL)은 USD. 원화·USDT 체결은 코인 거래소뿐이라 수량을 소수로 보여준다
+  // null(구버전 메시지·INFO/FAIL)은 USD
   const currency = event.currency ?? 'USD'
-  const isCrypto = currency !== 'USD'
 
   return (
     <div className="flex items-start gap-3 p-1 min-w-[240px]">
@@ -32,7 +31,7 @@ export function TradeToast({ event }: Props) {
         </div>
         <p className="text-sm font-semibold text-foreground mt-0.5">
           {event.ticker}
-          {event.quantity != null && (isCrypto ? ` ${fmtQuantity(event.quantity)}` : ` ${event.quantity}주`)}
+          {event.quantity != null && ` ${event.quantity}주`}
           {event.price != null && ` @ ${fmtMoney(event.price, currency)}`}
         </p>
         {event.message && (

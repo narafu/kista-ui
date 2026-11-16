@@ -1,30 +1,28 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { TradingMarket } from '@shared/lib/api-schema'
 import { MetaProvider } from '@entities/meta'
 import { DcaRuleEditor } from './DcaRuleEditor'
 import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
-import { testOrderAmount } from './__fixtures__/dcaTestMeta'
 
 const meta = {
   ...testMeta,
   strategyTypes: [{
-    code: 'DCA', availableTickers: ['UPRO', 'BTC'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
+    code: 'DCA', availableTickers: ['UPRO'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
     divisionCounts: [], orderTypes: ['MOO', 'MOC', 'MARKET'], directions: ['BUY', 'SELL'],
     frequencies: ['DAILY', 'WEEKLY', 'MONTHLY'], conditionIndicators: ['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED'],
   }],
 }
 
-function renderEditor({ direction = 'BUY', market = 'US_STOCK', isNew = true, initial }: {
-  direction?: DcaRuleFormValues['direction']; market?: TradingMarket; isNew?: boolean; initial?: Partial<DcaRuleFormValues>
+function renderEditor({ direction = 'BUY', isNew = true, initial }: {
+  direction?: DcaRuleFormValues['direction']; isNew?: boolean; initial?: Partial<DcaRuleFormValues>
 } = {}) {
   const onDone = vi.fn()
   const onDelete = vi.fn()
   const onCancel = vi.fn()
   render(
     <MetaProvider meta={meta}>
-      <DcaRuleEditor market={market} initial={{ ...buildDcaRuleDefaults(direction, market, testOrderAmount(market)), ...initial }} isNew={isNew}
+      <DcaRuleEditor initial={{ ...buildDcaRuleDefaults(direction), ...initial }} isNew={isNew}
         onDone={onDone} onDelete={onDelete} onCancel={onCancel} />
     </MetaProvider>,
   )
@@ -39,7 +37,7 @@ describe('DcaRuleEditor', () => {
     expect(screen.getByRole('heading', { level: 2, name: '매도 규칙' })).toHaveFocus()
   })
 
-  it('매수: 규모 토글 없이 금액만, 부족 시 정책은 주식 달러·크립토 원화 라벨, 기본 PARTIAL', () => {
+  it('매수: 규모 토글 없이 금액만, 부족 시 정책은 달러 라벨, 기본 PARTIAL', () => {
     renderEditor()
     expect(screen.queryByRole('button', { name: '보유 비율 %' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('회차당 금액')).toBeInTheDocument()
@@ -47,13 +45,9 @@ describe('DcaRuleEditor', () => {
     expect(screen.getByRole('button', { name: '남은 금액만큼 매수' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByText(STOCK_BUY_NOTE)).toBeInTheDocument()
-  })
-
-  it('크립토 매수 부족 시 라벨은 원화', () => {
-    renderEditor({ market: 'CRYPTO_KRW' })
-    expect(screen.getByText('원화가 부족할 때')).toBeInTheDocument()
-    expect(screen.getByLabelText('회차당 금액')).toBeInTheDocument()
-    expect(screen.queryByText(STOCK_BUY_NOTE)).not.toBeInTheDocument()
+    // 서버 메타가 아직 시장가(MARKET)를 내려도 주식 주문 방식만 보인다
+    expect(screen.getByRole('button', { name: 'MOC(종가시장가)' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'MARKET(시장가)' })).not.toBeInTheDocument()
   })
 
   it('매도: 금액/보유 비율 토글, 비율 선택 시 비율 입력과 캡션', () => {

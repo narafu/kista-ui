@@ -36,8 +36,8 @@ describe('DeleteStrategyDialog 캡션', () => {
 })
 
 describe('DeleteStrategyDialog 안내 문구', () => {
-  it.each([[undefined, '증권사에'], ['UPBIT', '거래소에']])('broker=%s면 "%s 접수된"으로 안내한다', (broker, word) => {
-    render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="BTC" broker={broker} onConfirm={vi.fn()} disabled={false} isDeleting={false} />)
+  it.each([[undefined, '증권사에']])('broker=%s면 "%s 접수된"으로 안내한다', (broker, word) => {
+    render(<DeleteStrategyDialog open onOpenChange={vi.fn()} ticker="UPRO" broker={broker} onConfirm={vi.fn()} disabled={false} isDeleting={false} />)
     expect(screen.getByText(new RegExp(`${word} 접수된 미체결 주문`))).toBeInTheDocument()
   })
   it('MOCK이면 "접수된" 없이 안내한다', () => {

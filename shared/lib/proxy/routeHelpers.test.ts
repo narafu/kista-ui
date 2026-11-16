@@ -34,7 +34,7 @@ describe('relayUpstreamError', () => {
     consoleErrorSpy.mockRestore()
   })
 
-  it.each(['Toss API Error', 'Upbit API Error'])('증권사 장애 503(%s)은 title/detail/status/code만 골라 relay한다', async (title) => {
+  it.each(['Toss API Error', 'Meritz API Error'])('증권사 장애 503(%s)은 title/detail/status/code만 골라 relay한다', async (title) => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const upstream = new Response(JSON.stringify({
       title,

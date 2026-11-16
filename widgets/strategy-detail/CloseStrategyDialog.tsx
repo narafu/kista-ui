@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 
 type CloseChoice = 'ARCHIVE' | 'DELETE'
@@ -77,7 +77,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
               <span className="min-w-0 space-y-0.5 text-sm">
                 <span className="block font-medium">삭제</span>
                 <span className="block text-xs text-muted-foreground">
-                  {isMockBroker(broker) ? '' : `${brokerKindLabel(broker)}에 접수된 `}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 성과가 사라집니다.
+                  {isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 성과가 사라집니다.
                 </span>
               </span>
             </label>

@@ -4,69 +4,55 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { describe, expect, it, vi } from 'vitest'
 import { createQueryClient } from '@shared/lib/query/createQueryClient'
-import { apiError, mockApi } from '@testing/mockApi'
+import { mockApi } from '@testing/mockApi'
 import { renderApp } from '@testing/renderApp'
 import { EditAccountForm } from './EditAccountForm'
 import type { Account } from '@entities/account'
 
 const account: Account = { id: 'acc-1', nickname: '메인 계좌', accountNoMasked: '131-**-****31', broker: 'TOSS' }
-const upbitAccount: Account = { id: 'u1', nickname: '코인', accountNoMasked: null, broker: 'UPBIT', apiKeyExpiresAt: null }
+const meritzAccount: Account = { id: 'm1', nickname: '메리츠', accountNoMasked: null, broker: 'MERITZ', apiKeyExpiresAt: null }
 
 // 저장·삭제 뒤 계좌 목록 동기화가 부르는 조회까지 한 객체로 등록한다
 const base = { 'GET /api/accounts': [] as never }
 const expiryLabel = /^API 키 만료일/
 
 describe('EditAccountForm', () => {
-  it('업비트 계좌는 계좌번호 입력을 보여주지 않는다', () => {
+  it('메리츠 계좌는 계좌번호 입력을 보여주지 않는다', () => {
     mockApi({})
-    renderApp(<EditAccountForm account={upbitAccount} />)
+    renderApp(<EditAccountForm account={meritzAccount} />)
     expect(screen.queryByLabelText('계좌번호')).not.toBeInTheDocument()
   })
 
-  it('키 재등록은 새 Access Key·Secret Key를 보낸다', async () => {
-    const { requests } = mockApi({ ...base, 'PUT /api/accounts/{id}/credentials': { id: 'u1' } as never })
-    renderApp(<EditAccountForm account={upbitAccount} />)
-    await userEvent.type(screen.getByLabelText('Access Key'), 'new-key-1234')
-    await userEvent.type(screen.getByLabelText('Secret Key'), 'new-secret-1234')
+  it('키 재등록은 새 App Key·App Secret를 보낸다', async () => {
+    const { requests } = mockApi({ ...base, 'PUT /api/accounts/{id}/credentials': { id: 'm1' } as never })
+    renderApp(<EditAccountForm account={meritzAccount} />)
+    await userEvent.type(screen.getByLabelText('App Key'), 'new-key-1234')
+    await userEvent.type(screen.getByLabelText('App Secret'), 'new-secret-1234')
     await userEvent.click(screen.getByRole('button', { name: 'API 키 재등록' }))
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('API 키가 재등록되었습니다'))
-    expect(requests[0]).toMatchObject({ method: 'PUT', path: '/api/accounts/u1/credentials', body: { appKey: 'new-key-1234', secretKey: 'new-secret-1234' } })
+    expect(requests[0]).toMatchObject({ method: 'PUT', path: '/api/accounts/m1/credentials', body: { appKey: 'new-key-1234', secretKey: 'new-secret-1234' } })
     // 성공하면 입력을 비운다
-    expect(screen.getByLabelText('Access Key')).toHaveValue('')
-    expect(screen.getByLabelText('Secret Key')).toHaveValue('')
-  })
-
-  it('키 재등록 실패는 거래소 오류 코드별 문구로 보여주고, 다시 입력하면 사라진다', async () => {
-    mockApi({ 'PUT /api/accounts/{id}/credentials': apiError(422, { code: 'BROKER_IP_NOT_ALLOWED' }) })
-    renderApp(<EditAccountForm account={upbitAccount} />)
-    await userEvent.type(screen.getByLabelText('Access Key'), 'k')
-    await userEvent.type(screen.getByLabelText('Secret Key'), 's')
-    await userEvent.click(screen.getByRole('button', { name: 'API 키 재등록' }))
-    expect(await screen.findByText(/허용 IP가 등록되지 않았습니다/)).toBeInTheDocument()
-    await userEvent.type(screen.getByLabelText('Access Key'), 'x')
-    await waitFor(() => expect(screen.queryByText(/허용 IP가 등록되지 않았습니다/)).not.toBeInTheDocument())
+    expect(screen.getByLabelText('App Key')).toHaveValue('')
+    expect(screen.getByLabelText('App Secret')).toHaveValue('')
   })
 
   it('키·시크릿이 비어 있으면 키 재등록 버튼이 잠겨 있다', async () => {
     mockApi({})
-    renderApp(<EditAccountForm account={upbitAccount} />)
+    renderApp(<EditAccountForm account={meritzAccount} />)
     expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeDisabled()
-    await userEvent.type(screen.getByLabelText('Access Key'), 'k')
+    await userEvent.type(screen.getByLabelText('App Key'), 'k')
     expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeDisabled()
-    await userEvent.type(screen.getByLabelText('Secret Key'), 's')
+    await userEvent.type(screen.getByLabelText('App Secret'), 's')
     expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeEnabled()
   })
 
-  it('추정 만료일 broker(TOSS)에서만 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
+  it('추정 만료일 broker(TOSS)는 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
     mockApi({})
-    const { unmount } = renderApp(<EditAccountForm account={account} />)
+    renderApp(<EditAccountForm account={account} />)
     const inputs = screen.getAllByLabelText(expiryLabel)
     expect(inputs).toHaveLength(2) // 계좌 정보 수정 + 키 재등록
     expect(inputs[0]).toHaveAttribute('min', new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }))
     expect(inputs[0]).toHaveValue('')
-    unmount()
-    renderApp(<EditAccountForm account={upbitAccount} />)
-    expect(screen.queryByLabelText(expiryLabel)).not.toBeInTheDocument()
   })
 
   it('만료일을 입력하지 않으면 저장 바디에 apiKeyExpiresOn이 없다', async () => {
@@ -107,7 +93,7 @@ describe('EditAccountForm', () => {
 
   it('모의계좌는 키 재등록 섹션이 없다', () => {
     mockApi({})
-    renderApp(<EditAccountForm account={{ ...upbitAccount, broker: 'MOCK', accountNoMasked: '****1234' }} />)
+    renderApp(<EditAccountForm account={{ ...meritzAccount, broker: 'MOCK', accountNoMasked: '****1234' }} />)
     expect(screen.queryByRole('button', { name: 'API 키 재등록' })).not.toBeInTheDocument()
   })
 

@@ -100,16 +100,4 @@ describe('AccountDetailContent', () => {
       expect(tabsMock).toHaveBeenCalledWith(expect.objectContaining({ ledgerTotalsError: true }))
     })
   })
-
-  it('업비트 계좌는 주식 포트폴리오를 부르지 않고 크립토 포트폴리오를 부른다', async () => {
-    // 주식 포트폴리오 경로는 등록하지 않는다 — 부르면 mockApi가 테스트를 실패시킨다
-    const api = mockApi({
-      ...ledgerTotals,
-      'GET /api/accounts/{accountId}/crypto-portfolio': { currency: 'KRW', cash: 1, totalAsset: 2, holdings: [] },
-    })
-    renderContent({ ...serverAccount, broker: 'UPBIT', accountNoMasked: null })
-
-    await waitFor(() => expect(api.requests.map((r) => r.path)).toContain('/api/accounts/account-1/crypto-portfolio'))
-    expect(api.requests.map((r) => r.path)).not.toContain('/api/accounts/account-1/portfolio')
-  })
 })

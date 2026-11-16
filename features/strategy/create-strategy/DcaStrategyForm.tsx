@@ -5,15 +5,12 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { isCryptoMarket, marketCurrency, type TradingMarket } from '@shared/lib/api-schema'
-import { currencyUnit } from '@shared/lib/format'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
 import { invalidateLedgerTotals } from '@entities/account'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
-import type { OrderAmountRule } from '@entities/meta'
 import { useCreateStrategyMutation, useReconfigureDcaMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { DcaDirection, Strategy } from '@entities/strategy'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
@@ -30,8 +27,6 @@ interface Props {
   initial?: Strategy
   availableTickers: string[] // 런타임 설정 허용 티커 (StrategyForm이 계산해 전달)
   defaultTicker: string // 런타임 설정 기본 티커 (deriveRuntimeFields가 허용 목록 기준으로 확정)
-  market: TradingMarket // 계좌 broker에서 정해지는 시장 — 금액 단위·주문 방식·실행 시각 규칙을 가른다
-  orderAmount: OrderAmountRule // 계좌 broker의 회차 금액 제약 — 규칙 금액 검증 기준
   isMock?: boolean // 모의계좌 — 가용 예수금이 없어 예수금 칸에 배지를 대신 둔다
   onSuccess?: () => void
   onCancel?: () => void
@@ -44,10 +39,10 @@ type FocusTarget = number | DcaDirection
 
 // DCA 등록·수정 — 규칙 목록 화면과 규칙 하나의 편집 화면을 같은 자리에서 전환한다(spec §3 결정 1·4).
 // 편집 화면은 브라우저 이력 한 칸을 쌓아 뒤로가기가 목록으로 돌아가게 한다(결정 7)
-export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, market, orderAmount, isMock = false, onSuccess, onCancel, header }: Props) {
+export function DcaStrategyForm({ accountId, initial, availableTickers, defaultTicker, isMock = false, onSuccess, onCancel, header }: Props) {
   const form = useForm<DcaFormValues>({
     resolver: zodResolver(dcaFormSchema),
-    defaultValues: buildDcaFormDefaults(initial, defaultTicker, market, orderAmount),
+    defaultValues: buildDcaFormDefaults(initial, defaultTicker),
   })
   const { fields, append, update, remove } = useFieldArray({ control: form.control, name: 'rules' })
   const [editing, setEditing] = useState<{ index: number | null; direction: DcaDirection } | null>(null)
@@ -88,7 +83,6 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const reconfigure = useReconfigureDcaMutation(initial?.id ?? '', invalidateDependents)
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
-  const crypto = isCryptoMarket(market)
   // 가용 예수금(계좌 미배정 금액, 계좌 통화) — 다른 전략처럼 참고값·비율 채우기용이고 초과해도 막지 않는다. 등록만 조회
   // divisionCount는 DCA와 무관한 필수 쿼리 파라미터라 서버 기본값(20)을 보낸다
   const seedPreview = useStrategySeedPreviewQuery(accountId, { type: 'DCA', ticker, divisionCount: 20 }, { enabled: !initial && !!ticker })
@@ -116,11 +110,9 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
 
   if (editing) {
     const { index, direction } = editing
-    // 규칙의 market·orderAmount는 항상 부모 값 — 어긋나면 크립토 executionHour가 payload에서 빠진다
-    const rule: DcaRuleFormValues = { ...(index == null ? buildDcaRuleDefaults(direction, market, orderAmount) : form.getValues(`rules.${index}`)), market, orderAmount }
+    const rule: DcaRuleFormValues = index == null ? buildDcaRuleDefaults(direction) : form.getValues(`rules.${index}`)
     return (
       <DcaRuleEditor
-        market={market}
         initial={rule}
         isNew={index == null}
         onCancel={() => exitEditor(() => {})}
@@ -154,7 +146,6 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
           loading={pending}
           onTickerChange={(code) => form.setValue('ticker', code)}
           customizable={availableTickers.length > 1}
-          tickerLabel={crypto ? (code) => `${code}/${marketCurrency(market)}` : undefined}
         />
         {!initial && (
           <ScheduledStartSection
@@ -174,7 +165,6 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
             isBelowMinSeed={false}
             loading={pending}
             mockBadgeLabel={isMock ? '모의계좌' : undefined}
-            currency={marketCurrency(market)}
           />
         )}
         {!initial && (
@@ -187,10 +177,6 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
               if (form.formState.isSubmitted) void form.trigger(['initialHoldings', 'initialAvgPrice'])
             }}
             loading={pending}
-            priceUnit={currencyUnit(marketCurrency(market))}
-            priceMaxDecimals={crypto ? 8 : 2}
-            quantityUnit={crypto ? ticker : '주'}
-            quantityMaxDecimals={crypto ? 8 : undefined}
             caption={needsHoldingsHint && form.watch('initialHoldings') == null ? '보유 0에서 시작합니다. 이미 보유 중이면 입력하세요.' : undefined}
             errors={{ avgPrice: form.formState.errors.initialAvgPrice?.message, quantity: form.formState.errors.initialHoldings?.message }}
           />
@@ -198,7 +184,6 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
         <div ref={listRef}>
           <DcaRuleList
             rules={fields}
-            market={market}
             onSelect={(i) => openEditor(i, fields[i].direction)}
             onAdd={(direction) => openEditor(null, direction)}
             registerRowRef={(i, el) => {

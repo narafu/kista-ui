@@ -54,7 +54,7 @@ export function AccountsGrid({ accounts }: Props) {
       {counts.size > 1 && (
         <div className="overflow-x-auto">
           <SegmentedToggle
-            aria-label="증권사·거래소 필터"
+            aria-label="증권사 필터"
             options={[
               { value: ALL, label: `전체 ${accounts.length}` },
               ...[...counts].map(([code, count]) => ({ value: code, label: `${findBroker(code)?.label ?? code} ${count}` })),

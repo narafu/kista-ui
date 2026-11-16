@@ -55,8 +55,8 @@ export interface NextOrderPreview {
   todayOrders: Array<PlacedOrder & { timing?: string }>             // 오늘 이미 등록된 PLANNED + PLACED 주문 (없으면 빈 배열)
   otherStrategiesPlannedBuyUsd: string     // 계좌 내 타 전략 당일 PLANNED BUY 합계
   ledgerCheck: LedgerCheck | null          // 전략 원장 예수금 점검 결과 (DCA·신규 BUY 없음·skip이면 null)
-  accountCashCheck: AccountCashCheck | null // 계좌 주문가능 USD 점검 (MOCK·코인·필요 BUY 없음·조회 실패면 null)
-  accountHoldingsCheck: AccountHoldingsCheck | null // 계좌 종목 판매 가능 수량 점검 (MOCK·코인·필요 SELL 없음·조회 실패면 null)
+  accountCashCheck: AccountCashCheck | null // 계좌 주문가능 USD 점검 (MOCK·필요 BUY 없음·조회 실패면 null)
+  accountHoldingsCheck: AccountHoldingsCheck | null // 계좌 종목 판매 가능 수량 점검 (MOCK·필요 SELL 없음·조회 실패면 null)
 }
 
 export interface StrategyOrder {

@@ -50,40 +50,36 @@ describe('FearGreedSection', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(NOW)
     useFearGreedQueryMock.mockReset()
-    useFearGreedQueryMock.mockImplementation(() => ({ data: { cnn: view, crypto: view } }))
+    useFearGreedQueryMock.mockImplementation(() => ({ data: { cnn: view } }))
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('queries the 365-day window once and shows the last 30 days on both cards by default', () => {
+  it('queries the 365-day window once and shows the last 30 days by default', () => {
     render(<FearGreedSection />)
 
     expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([365])
     // KST 오늘 - 30일부터 오늘까지 31건 (kista-api since 기준과 동일)
     expect(screen.getByText('CNN 공포탐욕지수 점 31')).toBeInTheDocument()
-    expect(screen.getByText('크립토 공포탐욕지수 점 31')).toBeInTheDocument()
   })
 
-  it('slices only the CNN card when its day button is clicked, without re-querying', async () => {
+  it('slices the card when its day button is clicked, without re-querying', async () => {
     const user = userEvent.setup()
     render(<FearGreedSection />)
 
     useFearGreedQueryMock.mockClear()
-    // 두 카드가 같은 선택지라 첫 번째 '90'이 CNN 카드다
-    await user.click(screen.getAllByRole('button', { name: '90' })[0])
+    await user.click(screen.getByRole('button', { name: '90' }))
 
     expect(useFearGreedQueryMock.mock.calls.every((call) => call[0] === 365)).toBe(true)
     expect(screen.getByText('CNN 공포탐욕지수 점 91')).toBeInTheDocument()
-    expect(screen.getByText('크립토 공포탐욕지수 점 31')).toBeInTheDocument()
   })
 
-  it('shows the error fallback on both cards when the query fails without data', () => {
+  it('shows the error fallback when the query fails without data', () => {
     useFearGreedQueryMock.mockImplementation(() => ({ data: undefined, isError: true }))
     render(<FearGreedSection />)
 
     expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
-    expect(screen.getByText('크립토 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 })

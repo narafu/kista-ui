@@ -53,7 +53,7 @@ export function useUpdateAccountMutation(accountId: string) {
   })
 }
 
-// 실패 문구는 EditAccountForm이 거래소 오류 코드별로 인라인 표시한다 — 토스트를 두면 같은 피드백이 두 번 나온다
+// 실패 문구는 EditAccountForm이 증권사 오류 코드별로 인라인 표시한다 — 토스트를 두면 같은 피드백이 두 번 나온다
 export function useUpdateCredentialsMutation(accountId: string) {
   const queryClient = useQueryClient()
   return useMutation<Account, Error, CredentialsRequest>({

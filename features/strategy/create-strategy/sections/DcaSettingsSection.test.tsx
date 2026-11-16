@@ -1,20 +1,18 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { TradingMarket } from '@shared/lib/api-schema'
 import { useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
 import { MetaProvider } from '@entities/meta'
 import { DcaSettingsSection, DcaSizingSection } from './DcaSettingsSection'
 import { buildDcaRuleDefaults, type DcaRuleFormValues } from '../model/dcaFormSchema'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
-import { testOrderAmount } from './__fixtures__/dcaTestMeta'
 
-function Harness({ market = 'US_STOCK', defaults }: { market?: TradingMarket; defaults?: Partial<DcaRuleFormValues> }) {
-  const form = useForm<DcaRuleFormValues>({ defaultValues: { ...buildDcaRuleDefaults('BUY', market, testOrderAmount(market)), ...defaults } })
+function Harness({ defaults }: { defaults?: Partial<DcaRuleFormValues> }) {
+  const form = useForm<DcaRuleFormValues>({ defaultValues: { ...buildDcaRuleDefaults('BUY'), ...defaults } })
   return (
     <MetaProvider meta={testMeta}>
-      <DcaSettingsSection form={form} market={market} orderTypes={['MOO', 'MOC']} frequencies={['DAILY', 'WEEKLY', 'MONTHLY']} />
-      <DcaSizingSection form={form} market={market} />
+      <DcaSettingsSection form={form} orderTypes={['MOO', 'MOC']} frequencies={['DAILY', 'WEEKLY', 'MONTHLY']} />
+      <DcaSizingSection form={form} />
     </MetaProvider>
   )
 }
@@ -37,27 +35,9 @@ describe('DcaSettingsSection', () => {
     expect(screen.queryByRole('button', { name: '매도' })).not.toBeInTheDocument()
   })
 
-  it('코인은 금액을 원 단위로 받고 주문 방식 대신 실행 시각을 보여준다', () => {
-    render(<Harness market="CRYPTO_KRW" />)
-    expect(screen.getByLabelText('회차당 금액')).toHaveAttribute('inputmode', 'numeric')
-    expect(screen.getByText('원')).toBeInTheDocument()
-    expect(screen.queryByText('주문 방식')).not.toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: '실행 시각' })).toBeInTheDocument()
-    expect(screen.queryByText(/휴장일이면/)).not.toBeInTheDocument()
-  })
-
-  it('코인 WEEKLY는 토·일을 포함한 7일을 보여준다', async () => {
-    const user = userEvent.setup()
-    render(<Harness market="CRYPTO_KRW" />)
-    await user.click(screen.getByRole('button', { name: '매주' }))
-    await user.click(screen.getByRole('combobox', { name: '실행 요일' }))
-    expect(await screen.findByRole('option', { name: '일요일' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: '토요일' })).toBeInTheDocument()
-  })
-
   it('주식 WEEKLY는 평일만 보여주고 금액은 USD다', async () => {
     const user = userEvent.setup()
-    render(<Harness market="US_STOCK" />)
+    render(<Harness />)
     await user.click(screen.getByRole('button', { name: '매주' }))
     await user.click(screen.getByRole('combobox', { name: '실행 요일' }))
     expect(await screen.findByRole('option', { name: '금요일' })).toBeInTheDocument()

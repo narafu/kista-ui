@@ -1,6 +1,6 @@
 import { useMeta } from '@entities/meta'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
-import { isCryptoMarket, toCurrency, type Currency } from '@shared/lib/api-schema'
+import { toCurrency } from '@shared/lib/api-schema'
 import { directionBadgeClass } from '@entities/trade'
 import { orderStatusBadgeClass } from '@entities/order'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -9,12 +9,6 @@ import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { useTableSort, type SortDirection } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import type { AdminTrade } from '@entities/admin'
-
-// 통화는 계좌 기준(BTC는 KRW·USDT 시장 공유) — 계좌를 못 찾아 null이면 코인은 단위 없이 숫자만, 주식은 USD
-function fmtTradePrice(price: number, currency: Currency | undefined, isCryptoTicker: boolean): string {
-  if (currency) return fmtMoney(price, currency)
-  return isCryptoTicker ? price.toLocaleString('en-US', { maximumFractionDigits: 8 }) : fmtMoney(price, 'USD')
-}
 
 type SortKey = 'default' | 'tradeDate' | 'owner' | 'strategy' | 'ticker' | 'direction' | 'orderType' | 'price' | 'quantity' | 'status'
 
@@ -57,7 +51,7 @@ interface Props {
 }
 
 export function AdminTradesTable({ trades, sort }: Props) {
-  const { labelOf, findTicker } = useMeta()
+  const { labelOf } = useMeta()
 
   if (trades.length === 0) {
     return (
@@ -96,7 +90,7 @@ export function AdminTradesTable({ trades, sort }: Props) {
                   <Badge tone="none" size="sm" className={directionBadgeClass(trade.direction)}>{labelOf('orderDirections', trade.direction)}</Badge>
                 </TableDataCell>
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{labelOf('orderTypes', trade.orderType)}</TableDataCell>
-                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtTradePrice(trade.price, toCurrency(trade.currency), isCryptoMarket(findTicker(trade.ticker)?.market))}</TableDataCell>
+                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtMoney(trade.price, toCurrency(trade.currency) ?? 'USD')}</TableDataCell>
                 <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>

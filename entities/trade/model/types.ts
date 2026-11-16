@@ -56,7 +56,7 @@ export interface DailyTransaction {
   direction: OrderDirection
   ticker: string
   symbolName: string
-  quantity: number // 코인은 소수
+  quantity: number
   price: number
   tradeAmount: number // 계좌 통화, 그 통화 단위로 반올림됨
   currency: Currency // 계좌 통화
@@ -64,19 +64,4 @@ export interface DailyTransaction {
 
 export interface DailyTransactionResult {
   items: DailyTransaction[]
-}
-
-export interface CryptoHolding {
-  ticker: string
-  quantity: number
-  avgBuyPrice: number | null // 거래소 값도 원장 평단도 없으면 null
-  currentPrice: number | null // 현재가 조회 실패 — 이때 evalAmount는 null(0으로 정규화)이라 화면에서 0으로 보여주지 않는다
-  evalAmount: number
-}
-
-export interface CryptoPortfolio {
-  currency: Currency // 계좌 통화 — cash·totalAsset·holdings 금액 모두 이 통화다
-  cash: number
-  totalAsset: number
-  holdings: CryptoHolding[]
 }

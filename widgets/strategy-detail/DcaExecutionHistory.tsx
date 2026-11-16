@@ -15,8 +15,6 @@ import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
 import { TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
-import { isCryptoMarket, marketCurrency } from '@shared/lib/api-schema'
-import type { TradingMarket } from '@shared/lib/api-schema'
 import { SectionError } from '@shared/ui/SectionError'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { resolveRangeStrict } from '@shared/lib/date-range'
@@ -26,10 +24,8 @@ import { ALL_FILTER_VALUE } from './OrderHistoryFilters'
 
 type ExecutionItem = NonNullable<ReturnType<typeof useDcaExecutionsQuery>['data']>['content'][number]
 
-export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { strategyId: string; ticker: string; rules: DcaRule[]; market: TradingMarket }) {
+export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string; rules: DcaRule[] }) {
   const { labelOf } = useMeta()
-  const isCrypto = isCryptoMarket(market)
-  const currency = marketCurrency(market)
   const range$ = useRangeFilterState()
   const { rangeType, customFrom, customTo, pageSize } = range$
   const [direction, setDirectionRaw] = useState(ALL_FILTER_VALUE)
@@ -74,15 +70,15 @@ export function DcaExecutionHistory({ strategyId, ticker, rules, market }: { str
   const conditionCell = (r: ExecutionItem) => {
     const conditions = conditionsOf(r)
     return conditions.length === 0 ? '-' : conditions.map((c, i) => (
-      <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto), labelOf('dcaOperators', c.operator))}</div>
+      <div key={i}>{formatDcaCondition(c, dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator)), labelOf('dcaOperators', c.operator))}</div>
     ))
   }
   const statusBadge = (r: ExecutionItem) => (
     <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{labelOf('dcaExecutionStatuses', r.status)}</Badge>
   )
-  const quantityText = (r: ExecutionItem) => (r.quantity != null ? (isCrypto ? `${fmtQuantity(r.quantity)} ${ticker}` : `${fmtQuantity(r.quantity)}주`) : '-')
+  const quantityText = (r: ExecutionItem) => (r.quantity != null ? `${fmtQuantity(r.quantity)}주` : '-')
   // 칸 이름이 '체결가'(모바일)·'체결'(PC)이라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
-  const fillPriceText = (r: ExecutionItem) => (!r.order ? '-' : r.order.filledPrice != null ? fmtMoney(r.order.filledPrice, currency) : labelOf('orderStatuses', r.order.status))
+  const fillPriceText = (r: ExecutionItem) => (!r.order ? '-' : r.order.filledPrice != null ? fmtMoney(r.order.filledPrice, 'USD') : labelOf('orderStatuses', r.order.status))
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
   const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
 

@@ -5,7 +5,8 @@ import type { components } from './api-types'
 // kista-api ProblemDetail 확장 프로퍼티 code — 상수는 추가만 되고 이름 변경·삭제되지 않는다
 export type ErrorCode = components['schemas']['ErrorCode']
 
-export type BrokerCode = NonNullable<components['schemas']['AccountRequest']['broker']>
+// 생성 enum에 서버가 아직 지우지 않은 증권사 외 값이 남아 있어 UI가 다루는 증권사만 화이트리스트로 좁힌다
+export type BrokerCode = Extract<NonNullable<components['schemas']['AccountRequest']['broker']>, 'TOSS' | 'MOCK' | 'MERITZ'>
 
 export type UserStatus = NonNullable<components['schemas']['UserResponse']['status']>
 export type UserRole = NonNullable<components['schemas']['UserResponse']['role']>
@@ -50,64 +51,17 @@ export function isMockBroker(broker: string | null | undefined): boolean {
   return broker === 'MOCK'
 }
 
-export type TradingMarket = 'US_STOCK' | 'CRYPTO_KRW' | 'CRYPTO_USDT'
-export type Currency = 'USD' | 'KRW' | 'USDT'
+export type Currency = 'USD' | 'KRW'
 
-// meta.brokers[].market과 같은 값이다. Server Component(계좌 상세 prefetch)에서도 판정해야 해서 정적 맵으로 둔다.
-// Record<BrokerCode, …>라 gen:types로 broker가 추가되면 typecheck가 여기서 깨진다.
-const BROKER_MARKET: Record<BrokerCode, TradingMarket> = {
-  TOSS: 'US_STOCK',
-  MOCK: 'US_STOCK',
-  UPBIT: 'CRYPTO_KRW',
-  MERITZ: 'US_STOCK',
-  BINANCE: 'CRYPTO_USDT',
-}
-
-const MARKET_CURRENCY: Record<TradingMarket, Currency> = {
-  US_STOCK: 'USD',
-  CRYPTO_KRW: 'KRW',
-  CRYPTO_USDT: 'USDT',
-}
-
-export function brokerMarket(broker: string | null | undefined): TradingMarket {
-  return (broker && BROKER_MARKET[broker as BrokerCode]) || 'US_STOCK'
-}
-
-// 코인 거래소 계좌 — 주식 시세·잔고 엔드포인트(portfolio/prices)를 부르면 400이라 쿼리를 막는 기준
-export function isCryptoBroker(broker: string | null | undefined): boolean {
-  return isCryptoMarket(brokerMarket(broker))
-}
-
-// 계좌가 정해진 화면에서 broker를 가리키는 일반 명칭. 계좌가 정해지기 전(등록 1단계·관리자 필터)은 '증권사·거래소'로 쓴다
-export function brokerKindLabel(broker: string | null | undefined): '증권사' | '거래소' {
-  return isCryptoBroker(broker) ? '거래소' : '증권사'
-}
-
-// 앱키 하나에 계좌 하나가 묶여 계좌번호를 받지 않는 broker(업비트·메리츠). 계좌 등록 흐름에서 계좌번호 입력을 건너뛰는 기준
+// 앱키 하나에 계좌 하나가 묶여 계좌번호를 받지 않는 broker(메리츠). 계좌 등록 흐름에서 계좌번호 입력을 건너뛰는 기준
 export function isKeyOnlyBroker(broker: string | null | undefined): boolean {
-  return isCryptoBroker(broker) || broker === 'MERITZ'
+  return broker === 'MERITZ'
 }
 
-// 계좌에 귀속된 금액의 표시 통화. 통화 간 환산은 하지 않는다
-export function brokerCurrency(broker: string | null | undefined): Currency {
-  return MARKET_CURRENCY[brokerMarket(broker)]
-}
-
-// 계좌 통화 표시 단위 — 서버 Currency.amountScale과 같다(KRW 원 단위, USD·USDT 센트)
-export const CURRENCY_SCALE: Record<Currency, number> = { KRW: 0, USD: 2, USDT: 2 }
+// 계좌 통화 표시 단위 — 서버 Currency 자릿수와 같다(KRW 원 단위, USD 센트)
+export const CURRENCY_SCALE: Record<Currency, number> = { KRW: 0, USD: 2 }
 
 // 서버가 통화를 문자열로 내려 모르는 값이 올 수 있다 — Currency로 좁히고 아니면 undefined
 export function toCurrency(v: string | null | undefined): Currency | undefined {
-  return v === 'USD' || v === 'KRW' || v === 'USDT' ? v : undefined
-}
-
-export function marketCurrency(market: TradingMarket): Currency {
-  return MARKET_CURRENCY[market]
-}
-
-const CRYPTO_MARKETS: ReadonlySet<string> = new Set<TradingMarket>(['CRYPTO_KRW', 'CRYPTO_USDT'])
-
-// 계좌·티커 시장 판정 — 1h 메타 캐시로 market이 빠진 응답은 주식으로 본다
-export function isCryptoMarket(market: string | null | undefined): boolean {
-  return !!market && CRYPTO_MARKETS.has(market)
+  return v === 'USD' || v === 'KRW' ? v : undefined
 }

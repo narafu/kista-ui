@@ -4,26 +4,22 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { fmtDate } from '@shared/lib/format'
-import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { earliestNextExecution, formatCryptoNextExecution, latestLastExecution, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
+import { earliestNextExecution, latestLastExecution, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 
 interface Props {
   accountId: string
-  broker: string
   strategy: Strategy
   accountLabel?: string | ReactNode
 }
 
 // DCA 카드 — 미리보기(readiness·시드) 없이 설정 요약·다음 판정·최근 결과만 표시.
 // 레이아웃은 사이클 카드(StrategyCard)와 같은 골격: 모바일 2행, PC는 배지·티커 헤더 + 정보 행 + 금액 푸터
-export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: Props) {
+export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const { labelOf } = useMeta()
-  // 크립토 여부는 계좌 broker 기준 — BTC는 업비트·바이낸스 모두에 있어 티커로 정할 수 없다
-  const isCrypto = isCryptoBroker(broker)
   const { dca } = strategy // 서버가 dca를 누락해도 카드 셸은 렌더한다
   const rules = dca?.rules ?? []
   const buyCount = rules.filter(r => r.direction === 'BUY').length
@@ -37,12 +33,8 @@ export function DcaStrategyCard({ accountId, broker, strategy, accountLabel }: P
     ? `최근 ${labelOf('dcaExecutionStatuses', last.status)}${last.skipReason ? ` · ${labelOf('dcaSkipReasons', last.skipReason)}` : ''}`
     : null
   const next = earliestNextExecution(rules)
-  const nextLabel = isCrypto ? '다음 실행' : '다음 판정'
-  const nextValue = !next?.nextExecution
-    ? '미정'
-    : isCrypto
-      ? formatCryptoNextExecution(next.nextExecution.kstTradeDate, next.executionHour)
-      : fmtDate(next.nextExecution.kstTradeDate)
+  const nextLabel = '다음 판정'
+  const nextValue = !next?.nextExecution ? '미정' : fmtDate(next.nextExecution.kstTradeDate)
   const scheduledStart = isScheduledStart(strategy)
   const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
   const statusAccent = strategyStatusAccent(strategy.status)

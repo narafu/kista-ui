@@ -4,11 +4,8 @@ import { StrategyList } from '@widgets/strategy-list'
 import { useStrategiesQuery } from '@entities/strategy'
 import { AccountSummaryCard } from './AccountSummaryCard'
 import { TradesTab } from './TradesTab'
-import { CryptoHoldingsCard } from './CryptoHoldingsCard'
-import { isCryptoBroker } from '@shared/lib/api-schema'
 import { SegmentedTabs } from '@shared/ui/SegmentedTabs'
 import type { Account, AccountLedgerTotals } from '@entities/account'
-import type { CryptoPortfolio } from '@entities/trade'
 
 interface Props {
   account: Account
@@ -16,19 +13,14 @@ interface Props {
   posEvalUsd: number
   ledgerTotals?: AccountLedgerTotals
   ledgerTotalsError?: boolean
-  cryptoPortfolio?: CryptoPortfolio
-  cryptoPortfolioError?: boolean
 }
 
-export function AccountDetailTabs({ account, deposit, posEvalUsd, ledgerTotals, ledgerTotalsError, cryptoPortfolio, cryptoPortfolioError }: Props) {
+export function AccountDetailTabs({ account, deposit, posEvalUsd, ledgerTotals, ledgerTotalsError }: Props) {
   const { data: strategies, isError: strategiesError } = useStrategiesQuery(account.id)
-  // 크립토 계좌는 사이클 이력(USD 예수금 열) 대신 보유 종목을 보여준다
-  const rightPanel = isCryptoBroker(account.broker)
-    ? <CryptoHoldingsCard portfolio={cryptoPortfolio} isError={cryptoPortfolioError ?? false} />
-    : <TradesTab accountId={account.id} />
+  const rightPanel = <TradesTab accountId={account.id} />
 
   const summary = (
-    <AccountSummaryCard account={account} deposit={deposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} ledgerTotalsError={ledgerTotalsError} cryptoPortfolio={cryptoPortfolio} />
+    <AccountSummaryCard account={account} deposit={deposit} posEvalUsd={posEvalUsd} ledgerTotals={ledgerTotals} ledgerTotalsError={ledgerTotalsError} />
   )
 
   return (
@@ -51,7 +43,7 @@ export function AccountDetailTabs({ account, deposit, posEvalUsd, ledgerTotals, 
           {
             value: 'strategy',
             label: '전략',
-            content: <StrategyList accountId={account.id} broker={account.broker} strategies={strategies} isError={strategiesError} />,
+            content: <StrategyList accountId={account.id} strategies={strategies} isError={strategiesError} />,
           },
         ]}
         className="space-y-4 lg:hidden"
@@ -63,7 +55,7 @@ export function AccountDetailTabs({ account, deposit, posEvalUsd, ledgerTotals, 
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
         <div className="space-y-6">
           {summary}
-          <StrategyList accountId={account.id} broker={account.broker} strategies={strategies} isError={strategiesError} />
+          <StrategyList accountId={account.id} strategies={strategies} isError={strategiesError} />
         </div>
         {rightPanel}
       </div>

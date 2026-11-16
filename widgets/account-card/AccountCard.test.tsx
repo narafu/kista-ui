@@ -63,7 +63,7 @@ describe('AccountCard', () => {
   afterEach(() => vi.useRealTimers())
 
   it('API 키 만료가 30일 이내면 만료 임박 배지를 보여준다', () => {
-    render(<AccountCard account={{ ...baseAccount, broker: 'UPBIT', accountNoMasked: null, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} />)
+    render(<AccountCard account={{ ...baseAccount, broker: 'MERITZ', accountNoMasked: null, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} />)
     expect(screen.getAllByText('API 키 만료 임박').length).toBeGreaterThan(0)
   })
 

@@ -4,7 +4,6 @@ import { useState, useSyncExternalStore } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@shared/lib/utils'
 import { fmtCompactMoneyNarrow, fmtMoney } from '@shared/lib/format'
-import { isCryptoBroker } from '@shared/lib/api-schema'
 import { Surface } from '@shared/ui/Surface'
 import { IconButton } from '@shared/ui/IconButton'
 import { Spinner } from '@shared/ui/Spinner'
@@ -76,7 +75,7 @@ function TradeBadges({ summary, badgeClassName }: { summary: DayTradeSummary; ba
 
 const COMPACT_BADGE_CLASS = 'block rounded py-px text-[10px] leading-tight'
 
-// 주말·미국 휴장일에도 크립토 체결이 있으면 배지를 그린다
+// 주말·미국 휴장일에도 체결이 있으면 배지를 그린다
 function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(rowStart, i)
@@ -113,10 +112,10 @@ interface CurrentRowProps {
   tradeSummary: Map<string, DayTradeSummary>
   holidaySet: Set<string>
   todayStr: string | null
-  hasStockAccount: boolean
+  hasAccount: boolean
 }
 
-function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasStockAccount }: CurrentRowProps) {
+function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasAccount }: CurrentRowProps) {
   return Array.from({ length: 7 }, (_, i) => {
     const day = addDays(weekStart, i)
     const ds = toDateStr(day)
@@ -147,7 +146,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasStockAcc
       sub = <span className="text-xs text-muted-foreground">{summary.tradeCount}체결</span>
     } else if (closedLabel) {
       badge = closedLabel
-    } else if (isToday && hasStockAccount) {
+    } else if (isToday && hasAccount) {
       badge = <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-info-bg text-info">대기</span>
       sub = <span className="text-xs text-muted-foreground">오늘</span>
     } else {
@@ -182,9 +181,8 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasStockAcc
 
 export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: Props) {
   const { data: accounts } = useAccountsQuery({ enabled: isAuthenticated })
-  // 일별 체결은 크립토 계좌도 계좌 통화로 포함한다. "대기"(미국 장 주문 대기)만 주식 계좌 기준이다
   const accountIds = accounts?.map((account) => account.id) ?? []
-  const hasStockAccount = accounts?.some((account) => !isCryptoBroker(account.broker)) ?? false
+  const hasAccount = (accounts?.length ?? 0) > 0
 
   const [displayWeekStart, setDisplayWeekStart] = useState(
     () => new Date(initialWeekStartDate + 'T00:00:00'),
@@ -267,7 +265,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
           </div>
         ))}
         <CompactRow rowStart={prevWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
-        <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} hasStockAccount={hasStockAccount} />
+        <CurrentRow weekStart={displayWeekStart} tradeSummary={tradeSummary} holidaySet={holidaySet} todayStr={todayStr} hasAccount={hasAccount} />
         <CompactRow rowStart={nextWeekStart} summary={tradeSummary} holidaySet={holidaySet} />
       </div>
 
@@ -286,7 +284,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
               <span className="size-[7px] rounded bg-neg shrink-0" />
               매도
             </span>
-            {hasStockAccount && (
+            {hasAccount && (
               <span className="flex items-center gap-1.5">
                 <span className="size-[7px] rounded bg-info shrink-0" />
                 대기

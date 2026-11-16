@@ -7,7 +7,7 @@ export const vrSummary = (over: Partial<StrategyVrSummary> = {}): StrategyVrSumm
 })
 
 export const dcaRule = (over: Partial<DcaRule> = {}): DcaRule => ({
-  ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+  ruleKey: 'a', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC',
   sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL', conditions: [],
   nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null,
   ...over,

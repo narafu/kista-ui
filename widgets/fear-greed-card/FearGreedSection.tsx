@@ -20,30 +20,18 @@ function sliceDays(view: FearGreedSourceView | undefined, days: Days): FearGreed
 
 export function FearGreedSection() {
   const [cnnDays, setCnnDays] = useState<Days>(30)
-  const [cryptoDays, setCryptoDays] = useState<Days>(30)
 
   const { data, isError, isPending } = useFearGreedQuery(MAX_DAYS)
 
   return (
-    <>
-      <FearGreedCard
-        title="CNN 공포탐욕지수"
-        data={sliceDays(data?.cnn, cnnDays)}
-        error={isError}
-        loading={isPending}
-        days={cnnDays}
-        onDaysChange={(d) => setCnnDays(d as Days)}
-        daysOptions={DAYS_OPTIONS}
-      />
-      <FearGreedCard
-        title="크립토 공포탐욕지수"
-        data={sliceDays(data?.crypto, cryptoDays)}
-        error={isError}
-        loading={isPending}
-        days={cryptoDays}
-        onDaysChange={(d) => setCryptoDays(d as Days)}
-        daysOptions={DAYS_OPTIONS}
-      />
-    </>
+    <FearGreedCard
+      title="CNN 공포탐욕지수"
+      data={sliceDays(data?.cnn, cnnDays)}
+      error={isError}
+      loading={isPending}
+      days={cnnDays}
+      onDaysChange={(d) => setCnnDays(d as Days)}
+      daysOptions={DAYS_OPTIONS}
+    />
   )
 }

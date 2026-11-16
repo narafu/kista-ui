@@ -7,10 +7,10 @@ describe('sortMockLast', () => {
       { id: 'm1', broker: 'MOCK' as const },
       { id: 'k1', broker: 'TOSS' as const },
       { id: 'm2', broker: 'MOCK' as const },
-      { id: 'u1', broker: 'UPBIT' as const },
+      { id: 'z1', broker: 'MERITZ' as const },
     ]
 
-    expect(sortMockLast(accounts).map((a) => a.id)).toEqual(['k1', 'u1', 'm1', 'm2'])
+    expect(sortMockLast(accounts).map((a) => a.id)).toEqual(['k1', 'z1', 'm1', 'm2'])
   })
 
   it('does not mutate the input', () => {

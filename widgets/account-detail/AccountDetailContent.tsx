@@ -4,8 +4,8 @@ import Link from 'next/link'
 
 import { useQuery } from '@tanstack/react-query'
 import { accountLedgerTotalsQueryOptions, useAccountDetailQuery } from '@entities/account'
-import { accountPortfolioQueryOptions, cryptoPortfolioQueryOptions } from '@entities/trade'
-import { isCryptoBroker, isMockBroker } from '@shared/lib/api-schema'
+import { accountPortfolioQueryOptions } from '@entities/trade'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { PageHeader } from '@widgets/page-header'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'
@@ -23,17 +23,15 @@ export function AccountDetailContent({
 }: Props) {
   const { data } = useAccountDetailQuery(accountId)
   const account = data === undefined ? initialAccount : data
-  const isCrypto = !!account && isCryptoBroker(account.broker)
-  // MOCK·크립토 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
+  // MOCK 계좌는 주식 포트폴리오 대상이 아니라 서버 prefetch와 같은 조건으로 스킵
   const { data: portfolio } = useQuery({
     ...accountPortfolioQueryOptions(accountId),
-    enabled: !!account && !isMockBroker(account.broker) && !isCrypto,
+    enabled: !!account && !isMockBroker(account.broker),
   })
   const ledgerQuery = useQuery({
     ...accountLedgerTotalsQueryOptions(accountId),
     enabled: !!account,
   })
-  const cryptoQuery = useQuery({ ...cryptoPortfolioQueryOptions(accountId), enabled: isCrypto })
 
   if (!account) return null
 
@@ -59,8 +57,6 @@ export function AccountDetailContent({
         posEvalUsd={portfolio?.summary?.posEvalUsd ?? 0}
         ledgerTotals={ledgerQuery.data}
         ledgerTotalsError={ledgerQuery.isError && !ledgerQuery.data}
-        cryptoPortfolio={cryptoQuery.data}
-        cryptoPortfolioError={cryptoQuery.isError && !cryptoQuery.data}
       />
     </div>
   )

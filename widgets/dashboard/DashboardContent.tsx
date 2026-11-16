@@ -8,16 +8,15 @@ import { DashboardSkeleton } from './DashboardSkeleton'
 
 interface Props {
   marketPanels: ReactNode
-  bottomPanels?: ReactNode
   isAuthenticated: boolean
 }
 
-export function DashboardContent({ marketPanels, bottomPanels, isAuthenticated }: Props) {
+export function DashboardContent({ marketPanels, isAuthenticated }: Props) {
   const query = useAccountsQuery({ enabled: isAuthenticated })
   const accounts = query.data
 
   if (!isAuthenticated) {
-    return <DashboardEmpty marketPanels={marketPanels} bottomPanels={bottomPanels} />
+    return <DashboardEmpty marketPanels={marketPanels} />
   }
 
   if (!accounts && query.isPending) {
@@ -30,15 +29,14 @@ export function DashboardContent({ marketPanels, bottomPanels, isAuthenticated }
     return (
       <DashboardOverview
         marketPanels={marketPanels}
-        bottomPanels={bottomPanels}
         notice={<p className="mb-4 text-sm text-warn">계좌 정보를 불러오지 못했습니다.</p>}
       />
     )
   }
 
   if (!accounts || accounts.length === 0) {
-    return <DashboardEmpty marketPanels={marketPanels} bottomPanels={bottomPanels} />
+    return <DashboardEmpty marketPanels={marketPanels} />
   }
 
-  return <DashboardOverview marketPanels={marketPanels} bottomPanels={bottomPanels} />
+  return <DashboardOverview marketPanels={marketPanels} />
 }

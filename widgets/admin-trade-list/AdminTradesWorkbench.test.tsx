@@ -203,22 +203,6 @@ describe('AdminTradesWorkbench', () => {
     expect(screen.queryByRole('option', { name: '(알 수 없음)' })).not.toBeInTheDocument()
   })
 
-  it('크립토 계좌도 증권사 선택지에 나온다', async () => {
-    const user = userEvent.setup()
-    listAdminAccountsMock.mockReset().mockResolvedValue([
-      ...accounts,
-      { id: 'account-upbit', userId: 'user-1', ownerNickname: '홍길동', nickname: '업비트', accountNoMasked: '', broker: 'UPBIT', strategies: [] },
-    ])
-
-    renderWorkbench()
-
-    await pick(user, '사용자 선택', '홍길동')
-    await waitFor(() => expect(screen.getByRole('combobox', { name: '증권사 선택' })).not.toBeDisabled())
-    await user.click(screen.getByRole('combobox', { name: '증권사 선택' }))
-    expect(await screen.findByRole('option', { name: '토스증권' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: '업비트' })).toBeInTheDocument()
-  })
-
   it('계좌 선택지는 계좌명과 마스킹 번호로, 계좌번호가 없는 계좌는 계좌명만으로 보여 준다', async () => {
     const user = userEvent.setup()
     listAdminAccountsMock.mockReset().mockResolvedValue([

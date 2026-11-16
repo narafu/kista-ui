@@ -9,10 +9,6 @@ interface Props {
   quantity: number | null
   setField: (field: 'avgPrice' | 'quantity', value: number | null) => void
   loading: boolean
-  priceUnit?: string
-  priceMaxDecimals?: number
-  quantityUnit?: string
-  quantityMaxDecimals?: number
   caption?: ReactNode
   errors?: { avgPrice?: string; quantity?: string }
   // 평단가·수량 쌍에 걸친 사유 — 두 입력칸 아래에 한 번 표시
@@ -22,7 +18,7 @@ interface Props {
 // 중간부터 시작 — 이미 종목을 보유 중인 사용자가 기존 평단가·수량을 입력해 그 지점부터 전략을 시작하는 공통 입력(등록 전용)
 export function InitialHoldingsSection({
   avgPrice, quantity, setField, loading,
-  priceUnit = 'USD', priceMaxDecimals = 2, quantityUnit = '주', quantityMaxDecimals, caption, errors, error,
+  caption, errors, error,
 }: Props) {
   const id = useId()
   const pairErrorId = error ? `${id}-error` : undefined
@@ -35,10 +31,10 @@ export function InitialHoldingsSection({
             id={`${id}-avgPrice`}
             value={avgPrice}
             onChange={(value) => setField('avgPrice', value)}
-            unit={priceUnit}
+            unit="USD"
             disabled={loading}
             unitClassName="ml-1.5"
-            maxDecimals={priceMaxDecimals}
+            maxDecimals={2}
             errorId={errors?.avgPrice ? `${id}-avgPrice-error` : pairErrorId}
           />
           {errors?.avgPrice && <p id={`${id}-avgPrice-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.avgPrice}</p>}
@@ -49,10 +45,9 @@ export function InitialHoldingsSection({
             id={`${id}-quantity`}
             value={quantity}
             onChange={(value) => setField('quantity', value)}
-            unit={quantityUnit}
+            unit="주"
             disabled={loading}
             unitClassName="ml-1.5"
-            maxDecimals={quantityMaxDecimals}
             errorId={errors?.quantity ? `${id}-quantity-error` : pairErrorId}
           />
           {errors?.quantity && <p id={`${id}-quantity-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.quantity}</p>}

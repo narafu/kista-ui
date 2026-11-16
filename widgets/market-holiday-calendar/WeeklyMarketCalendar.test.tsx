@@ -124,19 +124,8 @@ describe('WeeklyMarketCalendar', () => {
     expect(badge.querySelector('br')).not.toBeNull()
   })
 
-  it('크립토 계좌도 일별 체결 조회에 포함하고 "대기"는 주식 계좌가 있을 때만 보인다', () => {
-    useAccountsQueryMock.mockReturnValue({
-      data: [{ id: 'a2', nickname: '크립토', accountNoMasked: null, broker: 'UPBIT' }],
-    })
-
-    render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
-
-    expect(useDailyTradesRangeQueryMock.mock.lastCall?.[0]).toEqual(['a2'])
-    expect(screen.queryByText('대기')).not.toBeInTheDocument()
-  })
-
-  it('주말·휴장일 칸에도 크립토 체결 배지를 통화별로 따로 그린다', () => {
-    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a2', broker: 'UPBIT' }] })
+  it('주말·휴장일 칸에도 체결 배지를 통화별로 따로 그린다', () => {
+    useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a2', broker: 'TOSS' }] })
     useDailyTradesRangeQueryMock.mockReturnValue({
       data: new Map([
         // 2026-07-04(토), 2026-07-01(휴장일), 2026-06-27(앞 주 토)
@@ -145,7 +134,6 @@ describe('WeeklyMarketCalendar', () => {
           tradeCount: 2,
           byCurrency: [
             { currency: 'KRW', buyAmount: 50000, sellAmount: 0, buyCount: 1, sellCount: 0 },
-            { currency: 'USDT', buyAmount: 1234, sellAmount: 0, buyCount: 1, sellCount: 0 },
           ],
         }],
         ['2026-06-27', { tradeCount: 1, byCurrency: [{ currency: 'KRW', buyAmount: 0, sellAmount: 5000, buyCount: 0, sellCount: 1 }] }],
@@ -157,7 +145,6 @@ describe('WeeklyMarketCalendar', () => {
 
     expect(screen.getByTitle('매수 123,456원')).toHaveTextContent('매수12만원')
     expect(screen.getByTitle('매수 50,000원')).toHaveTextContent('매수5만원')
-    expect(screen.getByTitle('매수 1,234.00 USDT')).toHaveTextContent('매수1.2K₮')
     expect(screen.getByTitle('매도 5,000원')).toHaveTextContent('매도5천원')
   })
 })

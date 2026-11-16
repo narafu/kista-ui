@@ -1,14 +1,11 @@
 import { z } from 'zod'
-import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
-import { fmtMoney, todayKst } from '@shared/lib/format'
-import type { OrderAmountRule } from '@entities/meta'
+import { todayKst } from '@shared/lib/format'
 import { STOCK_WEEKDAYS, type DcaRule, type Strategy } from '@entities/strategy'
 
 export const LAST_DAY = 'LAST' // 매월 말일 — payload에서 dayOfMonth null로 직렬화
 export const DAY_OPTIONS = [...Array.from({ length: 31 }, (_, i) => String(i + 1)), LAST_DAY]
 export const MAX_DCA_RULES = 10 // kista-api 상한과 동일
 export const MAX_DCA_CONDITIONS = 10 // kista-api 상한과 동일
-export const DEFAULT_EXECUTION_HOUR = 9 // 거래소 일봉 마감(09:00 KST) 직후
 
 const conditionSchema = z.object({
   indicator: z.enum(['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED']),
@@ -35,16 +32,10 @@ const conditionSchema = z.object({
   }
 })
 
-const MARKETS = ['US_STOCK', 'CRYPTO_KRW', 'CRYPTO_USDT'] as const
-const SCALE_ORDINAL = ['', '첫째', '둘째', '셋째', '넷째', '다섯째', '여섯째', '일곱째', '여덟째']
-
 export const dcaRuleSchema = z.object({
-  market: z.enum(MARKETS), // 계좌 broker에서 정해지는 값 — 입력 필드가 아니다. 부모 폼이 각 규칙에 복사한다
-  orderAmount: z.object({ min: z.number(), scale: z.number().int(), currency: z.enum(['USD', 'KRW', 'USDT']) }), // market과 같이 부모가 복사하는 계좌 금액 제약 — 크립토 금액 검사 기준
   ruleKey: z.string().nullable(), // 수정 모드의 기존 규칙 식별자. 신규는 null
   direction: z.enum(['BUY', 'SELL']),
-  orderType: z.enum(['MOO', 'MOC', 'MARKET']),
-  executionHour: z.number().int().min(0).max(23).nullable(),
+  orderType: z.enum(['MOO', 'MOC'], { error: '주문 방식을 선택하세요.' }), // 서버 메타의 시장가(MARKET) 등은 거부
   frequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']),
   dayOfWeek: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']).nullable(),
   dayOfMonth: z.string().nullable(),
@@ -62,16 +53,8 @@ export const dcaRuleSchema = z.object({
   } else if (v.frequency === 'MONTHLY' && !DAY_OPTIONS.includes(v.dayOfMonth ?? '')) {
     ctx.addIssue({ code: 'custom', path: ['dayOfMonth'], message: '1~31일 또는 말일을 선택하세요.' })
   }
-  const isCrypto = isCryptoMarket(v.market)
-  if (isCrypto) {
-    if (v.orderType !== 'MARKET') ctx.addIssue({ code: 'custom', path: ['orderType'], message: '크립토는 시장가 주문만 지원합니다.' })
-    // 00시가 유효값이라 == null로 판정한다(truthy 검사 금지)
-    if (v.executionHour == null) ctx.addIssue({ code: 'custom', path: ['executionHour'], message: '실행 시각을 선택하세요.' })
-  } else {
-    if (v.orderType === 'MARKET') ctx.addIssue({ code: 'custom', path: ['orderType'], message: '주문 방식을 선택하세요.' })
-    if (v.frequency === 'WEEKLY' && v.dayOfWeek && !STOCK_WEEKDAYS.includes(v.dayOfWeek)) {
-      ctx.addIssue({ code: 'custom', path: ['dayOfWeek'], message: '평일을 선택하세요.' })
-    }
+  if (v.frequency === 'WEEKLY' && v.dayOfWeek && !STOCK_WEEKDAYS.includes(v.dayOfWeek)) {
+    ctx.addIssue({ code: 'custom', path: ['dayOfWeek'], message: '평일을 선택하세요.' })
   }
   if (v.sizingType === 'HOLDING_PERCENT') {
     if (v.direction !== 'SELL') {
@@ -90,22 +73,10 @@ export const dcaRuleSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['amount'], message: '금액을 입력하세요.' })
   } else if (v.amount <= 0) {
     ctx.addIssue({ code: 'custom', path: ['amount'], message: '금액은 0보다 커야 합니다.' })
-  } else if (isCrypto) {
-    const { min, scale, currency } = v.orderAmount
-    const factor = 10 ** scale
-    if (Math.abs(Math.round(v.amount * factor) / factor - v.amount) > 1e-9) {
-      ctx.addIssue({
-        code: 'custom', path: ['amount'],
-        message: scale === 0 ? '원 단위 정수로 입력하세요.' : `소수 ${SCALE_ORDINAL[scale] ?? `${scale}번째`} 자리까지 입력하세요.`,
-      })
-    } else if (min > 0 && v.amount < min) {
-      ctx.addIssue({ code: 'custom', path: ['amount'], message: `최소 주문 금액은 ${fmtMoney(min, currency)}입니다.` })
-    }
   }
 })
 
 export const dcaFormSchema = z.object({
-  market: z.enum(MARKETS),
   ticker: z.string().min(1, '종목을 선택하세요'),
   scheduledStartDate: z.string().nullable(),
   initialDeposit: z.number().nullable(), // 등록 시 시작 원장 예수금(계좌 통화) — 비우면 0, 수정 모드는 항상 null
@@ -120,16 +91,13 @@ export const dcaFormSchema = z.object({
     ctx.addIssue({ code: 'custom', path: ['scheduledStartDate'], message: '시작예정일은 오늘 이후여야 합니다.' })
   }
   const { initialHoldings: q, initialAvgPrice: p } = v
-  const decimals = isCryptoMarket(v.market) ? 8 : 0
   if (p != null && p < 0) {
     ctx.addIssue({ code: 'custom', path: ['initialAvgPrice'], message: '평단가는 0 이상이어야 합니다.' })
   }
   if (q != null && q < 0) {
     ctx.addIssue({ code: 'custom', path: ['initialHoldings'], message: '수량은 0 이상이어야 합니다.' })
-  } else if (q != null && decimals === 0 && !Number.isInteger(q)) {
+  } else if (q != null && !Number.isInteger(q)) {
     ctx.addIssue({ code: 'custom', path: ['initialHoldings'], message: '수량은 정수여야 합니다.' })
-  } else if (q != null && decimals > 0 && Math.round(q * 1e8) / 1e8 !== q) {
-    ctx.addIssue({ code: 'custom', path: ['initialHoldings'], message: '소수 여덟째 자리까지 입력하세요.' })
   }
   if (q != null && q > 0 && (p == null || p <= 0)) {
     ctx.addIssue({ code: 'custom', path: ['initialAvgPrice'], message: '보유 수량을 입력하면 평단가는 0보다 커야 합니다.' })
@@ -142,24 +110,19 @@ export type DcaRuleFormValues = z.infer<typeof dcaRuleSchema>
 export type DcaFormValues = z.infer<typeof dcaFormSchema>
 export type DcaConditionFormValue = DcaRuleFormValues['conditions'][number]
 
-export function buildDcaRuleDefaults(direction: DcaRuleFormValues['direction'], market: TradingMarket, orderAmount: OrderAmountRule): DcaRuleFormValues {
-  const isCrypto = isCryptoMarket(market)
+export function buildDcaRuleDefaults(direction: DcaRuleFormValues['direction']): DcaRuleFormValues {
   return {
-    market, orderAmount, ruleKey: null, direction,
-    orderType: isCrypto ? 'MARKET' : 'MOC', executionHour: isCrypto ? DEFAULT_EXECUTION_HOUR : null,
+    ruleKey: null, direction, orderType: 'MOC',
     frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null,
     sizingType: 'AMOUNT', amount: null, percent: null, shortfall: 'PARTIAL', conditions: [],
   }
 }
 
-function ruleToFormValue(r: DcaRule, market: TradingMarket, orderAmount: OrderAmountRule): DcaRuleFormValues {
+function ruleToFormValue(r: DcaRule): DcaRuleFormValues {
   return {
-    market,
-    orderAmount,
     ruleKey: r.ruleKey,
     direction: r.direction,
     orderType: r.orderType,
-    executionHour: r.executionHour ?? (isCryptoMarket(market) ? DEFAULT_EXECUTION_HOUR : null),
     frequency: r.frequency,
     dayOfWeek: r.dayOfWeek,
     dayOfMonth: r.frequency === 'MONTHLY' ? (r.dayOfMonth == null ? LAST_DAY : String(r.dayOfMonth)) : null,
@@ -173,15 +136,15 @@ function ruleToFormValue(r: DcaRule, market: TradingMarket, orderAmount: OrderAm
   }
 }
 
-export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicker: string, market: TradingMarket, orderAmount: OrderAmountRule): DcaFormValues {
+export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicker: string): DcaFormValues {
   const d = initial?.dca
   if (!initial || !d) {
     return {
-      market, ticker: defaultTicker, scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
+      ticker: defaultTicker, scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
     }
   }
   return {
-    market, ticker: initial.ticker, scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null,
-    rules: d.rules.map((r) => ruleToFormValue(r, market, orderAmount)),
+    ticker: initial.ticker, scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null,
+    rules: d.rules.map(ruleToFormValue),
   }
 }

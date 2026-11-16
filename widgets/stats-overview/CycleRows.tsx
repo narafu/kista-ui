@@ -8,7 +8,6 @@ import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
 import type { CyclePerformance } from '@entities/stats'
-import { brokerCurrency } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 
@@ -22,14 +21,14 @@ function pnlClass(value: number | null | undefined) {
 }
 
 // 금액 색은 표시 단위로 반올림한 값으로 정한다 — "+0원"이 음수 색으로 보이지 않게
-function pnlMoneyClass(pnl: CyclePerformance['pnl'], broker: string | undefined) {
-  return pnlClass(pnl == null ? pnl : roundMoney(pnl, brokerCurrency(broker)))
+function pnlMoneyClass(pnl: CyclePerformance['pnl']) {
+  return pnlClass(pnl == null ? pnl : roundMoney(pnl, 'USD'))
 }
 
-// 행 통화는 계좌 broker로 정한다(업비트 KRW, 바이낸스 USDT, 주식 USD)
-function pnlText(pnl: CyclePerformance['pnl'], broker: string | undefined) {
+// 행 통화는 주식 계좌 통화(USD)다
+function pnlText(pnl: CyclePerformance['pnl']) {
   if (pnl == null) return '-'
-  return fmtSignedMoney(pnl, brokerCurrency(broker))
+  return fmtSignedMoney(pnl, 'USD')
 }
 
 // 날짜 안에서는 줄을 바꾸지 않는다 — PC 반쪽 폭에서도 "~" 앞뒤로만 나뉜다
@@ -78,8 +77,8 @@ function CycleTable({ cycles, accountsById }: Props) {
               <TableDataCell className="text-muted-foreground">
                 <Period cycle={cycle} />
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlMoneyClass(cycle.pnl, accountsById.get(cycle.accountId)?.broker))}>
-                {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
+              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlMoneyClass(cycle.pnl))}>
+                {pnlText(cycle.pnl)}
               </TableDataCell>
               <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.returnRate))}>
                 {fmtSignedPercent(cycle.returnRate)}
@@ -116,8 +115,8 @@ function CycleCardList({ cycles, accountsById }: Props) {
             <span className="flex shrink-0 items-center gap-3 whitespace-nowrap text-muted-foreground">
               <span>
                 손익{' '}
-                <span className={pnlMoneyClass(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}>
-                  {pnlText(cycle.pnl, accountsById.get(cycle.accountId)?.broker)}
+                <span className={pnlMoneyClass(cycle.pnl)}>
+                  {pnlText(cycle.pnl)}
                 </span>
               </span>
               <span>

@@ -1,25 +1,11 @@
 import { render, screen, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
-import type { BrokerCode } from '@shared/lib/api-schema'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import { DcaStrategyDetail } from './DcaStrategyDetail'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
-
-// 크립토 현재가 — beforeEach가 실패로 되돌린다
-const cryptoPrices = vi.hoisted(() => ({ result: new Error('fail') as unknown, calls: 0 }))
-vi.mock('@entities/trade', async (orig) => ({
-  ...(await orig<typeof import('@entities/trade')>()),
-  cryptoPricesQueryOptions: (accountId: string, tickers: string[]) => ({
-    queryKey: ['crypto-prices', accountId, tickers],
-    queryFn: () => {
-      cryptoPrices.calls++
-      return cryptoPrices.result instanceof Error ? Promise.reject(cryptoPrices.result) : Promise.resolve(cryptoPrices.result)
-    },
-  }),
-}))
 
 const prices = vi.hoisted(() => ({ calls: [] as unknown[][], data: { UPRO: 100 } as Record<string, number> | undefined }))
 vi.mock('@entities/account', async (orig) => ({
@@ -44,7 +30,7 @@ vi.mock('@entities/strategy', async (orig) => ({
 }))
 
 const rule: DcaRule = {
-  ruleKey: 'r1', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+  ruleKey: 'r1', direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC',
   sizing: { type: 'AMOUNT', amount: 300, percent: null }, shortfall: 'PARTIAL',
   conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }],
   nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' }, lastExecution: null,
@@ -53,21 +39,16 @@ const strategy: Strategy = {
   id: 'd1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'UPRO', cycleSeedType: 'NONE', isReverseMode: false,
   dca: { rules: [rule], currentHoldings: 3, avgPrice: 80 },
 } as Strategy
-const ethRule: DcaRule = { ...rule, ruleKey: 'r2', frequency: 'DAILY', orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 50000, percent: null }, nextExecution: { usSessionDate: '2026-11-01', kstTradeDate: '2026-11-01' } }
-const ethStrategy: Strategy = { ...strategy, ticker: 'ETH', dca: { rules: [ethRule], currentHoldings: 0.5, avgPrice: 4_000_000 } }
-
-// broker를 생략하면 ETH는 업비트, 그 외는 주식 계좌로 둔다
-function renderDetail(s: Strategy = strategy, broker: BrokerCode = s.ticker === 'ETH' ? 'UPBIT' : 'TOSS') {
-  const tickers = [{ code: 'ETH', exchangeCode: 'UPBIT', targetProfitRate: '0', market: 'CRYPTO_KRW' }]
+function renderDetail(s: Strategy = strategy) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
       <MetaProvider meta={{
-        ...testMeta, tickers,
+        ...testMeta,
         dcaSizingTypes: [{ code: 'AMOUNT', label: '고정 금액' }, { code: 'HOLDING_PERCENT', label: '보유 비율' }],
         dcaShortfallPolicies: [{ code: 'PARTIAL', label: '가용만큼 주문' }, { code: 'REJECT', label: '주문하지 않음' }],
       }}>
-        <DcaStrategyDetail accountId="a1" broker={broker} strategy={s} />
+        <DcaStrategyDetail accountId="a1" broker="TOSS" strategy={s} />
       </MetaProvider>
     </QueryClientProvider>,
   )
@@ -81,50 +62,9 @@ const ruleField = (label: string) => screen.getByText(label, { selector: 'dt' })
 const tile = (label: string) => screen.getByText(label).parentElement!.parentElement!
 
 describe('DcaStrategyDetail', () => {
-  beforeEach(() => {
-    cryptoPrices.result = new Error('fail')
-    cryptoPrices.calls = 0
-  })
-
-  it('크립토: 원장 보유 수량·평단가와 공개 시세로 평가금액·수익률을 계산하고 prices는 호출하지 않는다', async () => {
-    cryptoPrices.result = { ETH: 4_400_000 }
-    prices.calls = []
-    renderDetail(ethStrategy)
-    // 코인 티커는 라벨 줄 오른쪽 단위, 값은 숫자만 — 모바일 타일에서 단위 때문에 줄바꿈되지 않게
-    expect(tile('보유 수량')).toHaveTextContent(/^보유 수량ETH0\.5$/)
-    expect(screen.getByText('4,000,000원')).toBeInTheDocument()
-    expect(await screen.findByText('2,200,000원')).toBeInTheDocument()
-    expect(screen.getByText('+10.0%')).toHaveClass('text-pos')
-    expect(prices.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
-  })
-  it('크립토: 공개 시세 응답에 종목이 없으면 확인 불가', async () => {
-    cryptoPrices.result = {}
-    renderDetail(ethStrategy)
-    expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
-  })
-  it('바이낸스 계좌: USDT로 평가금액을 소수 2자리까지 반올림해 표시한다', async () => {
-    cryptoPrices.result = { ETH: 3001.111 }
-    renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, avgPrice: 2500.5 } }, 'BINANCE')
-    // USDT도 라벨 줄 단위로 빼고 값은 숫자만
-    expect(tile('평단가')).toHaveTextContent(/^평단가USDT2,500\.50$/)
-    expect(await screen.findByText('1,500.56')).toBeInTheDocument()
-    expect(tile('평가금액')).toHaveTextContent(/^평가금액USDT1,500\.56$/)
-    expect(screen.queryByText(/원$/)).not.toBeInTheDocument()
-  })
-  it('크립토 평가금액은 원 단위로 반올림한다', async () => {
-    cryptoPrices.result = { ETH: 4_400_001 }
-    renderDetail(ethStrategy)
-    expect(await screen.findByText('2,200,001원')).toBeInTheDocument()
-  })
-  it('크립토 시세 조회가 실패해도 보유·평단은 보이고 평가금액·수익률만 확인 불가', async () => {
-    renderDetail(ethStrategy)
-    expect(await screen.findAllByText('확인 불가')).toHaveLength(2)
-    expect(tile('보유 수량')).toHaveTextContent('0.5')
-    expect(screen.getByText('4,000,000원')).toBeInTheDocument()
-  })
   it('예수금: 원장 예수금을 계좌 통화로, 모르면 -', () => {
-    const { unmount } = renderDetail({ ...ethStrategy, ledgerDeposit: 15000 })
-    expect(tile('예수금')).toHaveTextContent('15,000원')
+    const { unmount } = renderDetail({ ...strategy, ledgerDeposit: 1500 })
+    expect(tile('예수금')).toHaveTextContent('$1,500.00')
     unmount()
     renderDetail()
     expect(tile('예수금')).toHaveTextContent('-')
@@ -158,15 +98,13 @@ describe('DcaStrategyDetail', () => {
     expect(screen.queryByTestId('dca-config-grid')).not.toBeInTheDocument()
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['전략 정보', '규칙', '회차별 실행 이력'])
   })
-  it('규칙 카드: 크립토는 다음 실행 + 시각, 최근 결과와 skip 사유, 조건 없음 문구', () => {
-    const r = { ...ethRule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
-    renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [r] } })
-    expect(ruleFooter()).toHaveTextContent('다음 실행 11/1 09시 · 최근 조건 미충족')
+  it('규칙 카드: 최근 결과는 skip 사유만, 조건 없음 문구', () => {
+    const r = { ...rule, conditions: [], shortfall: 'REJECT' as const, lastExecution: { kstTradeDate: '2026-10-21', status: 'SKIPPED', skipReason: 'CONDITION_NOT_MET' } }
+    renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [r] } })
+    expect(ruleFooter()).toHaveTextContent(`다음 판정 ${fmtDate('2026-10-31')} · 최근 조건 미충족`)
     expect(ruleFooter()).not.toHaveTextContent('건너뜀')
-    expect(ruleSummary()).not.toHaveTextContent('MOC') // 크립토는 주문 방식이 없다
     expect(screen.getByText('조건 없이 매 회차 주문')).toBeInTheDocument()
     expect(ruleField('잔고 부족 시')).toHaveTextContent('주문 안 함')
-    expect(screen.queryByText(/다음 판정/)).not.toBeInTheDocument()
   })
   it('규칙 카드: 주문된 최근 결과는 상태 라벨을 보여 준다', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, lastExecution: { kstTradeDate: '2026-10-21', status: 'ORDERED', skipReason: null } }] } })
@@ -180,13 +118,10 @@ describe('DcaStrategyDetail', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, nextExecution: null }] } })
     expect(ruleFooter()).toHaveTextContent('다음 판정 미정')
   })
-  it('공포탐욕지수 조건은 주식이면 (CNN), 크립토면 (Crypto) 출처를 붙인다', () => {
+  it('공포탐욕지수 조건은 (CNN) 출처를 붙인다', () => {
     const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }
-    const { unmount } = renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, conditions: [fg] }] } })
+    renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, conditions: [fg] }] } })
     expect(ruleField('조건')).toHaveTextContent(/공포탐욕지수\(CNN\) 20/)
-    unmount()
-    renderDetail({ ...ethStrategy, dca: { ...ethStrategy.dca!, rules: [{ ...ethRule, conditions: [fg] }] } })
-    expect(ruleField('조건')).toHaveTextContent(/공포탐욕지수\(Crypto\) 20/)
   })
   it('바로 주문 버튼이 없다', () => {
     renderDetail()

@@ -13,14 +13,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
-import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   ticker: string
-  // 생략하면 '증권사' — DCA 외 전략(StrategyDetail)은 주식 전용이라 넘기지 않는다. 크립토가 가능한 화면은 반드시 넘긴다
+  // 생략하면 '증권사' — DCA 외 전략(StrategyDetail)은 주식 전용이라 넘기지 않는다. 모의계좌 판정이 필요한 화면은 넘긴다
   broker?: string
   onConfirm: () => void
   disabled: boolean
@@ -45,7 +45,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>전략을 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? {isMockBroker(broker) ? '' : `${brokerKindLabel(broker)}에 접수된 `}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.{isArchived ? '' : ' 통계를 남기려면 보관하세요.'}</AlertDialogDescription>
+          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? {isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.{isArchived ? '' : ' 통계를 남기려면 보관하세요.'}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>

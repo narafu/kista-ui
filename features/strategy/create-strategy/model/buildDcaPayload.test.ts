@@ -3,21 +3,15 @@ import { buildDcaConfig, buildDcaCreatePayload } from './buildDcaPayload'
 import type { DcaFormValues, DcaRuleFormValues } from './dcaFormSchema'
 
 const rule: DcaRuleFormValues = {
-  market: 'US_STOCK', orderAmount: { min: 0, scale: 2, currency: 'USD' }, ruleKey: null, direction: 'SELL', orderType: 'MOO', executionHour: null,
+  ruleKey: null, direction: 'SELL', orderType: 'MOO',
   frequency: 'MONTHLY', dayOfWeek: 'TUESDAY', dayOfMonth: 'LAST',
   sizingType: 'AMOUNT', amount: 150, percent: null, shortfall: 'PARTIAL', conditions: [],
 }
 const form = (rules: DcaRuleFormValues[], o: Partial<DcaFormValues> = {}): DcaFormValues => ({
-  market: 'US_STOCK', ticker: 'QLD', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules, ...o,
+  ticker: 'QLD', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules, ...o,
 })
 const first = (r: Partial<DcaRuleFormValues>) => buildDcaConfig(form([{ ...rule, ...r }])).rules[0]
 
-describe('orderAmount', () => {
-  it('payload에 싣지 않는다', () => {
-    expect(first({})).not.toHaveProperty('orderAmount')
-    expect(buildDcaCreatePayload(form([rule])).dca?.rules[0]).not.toHaveProperty('orderAmount')
-  })
-})
 
 describe('buildDcaConfig', () => {
   it('말일(LAST)은 dayOfMonth null, MONTHLY면 남은 dayOfWeek는 null', () => {
@@ -54,10 +48,6 @@ describe('buildDcaConfig', () => {
       { indicator: 'SMA', operator: 'LT', smaPeriod: 200 },
       { indicator: 'RSI', operator: 'LTE', threshold: 35 },
     ])
-  })
-  it('크립토는 executionHour(00시 포함)를 보내고 주식은 키 자체가 없다', () => {
-    expect(first({ market: 'CRYPTO_KRW', orderType: 'MARKET', executionHour: 0 })).toMatchObject({ executionHour: 0 })
-    expect(first({ executionHour: 9 })).not.toHaveProperty('executionHour')
   })
 })
 

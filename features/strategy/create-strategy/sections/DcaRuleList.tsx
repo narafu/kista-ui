@@ -2,7 +2,6 @@
 
 import { ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, formatDcaCondition, DcaRuleSummaryLabel, type DcaDirection } from '@entities/strategy'
@@ -12,7 +11,6 @@ import { LAST_DAY, MAX_DCA_RULES, type DcaRuleFormValues } from '../model/dcaFor
 
 interface Props {
   rules: DcaRuleFormValues[]
-  market: TradingMarket
   onSelect: (index: number) => void
   onAdd: (direction: DcaDirection) => void
   registerRowRef: (index: number, el: HTMLButtonElement | null) => void
@@ -30,9 +28,8 @@ function toSummaryInput(r: DcaRuleFormValues) {
   }
 }
 
-export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, error }: Props) {
+export function DcaRuleList({ rules, onSelect, onAdd, registerRowRef, error }: Props) {
   const { labelOf } = useMeta()
-  const isCrypto = isCryptoMarket(market)
 
   return (
     <div className="py-[18px] border-b border-border">
@@ -46,7 +43,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
             ? '조건 없이 매 회차 주문'
             : r.conditions.map((c) => formatDcaCondition(
               { indicator: c.indicator, operator: c.operator, threshold: c.threshold ?? undefined, smaPeriod: c.smaPeriod ?? undefined },
-              dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator), isCrypto),
+              dcaIndicatorLabel(c.indicator, labelOf('dcaIndicators', c.indicator)),
               labelOf('dcaOperators', c.operator),
             )).join(' AND ')
           return (
@@ -56,7 +53,7 @@ export function DcaRuleList({ rules, market, onSelect, onAdd, registerRowRef, er
                 className="flex w-full items-center gap-3 rounded-[var(--r-sm)] border border-border bg-card px-3 py-2.5 text-left hover:border-[var(--selection-hover-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">
-                    <DcaRuleSummaryLabel rule={toSummaryInput(r)} labelOf={labelOf} market={market} badgeClassName={directionBadgeClass(r.direction)} />
+                    <DcaRuleSummaryLabel rule={toSummaryInput(r)} labelOf={labelOf} badgeClassName={directionBadgeClass(r.direction)} />
                   </span>
                   <span className="mt-0.5 block text-sm text-muted-foreground">
                     {/* 접근성 이름에서 1행과 2행이 붙지 않게 하는 공백 */}

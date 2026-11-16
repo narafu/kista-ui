@@ -3,23 +3,20 @@
 import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
-import { currencyUnit, fmtMoney } from '@shared/lib/format'
+import { CURRENCY_SCALE } from '@shared/lib/api-schema'
 import { SelectionCard } from '@shared/ui/selection-card'
 import { UnitInput } from '@shared/ui/UnitInput'
 import { useMeta } from '@entities/meta'
-import { formatExecutionHour, STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
+import { STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { DAY_OPTIONS, LAST_DAY, type DcaRuleFormValues } from '../model/dcaFormSchema'
 
 interface Props {
   form: UseFormReturn<DcaRuleFormValues>
-  market: TradingMarket
   orderTypes: string[]
   frequencies: string[]
 }
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, h) => h)
 const LATE_DAYS = new Set(['29', '30', '31'])
 
 function Caption({ children }: { children: React.ReactNode }) {
@@ -27,13 +24,11 @@ function Caption({ children }: { children: React.ReactNode }) {
 }
 
 // 규칙 편집 화면의 실행 시점·주기 — 방향은 편집 화면 제목이 보여 주고 바꿀 수 없다(규칙 정체성)
-export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Props) {
+export function DcaSettingsSection({ form, orderTypes, frequencies }: Props) {
   const { labelOf } = useMeta()
-  const isCrypto = isCryptoMarket(market)
-  // 주식은 미국 거래일 기준이라 평일만, 크립토는 24/7이라 7일 모두
-  const weekdays = isCrypto ? (Object.keys(WEEKDAY_LABEL) as DcaWeekday[]) : STOCK_WEEKDAYS
+  // 미국 거래일 기준이라 평일만
+  const weekdays = STOCK_WEEKDAYS
   const scheduleErrorId = useId()
-  const hourErrorId = useId()
   const { watch, setValue, formState: { errors } } = form
   const orderType = watch('orderType')
   const frequency = watch('frequency')
@@ -41,38 +36,17 @@ export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Pr
 
   return (
     <>
-      {!isCrypto && (
-        <div className="py-[18px] border-b border-border">
-          <StrategyFieldLabel>주문 방식</StrategyFieldLabel>
-          <div className="flex gap-2">
-            {orderTypes.map((code) => (
-              <SelectionCard key={code} selected={orderType === code} onClick={() => setValue('orderType', code as DcaRuleFormValues['orderType'])}
-                className="flex-1 px-3 py-2 text-center">
-                <div className="text-sm font-[800]">{labelOf('orderTypes', code)}</div>
-              </SelectionCard>
-            ))}
-          </div>
+      <div className="py-[18px] border-b border-border">
+        <StrategyFieldLabel>주문 방식</StrategyFieldLabel>
+        <div className="flex gap-2">
+          {orderTypes.map((code) => (
+            <SelectionCard key={code} selected={orderType === code} onClick={() => setValue('orderType', code as DcaRuleFormValues['orderType'])}
+              className="flex-1 px-3 py-2 text-center">
+              <div className="text-sm font-[800]">{labelOf('orderTypes', code)}</div>
+            </SelectionCard>
+          ))}
         </div>
-      )}
-
-      {isCrypto && (
-        <div className="py-[18px] border-b border-border">
-          <StrategyFieldLabel>실행 시각</StrategyFieldLabel>
-          <Controller control={form.control} name="executionHour" render={({ field }) => (
-            <Select items={HOUR_OPTIONS.map((h) => ({ value: String(h), label: formatExecutionHour(h) }))}
-              value={field.value == null ? '' : String(field.value)} onValueChange={(v) => field.onChange(Number(v))}>
-              <SelectTrigger aria-label="실행 시각" aria-invalid={!!errors.executionHour} aria-describedby={errors.executionHour ? hourErrorId : undefined} className="h-11 w-full"><SelectValue placeholder="시각 선택" /></SelectTrigger>
-              <SelectContent>
-                {HOUR_OPTIONS.map((h) => (
-                  <SelectItem key={h} value={String(h)}>{formatExecutionHour(h)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )} />
-          {errors.executionHour && <p id={hourErrorId} className="mt-1 text-sm text-[var(--status-error)]">{errors.executionHour.message}</p>}
-          <Caption>한국 시간 기준, 시장가로 주문</Caption>
-        </div>
-      )}
+      </div>
 
       <div className="py-[18px] border-b border-border">
         <StrategyFieldLabel>주기</StrategyFieldLabel>
@@ -117,7 +91,7 @@ export function DcaSettingsSection({ form, market, orderTypes, frequencies }: Pr
           <p id={scheduleErrorId} className="mt-1 text-sm text-[var(--status-error)]">{errors.dayOfWeek?.message ?? errors.dayOfMonth?.message}</p>
         )}
         {frequency === 'MONTHLY' && dayOfMonth && LATE_DAYS.has(dayOfMonth) && <Caption>해당 날짜가 없는 달은 말일에 실행</Caption>}
-        {!isCrypto && <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>}
+        <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>
       </div>
     </>
   )
@@ -131,17 +105,14 @@ const SHORTFALL_CARD: Record<DcaRuleFormValues['direction'], Record<DcaRuleFormV
 const SHORTFALLS = ['PARTIAL', 'REJECT'] as const
 
 // 규칙 편집 화면의 규모·부족 시 정책 — 보유 비율은 매도 규칙만 쓴다
-export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'>) {
-  const isCrypto = isCryptoMarket(market)
-  const { currency, scale, min } = form.watch('orderAmount')
-  const unit = currencyUnit(currency)
+export function DcaSizingSection({ form }: Pick<Props, 'form'>) {
   const amountId = useId()
   const percentId = useId()
   const { watch, setValue, formState: { errors } } = form
   const direction = watch('direction')
   const sizingType = watch('sizingType')
   const shortfall = watch('shortfall')
-  const shortfallLabel = direction === 'SELL' ? '보유가 부족할 때' : `${currency === 'KRW' ? '원화' : currency === 'USDT' ? 'USDT' : '달러'}가 부족할 때`
+  const shortfallLabel = direction === 'SELL' ? '보유가 부족할 때' : '달러가 부족할 때'
 
   return (
     <>
@@ -172,8 +143,7 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
           <>
             <StrategyFieldLabel htmlFor={amountId}>회차당 금액</StrategyFieldLabel>
             <Controller control={form.control} name="amount" render={({ field }) => (
-              <UnitInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit={unit} maxDecimals={scale} disabled={false}
-                placeholder={isCrypto && min > 0 ? `${fmtMoney(min, currency)} 이상` : undefined}
+              <UnitInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="USD" maxDecimals={CURRENCY_SCALE.USD} disabled={false}
                 errorId={errors.amount ? `${amountId}-error` : undefined} />
             )} />
             {errors.amount && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amount.message}</p>}
@@ -191,8 +161,8 @@ export function DcaSizingSection({ form, market }: Pick<Props, 'form' | 'market'
             </SelectionCard>
           ))}
         </div>
-        {!isCrypto && direction === 'BUY' && <Caption>증권사 주문가능 달러에서 같은 계좌 다른 전략의 원장 예수금을 뺀 남은 달러 기준입니다.</Caption>}
-        {!isCrypto && direction === 'SELL' && <Caption>전략 보유 수량과 증권사 판매가능 수량 중 적은 쪽 기준입니다.</Caption>}
+        {direction === 'BUY' && <Caption>증권사 주문가능 달러에서 같은 계좌 다른 전략의 원장 예수금을 뺀 남은 달러 기준입니다.</Caption>}
+        {direction === 'SELL' && <Caption>전략 보유 수량과 증권사 판매가능 수량 중 적은 쪽 기준입니다.</Caption>}
       </div>
     </>
   )

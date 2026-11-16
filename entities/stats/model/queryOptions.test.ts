@@ -4,8 +4,8 @@ import { equityCurveQueryOptions, statsSummaryQueryOptions } from './queryOption
 
 describe('stats queryOptions', () => {
   it('summary는 canonical key와 60초 staleTime을 사용한다', () => {
-    const options = statsSummaryQueryOptions('USDT', 'server-token')
-    expect(options.queryKey).toEqual(statsKeys.summary('USDT'))
+    const options = statsSummaryQueryOptions('KRW', 'server-token')
+    expect(options.queryKey).toEqual(statsKeys.summary('KRW'))
     expect(options.queryKey).not.toEqual(statsKeys.summary('USD'))
     expect(options.staleTime).toBe(60_000)
   })

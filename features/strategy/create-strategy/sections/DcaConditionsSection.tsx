@@ -3,7 +3,6 @@
 import { useId } from 'react'
 import { Controller, useFieldArray, type UseFormReturn } from 'react-hook-form'
 import { Trash2 } from 'lucide-react'
-import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,7 +13,6 @@ import { MAX_DCA_CONDITIONS, type DcaConditionFormValue, type DcaRuleFormValues 
 
 interface Props {
   form: UseFormReturn<DcaRuleFormValues>
-  market: TradingMarket
   indicators: string[]
   direction: DcaRuleFormValues['direction']
 }
@@ -23,11 +21,11 @@ const THRESHOLD_SUFFIX: Partial<Record<DcaIndicator, string>> = { AVG_PRICE: '%'
 
 // 조건 풀이 — kista-api DcaCycleOrderStrategy.evaluate와 같은 비교식을 문장으로 보여준다
 // 평단가·이동평균은 전일 종가 기준, 평단가는 평단가 × (1 + n%)와 비교, RSI는 직전 거래일 값, 공포탐욕지수는 주문 시점 최신값
-function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: string, isCrypto: boolean): string | null {
+function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: string): string | null {
   if (!c) return null
-  const close = isCrypto ? '직전 일봉 종가' : '전일 종가'
-  const rsiBase = isCrypto ? '직전 일봉' : '직전 거래일'
-  const fearGreed = isCrypto ? 'Crypto Fear & Greed 지수' : '공포탐욕지수'
+  const close = '전일 종가'
+  const rsiBase = '직전 거래일'
+  const fearGreed = '공포탐욕지수'
   const blank = c.threshold == null || Number.isNaN(c.threshold)
   switch (c.indicator) {
     case 'AVG_PRICE': {
@@ -45,10 +43,9 @@ function describeCondition(c: DcaConditionFormValue | undefined, operatorLabel: 
   }
 }
 
-export function DcaConditionsSection({ form, market, indicators, direction }: Props) {
+export function DcaConditionsSection({ form, indicators, direction }: Props) {
   const { meta, labelOf } = useMeta()
-  const isCrypto = isCryptoMarket(market)
-  const indicatorLabel = (code: string) => dcaIndicatorLabel(code, labelOf('dcaIndicators', code), isCrypto)
+  const indicatorLabel = (code: string) => dcaIndicatorLabel(code, labelOf('dcaIndicators', code))
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'conditions' })
   const conditions = form.watch('conditions')
   const errorIdBase = useId()
@@ -61,8 +58,7 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>조건 (모두 충족 시 주문)</StrategyFieldLabel>
-      {isCrypto && <p className="mb-2 text-sm text-muted-foreground">이동평균·RSI는 거래소 일봉(09:00 KST 마감) 기준</p>}
-      {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">{isCrypto ? '보유 수량이 0일 때는 평단가 조건 없이 매수' : '보유 0주일 때는 평단가 조건 없이 매수'}</p>}
+      {direction === 'BUY' && <p className="mb-2 text-sm text-muted-foreground">보유 0주일 때는 평단가 조건 없이 매수</p>}
 
       {fields.length === 0 && <p className="py-2 text-sm text-muted-foreground">조건 없이 매 회차 주문</p>}
 
@@ -74,7 +70,7 @@ export function DcaConditionsSection({ form, market, indicators, direction }: Pr
           // 지표·연산자 오류(메타에 없는 코드 등)는 대응 입력이 없어 일반 문구로 표시
           const rowErrorMessage = rowError?.smaPeriod?.message ?? rowError?.threshold?.message ?? (rowError ? '조건 입력값을 확인하세요.' : undefined)
           const errorId = rowErrorMessage ? `${errorIdBase}-${i}` : undefined
-          const description = describeCondition(conditions[i], (meta.dcaOperators ?? []).find((o) => o.code === conditions[i]?.operator)?.label ?? '', isCrypto)
+          const description = describeCondition(conditions[i], (meta.dcaOperators ?? []).find((o) => o.code === conditions[i]?.operator)?.label ?? '')
           return (
             <div key={f.id}>
               <div className="flex items-center gap-2">

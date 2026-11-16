@@ -40,7 +40,7 @@ vi.mock('@entities/meta', async () => {
 
 const settings: RuntimeConfig = {
   auth: { approvalRequired: true },
-  brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true }, BINANCE: { enabled: true } },
+  brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, MERITZ: { enabled: true } },
   benchmarks: {
     etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
   },
@@ -117,7 +117,7 @@ describe('AdminSettingsForm', () => {
 
   it('저장 시 접힌 전략에 오류가 있으면 펼쳐서 보여준다', async () => {
     const user = userEvent.setup()
-    queryState.data = { ...settings, strategies: { ...settings.strategies, DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO'], defaultValue: 'BTC' } } } } }
+    queryState.data = { ...settings, strategies: { ...settings.strategies, DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO'], defaultValue: 'BITO' } } } } }
     render(<AdminSettingsForm />)
     expect(document.getElementById('dca-ticker-add')).toBeNull()
 
@@ -144,7 +144,7 @@ describe('AdminSettingsForm', () => {
 
   it('renders a toggle for the MOCK broker last', () => {
     render(<AdminSettingsForm />)
-    const brokerSwitches = within(screen.getByRole('heading', { name: '증권사·거래소 등록' }).closest('section')!).getAllByRole('switch')
+    const brokerSwitches = within(screen.getByRole('heading', { name: '증권사 등록' }).closest('section')!).getAllByRole('switch')
     expect(brokerSwitches.at(-1)).toHaveAccessibleName('모의계좌')
   })
 

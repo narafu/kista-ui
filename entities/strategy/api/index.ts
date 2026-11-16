@@ -61,7 +61,6 @@ function normalizeDcaRule(raw: unknown): DcaRule {
     dayOfWeek: isDcaWeekday(r.dayOfWeek) ? r.dayOfWeek : null,
     dayOfMonth: r.dayOfMonth != null ? Number(r.dayOfMonth) : null,
     orderType: String(r.orderType) as DcaOrderType,
-    executionHour: r.executionHour != null ? Number(r.executionHour) : null,
     sizing: normalizeDcaSizing(r.sizing),
     shortfall: String(r.shortfall) as DcaShortfallPolicy,
     conditions: ((r.conditions as unknown[] | undefined) ?? []).map(normalizeDcaCondition),

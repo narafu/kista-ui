@@ -17,10 +17,10 @@ export interface CurrencyTradeSummary {
 
 export interface DayTradeSummary {
   tradeCount: number
-  byCurrency: CurrencyTradeSummary[] // 통화 선언 순서(KRW, USD, USDT)
+  byCurrency: CurrencyTradeSummary[] // 통화 선언 순서(KRW, USD)
 }
 
-const CURRENCY_ORDER: Currency[] = ['KRW', 'USD', 'USDT']
+const CURRENCY_ORDER: Currency[] = ['KRW', 'USD']
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 

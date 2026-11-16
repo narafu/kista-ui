@@ -17,8 +17,8 @@ describe('useSearchParam', () => {
     const { result } = renderHook(() => useSearchParam('broker'))
 
     expect(result.current[0]).toBe('TOSS')
-    act(() => result.current[1]('UPBIT'))
-    expect(replaceState).toHaveBeenLastCalledWith(null, '', '?page=2&broker=UPBIT')
+    act(() => result.current[1]('MERITZ'))
+    expect(replaceState).toHaveBeenLastCalledWith(null, '', '?page=2&broker=MERITZ')
     act(() => result.current[1](null))
     expect(replaceState).toHaveBeenLastCalledWith(null, '', '?page=2')
   })

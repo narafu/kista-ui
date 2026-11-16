@@ -106,7 +106,7 @@ describe('DCA api', () => {
     expect(dca?.currentHoldings).toBe(0.12345678)
     expect(dca?.avgPrice).toBe(4100000)
     expect(dca?.rules).toEqual([{
-      ruleKey: 'k1', direction: 'SELL', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+      ruleKey: 'k1', direction: 'SELL', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC',
       sizing: { type: 'HOLDING_PERCENT', amount: null, percent: 50 }, shortfall: 'REJECT',
       conditions: [{ indicator: 'RSI', operator: 'LTE', threshold: 35 }, { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }],
       nextExecution: { usSessionDate: '2026-10-30', kstTradeDate: '2026-10-31' },
@@ -124,17 +124,6 @@ describe('DCA api', () => {
   it('알 수 없는 dayOfWeek 값은 null로 버린다', async () => {
     expect((await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'FUNDAY' }))?.rules[0].dayOfWeek).toBeNull()
     expect((await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY' }))?.rules[0].dayOfWeek).toBe('FRIDAY')
-  })
-
-  it('executionHour 0은 null이 아니라 0으로 유지한다', async () => {
-    expect((await dcaOf({ executionHour: 0 }))?.rules[0].executionHour).toBe(0)
-    expect((await dcaOf({}))?.rules[0].executionHour).toBeNull()
-  })
-
-  it('주말 요일과 MARKET 주문 유형을 받는다', async () => {
-    const rule = (await dcaOf({ frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', orderType: 'MARKET' }))?.rules[0]
-    expect(rule?.dayOfWeek).toBe('SUNDAY')
-    expect(rule?.orderType).toBe('MARKET')
   })
 
   it('비DCA 응답은 dca undefined', async () => {

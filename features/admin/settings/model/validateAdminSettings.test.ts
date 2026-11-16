@@ -4,7 +4,7 @@ import { validateAdminSettings } from './validateAdminSettings'
 
 const valid: RuntimeConfig = {
   auth: { approvalRequired: true },
-  brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true }, MERITZ: { enabled: true }, BINANCE: { enabled: true } },
+  brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, MERITZ: { enabled: true } },
   benchmarks: {
     etf: { allowedValues: ['SPY', 'QQQ'], defaultValue: 'SPY' },
   },

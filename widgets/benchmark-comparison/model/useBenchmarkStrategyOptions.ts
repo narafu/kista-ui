@@ -21,7 +21,7 @@ export function useBenchmarkStrategyOptions(enabled: boolean) {
   const strategies = useMemo(
     () => (hasStrategyList
       ? strategiesQuery.data.filter((strategy) => {
-        // 모의계좌는 실제 투자 성과가 아니다. 크립토 전략은 계좌 통화(USDT·KRW) 기준으로 비교한다
+        // 모의계좌는 실제 투자 성과가 아니다
         return accountsById.get(strategy.accountId)?.broker !== 'MOCK'
       })
       : []),

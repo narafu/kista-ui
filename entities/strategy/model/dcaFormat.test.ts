@@ -1,35 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { dcaIndicatorLabel, earliestNextExecution, formatCryptoNextExecution, formatDcaCondition, formatDcaRuleWhen, formatDcaSchedule, formatDcaSizing, latestLastExecution } from './dcaFormat'
+import { dcaIndicatorLabel, earliestNextExecution, formatDcaCondition, formatDcaRuleWhen, formatDcaSchedule, formatDcaSizing, latestLastExecution } from './dcaFormat'
 import type { DcaLabelOf } from './dcaFormat'
 import type { DcaRule } from './types'
 
 const labelOf: DcaLabelOf = (_c, code) => ({ BUY: '매수', SELL: '매도', DAILY: '매일', MONTHLY: '매월', MOC: 'MOC(종가시장가)' } as Record<string, string>)[code] ?? code
 const BASE_RULE: DcaRule = {
-  ruleKey: 'k', direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', executionHour: null,
+  ruleKey: 'k', direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC',
   sizing: { type: 'AMOUNT', amount: 100, percent: null }, shortfall: 'PARTIAL', conditions: [], nextExecution: null, lastExecution: null,
 }
 
 describe('DCA 규칙 요약', () => {
-  it('크립토 규칙은 주문 방식 없이 주기·시각만, 금액은 원화', () => {
-    const rule = { direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MARKET', executionHour: 9, sizing: { type: 'AMOUNT', amount: 15000, percent: null } } as const
-    expect(formatDcaRuleWhen(rule, labelOf, 'CRYPTO_KRW')).toBe('매일 09시')
-    expect(formatDcaSizing(rule.sizing, 'CRYPTO_KRW')).toBe('15,000원')
-  })
-  it('바이낸스 규칙 금액은 USDT로 표시', () => {
-    expect(formatDcaSizing({ type: 'AMOUNT', amount: 10.5, percent: null }, 'CRYPTO_USDT')).toBe('10.50 USDT')
-  })
   it('주식 규칙은 주문 방식을 시점으로 표시', () => {
-    expect(formatDcaRuleWhen({ direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 100, percent: null } }, labelOf, 'US_STOCK'))
+    expect(formatDcaRuleWhen({ direction: 'BUY', frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', sizing: { type: 'AMOUNT', amount: 100, percent: null } }, labelOf))
       .toBe('매월 말일 · MOC(종가시장가)')
-    expect(formatDcaSizing({ type: 'AMOUNT', amount: 100, percent: null }, 'US_STOCK')).toBe('$100.00')
+    expect(formatDcaSizing({ type: 'AMOUNT', amount: 100, percent: null })).toBe('$100.00')
   })
   it('보유 비율 매도', () => {
-    expect(formatDcaSizing({ type: 'HOLDING_PERCENT', amount: null, percent: 50 }, 'CRYPTO_KRW')).toBe('보유 50%')
+    expect(formatDcaSizing({ type: 'HOLDING_PERCENT', amount: null, percent: 50 })).toBe('보유 50%')
   })
-  it('가장 이른 다음 실행 — 날짜 같으면 실행 시각 비교, null은 뒤로', () => {
-    const r = (key: string, date: string | null, hour: number | null): DcaRule => ({ ...BASE_RULE, ruleKey: key, executionHour: hour, nextExecution: date ? { usSessionDate: date, kstTradeDate: date } : null })
-    expect(earliestNextExecution([r('a', null, 9), r('b', '2026-10-23', 10), r('c', '2026-10-23', 9)])?.ruleKey).toBe('c')
-    expect(earliestNextExecution([r('a', null, 9)])).toBeNull()
+  it('가장 이른 다음 실행 — 날짜 같으면 앞 규칙, null은 뒤로', () => {
+    const r = (key: string, date: string | null): DcaRule => ({ ...BASE_RULE, ruleKey: key, nextExecution: date ? { usSessionDate: date, kstTradeDate: date } : null })
+    expect(earliestNextExecution([r('a', null), r('b', '2026-10-24'), r('c', '2026-10-23'), r('d', '2026-10-23')])?.ruleKey).toBe('c')
+    expect(earliestNextExecution([r('a', null)])).toBeNull()
   })
   it('가장 최근 실행 결과', () => {
     const r = (d: string | null): DcaRule => ({ ...BASE_RULE, lastExecution: d ? { kstTradeDate: d, status: 'ORDERED', skipReason: null } : null })
@@ -53,14 +45,6 @@ describe('formatDcaSchedule', () => {
   })
 })
 
-describe('formatDcaSchedule — 실행 시각', () => {
-  it('실행 시각이 있으면 스케줄 뒤에 시를 붙인다', () => {
-    expect(formatDcaSchedule({ frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, executionHour: 9 }, '매일')).toBe('매일 09시')
-    expect(formatDcaSchedule({ frequency: 'WEEKLY', dayOfWeek: 'SUNDAY', dayOfMonth: null, executionHour: 0 }, '매주')).toBe('매주 일요일 00시')
-    expect(formatDcaSchedule({ frequency: 'MONTHLY', dayOfWeek: null, dayOfMonth: null }, '매월')).toBe('매월 말일')
-  })
-})
-
 describe('formatDcaCondition', () => {
   it('평단가는 부호 있는 %', () => {
     expect(formatDcaCondition({ indicator: 'AVG_PRICE', operator: 'LTE', threshold: -5 }, '평단가', '이하')).toBe('평단가 -5% 이하')
@@ -80,19 +64,9 @@ describe('formatDcaCondition', () => {
   })
 })
 
-describe('formatCryptoNextExecution', () => {
-  it('KST 날짜를 M/D로, 실행 시각을 HH시로 붙인다', () => {
-    expect(formatCryptoNextExecution('2026-10-19', 9)).toBe('10/19 09시')
-  })
-  it('날짜가 없으면 미정', () => {
-    expect(formatCryptoNextExecution(undefined, 9)).toBe('미정')
-  })
-})
-
 describe('dcaIndicatorLabel', () => {
-  it('FEAR_GREED만 주식은 (CNN), 코인은 (Crypto)를 붙인다', () => {
-    expect(dcaIndicatorLabel('FEAR_GREED', '공포탐욕지수', false)).toBe('공포탐욕지수(CNN)')
-    expect(dcaIndicatorLabel('FEAR_GREED', '공포탐욕지수', true)).toBe('공포탐욕지수(Crypto)')
-    expect(dcaIndicatorLabel('RSI', 'RSI(14)', true)).toBe('RSI(14)')
+  it('FEAR_GREED만 (CNN)을 붙인다', () => {
+    expect(dcaIndicatorLabel('FEAR_GREED', '공포탐욕지수')).toBe('공포탐욕지수(CNN)')
+    expect(dcaIndicatorLabel('RSI', 'RSI(14)')).toBe('RSI(14)')
   })
 })

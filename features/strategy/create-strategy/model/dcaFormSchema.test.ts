@@ -2,19 +2,18 @@ import { describe, expect, it } from 'vitest'
 import type { DcaRule, Strategy } from '@entities/strategy'
 import { dcaRule as buildDcaRule, strategy as buildStrategy } from '@entities/strategy/model/fixtures'
 import { todayKst } from '@shared/lib/format'
-import { testOrderAmount } from '../sections/__fixtures__/dcaTestMeta'
 import {
   buildDcaFormDefaults, buildDcaRuleDefaults, dcaFormSchema, dcaRuleSchema, MAX_DCA_RULES,
   type DcaFormValues, type DcaRuleFormValues,
 } from './dcaFormSchema'
 
 const rule: DcaRuleFormValues = {
-  market: 'US_STOCK', orderAmount: testOrderAmount('US_STOCK'), ruleKey: null, direction: 'BUY', orderType: 'MOC', executionHour: null,
+  ruleKey: null, direction: 'BUY', orderType: 'MOC',
   frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null,
   sizingType: 'AMOUNT', amount: 300, percent: null, shortfall: 'PARTIAL', conditions: [],
 }
 const base: DcaFormValues = {
-  market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [rule],
+  ticker: 'UPRO', scheduledStartDate: null, initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [rule],
 }
 
 const ok = (v: Partial<DcaRuleFormValues>) => dcaRuleSchema.safeParse({ ...rule, ...v }).success
@@ -28,7 +27,6 @@ const formIssue = (v: Partial<DcaFormValues>, path: string) => {
 }
 const formOk = (v: Partial<DcaFormValues>) => dcaFormSchema.safeParse({ ...base, ...v }).success
 const cond = { indicator: 'RSI' as const, operator: 'LTE' as const, threshold: 35, smaPeriod: null }
-const cryptoRule: DcaRuleFormValues = { ...rule, market: 'CRYPTO_KRW', orderAmount: testOrderAmount('CRYPTO_KRW'), orderType: 'MARKET', amount: 5000, executionHour: 9 }
 
 describe('dcaRuleSchema', () => {
   it('기본값 통과', () => expect(ok({})).toBe(true))
@@ -76,37 +74,10 @@ describe('dcaRuleSchema', () => {
     expect(ok({ conditions: Array(11).fill(cond) })).toBe(false)
   })
 
-  describe('크립토', () => {
-    const c = (v: Partial<DcaRuleFormValues>) => ({ ...cryptoRule, ...v })
-    const issue = (v: Partial<DcaRuleFormValues>, path: string) => {
-      const r = dcaRuleSchema.safeParse(c(v))
-      return r.success ? undefined : r.error.issues.find((i) => i.path.join('.') === path)?.message
-    }
-    it('5,000원 통과, 미만·소수 거부', () => {
-      expect(dcaRuleSchema.safeParse(cryptoRule).success).toBe(true)
-      expect(issue({ amount: 4999 }, 'amount')).toBe('최소 주문 금액은 5,000원입니다.')
-      expect(issue({ amount: 5000.5 }, 'amount')).toBe('원 단위 정수로 입력하세요.')
-    })
-    it('USDT는 소수 둘째 자리·최소 금액을 따른다', () => {
-      const usdt = { market: 'CRYPTO_USDT' as const, orderAmount: { min: 5, scale: 2, currency: 'USDT' as const } }
-      expect(dcaRuleSchema.safeParse(c({ ...usdt, amount: 10.5 })).success).toBe(true)
-      expect(issue({ ...usdt, amount: 10.555 }, 'amount')).toBe('소수 둘째 자리까지 입력하세요.')
-      expect(issue({ ...usdt, amount: 4.99 }, 'amount')).toBe('최소 주문 금액은 5.00 USDT입니다.')
-      expect(dcaRuleSchema.safeParse(c({ ...usdt, orderAmount: { ...usdt.orderAmount, min: 0 }, amount: 0.01 })).success).toBe(true)
-    })
-    it('실행 시각 00시 유효, null 거부', () => {
-      expect(dcaRuleSchema.safeParse(c({ executionHour: 0 })).success).toBe(true)
-      expect(issue({ executionHour: null }, 'executionHour')).toBe('실행 시각을 선택하세요.')
-    })
-    it('시장가만 허용, 주말 요일 허용', () => {
-      expect(issue({ orderType: 'MOC' }, 'orderType')).toBe('크립토는 시장가 주문만 지원합니다.')
-      expect(dcaRuleSchema.safeParse(c({ frequency: 'WEEKLY', dayOfWeek: 'SUNDAY' })).success).toBe(true)
-    })
-  })
-
   describe('주식', () => {
     it('MARKET 거부, 주말 거부, 소수 USD 허용', () => {
-      expect(ruleIssue({ orderType: 'MARKET' }, 'orderType')).toBe('주문 방식을 선택하세요.')
+      const market = dcaRuleSchema.safeParse({ ...rule, orderType: 'MARKET' })
+      expect(market.success ? undefined : market.error.issues.find((i) => i.path.join('.') === 'orderType')?.message).toBe('주문 방식을 선택하세요.')
       expect(ruleIssue({ frequency: 'WEEKLY', dayOfWeek: 'SATURDAY' }, 'dayOfWeek')).toBe('평일을 선택하세요.')
       expect(ok({ amount: 0.5 })).toBe(true)
     })
@@ -160,11 +131,6 @@ describe('dcaFormSchema', () => {
     it('주식 수량 소수는 거부', () => {
       expect(formIssue({ initialHoldings: 1.5, initialAvgPrice: 50 }, 'initialHoldings')).toBe('수량은 정수여야 합니다.')
     })
-    it('크립토 수량은 소수 8자리까지', () => {
-      const c = { market: 'CRYPTO_KRW' as const, rules: [cryptoRule], initialAvgPrice: 50000000 }
-      expect(formIssue({ ...c, initialHoldings: 0.123456789 }, 'initialHoldings')).toBe('소수 여덟째 자리까지 입력하세요.')
-      expect(formOk({ ...c, initialHoldings: 0.12345678 })).toBe(true)
-    })
     it('음수는 거부', () => {
       expect(formIssue({ initialHoldings: -1, initialAvgPrice: 50 }, 'initialHoldings')).toBe('수량은 0 이상이어야 합니다.')
       expect(formIssue({ initialHoldings: 1, initialAvgPrice: -1 }, 'initialAvgPrice')).toBe('평단가는 0 이상이어야 합니다.')
@@ -173,15 +139,8 @@ describe('dcaFormSchema', () => {
 })
 
 describe('buildDcaRuleDefaults', () => {
-  it('크립토 SELL 기본값', () => {
-    expect(buildDcaRuleDefaults('SELL', 'CRYPTO_KRW', testOrderAmount('CRYPTO_KRW'))).toEqual({
-      market: 'CRYPTO_KRW', orderAmount: testOrderAmount('CRYPTO_KRW'), ruleKey: null, direction: 'SELL', orderType: 'MARKET', executionHour: 9,
-      frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null,
-      sizingType: 'AMOUNT', amount: null, percent: null, shortfall: 'PARTIAL', conditions: [],
-    })
-  })
-  it('주식은 MOC·실행 시각 없음', () => {
-    expect(buildDcaRuleDefaults('BUY', 'US_STOCK', testOrderAmount('US_STOCK'))).toMatchObject({ orderType: 'MOC', executionHour: null })
+  it('주식은 MOC', () => {
+    expect(buildDcaRuleDefaults('BUY')).toMatchObject({ orderType: 'MOC' })
   })
 })
 
@@ -194,39 +153,34 @@ describe('buildDcaFormDefaults', () => {
   })
 
   it('등록 기본값은 규칙 없음', () => {
-    expect(buildDcaFormDefaults(undefined, 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))).toEqual({
-      market: 'US_STOCK', ticker: 'UPRO', scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
+    expect(buildDcaFormDefaults(undefined, 'UPRO')).toEqual({
+      ticker: 'UPRO', scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
     })
   })
   it('dca가 없는 initial도 기본값', () => {
-    expect(buildDcaFormDefaults({ ...strategy([]), dca: undefined } as Strategy, 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK')).ticker).toBe('UPRO')
+    expect(buildDcaFormDefaults({ ...strategy([]), dca: undefined } as Strategy, 'UPRO').ticker).toBe('UPRO')
   })
   it('수정 기본값은 순서·ruleKey·sizing을 보존한다', () => {
     const v = buildDcaFormDefaults(strategy([
       dcaRule({ ruleKey: 'a' }),
       dcaRule({ ruleKey: 'b', sizing: { type: 'HOLDING_PERCENT', amount: null, percent: 50 }, dayOfMonth: null }),
-    ]), 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))
+    ]), 'UPRO')
     expect(v).toMatchObject({ ticker: 'QLD', scheduledStartDate: null, initialHoldings: null, initialAvgPrice: null })
     expect(v.rules.map((r) => r.ruleKey)).toEqual(['a', 'b'])
     expect(v.rules[0]).toMatchObject({ direction: 'SELL', sizingType: 'AMOUNT', amount: 250, percent: null, dayOfMonth: '15', shortfall: 'PARTIAL' })
     expect(v.rules[1]).toMatchObject({ sizingType: 'HOLDING_PERCENT', amount: null, percent: 50, dayOfMonth: 'LAST' })
   })
   it('MONTHLY가 아니면 dayOfMonth는 null', () => {
-    const v = buildDcaFormDefaults(strategy([dcaRule({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY' })]), 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))
+    const v = buildDcaFormDefaults(strategy([dcaRule({ frequency: 'WEEKLY', dayOfWeek: 'FRIDAY' })]), 'UPRO')
     expect(v.rules[0]).toMatchObject({ dayOfMonth: null, dayOfWeek: 'FRIDAY' })
   })
   it('조건의 누락된 threshold·smaPeriod는 null', () => {
     const v = buildDcaFormDefaults(strategy([dcaRule({ conditions: [
       { indicator: 'SMA', operator: 'LT', smaPeriod: 200 }, { indicator: 'RSI', operator: 'LTE', threshold: 35 },
-    ] })]), 'UPRO', 'US_STOCK', testOrderAmount('US_STOCK'))
+    ] })]), 'UPRO')
     expect(v.rules[0].conditions).toEqual([
       { indicator: 'SMA', operator: 'LT', threshold: null, smaPeriod: 200 },
       { indicator: 'RSI', operator: 'LTE', threshold: 35, smaPeriod: null },
     ])
-  })
-  it('크립토 수정은 00시를 유지하고, 시각 없는 응답은 09시로 채운다', () => {
-    expect(buildDcaFormDefaults(strategy([dcaRule({ orderType: 'MARKET', executionHour: 0 })]), 'BTC', 'CRYPTO_KRW', testOrderAmount('CRYPTO_KRW')).rules[0].executionHour).toBe(0)
-    expect(buildDcaFormDefaults(strategy([dcaRule({ orderType: 'MARKET' })]), 'BTC', 'CRYPTO_KRW', testOrderAmount('CRYPTO_KRW')).rules[0].executionHour).toBe(9)
-    expect(buildDcaFormDefaults(strategy([dcaRule({})]), 'BTC', 'US_STOCK', testOrderAmount('US_STOCK')).rules[0].executionHour).toBeNull()
   })
 })

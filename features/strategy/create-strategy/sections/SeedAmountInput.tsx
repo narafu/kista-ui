@@ -1,8 +1,8 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
-import { currencyUnit, fmtMoney } from '@shared/lib/format'
-import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
+import { fmtMoney } from '@shared/lib/format'
+import { CURRENCY_SCALE } from '@shared/lib/api-schema'
 import { useDecimalAmountText } from '@shared/lib/hooks/use-decimal-amount-text'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 
@@ -14,7 +14,6 @@ interface Props {
   // 최소 투자금 판정은 보유 평가금액까지 합산하는 폼 검증(useSeedModel)을 그대로 따른다
   belowMinSeed: boolean
   disabled?: boolean
-  currency?: Currency // 계좌 통화 — DCA 코인 계좌는 KRW·USDT, 그 외는 USD
 }
 
 interface StatusProps {
@@ -22,10 +21,9 @@ interface StatusProps {
   deposit: number | null
   minSeed: number | null
   belowMinSeed: boolean
-  currency: Currency
 }
 
-function SeedStatus({ value, deposit, minSeed, belowMinSeed, currency }: StatusProps) {
+function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   const amount = value !== null && value > 0 ? value : null
   const shortage = deposit !== null && amount !== null && deposit < amount ? amount - deposit : null
   const sufficient = deposit !== null && amount !== null && deposit >= amount
@@ -35,7 +33,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed, currency }: StatusP
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
         <span className="text-sm text-[var(--warn)] font-bold">최소 투자금 미달</span>
         <span className="text-sm font-extrabold text-[var(--warn)] tabular-nums">
-          최소 {fmtMoney(minSeed, currency)}
+          최소 {fmtMoney(minSeed, 'USD')}
         </span>
       </div>
     )
@@ -45,9 +43,9 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed, currency }: StatusP
       <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
         <span className="text-sm text-muted-foreground font-medium">추가 입금 필요</span>
         <span className="text-sm font-semibold text-foreground tabular-nums">
-          {fmtMoney(shortage, currency)}
+          {fmtMoney(shortage, 'USD')}
           <span className="text-sm font-normal opacity-60 ml-1.5">
-            보유 {fmtMoney(deposit, currency)}
+            보유 {fmtMoney(deposit, 'USD')}
           </span>
         </span>
       </div>
@@ -66,13 +64,13 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed, currency }: StatusP
   return (
     <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
       <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
-      <span className="text-sm text-muted-foreground">최소 {fmtMoney(minSeed, currency)}</span>
+      <span className="text-sm text-muted-foreground">최소 {fmtMoney(minSeed, 'USD')}</span>
     </div>
   )
 }
 
-export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSeed, disabled, currency = 'USD' }: Props) {
-  const { text, handleChange } = useDecimalAmountText({ value, onChange, maxDecimals: CURRENCY_SCALE[currency] })
+export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSeed, disabled }: Props) {
+  const { text, handleChange } = useDecimalAmountText({ value, onChange, maxDecimals: CURRENCY_SCALE.USD })
 
   return (
     <div className="min-w-0">
@@ -83,12 +81,12 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSee
           disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
         )}
       >
-        {currency === 'USD' && <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>}
+        <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
         {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
         <input
           type="text"
           inputMode="decimal"
-          aria-label={`예수금 (${currency})`}
+          aria-label="예수금 (USD)"
           value={text}
           disabled={disabled}
           placeholder="0"
@@ -97,10 +95,10 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSee
           onFocus={selectAllOnFocus}
           className="flex-1 border-0 outline-none bg-transparent font-extrabold text-foreground text-right min-w-0 text-lg"
         />
-        <span className="text-xs font-semibold text-muted-foreground ml-1.5">{currencyUnit(currency)}</span>
+        <span className="text-xs font-semibold text-muted-foreground ml-1.5">USD</span>
       </div>
 
-      <SeedStatus value={value} deposit={deposit} minSeed={minSeed} belowMinSeed={belowMinSeed} currency={currency} />
+      <SeedStatus value={value} deposit={deposit} minSeed={minSeed} belowMinSeed={belowMinSeed} />
     </div>
   )
 }

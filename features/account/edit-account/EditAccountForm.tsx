@@ -21,7 +21,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
-import { brokerKindLabel, isMockBroker } from '@shared/lib/api-schema'
+import { isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
 import { useAppForm } from '@shared/ui/form/useAppForm'
@@ -122,7 +122,7 @@ export function EditAccountForm({ account }: Props) {
           <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
-          계좌를 삭제하면 {isMockBroker(account.broker) ? '' : `${brokerKindLabel(account.broker)}에 접수된 `}미체결 주문을 먼저 취소하고, 이 계좌의 전략과 거래 기록을 더 이상 볼 수 없습니다.
+          계좌를 삭제하면 {isMockBroker(account.broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 이 계좌의 전략과 거래 기록을 더 이상 볼 수 없습니다.
         </p>
 
         <Dialog open={isDeleteOpen} onOpenChange={(open) => { setIsDeleteOpen(open); if (!open) setDeleteConfirm('') }}>

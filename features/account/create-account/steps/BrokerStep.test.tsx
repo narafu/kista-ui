@@ -8,8 +8,7 @@ vi.mock('@entities/meta', () => ({
       brokers: [
         { code: 'TOSS', label: '토스증권' },
         { code: 'MOCK', label: '모의계좌' },
-        { code: 'UPBIT', label: '업비트' },
-        { code: 'BINANCE', label: '바이낸스' },
+        { code: 'MERITZ', label: '메리츠증권' },
       ],
     },
   }),
@@ -22,9 +21,9 @@ vi.mock('@entities/runtime-config', () => ({
 
 describe('BrokerStep runtime availability', () => {
   it('hides disabled brokers', () => {
-    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { UPBIT: { enabled: true }, TOSS: { enabled: false } } } })
+    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { MERITZ: { enabled: true }, TOSS: { enabled: false } } } })
     render(<BrokerStep onNext={vi.fn()} />)
-    expect(screen.getByRole('button', { name: /업비트/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /메리츠증권/ })).toBeInTheDocument()
     expect(screen.queryByText('토스증권')).not.toBeInTheDocument()
   })
 
@@ -42,25 +41,23 @@ describe('BrokerStep runtime availability', () => {
 
   it('모의계좌는 meta 순서와 무관하게 맨 뒤에 둔다', () => {
     useRuntimeConfigQueryMock.mockReturnValue({
-      data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true } } },
+      data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, MERITZ: { enabled: true } } },
     })
     render(<BrokerStep onNext={vi.fn()} />)
     const names = screen.getAllByRole('button').map((b) => b.textContent ?? '')
-    expect(names.map((n) => n.match(/토스증권|업비트|모의계좌/)?.[0])).toEqual(['토스증권', '업비트', '모의계좌'])
+    expect(names.map((n) => n.match(/토스증권|메리츠증권|모의계좌/)?.[0])).toEqual(['토스증권', '메리츠증권', '모의계좌'])
   })
 
-  it('바이낸스 카드는 활성화됐을 때만 보이고 누르면 BINANCE로 넘어간다', () => {
-    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { BINANCE: { enabled: true } } } })
-    const onNext = vi.fn()
-    render(<BrokerStep onNext={onNext} />)
-    screen.getByRole('button', { name: /바이낸스/ }).click()
-    expect(onNext).toHaveBeenCalledWith({ broker: 'BINANCE' })
+  it('증권사 선택지에 업비트·바이낸스가 없다', () => {
+    useRuntimeConfigQueryMock.mockReturnValue({ data: { brokers: { TOSS: { enabled: true }, MERITZ: { enabled: true }, MOCK: { enabled: true } } } })
+    render(<BrokerStep onNext={vi.fn()} />)
+    expect(screen.queryByText(/업비트|바이낸스/)).not.toBeInTheDocument()
   })
 
   it('shows an unavailable state while no broker can be safely selected', () => {
     useRuntimeConfigQueryMock.mockReturnValue({ data: undefined, isLoading: true })
     render(<BrokerStep onNext={vi.fn()} />)
-    expect(screen.getByText('등록 가능한 증권사·거래소를 확인하고 있습니다.')).toBeInTheDocument()
+    expect(screen.getByText('등록 가능한 증권사를 확인하고 있습니다.')).toBeInTheDocument()
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 

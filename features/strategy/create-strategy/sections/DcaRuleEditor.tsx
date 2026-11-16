@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { isCryptoMarket, type TradingMarket } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { FormActions } from '@shared/ui/FormActions'
 import { useMeta } from '@entities/meta'
@@ -14,7 +13,6 @@ import { DcaConditionsSection } from './DcaConditionsSection'
 import { dcaRuleSchema, type DcaRuleFormValues } from '../model/dcaFormSchema'
 
 interface Props {
-  market: TradingMarket
   initial: DcaRuleFormValues
   isNew: boolean
   onDone: (v: DcaRuleFormValues) => void
@@ -24,7 +22,7 @@ interface Props {
 
 // 규칙 하나의 편집 화면 — 자체 초안 폼이라 "이전"은 부모 규칙 목록을 건드리지 않는다.
 // 부모 <form> 밖에서 렌더해야 한다(중첩 form이면 Enter·완료가 부모 제출로 이어진다)
-export function DcaRuleEditor({ market, initial, isNew, onDone, onDelete, onCancel }: Props) {
+export function DcaRuleEditor({ initial, isNew, onDone, onDelete, onCancel }: Props) {
   const { findStrategyType, labelOf } = useMeta()
   const typeMeta = findStrategyType('DCA')
   const form = useForm<DcaRuleFormValues>({ resolver: zodResolver(dcaRuleSchema), defaultValues: initial })
@@ -45,12 +43,12 @@ export function DcaRuleEditor({ market, initial, isNew, onDone, onDelete, onCanc
       </h2>
       <DcaSettingsSection
         form={form}
-        market={market}
-        orderTypes={(typeMeta?.orderTypes ?? []).filter((code) => (code === 'MARKET') === isCryptoMarket(market))}
+        // 서버 메타가 아직 시장가(MARKET)를 내려도 주식 주문 방식만 보인다
+        orderTypes={(typeMeta?.orderTypes ?? []).filter((code) => code === 'MOO' || code === 'MOC')}
         frequencies={typeMeta?.frequencies ?? []}
       />
-      <DcaConditionsSection form={form} market={market} indicators={typeMeta?.conditionIndicators ?? []} direction={direction} />
-      <DcaSizingSection form={form} market={market} />
+      <DcaConditionsSection form={form} indicators={typeMeta?.conditionIndicators ?? []} direction={direction} />
+      <DcaSizingSection form={form} />
       {!isNew && onDelete && (
         <Button type="button" variant="destructive" size="form" className="mt-6 w-full" onClick={onDelete}>
           규칙 삭제

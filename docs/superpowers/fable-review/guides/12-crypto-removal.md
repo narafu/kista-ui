@@ -104,3 +104,8 @@ T1~T4는 같은 파일을 여러 번 지나므로(`api-schema.ts`, `entities/met
 - **ui 먼저.** push는 사용자가 요청할 때, T0이 0건일 때만. 배포 뒤 api 레포 `cross-repo.md` G1~G3 행에 "ui 제거 완료(커밋 해시, 배포일)"를 적는다. api는 그것을 보고 15 T4를 진행한다. 메타 필드 참조 제거(G2의 2차)도 T4로 끝나므로 같은 줄에 적는다.
 - 이 지침서 뒤에 달라지는 것: 01의 3b(`getCryptoPrices` 없음), 02의 2(프록시 13 → 12개)·5b·5c, 03의 도메인 표(`crypto-market-indicators` 행 없음), 04의 5f·6(코인 단계·코인 DCA 없음), 06의 5·7(`amountScale`·코인 포매터 없음), 07의 6(`CryptoMarketSection` 없음), 09의 A1·C4, 10의 3(없음), 11의 9·10(코인 위젯 없음, 차트 9파일). 각 지침서의 보정 절에 적어 두었다.
 - 이 지침서를 건너뛰고 다른 지침서를 먼저 실행해도 된다. 그때는 `00-roadmap.md` 4-2의 V8(코인 코드는 그대로 둔다)을 따른다.
+
+## 실행 전 보정 (2026-11-16 — S1 실행 뒤 기록)
+
+- 전체 완료 판정의 첫 grep은 0건이 되지 않는다. 코인 매매가 아닌 것이 걸리기 때문이다: 가계부 자산군 `CRYPTO`(`entities/finance/**`, `widgets/asset-composition/AssetComposition.test.tsx`, `entities/meta/__fixtures__/testMeta.ts`의 자산군 1줄), node `crypto` 모듈 import(`tests/e2e/support/account-cache-lock.ts`). 실행한 명령은 다음과 같다. `git grep -n -i -E "crypto|upbit|binance|usdt|executionHour|allowedIp|BROKER_IP_NOT_ALLOWED|minOrderAmount|amountScale" -- '*.ts' '*.tsx' '*.mjs' ':!shared/lib/api-types.ts' ':!entities/finance' ':!widgets/asset-composition' ':!tests/e2e/support/account-cache-lock.ts'`. 남는 것은 `testMeta.ts`의 자산군 1줄뿐이다.
+- 실행 기록은 `PROGRESS.md` "S1 실행 기록"에 있다.

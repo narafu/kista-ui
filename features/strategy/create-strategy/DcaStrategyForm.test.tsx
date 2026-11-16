@@ -1,13 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { TradingMarket } from '@shared/lib/api-schema'
 import { accountKeys } from '@entities/account'
 import { MetaProvider } from '@entities/meta'
 import type { DcaRule, Strategy } from '@entities/strategy'
 import { DcaStrategyForm } from './DcaStrategyForm'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
-import { testOrderAmount } from './sections/__fixtures__/dcaTestMeta'
 
 const createMutate = vi.fn()
 const hookSuccess = vi.hoisted(() => ({ create: undefined as (() => Promise<void>) | undefined }))
@@ -29,7 +27,7 @@ vi.mock('@entities/strategy', async (orig) => ({
 const meta = {
   ...testMeta,
   strategyTypes: [{
-    code: 'DCA', availableTickers: ['UPRO', 'QLD', 'BTC'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
+    code: 'DCA', availableTickers: ['UPRO', 'QLD'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
     divisionCounts: [], orderTypes: ['MOO', 'MOC', 'MARKET'], directions: ['BUY', 'SELL'],
     frequencies: ['DAILY', 'WEEKLY', 'MONTHLY'], conditionIndicators: ['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED'],
   }],
@@ -37,7 +35,7 @@ const meta = {
 
 function rule(ruleKey: string, amount: number, o: Partial<DcaRule> = {}): DcaRule {
   return {
-    ruleKey, direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOO', executionHour: null,
+    ruleKey, direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOO',
     sizing: { type: 'AMOUNT', amount, percent: null }, shortfall: 'PARTIAL', conditions: [], nextExecution: null, lastExecution: null, ...o,
   }
 }
@@ -51,10 +49,10 @@ function existing(rules: DcaRule[]): Strategy {
 
 const queryClient = new QueryClient()
 
-function renderForm(initial?: Strategy, defaultTicker = 'UPRO', market: TradingMarket = 'US_STOCK', header?: React.ReactNode) {
+function renderForm(initial?: Strategy, header?: React.ReactNode) {
   return render(
     <QueryClientProvider client={queryClient}><MetaProvider meta={meta}>
-      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={market === 'US_STOCK' ? ['UPRO', 'QLD'] : ['BTC']} defaultTicker={defaultTicker} market={market} orderAmount={testOrderAmount(market)} header={header} />
+      <DcaStrategyForm accountId="a1" initial={initial} availableTickers={['UPRO', 'QLD']} defaultTicker="UPRO" header={header} />
     </MetaProvider></QueryClientProvider>,
   )
 }
@@ -116,19 +114,19 @@ describe('DcaStrategyForm', () => {
   })
 
   it('등록: 가용 예수금을 계좌 통화로 보여주고 100% 채우기 값이 initialDeposit으로 실린다', async () => {
-    seedPreview.availableCash = 15000
-    renderForm(undefined, 'BTC', 'CRYPTO_KRW')
-    expect(seedPreview.calls[0][1]).toMatchObject({ type: 'DCA', ticker: 'BTC' })
-    expect(screen.getByText('가용 예수금 15,000원')).toBeInTheDocument()
+    seedPreview.availableCash = 1500
+    renderForm()
+    expect(seedPreview.calls[0][1]).toMatchObject({ type: 'DCA', ticker: 'UPRO' })
+    expect(screen.getByText('가용 예수금 $1,500.00')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '100%' }))
-    expect(screen.getByLabelText('예수금 (KRW)')).toHaveValue('15000')
+    expect(screen.getByLabelText('예수금 (USD)')).toHaveValue('1500')
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '10000' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
     await waitFor(() => expect(createMutate).toHaveBeenCalled())
-    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialDeposit: 15000 })
+    expect(createMutate.mock.calls[0][0]).toMatchObject({ initialDeposit: 1500 })
   })
 
   it('수정: 예수금 칸이 없고 가용 예수금을 조회하지 않는다', () => {
@@ -166,15 +164,21 @@ describe('DcaStrategyForm', () => {
     expect(createMutate.mock.calls[0][0]).toMatchObject({ initialHoldings: 10, initialAvgPrice: 45.5 })
   })
 
-  it('크립토 등록: 새 규칙은 부모 시장으로 실행 시각 09시·시장가를 보낸다', async () => {
-    renderForm(undefined, 'BTC', 'CRYPTO_KRW')
+  it('주식 등록: 규칙 1개를 채워 제출하면 요청 payload 전체가 고정된다', async () => {
+    renderForm()
     fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
-    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '5000' } })
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
     await waitFor(() => expect(createMutate).toHaveBeenCalled())
-    expect(createMutate.mock.calls[0][0].dca.rules[0]).toMatchObject({ orderType: 'MARKET', executionHour: 9, sizing: { amount: 5000 } })
+    expect(createMutate.mock.calls[0][0]).toEqual({
+      type: 'DCA', ticker: 'UPRO', cycleSeedType: 'NONE', scheduledStartDate: expect.any(String),
+      dca: { rules: [{
+        direction: 'BUY', frequency: 'DAILY', dayOfWeek: null, dayOfMonth: null, orderType: 'MOC', shortfall: 'PARTIAL',
+        sizing: { type: 'AMOUNT', amount: 300, percent: null }, conditions: [],
+      }] },
+    })
   })
 
   it('수정: 편집·삭제·추가 후 기존 ruleKey는 보존하고 새 규칙은 null로 보낸다', async () => {
@@ -235,7 +239,7 @@ describe('DcaStrategyForm', () => {
   })
 
   it('header(유형 선택)는 목록 화면에만 있고 편집 화면엔 없다', async () => {
-    renderForm(existing([rule('a', 100)]), 'UPRO', 'US_STOCK', <div>type-section</div>)
+    renderForm(existing([rule('a', 100)]), <div>type-section</div>)
     expect(screen.getByText('type-section')).toBeInTheDocument()
     fireEvent.click(row(/\$100/))
     expect(screen.queryByText('type-section')).not.toBeInTheDocument()
@@ -296,22 +300,6 @@ describe('DcaStrategyForm', () => {
     expect(screen.getByText('규칙 (10/10)')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '매수 규칙 추가' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '매도 규칙 추가' })).not.toBeInTheDocument()
-  })
-
-  it('종목은 코인이면 거래 시장을 붙여 보여 주고 주식은 티커만 보여 준다', () => {
-    const { unmount } = renderForm(undefined, 'BTC', 'CRYPTO_KRW')
-    expect(screen.getByText('BTC/KRW')).toBeInTheDocument()
-    unmount()
-    const usdt = renderForm(undefined, 'BTC', 'CRYPTO_USDT')
-    expect(screen.getByText('BTC/USDT')).toBeInTheDocument()
-    usdt.unmount()
-    renderForm()
-    expect(screen.getByRole('button', { name: 'UPRO' })).toBeInTheDocument()
-  })
-
-  it('수정: 코인 종목도 거래 시장을 붙여 보여 준다', () => {
-    renderForm({ ...existing([rule('a', 10000)]), ticker: 'BTC' }, 'BTC', 'CRYPTO_KRW')
-    expect(screen.getByText('BTC/KRW')).toBeInTheDocument()
   })
 
   it('수정: 종목 변경 UI가 없다', () => {

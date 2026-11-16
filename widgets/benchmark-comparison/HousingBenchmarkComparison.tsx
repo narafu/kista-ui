@@ -61,7 +61,7 @@ export function HousingBenchmarkComparison({ enabled, defaultTo, renderHousingEx
   const query = useHousingBenchmarkQuery(params, enabled && canQuery)
   const data = query.data
   const benchmarkLabel = resolveBenchmarkLabel(selection, data, selectedRegionName)
-  // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·USDT·KRW), 전체 포트폴리오면 요청한 합산 통화 — 서버 quality가 SSOT
+  // 투자 통화는 STRATEGY면 전략 계좌 통화(USD·KRW), 전체 포트폴리오면 요청한 합산 통화 — 서버 quality가 SSOT
   const investmentCurrency = toCurrency(data?.quality?.investmentCurrency) ?? 'USD'
   const benchmarkCurrency: 'USD' | 'KRW' = data?.quality?.benchmarkCurrency === 'USD' ? 'USD' : 'KRW'
   const fallbackBenchmark = buildFallbackBenchmark(selection, selectedRegionName, benchmarkLabel)

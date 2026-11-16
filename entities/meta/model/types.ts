@@ -31,15 +31,11 @@ export interface TickerMeta {
   exchangeCode: string
   targetProfitRate: string
   market?: string // deprecated(다음 api 릴리스에서 제거) — markets가 없는 응답의 폴백
-  markets?: string[] // 거래 가능 시장 — BTC·ETH는 CRYPTO_KRW·CRYPTO_USDT를 함께 갖는다. 1h 메타 캐시로 빠질 수 있어 optional
+  markets?: string[] // 거래 가능 시장 — 주식 판정은 isStockTicker. 1h 메타 캐시로 빠질 수 있어 optional
 }
 
-// 1h 메타 캐시로 새 필드가 빠질 수 있어 모두 optional — 소비처는 정적 맵(brokerMarket·brokerCurrency)으로 폴백한다
+// 1h 메타 캐시로 새 필드가 빠질 수 있어 모두 optional
 export interface BrokerMeta extends EnumMeta {
-  market?: string
-  currency?: string
-  minOrderAmount?: string // 견적 통화 최소 주문 금액(plain decimal 문자열). 코인 시장에서만 의미가 있다
-  amountScale?: number // 금액 소수 자릿수 — KRW 0, USD·USDT 2
   apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — BROKER_API(증권사 조회)·ESTIMATED(추정, 사용자 입력 가능)·NONE
 }
 

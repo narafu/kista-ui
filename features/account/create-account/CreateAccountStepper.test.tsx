@@ -14,7 +14,7 @@ vi.mock('@entities/meta', async () => {
 
 vi.mock('@entities/runtime-config', () => ({
   useRuntimeConfigQuery: () => ({
-    data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, UPBIT: { enabled: true, allowedIp: '168.107.63.152' } } },
+    data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, MERITZ: { enabled: true } } },
   }),
 }))
 
@@ -53,13 +53,12 @@ describe('CreateAccountStepper MOCK broker', () => {
     expect(screen.queryByText('API Key')).not.toBeInTheDocument()
   })
 
-  it('업비트는 거래소 → API 키 → 계좌 별칭 → 확인 4단계다', async () => {
+  it('메리츠는 증권사 → API 키 → 계좌 별칭 → 확인 4단계다', async () => {
     const user = userEvent.setup()
     render(<CreateAccountStepper />)
-    expect(screen.getByText('증권사·거래소')).toBeInTheDocument() // 고르기 전 스텝퍼 1번째 라벨
-    await user.click(screen.getByRole('button', { name: /업비트/ }))
-    expect(screen.getByText('거래소')).toBeInTheDocument() // 스텝퍼 1번째 라벨
+    expect(screen.getByText('증권사')).toBeInTheDocument() // 고르기 전 스텝퍼 1번째 라벨
+    await user.click(screen.getByRole('button', { name: /메리츠증권/ }))
     expect(screen.getByText('계좌 별칭')).toBeInTheDocument() // 스텝퍼 3번째 라벨
-    expect(screen.getByRole('heading', { name: '업비트 API 키 입력' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '메리츠증권 API 키 입력' })).toBeInTheDocument()
   })
 })

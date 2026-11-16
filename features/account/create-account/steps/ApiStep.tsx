@@ -4,11 +4,10 @@ import { useReducer, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ApiKeyExpiryField, isEstimatedExpiry, kstToday, useTestBrokerConnectionMutation } from '@entities/account'
-import type { BrokerCode } from '@entities/account'
+import type { CredentialBroker } from '@entities/account'
 import { useMeta } from '@entities/meta'
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import type { StepData } from '../CreateAccountStepper'
-import { ApiKeyField, ApiSecretField, BinanceKeyGuide, ConnectionTest, UpbitKeyGuide } from './ApiStepParts'
+import { ApiKeyField, ApiSecretField, ConnectionTest } from './ApiStepParts'
 
 interface Props {
   data: StepData
@@ -25,26 +24,6 @@ const BROKER_CONFIG = {
     linkHref: 'https://www.tossinvest.com',
     linkLabel: '토스증권 API 키 발급',
     hint: '로그인 후 우측 하단 [설정 - Open API] 메뉴에서 API 키를 발급받을 수 있습니다.',
-    minLen: 10,
-  },
-  UPBIT: {
-    title: '업비트 API 키 입력',
-    desc: '업비트 Open API 키를 입력하세요.',
-    keyLabel: 'Access Key',
-    secretLabel: 'Secret Key',
-    linkHref: 'https://upbit.com/mypage/open_api_management',
-    linkLabel: '업비트 Open API 키 발급',
-    hint: '로그인 후 마이페이지 [Open API 관리]에서 API 키를 발급받을 수 있습니다.',
-    minLen: 10,
-  },
-  BINANCE: {
-    title: '바이낸스 API 키 입력',
-    desc: '바이낸스 API 키를 입력하세요.',
-    keyLabel: 'API Key',
-    secretLabel: 'Secret Key',
-    linkHref: 'https://www.binance.com/en/my/settings/api-management',
-    linkLabel: '바이낸스 API 키 발급',
-    hint: '로그인 후 [계정 - API 관리]에서 API 키를 발급받을 수 있습니다.',
     minLen: 10,
   },
   MERITZ: {
@@ -86,12 +65,11 @@ export function ApiStep({ data, onNext, onBack }: Props) {
     touchedSecret: false,
   })
   const testMutation = useTestBrokerConnectionMutation()
-  const { data: runtimeConfig, isLoading: isRuntimeConfigLoading } = useRuntimeConfigQuery()
   const { findBroker } = useMeta()
   const [apiKeyExpiresOn, setApiKeyExpiresOn] = useState(data.apiKeyExpiresOn)
 
   // MOCK은 이 스텝을 렌더하지 않는다(CreateAccountStepper가 건너뜀)
-  const broker = data.broker as Exclude<BrokerCode, 'MOCK'>
+  const broker = data.broker as CredentialBroker
   const config = BROKER_CONFIG[broker]
   const showExpiry = isEstimatedExpiry(findBroker(broker)?.apiKeyExpirySource)
   const keyValid = apiKey.length >= config.minLen
@@ -149,11 +127,8 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           메리츠증권은 계좌번호를 받지 않고 App Key에 연결된 계좌 하나로 매매합니다. 계좌를 여러 개 등록하려면 계좌마다 App Key를 따로 발급받으세요.
         </p>
       )}
-      {broker === 'UPBIT' && <UpbitKeyGuide allowedIp={runtimeConfig?.brokers.UPBIT?.allowedIp} isLoading={isRuntimeConfigLoading} />}
-      {broker === 'BINANCE' && <BinanceKeyGuide allowedIp={runtimeConfig?.brokers.BINANCE?.allowedIp} isLoading={isRuntimeConfigLoading} />}
 
       <ConnectionTest
-        broker={broker}
         keyLabel={config.keyLabel}
         secretLabel={config.secretLabel}
         disabled={!canTest || testMutation.isPending}

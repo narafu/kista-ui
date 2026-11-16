@@ -1,8 +1,8 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { getCandlesClient, getMarketSessionClient, getCandlesRangeClient, getCryptoMarketIndicatorsClient, getFearGreedClient } from '../api'
-import type { Candle, CryptoMarketIndicators, FearGreed, MarketSession } from '../model/types'
+import { getCandlesClient, getMarketSessionClient, getCandlesRangeClient, getFearGreedClient } from '../api'
+import type { Candle, FearGreed, MarketSession } from '../model/types'
 import { CHART_CANDLE_COUNT } from '../model/constants'
 import { marketKeys } from '../model/queryKeys'
 import { monthlyHolidaysQueryOptions } from '../model/queryOptions'
@@ -47,14 +47,5 @@ export function useFearGreedQuery(days: number) {
     queryKey: marketKeys.fearGreed(days),
     queryFn: () => getFearGreedClient(days),
     staleTime: 1000 * 60 * 10, // 10분 — 수집이 KST 07:00(확정값)·12:00(재수집)으로 간격이 고르지 않아 주기 기반으로 길게 잡지 않는다. 서버 max-age(10분)와 같은 값이지만 프록시는 Cache-Control을 전달하지 않아 이 staleTime이 유일한 클라이언트 캐시다
-  })
-}
-
-// 비인증 공개 엔드포인트 — 게스트도 조회한다(공포탐욕지수와 같은 대시보드 공개 패널)
-export function useCryptoMarketIndicatorsQuery() {
-  return useQuery<CryptoMarketIndicators>({
-    queryKey: marketKeys.cryptoIndicators(),
-    queryFn: getCryptoMarketIndicatorsClient,
-    staleTime: 1000 * 60 * 10, // 10분 — kista-trading 서버 캐시 TTL과 같다(프록시는 Cache-Control을 전달하지 않는다)
   })
 }

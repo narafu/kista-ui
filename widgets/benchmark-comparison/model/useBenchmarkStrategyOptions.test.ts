@@ -7,7 +7,7 @@ vi.mock('@entities/strategy', () => ({
     data: [
       { id: 's1', accountId: 'toss' },
       { id: 's2', accountId: 'mock' },
-      { id: 's3', accountId: 'upbit' },
+      { id: 's3', accountId: 'meritz' },
     ],
   }),
 }))
@@ -16,13 +16,13 @@ vi.mock('@entities/account', () => ({
     data: [
       { id: 'toss', broker: 'TOSS' },
       { id: 'mock', broker: 'MOCK' },
-      { id: 'upbit', broker: 'UPBIT' },
+      { id: 'meritz', broker: 'MERITZ' },
     ],
   }),
 }))
 
 describe('useBenchmarkStrategyOptions', () => {
-  it('모의계좌 전략만 벤치마크 선택지에서 빼고 크립토 계좌 전략은 남긴다', () => {
+  it('모의계좌 전략만 벤치마크 선택지에서 뺀다', () => {
     const { result } = renderHook(() => useBenchmarkStrategyOptions(true))
     expect(result.current.strategies.map((s) => s.id)).toEqual(['s1', 's3'])
   })

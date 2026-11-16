@@ -28,7 +28,7 @@ import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
-const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BTC', 'ETH']
+const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BITO', 'EETH']
 
 const hasStrategyError = (errors: Record<string, string>, strategy: RuntimeStrategyType) =>
   Object.keys(errors).some((key) => key.startsWith(`${strategy}.`))
@@ -192,7 +192,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">증권사·거래소 등록</h2>
+          <h2 className="text-base font-bold">증권사 등록</h2>
           {(Object.keys(draft.brokers) as BrokerCode[])
             .sort((a, b) => Number(isMockBroker(a)) - Number(isMockBroker(b)))
             .map((broker) => (

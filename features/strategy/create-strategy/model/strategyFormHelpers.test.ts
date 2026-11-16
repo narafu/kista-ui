@@ -29,7 +29,7 @@ describe('deriveRuntimeFields 시장 필터', () => {
   })
 
   it('수정 모드는 필터와 무관하게 기존 티커', () => {
-    expect(deriveRuntimeFields({ ticker: 'BTC' } as Strategy, runtime('UPRO'), () => false, false).availableTickers).toEqual(['BTC'])
+    expect(deriveRuntimeFields({ ticker: 'XYZ' } as Strategy, runtime('UPRO'), () => false, false).availableTickers).toEqual(['XYZ'])
   })
 })
 

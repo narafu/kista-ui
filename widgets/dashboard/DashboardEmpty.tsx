@@ -8,7 +8,6 @@ import { Surface } from '@shared/ui/Surface'
 
 interface Props {
   marketPanels: ReactNode
-  bottomPanels?: ReactNode
 }
 
 const NOTIFICATION_CARD = {
@@ -18,7 +17,7 @@ const NOTIFICATION_CARD = {
   href: '/settings',
 }
 
-export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
+export function DashboardEmpty({ marketPanels }: Props) {
   return (
     <>
       {/* Desktop 안내 */}
@@ -33,7 +32,7 @@ export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
             <p className="text-sm font-bold tracking-[0.12em] uppercase text-[var(--brand-fg-soft)] mb-2">시작하기</p>
             <p className="text-sm font-bold mb-1.5">첫 계좌 등록</p>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-              증권사·거래소 API 키를 연결하면 분할매매 자동화가 시작됩니다.
+              증권사 API 키를 연결하면 분할매매 자동화가 시작됩니다.
             </p>
             <NewAccountButton className="self-start">계좌 등록하기</NewAccountButton>
           </div>
@@ -63,7 +62,7 @@ export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
           </div>
           <p className="text-sm font-bold tracking-[0.15em] uppercase text-[var(--brand-fg-soft)] mb-1.5">KISTA 시작하기</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-            증권사·거래소 API 키를 연결하면<br />분할매매 자동화가 시작됩니다.
+            증권사 API 키를 연결하면<br />분할매매 자동화가 시작됩니다.
           </p>
           <NewAccountButton className="w-full h-12 text-sm">첫 계좌 등록하기</NewAccountButton>
         </div>
@@ -76,7 +75,7 @@ export function DashboardEmpty({ marketPanels, bottomPanels }: Props) {
         </div>
       </div>
 
-      <DashboardMarkets marketPanels={marketPanels} bottomPanels={bottomPanels} />
+      <DashboardMarkets marketPanels={marketPanels} />
     </>
   )
 }

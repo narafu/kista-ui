@@ -69,10 +69,10 @@ vi.mock('./sections/ScheduledStartSection', () => ({
 }))
 
 vi.mock('./DcaStrategyForm', () => ({
-  DcaStrategyForm: (props: { availableTickers: string[]; defaultTicker: string; market: string; header?: React.ReactNode }) => (
+  DcaStrategyForm: (props: { availableTickers: string[]; defaultTicker: string; header?: React.ReactNode }) => (
     <>
       {props.header}
-      <div data-testid="dca-strategy-form" data-market={props.market} data-default={props.defaultTicker}>{props.availableTickers.join(',')}</div>
+      <div data-testid="dca-strategy-form" data-default={props.defaultTicker}>{props.availableTickers.join(',')}</div>
     </>
   ),
 }))
@@ -363,24 +363,6 @@ describe('StrategyForm VR settings section', () => {
     expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 
-  it('코인 계좌면 DcaStrategyForm에 CRYPTO_KRW 시장과 필터된 티커·기본 티커를 넘긴다', () => {
-    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: true, market: 'CRYPTO_KRW', availableTickers: ['BTC', 'ETH'], defaultTicker: 'BTC' })
-
-    render(<StrategyForm accountId="account-1" broker="UPBIT" />)
-
-    const dca = screen.getByTestId('dca-strategy-form')
-    expect(dca).toHaveTextContent('BTC,ETH')
-    expect(dca).toHaveAttribute('data-market', 'CRYPTO_KRW')
-    expect(dca).toHaveAttribute('data-default', 'BTC')
-  })
-
-  it('주식 계좌면 US_STOCK 시장을 넘긴다', () => {
-    useStrategyFormMock.mockReturnValue({ ...baseFormState, type: 'DCA', isCrypto: false, market: 'US_STOCK', availableTickers: ['UPRO'] })
-
-    render(<StrategyForm accountId="account-1" />)
-
-    expect(screen.getByTestId('dca-strategy-form')).toHaveAttribute('data-market', 'US_STOCK')
-  })
 })
 
 describe('StrategyForm DCA 수정 모드', () => {

@@ -5,9 +5,9 @@ import type { DailyTransaction } from '../model/types'
 const trade = (over: Partial<DailyTransaction>): DailyTransaction => ({
   tradeDate: '2026-11-08',
   direction: 'BUY',
-  ticker: 'BTC',
-  symbolName: 'BTC',
-  quantity: 0.01,
+  ticker: 'SOXL',
+  symbolName: 'SOXL',
+  quantity: 1,
   price: 100,
   tradeAmount: 0,
   currency: 'KRW',

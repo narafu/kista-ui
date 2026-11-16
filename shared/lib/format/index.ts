@@ -23,12 +23,11 @@ export function fmtCompactUsdNarrow(n: number): string {
 }
 
 const narrowCompactKrwFormat = new Intl.NumberFormat('ko-KR', { notation: 'compact', maximumSignificantDigits: 2 })
-const narrowCompactNumberFormat = new Intl.NumberFormat('en-US', { notation: 'compact', maximumSignificantDigits: 2 })
 
-/** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원", "1.2K₮"; 좁은 칸용 — USDT는 테더 기호 ₮로 줄인다) */
+/** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원"; 좁은 칸용) */
 export function fmtCompactMoneyNarrow(n: number, currency: Currency): string {
   if (currency === 'KRW') return `${narrowCompactKrwFormat.format(n)}원`
-  return currency === 'USDT' ? `${narrowCompactNumberFormat.format(n)}₮` : fmtCompactUsdNarrow(n)
+  return fmtCompactUsdNarrow(n)
 }
 
 /** 0~1 비율을 부호 포함 %로. null/undefined는 '-' */
@@ -126,38 +125,36 @@ export function fmtSignedKrw(n: number): string {
   return n >= 0 ? `+${fmtKrw(n)}` : `-${fmtKrw(Math.abs(n))}`
 }
 
-/** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원", USDT는 "1,234.50 USDT" */
+/** 계좌 통화 금액 — USD는 "$1,234.50", KRW는 "1,234원" */
 export function fmtMoney(n: number, currency: Currency): string {
   // 서버가 KRW 합계를 소수 2자리로 줄 수 있다 — 원 단위로 반올림한다(-0은 0으로)
   if (currency === 'KRW') return fmtKrw(Math.round(n) || 0)
-  return currency === 'USDT' ? `${fmtUsd(n)} USDT` : `$${fmtUsd(n)}`
+  return `$${fmtUsd(n)}`
 }
 
-/** 금액 문자열과 라벨 줄에 따로 둘 단위로 가른다 — 코드형 단위(USDT)만 unit으로 빼고, 기호형 단위($·원)는 text에 그대로 둔다. 값이 없으면 text는 '-'이고 단위는 그대로 붙어 로딩 전후 라벨 줄이 흔들리지 않는다 */
-export function splitMoneyUnit(n: number | null | undefined, currency: Currency): { text: string; unit?: string } {
-  const unit = currency === 'USDT' ? 'USDT' : undefined
-  if (n == null) return { text: '-', unit }
-  return unit ? { text: fmtUsd(n), unit } : { text: fmtMoney(n, currency) }
+/** 값이 없으면 '-', 있으면 계좌 통화 금액 */
+export function fmtMoneyOrDash(n: number | null | undefined, currency: Currency): string {
+  return n == null ? '-' : fmtMoney(n, currency)
 }
 
-/** 입력 칸 뒤에 붙이는 통화 단위 — KRW는 "원", 그 외는 통화 코드(USD·USDT) */
+/** 입력 칸 뒤에 붙이는 통화 단위 — KRW는 "원", 그 외는 통화 코드(USD) */
 export function currencyUnit(currency: Currency): string {
   return currency === 'KRW' ? '원' : currency
 }
 
-/** 부호 포함 계좌 통화 금액 — 예: "+$1.50", "-1,000원", "+1.50 USDT" */
+/** 부호 포함 계좌 통화 금액 — 예: "+$1.50", "-1,000원" */
 export function fmtSignedMoney(n: number, currency: Currency): string {
   const r = roundMoney(n, currency) // 반올림 뒤 0이 되는 음수를 "-0원"으로 쓰지 않는다
   return `${r >= 0 ? '+' : '-'}${fmtMoney(Math.abs(r), currency)}`
 }
 
-/** 계좌 통화 표시 단위로 반올림 — 코인 소수 수량 × 가격의 단위 미만을 버린다 */
+/** 계좌 통화 표시 단위로 반올림 — 소수 수량 × 가격의 단위 미만을 버린다 */
 export function roundMoney(n: number, currency: Currency): number {
   const f = 10 ** CURRENCY_SCALE[currency]
   return Math.round(n * f) / f
 }
 
-/** 수량 — 주식은 정수 그대로, 코인은 최대 8자리 소수에서 끝의 0을 지운다 */
+/** 수량 — 정수는 그대로, 소수는 최대 8자리에서 끝의 0을 지운다 */
 export function fmtQuantity(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(8).replace(/\.?0+$/, '')
 }

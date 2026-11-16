@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, splitMoneyUnit, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtMoneyOrDash, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -219,7 +219,6 @@ describe('fmtMoney', () => {
   it('통화별 단위를 붙인다', () => {
     expect(fmtMoney(1234.5, 'USD')).toBe('$1,234.50')
     expect(fmtMoney(1234, 'KRW')).toBe('1,234원')
-    expect(fmtMoney(10.5, 'USDT')).toBe('10.50 USDT')
   })
   it('KRW 소수는 원 단위로 반올림하고 0이 되는 음수에 -를 붙이지 않는다', () => {
     expect(fmtMoney(49089.71, 'KRW')).toBe('49,090원')
@@ -233,31 +232,22 @@ describe('fmtSignedMoney', () => {
   it('부호를 통화 단위 앞에 둔다', () => {
     expect(fmtSignedMoney(1.5, 'USD')).toBe('+$1.50')
     expect(fmtSignedMoney(-1000, 'KRW')).toBe('-1,000원')
-    expect(fmtSignedMoney(-2.25, 'USDT')).toBe('-2.25 USDT')
-    expect(fmtSignedMoney(0, 'USDT')).toBe('+0.00 USDT')
+    expect(fmtSignedMoney(0, 'USD')).toBe('+$0.00')
   })
 })
 
 describe('roundMoney', () => {
-  it('KRW는 원 단위, USD·USDT는 센트 단위로 반올림한다', () => {
+  it('KRW는 원 단위, USD는 센트 단위로 반올림한다', () => {
     expect(roundMoney(1234.5, 'KRW')).toBe(1235)
-    expect(roundMoney(10.555, 'USDT')).toBeCloseTo(10.56)
     expect(roundMoney(10.554, 'USD')).toBe(10.55)
   })
 })
 
-describe('splitMoneyUnit', () => {
-  it('KRW·USD는 기호가 붙은 text만, unit 없음', () => {
-    expect(splitMoneyUnit(1234.4, 'KRW')).toEqual({ text: '1,234원' })
-    expect(splitMoneyUnit(1234.5, 'USD')).toEqual({ text: '$1,234.50' })
-  })
-
-  it('USDT는 숫자만 text, 단위는 unit으로 뺀다', () => {
-    expect(splitMoneyUnit(1234.5, 'USDT')).toEqual({ text: '1,234.50', unit: 'USDT' })
-  })
-
-  it('값이 없으면 text는 -, 단위는 통화 기준으로 그대로 붙는다', () => {
-    expect(splitMoneyUnit(null, 'USDT')).toEqual({ text: '-', unit: 'USDT' })
-    expect(splitMoneyUnit(undefined, 'KRW')).toEqual({ text: '-', unit: undefined })
+describe('fmtMoneyOrDash', () => {
+  it('값이 있으면 통화 금액, 없으면 -', () => {
+    expect(fmtMoneyOrDash(1234.4, 'KRW')).toBe('1,234원')
+    expect(fmtMoneyOrDash(1234.5, 'USD')).toBe('$1,234.50')
+    expect(fmtMoneyOrDash(null, 'USD')).toBe('-')
+    expect(fmtMoneyOrDash(undefined, 'KRW')).toBe('-')
   })
 })

@@ -8,7 +8,6 @@ import { canWithdrawCapital, supportsCapitalAdjustment, useStrategyDetailQuery }
 import { PageHeader } from '@widgets/page-header'
 import { CapitalForm, type CapitalKind } from '@features/strategy/adjust-capital'
 import { FormDialog } from '@shared/ui/FormDialog'
-import { brokerCurrency } from '@shared/lib/api-schema'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import type { Account } from '@entities/account'
@@ -44,7 +43,7 @@ export function StrategyDetailContent({
 
   if (!account || !strategy) return null
 
-  const currency = brokerCurrency(account.broker)
+  const currency = 'USD'
   const ghostSm = buttonVariants({ variant: 'ghost', size: 'sm' })
 
   return (

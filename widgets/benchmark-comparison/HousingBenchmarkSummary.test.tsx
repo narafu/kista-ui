@@ -46,13 +46,13 @@ describe('HousingBenchmarkSummary', () => {
     render(
       <HousingBenchmarkSummary
         summary={BASE_SUMMARY}
-        investmentLabel="DCA · ETH"
-        investmentCurrency="USDT"
+        investmentLabel="INFINITE · SOXL"
+        investmentCurrency="KRW"
         benchmarkLabel="QQQ"
         benchmarkCurrency="USD"
       />,
     )
 
-    expect(screen.getByText('DCA · ETH · USDT')).toBeInTheDocument()
+    expect(screen.getByText('INFINITE · SOXL · KRW')).toBeInTheDocument()
   })
 })

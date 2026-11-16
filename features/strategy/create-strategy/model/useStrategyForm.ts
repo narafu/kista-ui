@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import type { TradingMarket } from '@shared/lib/api-schema'
-import { orderAmountRuleOf, tickerTradesIn, type OrderAmountRule } from '@entities/meta'
+import { isStockTicker } from '@entities/meta'
 import { useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
@@ -47,9 +46,6 @@ export interface VrFields {
 }
 
 export interface UseStrategyFormReturn {
-  isCrypto: boolean // 업비트 등 코인 계좌
-  market: TradingMarket // 계좌 broker의 시장 — DCA 폼의 금액 단위·티커 필터 기준
-  orderAmount: OrderAmountRule // 계좌 broker의 회차 금액 제약(메타)
   type: string
   setType: (t: string) => void
   usesDivisionCount: boolean
@@ -125,7 +121,7 @@ export function useStrategyForm({
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const queryClient = useQueryClient()
   const {
-    isMock, isCrypto, market, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
+    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
     prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
@@ -165,7 +161,7 @@ export function useStrategyForm({
     availableTickers, defaultTicker, divisionCountSettings, usesDivisionCount, tickerCustomizable, vrSettings,
   } = deriveRuntimeFields(
     initial, runtimeStrategy,
-    (code) => tickerTradesIn(meta.tickers.find((t) => t.code === code), market),
+    (code) => isStockTicker(meta.tickers.find((t) => t.code === code)),
     (typeMeta?.divisionCounts.length ?? 0) > 0,
   )
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
@@ -251,8 +247,7 @@ export function useStrategyForm({
     type, setType, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
     ticker, availableTickers, defaultTicker, basePrice, prices,
     seedUsdInput, setSeedUsdInput, availableCash, minSeed, isBelowMinSeed, loadingBase,
-    isMock, isCrypto, market,
-    orderAmount: orderAmountRuleOf(broker ?? '', meta.brokers.find((b) => b.code === broker)),
+    isMock,
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, runtimeConfigUnavailable,

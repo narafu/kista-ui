@@ -6,11 +6,9 @@ export const testMeta = {
   strategyTypes: [],
   tickers: [],
   brokers: [
-    { code: 'TOSS', label: '토스증권', description: '토스', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'ESTIMATED' },
-    { code: 'MOCK', label: '모의계좌', description: '모의', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'NONE' },
-    { code: 'UPBIT', label: '업비트', description: '업비트', market: 'CRYPTO_KRW', currency: 'KRW', minOrderAmount: '5000', amountScale: 0, apiKeyExpirySource: 'BROKER_API' },
-    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', market: 'US_STOCK', currency: 'USD', minOrderAmount: '0', amountScale: 2, apiKeyExpirySource: 'ESTIMATED' },
-    { code: 'BINANCE', label: '바이낸스', description: '바이낸스', market: 'CRYPTO_USDT', currency: 'USDT', minOrderAmount: '5', amountScale: 2, apiKeyExpirySource: 'NONE' },
+    { code: 'TOSS', label: '토스증권', description: '토스', apiKeyExpirySource: 'ESTIMATED' },
+    { code: 'MOCK', label: '모의계좌', description: '모의', apiKeyExpirySource: 'NONE' },
+    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', apiKeyExpirySource: 'ESTIMATED' },
   ],
   strategyStatuses: [
     { code: 'ACTIVE', label: '운영중' },
