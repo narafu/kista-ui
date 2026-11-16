@@ -31,11 +31,11 @@ interface Props {
   cancelPending?: boolean
 }
 
-// 접수 시점은 LIMIT에서만 체결 기회가 달라진다(LOC·MOC·MOO는 언제 접수해도 결과가 같다).
-// LIMIT는 대개 개장 선접수라 그 외(PRIVACY의 장마감 30분 전 접수 등)만 표시한다
+// 접수 시점은 LIMIT·LIMIT_VWAP에서만 체결 기회가 달라진다(LOC·MOC·MOO는 언제 접수해도 결과가 같다).
+// 대개 개장 선접수라 그 외(PRIVACY의 장마감 30분 전 LIMIT VWAP 접수 등)만 표시한다
 function TimingNote({ orderType, timing }: { orderType: string; timing?: string }) {
   const { labelOf } = useMeta()
-  if (orderType !== 'LIMIT' || !timing || timing === 'AT_OPEN') return null
+  if ((orderType !== 'LIMIT' && orderType !== 'LIMIT_VWAP') || !timing || timing === 'AT_OPEN') return null
   return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 

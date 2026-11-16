@@ -20,6 +20,7 @@ export interface StrategyTypeMeta {
   directions: string[]
   frequencies: string[]
   conditionIndicators: string[]
+  supportedBrokers?: string[]   // 등록 가능 증권사 code — 빈 배열이면 전체 허용(1h 메타 캐시 대비 optional)
 }
 
 // DCA 조건 지표 메타 — SMA만 smaPeriods가 채워지고 나머지는 빈 배열

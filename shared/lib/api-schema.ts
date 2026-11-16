@@ -23,9 +23,9 @@ export type OrderStatus = NonNullable<components['schemas']['TodayOrderItem']['s
 export type OrderDirection = NonNullable<components['schemas']['ItemDto']['direction']>
 // 주문 유형은 서버가 order 도메인 응답 DTO에서 enum을 걷어내고 자유 문자열로 직렬화하도록 바뀌었다
 // (TodayOrderItem/OrderItem/AdminTradeResponse 모두 String). 스펙에 남은 유일한 enum 앵커는 fida 도메인
-// (FidaPlannedOrder.orderType)뿐이라 도메인 결합을 피해 여기서 수기로 정의한다 — 값 집합(LOC/MOC/LIMIT)은
-// kista-api broker/trading/privacy 각 OrderType enum이 "모듈 경계상 별개지만 값 집합은 동일"로 관리한다.
-export type OrderType = 'LOC' | 'MOC' | 'LIMIT'
+// (FidaPlannedOrder.orderType)뿐이라 도메인 결합을 피해 여기서 수기로 정의한다 — 값 집합은 kista-api
+// shared.kernel.OrderType과 같게 유지한다(LIMIT_VWAP: PRIVACY 장마감 30분 전 지정가 VWAP, 메리츠·MOCK 전용).
+export type OrderType = 'LOC' | 'MOC' | 'LIMIT' | 'MOO' | 'LIMIT_VWAP'
 
 // TodayOrderItem/ItemDto가 order 도메인 DTO라 서버가 Order 스키마에 한 것처럼 enum을 걷어내면
 // 위 파생 타입이 소리 없이 string으로 붕괴한다(스키마 제거·개명은 gen:types에서 시끄럽게 깨지지만

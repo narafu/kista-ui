@@ -77,6 +77,7 @@ export interface UseStrategyFormReturn {
   divisionCountSettings?: RuntimeFieldSettings<number>
   tickerCustomizable: boolean
   enabledStrategyTypes: string[]
+  brokerRestrictionNotes: string[]
   runtimeConfigUnavailable: boolean
   runtimeConfigError: boolean
   retryRuntimeConfig: () => void
@@ -120,7 +121,7 @@ export function useStrategyForm({
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const queryClient = useQueryClient()
   const {
-    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes,
+    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes, brokerRestrictionNotes,
     prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
@@ -249,7 +250,7 @@ export function useStrategyForm({
     isMock,
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,
-    enabledStrategyTypes, runtimeConfigUnavailable,
+    enabledStrategyTypes, brokerRestrictionNotes, runtimeConfigUnavailable,
     // 이미 받은 설정이 있으면 재조회(창 포커스마다 돈다) 실패로 폼을 오류 화면으로 바꾸지 않는다 — 입력이 통째로 사라진다
     runtimeConfigError: runtimeQuery.isError && !runtimeQuery.data,
     retryRuntimeConfig: () => { void runtimeQuery.refetch() },

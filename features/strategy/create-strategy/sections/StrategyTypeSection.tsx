@@ -13,9 +13,10 @@ interface Props {
   setType: (t: string) => void
   loading: boolean
   strategyTypes: StrategyTypeMeta[]
+  restrictionNotes?: string[] // 계좌 증권사 제한으로 숨긴 유형 안내
 }
 
-export function StrategyTypeSection({ initial, type, setType, loading, strategyTypes }: Props) {
+export function StrategyTypeSection({ initial, type, setType, loading, strategyTypes, restrictionNotes = [] }: Props) {
   const { labelOf } = useMeta()
   return (
     <div className="py-[18px] border-b border-border">
@@ -53,6 +54,9 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
               </SelectionCard>
             )
           })}
+          {restrictionNotes.map((note) => (
+            <p key={note} className="col-span-2 text-xs text-muted-foreground">{note}</p>
+          ))}
         </div>
       )}
     </div>

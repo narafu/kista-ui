@@ -95,7 +95,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         onSuccess={onSuccess}
         onCancel={onCancel}
         header={!initial && (
-          <StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} />
+          <StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} restrictionNotes={form.brokerRestrictionNotes} />
         )}
       />
     )
@@ -111,6 +111,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         setType={form.setType}
         loading={form.loading}
         strategyTypes={strategyTypes}
+        restrictionNotes={form.brokerRestrictionNotes}
       />
 
       <DivisionCountSection

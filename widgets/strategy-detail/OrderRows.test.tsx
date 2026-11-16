@@ -26,7 +26,7 @@ describe('OrderRows', () => {
     expect(screen.getAllByRole('button', { name: '취소' })).toHaveLength(4)
   })
 
-  it('shows timing only for LIMIT orders not submitted at open', () => {
+  it('shows timing only for LIMIT·LIMIT_VWAP orders not submitted at open', () => {
     render(
       <OrderRows
         orders={[
@@ -34,12 +34,13 @@ describe('OrderRows', () => {
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LOC', timing: 'AT_CLOSE', quantity: 1, price: '28' },
           { ticker: 'SOXL', direction: 'SELL', orderType: 'LOC', timing: 'AT_CLOSE', quantity: 1, price: '31' },
           { ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', timing: 'AT_CLOSE', quantity: 1, price: '27' },
+          { ticker: 'SOXL', direction: 'SELL', orderType: 'LIMIT_VWAP', timing: 'AT_CLOSE', quantity: 1, price: '32' },
         ]}
       />,
     )
 
-    // 모바일 리스트·PC 표 두 벌 — PRIVACY식 마감 접수 LIMIT 한 건만 표시
-    expect(screen.getAllByText('장마감 30분 전 접수')).toHaveLength(2)
+    // 모바일 리스트·PC 표 두 벌 — 마감 접수 LIMIT·LIMIT_VWAP(PRIVACY) 두 건만 표시
+    expect(screen.getAllByText('장마감 30분 전 접수')).toHaveLength(4)
     expect(screen.queryByText('개장 선접수')).toBeNull()
   })
 
