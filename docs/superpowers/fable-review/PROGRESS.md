@@ -399,7 +399,9 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 
 ### e2e 대기 (로드맵 4-5의 2)
 
-없음. 실행 세션이 로컬 api 없이 커밋한 화면 변경이 생기면 커밋 해시와 돌릴 명령을 여기 적는다.
+실행 세션이 로컬 api 없이 커밋한 화면 변경이 생기면 커밋 해시와 돌릴 명령을 여기 적는다.
+
+- `6a3e0a14`(S1 코인 제거): 시드 의존 e2e 5건(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`)이 로컬 DB가 비어 단언까지 가지 못했다. 시드를 넣은 뒤 `npm run test:e2e`(worktree 절차)와 `npm run visual-diff -- 190caf90`(계좌 상세·전략 등록·`stock-dca-strategy`)을 돌린다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -410,8 +412,9 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 판단: 대시보드 위쪽 패널 줄이 달력과 CNN 둘만 남아 `lg:grid-cols-3`을 `lg:grid-cols-2`로 바꿨다(스켈레톤도 2칸). `BrokerCode`는 `Extract<…, 'TOSS' | 'MOCK' | 'MERITZ'>`로 좁혔다. 생성 타입에는 서버가 지울 때까지 코인 코드가 남는다. 티커 시장 필터는 `isStockTicker`(US_STOCK 화이트리스트)로 바꿨다. 서버가 아직 코인 티커를 보내기 때문이다.
 - 판정 grep에서 남긴 것(코인 매매가 아님): 가계부 자산군 `CRYPTO`(`entities/finance/**`, `widgets/asset-composition` 테스트, `testMeta.ts`의 자산군 1줄), node `crypto` 모듈 import(`tests/e2e/support/account-cache-lock.ts`), IBIT·ETHA(주식 ETF) 벤치마크 문구.
 - 리뷰(`/code-review high`) 10건: 6~10번(낡은 주석, 쓰지 않는 `broker` prop, 별칭, 들여쓰기)은 고쳤다. 1~5번은 코인 계좌·USDT 이력이 서버에 남아 있을 때만 생기는 문제라 그대로 뒀다(코인 계좌 편집 화면 크래시, 계좌 상세 400, 금액이 USD로 표시됨, 관리자 설정의 업비트·바이낸스 토글). 운영에 live 코인 계좌는 0이다. 다만 api 15 T4가 데이터를 지우기 전까지 과거 USDT 체결은 달력·관리자 체결 표에 `$`로 보인다.
-- 확인하지 못한 것: visual-diff 세 화면. 로컬 DB가 비어 있고 시드는 사용자 확인 없이 돌리지 않는다. 코인 DCA 시나리오는 지웠고 주식 DCA 시나리오(`stock-dca-strategy`·`stock-dca-strategies`)는 남겼다.
-- e2e(worktree에 변경분을 적용해 실행, 로컬 api :8080·:8081): 12건 통과, 1건 건너뜀, 5건 실패. 실패 5건은 전부 시드 의존이다(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`, "dev 시드에 MOCK·TOSS 계좌가 있어야 한다"). 로컬 DB가 비어 있어서이고 이 변경과는 무관하다. 시드를 넣은 뒤 다시 돌린다.
+- 비회원 대시보드는 dev 서버 스크린샷(1440폭)으로 확인했다. 패널 줄 2칸이 위쪽 안내 카드 줄과 맞는다. 시장 차트의 "크립토 · 보조지표" 카테고리(IBIT 등 주식 ETF)는 코인 매매가 아니라 그대로 뒀다.
+- 확인하지 못한 것: visual-diff의 계좌 상세·전략 등록(DCA) 화면. 로컬 DB가 비어 있고 시드는 사용자 확인 없이 돌리지 않는다. 코인 DCA 시나리오는 지웠고 주식 DCA 시나리오(`stock-dca-strategy`·`stock-dca-strategies`)는 남겼다.
+- e2e(worktree에 변경분을 적용해 실행, 로컬 api :8080·:8081): 12건 통과, 1건 건너뜀, 5건 실패. 실패 5건은 전부 시드 의존이다(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`, "dev 시드에 MOCK·TOSS 계좌가 있어야 한다"). 로컬 DB가 비어 있어서이고 이번 변경을 검증하지 못한 것이다(전략 목록 카드·등록 폼·투자금 추가·인출 화면). 아래 "e2e 대기"에 적었다.
 - memory "완료 작업 재작업 금지": 코인 항목을 "삭제했고 다시 만들지 않는다"로 바꿨다.
 - 배포: 미배포(push 대기). 배포 뒤 api `cross-repo.md` G1 아래 줄의 배포일을 채운다.
 
