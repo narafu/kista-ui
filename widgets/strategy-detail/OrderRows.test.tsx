@@ -44,6 +44,23 @@ describe('OrderRows', () => {
     expect(screen.queryByText('개장 선접수')).toBeNull()
   })
 
+  it('shows "-" instead of $0.00 for market orders (MOC·MOO)', () => {
+    render(
+      <OrderRows
+        orders={[
+          { ticker: 'TQQQ', direction: 'SELL', orderType: 'MOC', quantity: 1, price: '0' },
+          { ticker: 'TQQQ', direction: 'BUY', orderType: 'MOO', quantity: 1, price: '0' },
+          { ticker: 'TQQQ', direction: 'BUY', orderType: 'LOC', quantity: 1, price: '50' },
+        ]}
+      />,
+    )
+
+    // 모바일 리스트·PC 표 두 벌
+    expect(screen.queryByText('$0.00')).toBeNull()
+    expect(screen.getAllByText('-')).toHaveLength(4)
+    expect(screen.getAllByText('$50.00')).toHaveLength(2)
+  })
+
   it('sorts by price when the header is clicked, keeping other rows intact', async () => {
     render(
       <OrderRows

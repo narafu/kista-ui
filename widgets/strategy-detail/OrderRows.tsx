@@ -39,6 +39,15 @@ function TimingNote({ orderType, timing }: { orderType: string; timing?: string 
   return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
+// 시장가(MOC·MOO)는 가격 없이 접수된다 — API가 주는 0이 "$0.00"으로 보이지 않게 "-"로 표시
+function fmtOrderPrice(orderType: string, price: string) {
+  return orderType === 'MOC' || orderType === 'MOO' ? '-' : `$${fmtUsd(toNum(price))}`
+}
+
+// 모바일 열 폭: 방향·주문가·수량·취소는 내용 폭만 쓰고, 남는 폭을 유형(LIMIT_VWAP + 접수 시점 주석)에 더 준다
+const MOBILE_GRID_CLASS = 'grid-cols-[auto_1.6fr_1fr_auto_auto]'
+const MOBILE_GRID_CANCEL_CLASS = 'grid-cols-[auto_1.6fr_1fr_auto_auto_auto]'
+
 type SortKey = 'default' | 'direction' | 'orderType' | 'ticker' | 'price' | 'quantity'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
@@ -70,9 +79,9 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       {/* 모바일 리스트 */}
       <ul className="lg:hidden">
         <li className={cn(
-          'grid items-center px-6 py-3 border-b border-border bg-muted/50 text-center',
+          'grid items-center gap-x-2 px-4 py-3 border-b border-border bg-muted/50 text-center',
           TABLE_HEAD_TEXT_CLASS,
-          hasCancel ? 'grid-cols-6' : 'grid-cols-5',
+          hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
         )}>
           <span>방향</span>
           <span>유형</span>
@@ -84,8 +93,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         {sorted.map((o, i) => (
           // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
-            'grid items-center text-sm px-6 py-3 border-b border-border last:border-b-0 text-center',
-            hasCancel ? 'grid-cols-6' : 'grid-cols-5',
+            'grid items-center gap-x-2 text-sm px-4 py-3 border-b border-border last:border-b-0 text-center',
+            hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
           )}>
             <div className="flex justify-center">
               <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
@@ -98,7 +107,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               <TimingNote orderType={o.orderType} timing={o.timing} />
             </span>
             <span className="font-medium">{o.ticker}</span>
-            <span className="whitespace-nowrap tabular-nums font-semibold">${fmtUsd(toNum(o.price))}</span>
+            <span className="whitespace-nowrap tabular-nums font-semibold">{fmtOrderPrice(o.orderType, o.price)}</span>
             <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
             {hasCancel && (
               <div className="flex justify-center">
@@ -144,7 +153,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <TimingNote orderType={o.orderType} timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums whitespace-nowrap font-semibold">${fmtUsd(toNum(o.price))}</TableDataCell>
+              <TableDataCell className="text-right tabular-nums whitespace-nowrap font-semibold">{fmtOrderPrice(o.orderType, o.price)}</TableDataCell>
               <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
               {hasCancel && (
                 <TableDataCell>
