@@ -36,7 +36,7 @@ interface Props {
 function TimingNote({ orderType, timing }: { orderType: string; timing?: string }) {
   const { labelOf } = useMeta()
   if ((orderType !== 'LIMIT' && orderType !== 'LIMIT_VWAP') || !timing || timing === 'AT_OPEN') return null
-  return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
+  return <span className="block break-keep max-lg:whitespace-nowrap text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
 // 시장가(MOC·MOO)는 가격 없이 접수된다 — API가 주는 0이 "$0.00"으로 보이지 않게 "-"로 표시
@@ -79,7 +79,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       {/* 모바일 리스트 */}
       <ul className="lg:hidden">
         <li className={cn(
-          'grid items-center gap-x-2 px-4 py-3 border-b border-border bg-muted/50 text-center',
+          'grid items-center gap-x-1.5 px-3 py-3 border-b border-border bg-muted/50 text-center',
           TABLE_HEAD_TEXT_CLASS,
           hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
         )}>
@@ -93,7 +93,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         {sorted.map((o, i) => (
           // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
-            'grid items-center gap-x-2 text-sm px-4 py-3 border-b border-border last:border-b-0 text-center',
+            'grid items-center gap-x-1.5 text-sm px-3 py-3 border-b border-border last:border-b-0 text-center',
             hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
           )}>
             <div className="flex justify-center">
