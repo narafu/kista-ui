@@ -402,6 +402,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 실행 세션이 로컬 api 없이 커밋한 화면 변경이 생기면 커밋 해시와 돌릴 명령을 여기 적는다.
 
 - `6a3e0a14`(S1 코인 제거): 시드 의존 e2e 5건(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`)이 로컬 DB가 비어 단언까지 가지 못했다. 시드를 넣은 뒤 `npm run test:e2e`(worktree 절차)와 `npm run visual-diff -- 190caf90`(계좌 상세·전략 등록·`stock-dca-strategy`)을 돌린다.
+  - 2026-11-20: 시드가 들어간 로컬 DB에서 `strategy.spec.ts` 4건 모두 통과했다(`f224bc5c` 기준). 32·51(투자금 추가·인출)은 시드 무한매수 전략이 사이클 대기 중(`cycleInProgress=false`)이라 버튼이 없어 실패했고, `f224bc5c`에서 진행 중 사이클 전략을 고르는 `seed.capital`로 고쳤다. 남은 것: `ledger-budget.spec.ts:9`, visual-diff.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
