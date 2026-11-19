@@ -19,6 +19,8 @@ const defaults = {
   // 시나리오가 여는 대표 전략 상세
   infinite: { accountId: MOCK, strategyId: MOCK_INF },
   vr: { accountId: MOCK, strategyId: MOCK_VR },
+  // 투자금 추가·인출 버튼이 보이는 전략(진행 중 사이클 + 장부 예수금 > 0). infinite는 사이클 대기 중일 수 있어 따로 고른다
+  capital: { accountId: MOCK, strategyId: MOCK_INF },
   paused: { accountId: TOSS, strategyId: TOSS_PAUSED },
   // 잔고 확인 화면용 실계좌(MOCK은 잔고 확인이 강제로 꺼진다)
   toss: { accountId: TOSS },
@@ -48,20 +50,28 @@ async function resolveFromApi() {
     } else console.warn('[seed] TOSS 시드 계좌 없음 — toss·paused는 기본 ID 사용')
     const account = accounts.find((a) => a.broker === 'MOCK' && a.nickname === '[시드] 모의계좌')
     if (!account) {
-      missing.add('infinite').add('vr')
+      missing.add('infinite').add('vr').add('capital')
       console.warn('[seed] MOCK 시드 계좌 없음 — 기본 ID 사용(kista-api scripts/dev-seed/seed.sh 확인)')
       return { ...tossResolved, accounts: { ...defaults.accounts, ...tossResolved.accounts } }
     }
     const strategies = await get(`/api/accounts/${account.id}/trading-cycles`)
     // seed.sh 기준 ticker(SOXL·TQQQ)의 ACTIVE를 우선하고, 없으면 같은 type의 ACTIVE, 그다음 아무 상태
-    const pick = (type, ticker) =>
+    const pick = (match, ticker) =>
       [(s) => s.ticker === ticker && s.status === 'ACTIVE', (s) => s.status === 'ACTIVE', () => true]
-        .map((cond) => strategies.find((s) => s.type === type && cond(s)))
+        .map((cond) => strategies.find((s) => match(s) && cond(s)))
         .find(Boolean)
+    // entities/strategy capitalAdjustment의 supportsCapitalAdjustment·canWithdrawCapital(floorToCents) 조건 — 서버도 진행 중 사이클에서만 허용한다
+    const adjustable = (s) =>
+      ['PRIVACY', 'INFINITE', 'DCA'].includes(s.type) && s.cycleInProgress &&
+      (s.ledgerDeposit == null || Math.floor(Number((s.ledgerDeposit * 100).toFixed(6))) > 0)
     // 기본값 계좌 맵에 합친다 — 못 찾은 키가 기본 ID로 남아도 tickerOf가 그 ID의 ticker를 계속 찾도록
     const resolved = { accounts: { ...defaults.accounts, [account.id]: Object.fromEntries(strategies.map((s) => [s.id, s.ticker])) } }
-    for (const [key, type, ticker] of [['infinite', 'INFINITE', 'SOXL'], ['vr', 'VR', 'TQQQ']]) {
-      const s = pick(type, ticker)
+    for (const [key, type, ticker] of [
+      ['infinite', 'INFINITE', 'SOXL'],
+      ['vr', 'VR', 'TQQQ'],
+      ['capital', 'PRIVACY·INFINITE·DCA(진행 중 사이클)', 'SOXL'],
+    ]) {
+      const s = pick(key === 'capital' ? adjustable : (x) => x.type === type, ticker)
       if (s) resolved[key] = { accountId: account.id, strategyId: s.id }
       else {
         missing.add(key)
@@ -76,6 +86,8 @@ async function resolveFromApi() {
 }
 
 const override = process.env.KISTA_DEV_SEED ? JSON.parse(readFileSync(process.env.KISTA_DEV_SEED, 'utf8')) : await resolveFromApi()
+// capital 기본 ID(MOCK_INF)는 사이클 대기 중일 수 있어 믿지 않는다 — 조회·override로 정해지지 않았으면 건너뛰게 한다
+if (!override.capital) missing.add('capital')
 
 export const seed = { ...defaults, ...override }
 

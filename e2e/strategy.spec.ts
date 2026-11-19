@@ -31,8 +31,9 @@ test.describe('전략 (USER)', () => {
 
   test('투자금 추가 폼은 칸 아래에 오류를 보이고 확인 다이얼로그에서 취소할 수 있다', async ({ page }) => {
     // 실제 데이터가 있는 로컬 DB라 최종 "추가 확정"은 절대 누르지 않는다
-    const { seed } = await import('../scripts/shared/seed.mjs')
-    await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
+    const { seed, hasSeed } = await import('../scripts/shared/seed.mjs')
+    test.skip(!hasSeed('capital'), 'MOCK 계좌에 진행 중 사이클이 있는 무한매수·DCA 전략 없음 — 투자금 버튼은 사이클 진행 중에만 보인다')
+    await page.goto(`/accounts/${seed.capital.accountId}/strategies/${seed.capital.strategyId}`)
     await page.getByRole('button', { name: '투자금 추가' }).click()
     await expect(page.getByRole('dialog', { name: '투자금 추가' })).toBeVisible()
 
@@ -50,8 +51,9 @@ test.describe('전략 (USER)', () => {
 
   test('투자금 인출 폼은 칸 아래에 오류를 보이고 확인 다이얼로그에서 취소할 수 있다', async ({ page }) => {
     // 실제 데이터가 있는 로컬 DB라 최종 "인출 확정"은 절대 누르지 않는다
-    const { seed } = await import('../scripts/shared/seed.mjs')
-    await page.goto(`/accounts/${seed.infinite.accountId}/strategies/${seed.infinite.strategyId}`)
+    const { seed, hasSeed } = await import('../scripts/shared/seed.mjs')
+    test.skip(!hasSeed('capital'), 'MOCK 계좌에 진행 중 사이클이 있는 무한매수·DCA 전략 없음 — 투자금 버튼은 사이클 진행 중에만 보인다')
+    await page.goto(`/accounts/${seed.capital.accountId}/strategies/${seed.capital.strategyId}`)
     await page.getByRole('button', { name: '투자금 인출' }).click()
     await expect(page.getByRole('dialog', { name: '투자금 인출' })).toBeVisible()
 

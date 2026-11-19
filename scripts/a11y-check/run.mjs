@@ -40,7 +40,7 @@ const DIALOG_PAGES = {
 // 폼 다이얼로그(FormDialog — PC 가운데, 모바일 전체 화면): [이름, 시작 페이지, 트리거 셀렉터]
 // 열림 상태를 부모가 쥐어 트리거가 data-slot=dialog-trigger가 아니므로 checkDialogs가 잡지 못해 따로 연다
 const FORM_DIALOGS = [
-  ['투자금 추가', detail(seed.infinite), 'button:has-text("투자금 추가"):visible'],
+  ['투자금 추가', detail(seed.capital), 'button:has-text("투자금 추가"):visible'],
   ['예산 추가', '/finance/budgets/expense', 'button:has-text("예산 추가"):visible'],
 ]
 
