@@ -6,6 +6,8 @@ import type { AdminAnomalyAccount } from '@entities/admin'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { evenColumnsClass } from '@shared/ui/TableHeadCell'
+import { cn } from '@shared/lib/utils'
 
 type SortKey = 'default' | 'ownerNickname' | 'nickname' | 'accountNo'
 
@@ -25,7 +27,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
   const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
   return (
     <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label={label} tabIndex={0}>
-      <table className="min-w-[320px] w-full text-sm">
+      <table className={cn('min-w-[320px] w-full text-sm', evenColumnsClass(3))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <SortableHeadCell sortKey="ownerNickname" className="whitespace-nowrap" {...head}>소유자</SortableHeadCell>

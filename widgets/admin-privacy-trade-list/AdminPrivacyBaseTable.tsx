@@ -6,14 +6,14 @@ import { toast } from 'sonner'
 import { ChevronRight, ChevronDown, Pencil, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { IconButton } from '@shared/ui/IconButton'
-import { fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtShares, fmtUsd, fmtSignedUsd, pnlTextClass } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
 import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
 import { LoadingRow } from '@shared/ui/LoadingRow'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
@@ -34,7 +34,7 @@ const EMPTY_BASES: AdminPrivacyBase[] = []
 type OrderLabelOf = (category: 'orderDirections' | 'orderTypes', code: string) => string
 
 function describeOrder(order: AdminPrivacyOrder, labelOf: OrderLabelOf): string {
-  const qty = order.quantity == null ? '' : ` × ${order.quantity}주`
+  const qty = order.quantity == null ? '' : ` × ${fmtShares(order.quantity)}`
   return `${labelOf('orderDirections', order.direction)} ${labelOf('orderTypes', order.orderType)} $${fmtUsd(order.price)}${qty}`
 }
 
@@ -200,10 +200,10 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
           </div>
 
           <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto lg:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
-            <table className="w-full text-sm min-w-[760px]" data-testid="admin-privacy-desktop-table">
+            <table className={cn('w-full text-sm min-w-[760px]', evenColumnsClass(7))} data-testid="admin-privacy-desktop-table">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
-                  <TableHeadCell className="w-8 px-2"><span className="sr-only">펼치기</span></TableHeadCell>
+                  <TableHeadCell className="w-px px-2"><span className="sr-only">펼치기</span></TableHeadCell>
                   <SortableHeadCell sortKey="releaseDate" {...sortHead} className="whitespace-nowrap">날짜</SortableHeadCell>
                   <SortableHeadCell sortKey="ticker" {...sortHead} className="whitespace-nowrap">종목</SortableHeadCell>
                   <SortableHeadCell sortKey="currentCycleStart" numeric {...sortHead} className="whitespace-nowrap">사이클 시작금액</SortableHeadCell>
@@ -211,7 +211,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
                   <SortableHeadCell sortKey="holdings" numeric {...sortHead} className="whitespace-nowrap">보유</SortableHeadCell>
                   <SortableHeadCell sortKey="currentCycleRealizedPnl" numeric {...sortHead} className="whitespace-nowrap">실현손익</SortableHeadCell>
                   <SortableHeadCell sortKey="orders" numeric {...sortHead} className="whitespace-nowrap">주문</SortableHeadCell>
-                  <TableHeadCell className="w-16 whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
+                  <TableHeadCell className="w-px whitespace-nowrap"><span className="sr-only">수정</span></TableHeadCell>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -314,7 +314,7 @@ function MobileBaseCard({
           valueClassName={`tabular-nums ${pnlTextClass(b.currentCycleRealizedPnl)}`}
         />
         <Metric label="평단가" value={b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`} valueClassName="tabular-nums" />
-        <Metric label="보유" value={String(b.holdings)} />
+        <Metric label="보유" value={fmtShares(b.holdings)} />
       </dl>
 
       {open && (
@@ -374,7 +374,7 @@ function OrderDetailsTable({
 }) {
   const { labelOf } = useMeta()
   return (
-    <table className="w-full text-xs">
+    <table className={cn('w-full text-xs', evenColumnsClass(4))}>
       <thead>
         <tr>
           <TableHeadCell className={ORDER_DETAILS_HEAD_CLASS}>방향</TableHeadCell>
@@ -391,9 +391,9 @@ function OrderDetailsTable({
               <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>{labelOf('orderDirections', o.direction)}</Badge>
             </TableDataCell>
             <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-muted-foreground')}>{labelOf('orderTypes', o.orderType)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>${fmtUsd(o.price)}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right tabular-nums whitespace-nowrap')}>{o.quantity ?? '-'}</TableDataCell>
-            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'text-right whitespace-nowrap')}>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'tabular-nums whitespace-nowrap')}>${fmtUsd(o.price)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'tabular-nums whitespace-nowrap')}>{o.quantity == null ? '-' : fmtShares(o.quantity)}</TableDataCell>
+            <TableDataCell className={cn(ORDER_DETAILS_CELL_CLASS, 'whitespace-nowrap')}>
               <span className="inline-flex items-center gap-1.5">
                 <IconButton
                   onClick={(e) => { e.stopPropagation(); onEditOrder(o) }}
@@ -445,13 +445,13 @@ function FragmentRow({
         </TableDataCell>
         <TableDataCell className="text-muted-foreground whitespace-nowrap">{b.releaseDate}</TableDataCell>
         <TableDataCell className="whitespace-nowrap">{b.ticker}</TableDataCell>
-        <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
-        <TableDataCell className="text-right tabular-nums whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
-        <TableDataCell className="text-right tabular-nums whitespace-nowrap">{b.holdings}</TableDataCell>
-        <TableDataCell className={`text-right tabular-nums whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
+        <TableDataCell className="tabular-nums whitespace-nowrap">${fmtUsd(b.currentCycleStart)}</TableDataCell>
+        <TableDataCell className="tabular-nums whitespace-nowrap">{b.avgPrice == null ? '-' : `$${fmtUsd(b.avgPrice)}`}</TableDataCell>
+        <TableDataCell className="tabular-nums whitespace-nowrap">{fmtShares(b.holdings)}</TableDataCell>
+        <TableDataCell className={`tabular-nums whitespace-nowrap ${pnlTextClass(b.currentCycleRealizedPnl)}`}>
           {fmtSignedUsd(b.currentCycleRealizedPnl)}
         </TableDataCell>
-        <TableDataCell className="text-right tabular-nums text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
+        <TableDataCell className="tabular-nums text-muted-foreground whitespace-nowrap">{b.orders.length}건</TableDataCell>
         <TableDataCell className="whitespace-nowrap">
           <IconButton
             onClick={(e) => { e.stopPropagation(); onEditBase() }}

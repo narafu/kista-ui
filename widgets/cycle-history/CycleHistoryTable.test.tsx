@@ -114,7 +114,7 @@ describe('CycleHistoryTable', () => {
     render(<CycleHistoryTable title="잔고 이력" id="account-1" useHistoryQuery={useHistoryQuery} />)
 
     expect(screen.getByRole('columnheader', { name: '날짜' })).toBeInTheDocument()
-    const dateCells = screen.getAllByRole('cell').filter((c) => c.hasAttribute('rowspan'))
+    const dateCells = screen.getAllByRole('rowheader')
     expect(dateCells.map((c) => c.getAttribute('rowspan'))).toEqual(['2', '1'])
   })
 

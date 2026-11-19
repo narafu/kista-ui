@@ -137,7 +137,7 @@ describe('DcaStrategyDetail', () => {
   it('회차 이력 표: 방향·주기·규칙(조건)을 칸으로 나누고, 삭제된 규칙은 주기 자리에 표시·조건은 -', () => {
     renderDetail()
     const region = screen.getByRole('region', { name: '회차별 실행 이력' })
-    const [ordered, skipped] = within(region).getAllByRole('row').filter((tr) => tr.querySelector('td')) // 날짜 소제목 행 제외
+    const [ordered, skipped] = within(region).getAllByRole('row').filter((tr) => tr.querySelector('td')) // 머리글 행 제외
     const cells = (row: HTMLElement) => within(row).getAllByRole('cell').map((c) => c.textContent)
     expect(cells(ordered).slice(0, 3)).toEqual(['매수', '매월 말일', 'RSI(14) 35 이하'])
     expect(cells(skipped).slice(0, 3)).toEqual(['매도', '삭제된 규칙', '-'])

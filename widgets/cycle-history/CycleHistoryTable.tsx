@@ -2,14 +2,14 @@
 
 import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { fmtUsd, fmtDate } from '@shared/lib/format'
+import { fmtUsd, fmtDate, fmtShares } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Badge } from '@shared/ui/Badge'
-import { groupConsecutiveBy } from '@shared/lib/utils'
+import { cn, groupConsecutiveBy } from '@shared/lib/utils'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
@@ -102,7 +102,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                         <Badge tone="brand" size="sm" className="px-2.5 font-bold">
                           {entry.ticker ?? '-'}
                         </Badge>
-                        <span className="text-sm font-semibold">{entry.holdings}주</span>
+                        <span className="text-sm font-semibold">{fmtShares(entry.holdings)}</span>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">
@@ -122,10 +122,10 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
             </div>
             {/* 데스크탑: 테이블 */}
             <div className="hidden lg:block">
-              <table className="w-full text-sm">
+              <table className={cn('w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal', evenColumnsClass(6))}>
                 <thead className="bg-muted/50 sticky top-0 z-10">
                   <tr>
-                    <TableHeadCell className="w-px whitespace-nowrap">날짜</TableHeadCell>
+                    <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell>티커</TableHeadCell>
                     <TableHeadCell numeric>수량</TableHeadCell>
                     <TableHeadCell numeric>평단가</TableHeadCell>
@@ -144,13 +144,13 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
                           <tr key={entryKey(entry, i)} className="border-t hover:bg-muted/30 transition-colors">
                             {/* 하루 여러 건은 날짜 셀 하나로 묶는다 */}
                             {i === 0 && (
-                              <TableDataCell rowSpan={g.items.length} className="whitespace-nowrap tabular-nums text-muted-foreground align-middle">{g.key}</TableDataCell>
+                              <th scope="row" rowSpan={g.items.length} className="px-4 py-3 text-center align-middle font-normal whitespace-nowrap tabular-nums text-muted-foreground">{g.key}</th>
                             )}
                             <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.holdings}주</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.deposit ?? 0)}`}</TableDataCell>
-                            <TableDataCell className="text-right tabular-nums whitespace-nowrap font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
+                            <TableDataCell className="tabular-nums whitespace-nowrap">{fmtShares(entry.holdings)}</TableDataCell>
+                            <TableDataCell className="tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
+                            <TableDataCell className="tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.deposit ?? 0)}`}</TableDataCell>
+                            <TableDataCell className="tabular-nums whitespace-nowrap font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
                           </tr>
                         )
                       })}

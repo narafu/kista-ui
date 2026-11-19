@@ -12,7 +12,7 @@ import { useAccountPricesQuery } from '@entities/account'
 import { directionBadgeClass } from '@entities/trade'
 import { Badge } from '@shared/ui/Badge'
 import { cn } from '@shared/lib/utils'
-import { fmtDate, fmtMoneyOrDash, fmtQuantity, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
+import { fmtDate, fmtMoneyOrDash, fmtShares, fmtSignedPercent, pnlTextClass } from '@shared/lib/format'
 import { StrategyInfoCard } from './StrategyMetaSection'
 import { CloseStrategyDialog } from './CloseStrategyDialog'
 import { StrategyToggleButton } from './StrategyToggleButton'
@@ -49,7 +49,7 @@ function DcaHoldingGrid({ accountId, strategy }: { accountId: string; strategy: 
   const evalText = fmtMoneyOrDash(evalAmount, 'USD')
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" value={`${fmtQuantity(holdings ?? 0)}주`} {...TILE} />
+      <KpiCard label="보유 수량" value={fmtShares(holdings ?? 0)} {...TILE} />
       <KpiCard label="평단가" value={avgText} {...TILE} />
       <KpiCard label="평가금액" value={unavailable ? UNAVAILABLE : evalText} skeleton={loading} {...TILE} />
       <KpiCard

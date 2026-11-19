@@ -1,12 +1,12 @@
 'use client'
 
 import { cn } from '@shared/lib/utils'
-import { fmtQuantity, fmtUsd } from '@shared/lib/format'
+import { fmtShares, fmtUsd } from '@shared/lib/format'
 import { toNum } from '@shared/lib/utils'
 import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { Badge } from '@shared/ui/Badge'
-import { TABLE_HEAD_TEXT_CLASS, TableHeadCell } from '@shared/ui/TableHeadCell'
+import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
@@ -36,17 +36,13 @@ interface Props {
 function TimingNote({ orderType, timing }: { orderType: string; timing?: string }) {
   const { labelOf } = useMeta()
   if ((orderType !== 'LIMIT' && orderType !== 'LIMIT_VWAP') || !timing || timing === 'AT_OPEN') return null
-  return <span className="block break-keep max-lg:whitespace-nowrap text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
+  return <span className="block break-keep text-xs text-muted-foreground mt-0.5">{labelOf('orderTimings', timing)}</span>
 }
 
 // 시장가(MOC·MOO)는 가격 없이 접수된다 — API가 주는 0이 "$0.00"으로 보이지 않게 "-"로 표시
 function fmtOrderPrice(orderType: string, price: string) {
   return orderType === 'MOC' || orderType === 'MOO' ? '-' : `$${fmtUsd(toNum(price))}`
 }
-
-// 모바일 열 폭: 방향·주문가·수량·취소는 내용 폭만 쓰고, 남는 폭을 유형(LIMIT_VWAP + 접수 시점 주석)에 더 준다
-const MOBILE_GRID_CLASS = 'grid-cols-[auto_1.6fr_1fr_auto_auto]'
-const MOBILE_GRID_CANCEL_CLASS = 'grid-cols-[auto_1.6fr_1fr_auto_auto_auto]'
 
 type SortKey = 'default' | 'direction' | 'orderType' | 'ticker' | 'price' | 'quantity'
 
@@ -76,54 +72,41 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
   return (
     <>
       <MobileSortControl {...head} options={SORT_OPTIONS} />
-      {/* 모바일 리스트 */}
-      <ul className="lg:hidden">
-        <li className={cn(
-          'grid items-center gap-x-1.5 px-3 py-3 border-b border-border bg-muted/50 text-center',
-          TABLE_HEAD_TEXT_CLASS,
-          hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
-        )}>
-          <span>방향</span>
-          <span>유형</span>
-          <span>종목</span>
-          <span>주문가</span>
-          <span>수량</span>
-          {hasCancel && <span>취소</span>}
-        </li>
+      {/* 모바일 카드 리스트 — 주문 내역과 같은 카드 패턴 */}
+      <ul className="space-y-2 p-4 lg:hidden">
         {sorted.map((o, i) => (
           // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
-          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className={cn(
-            'grid items-center gap-x-1.5 text-sm px-3 py-3 border-b border-border last:border-b-0 text-center',
-            hasCancel ? MOBILE_GRID_CANCEL_CLASS : MOBILE_GRID_CLASS,
-          )}>
-            <div className="flex justify-center">
-              <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
-                {labelOf('orderDirections', o.direction)}
-              </Badge>
-            </div>
-            {/* 모바일은 열 폭이 좁아 "LOC(장마감지정가)" 라벨 대신 코드만 표시 */}
-            <span className="text-muted-foreground">
-              {o.orderType}
-              <TimingNote orderType={o.orderType} timing={o.timing} />
-            </span>
-            <span className="font-medium">{o.ticker}</span>
-            <span className="whitespace-nowrap tabular-nums font-semibold">{fmtOrderPrice(o.orderType, o.price)}</span>
-            <span className="text-muted-foreground">{fmtQuantity(o.quantity)}</span>
-            {hasCancel && (
-              <div className="flex justify-center">
-                {o.id ? (
-                  <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
-                    {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
-                  </Button>
-                ) : <span />}
+          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
+                    {labelOf('orderDirections', o.direction)}
+                  </Badge>
+                  <Badge tone="neutral" size="sm">
+                    {labelOf('orderTypes', o.orderType)}
+                  </Badge>
+                </div>
+                <TimingNote orderType={o.orderType} timing={o.timing} />
               </div>
-            )}
+              <span className="shrink-0 font-semibold">{o.ticker}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="text-muted-foreground">
+                주문가 <span className="whitespace-nowrap tabular-nums font-semibold text-foreground">{fmtOrderPrice(o.orderType, o.price)}</span> · 수량 <span className="whitespace-nowrap tabular-nums font-semibold text-foreground">{fmtShares(o.quantity)}</span>
+              </span>
+              {hasCancel && o.id && (
+                <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
+                  {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
+                </Button>
+              )}
+            </div>
           </li>
         ))}
       </ul>
 
       {/* PC 테이블 */}
-      <table className="hidden lg:table w-full text-sm">
+      <table className={cn('hidden lg:table w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal', evenColumnsClass(5))}>
         {/* PC 2단에서 카드 안 스크롤 시 열 이름을 고정한다 — 반투명 행 배경 아래에 카드 배경을 깔아 비침을 막는다 */}
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="bg-muted/50">
@@ -133,7 +116,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
             <SortableHeadCell sortKey="price" numeric {...head}>주문가</SortableHeadCell>
             <SortableHeadCell sortKey="quantity" numeric {...head}>수량</SortableHeadCell>
             {hasCancel && (
-              <TableHeadCell>취소</TableHeadCell>
+              <TableHeadCell className="w-px">취소</TableHeadCell>
             )}
           </tr>
         </thead>
@@ -153,8 +136,8 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <TimingNote orderType={o.orderType} timing={o.timing} />
               </TableDataCell>
               <TableDataCell className="font-semibold">{o.ticker}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums whitespace-nowrap font-semibold">{fmtOrderPrice(o.orderType, o.price)}</TableDataCell>
-              <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">{fmtQuantity(o.quantity)}</TableDataCell>
+              <TableDataCell className="tabular-nums whitespace-nowrap font-semibold">{fmtOrderPrice(o.orderType, o.price)}</TableDataCell>
+              <TableDataCell className="tabular-nums whitespace-nowrap text-muted-foreground">{fmtShares(o.quantity)}</TableDataCell>
               {hasCancel && (
                 <TableDataCell>
                   {o.id && (

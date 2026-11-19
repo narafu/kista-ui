@@ -3,7 +3,7 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
@@ -45,7 +45,7 @@ function CycleTable({ cycles, accountsById }: Props) {
   const { labelOf } = useMeta()
   return (
     <div className="hidden overflow-x-auto lg:block" role="region" aria-label="사이클 성과 표" tabIndex={0}>
-      <table className="w-full text-sm" aria-label="사이클 성과">
+      <table className={cn('w-full text-sm', evenColumnsClass(6))} aria-label="사이클 성과">
         <thead className="bg-muted/50">
           <tr>
             <TableHeadCell>계좌</TableHeadCell>
@@ -77,10 +77,10 @@ function CycleTable({ cycles, accountsById }: Props) {
               <TableDataCell className="text-muted-foreground">
                 <Period cycle={cycle} />
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlMoneyClass(cycle.pnl))}>
+              <TableDataCell className={cn('tabular-nums whitespace-nowrap', pnlMoneyClass(cycle.pnl))}>
                 {pnlText(cycle.pnl)}
               </TableDataCell>
-              <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', pnlClass(cycle.returnRate))}>
+              <TableDataCell className={cn('tabular-nums whitespace-nowrap', pnlClass(cycle.returnRate))}>
                 {fmtSignedPercent(cycle.returnRate)}
               </TableDataCell>
             </tr>

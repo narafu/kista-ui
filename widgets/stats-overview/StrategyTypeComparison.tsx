@@ -3,6 +3,7 @@ import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
@@ -57,7 +58,7 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
           <>
             {/* 2xl에서는 사이클 성과 옆 반쪽 폭이라 셀 좌우 여백을 줄여 6열을 넣는다 */}
             <div className="hidden overflow-x-auto lg:block" role="region" aria-label="전략 유형 비교 표" tabIndex={0}>
-              <table className="w-full text-sm 2xl:[&_td]:px-2 2xl:[&_th]:px-2">
+              <table className={cn('w-full text-sm 2xl:[&_td]:px-2 2xl:[&_th]:px-2', evenColumnsClass(6))}>
                 <thead className="bg-muted/50">
                   <tr>
                     <SortableHeadCell sortKey="type" {...head}>전략</SortableHeadCell>
@@ -77,15 +78,15 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
                           {labelOf('strategyTypes', t.type)}
                         </Badge>
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap text-muted-foreground">
+                      <TableDataCell className="tabular-nums whitespace-nowrap text-muted-foreground">
                         종료 {t.closedCycleCount} · 진행 {t.activeCycleCount}
                       </TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
+                      <TableDataCell className={cn('tabular-nums whitespace-nowrap', t.avgReturnRate != null && pnlTextClass(t.avgReturnRate))}>
                         {fmtSignedPercent(t.avgReturnRate)}
                       </TableDataCell>
-                      <TableDataCell className="text-right tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.realizedPnl, currency)))}>{fmtSignedMoney(t.realizedPnl, currency)}</TableDataCell>
-                      <TableDataCell className={cn('text-right tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.unrealizedPnl, currency)))}>{fmtSignedMoney(t.unrealizedPnl, currency)}</TableDataCell>
+                      <TableDataCell className="tabular-nums whitespace-nowrap">{t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'}</TableDataCell>
+                      <TableDataCell className={cn('tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.realizedPnl, currency)))}>{fmtSignedMoney(t.realizedPnl, currency)}</TableDataCell>
+                      <TableDataCell className={cn('tabular-nums whitespace-nowrap font-medium', pnlTextClass(roundMoney(t.unrealizedPnl, currency)))}>{fmtSignedMoney(t.unrealizedPnl, currency)}</TableDataCell>
                     </tr>
                   ))}
                 </tbody>

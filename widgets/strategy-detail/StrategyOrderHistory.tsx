@@ -10,11 +10,11 @@ import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { Badge } from '@shared/ui/Badge'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
-import { fmtDate, fmtQuantity, fmtUsd } from '@shared/lib/format'
-import { groupConsecutiveBy, toNum } from '@shared/lib/utils'
+import { fmtDate, fmtQuantity, fmtShares, fmtUsd } from '@shared/lib/format'
+import { cn, groupConsecutiveBy, toNum } from '@shared/lib/utils'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { ALL_FILTER_VALUE, OrderHistoryFilters, type OrderHistoryFilterValue } from './OrderHistoryFilters'
@@ -25,11 +25,12 @@ interface Props {
 
 // 체결 수량이 있으면 체결/주문 수량, 없거나 0이면(장중 취소 후 미체결 포함) 주문 수량
 function OrderQuantity({ o }: { o: StrategyOrder }) {
-  if (!o.filledQuantity) return <>{fmtQuantity(o.quantity)}</>
+  if (!o.filledQuantity) return <>{fmtShares(o.quantity)}</>
   return (
     <span>
-      <span className="font-medium">{fmtQuantity(o.filledQuantity)}</span>
-      {o.filledQuantity !== o.quantity && <span className="text-muted-foreground text-xs">/{fmtQuantity(o.quantity)}</span>}
+      {o.filledQuantity === o.quantity
+        ? <span className="font-medium">{fmtShares(o.filledQuantity)}</span>
+        : <><span className="font-medium">{fmtQuantity(o.filledQuantity)}</span><span className="text-muted-foreground text-xs">/{fmtShares(o.quantity)}</span></>}
     </span>
   )
 }
@@ -141,10 +142,11 @@ export function StrategyOrderHistory({ strategyId }: Props) {
               ))}
             </div>
             <div className="hidden overflow-x-auto lg:block" role="region" aria-label="주문 내역" tabIndex={0}>
-              {/* PC 2단(xl)에서는 반 폭에 6열이 들어가도록 셀 여백·머리글 자간을 줄인다 */}
-              <table className="w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal">
+              {/* PC 2단(xl)에서는 반 폭에 7열이 들어가도록 셀 여백·머리글 자간을 줄인다 */}
+              <table className={cn('w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal', evenColumnsClass(7))}>
                 <thead className="bg-muted/50">
                   <tr>
+                    <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">방향</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">유형</TableHeadCell>
                     <TableHeadCell numeric className="whitespace-nowrap">주문가</TableHeadCell>
@@ -155,12 +157,12 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 </thead>
                 {groups.map((g, i) => (
                   <tbody key={`${g.key}-${i}`}>
-                    {/* 같은 날짜 행을 날짜 소제목(rowgroup 헤더) 아래로 묶는다 */}
-                    <tr className="border-t bg-muted/30">
-                      <th colSpan={6} scope="rowgroup" className="px-4 py-2 text-left text-sm font-medium text-muted-foreground">{g.key}</th>
-                    </tr>
-                    {g.items.map((o) => (
+                    {g.items.map((o, j) => (
                       <tr key={o.id} className="border-t hover:bg-muted/30 transition-colors">
+                        {/* 하루 여러 건은 날짜 셀 하나로 묶는다 */}
+                        {j === 0 && (
+                          <th scope="rowgroup" rowSpan={g.items.length} className="px-4 py-3 text-center align-middle font-normal whitespace-nowrap tabular-nums text-muted-foreground">{g.key}</th>
+                        )}
                         <TableDataCell className="whitespace-nowrap">
                           <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>
                             {labelOf('orderDirections', o.direction)}
@@ -171,11 +173,11 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                             {labelOf('orderTypes', o.orderType)}
                           </Badge>
                         </TableDataCell>
-                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
-                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">
+                        <TableDataCell className="tabular-nums whitespace-nowrap">${fmtUsd(toNum(o.price))}</TableDataCell>
+                        <TableDataCell className="tabular-nums whitespace-nowrap">
                           <OrderQuantity o={o} />
                         </TableDataCell>
-                        <TableDataCell className="text-right tabular-nums whitespace-nowrap">
+                        <TableDataCell className="tabular-nums whitespace-nowrap">
                           {o.filledPrice != null ? `$${fmtUsd(toNum(o.filledPrice))}` : <span className="text-muted-foreground">-</span>}
                         </TableDataCell>
                         <TableDataCell className="whitespace-nowrap">

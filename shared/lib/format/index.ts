@@ -159,6 +159,11 @@ export function fmtQuantity(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(8).replace(/\.?0+$/, '')
 }
 
+/** 주식 수량 표시 — 앱 전역 수량 표기("12주")의 SSOT */
+export function fmtShares(n: number): string {
+  return `${fmtQuantity(n)}주`
+}
+
 /** 금액 표시 문자열의 숫자만 ●로 가린다 (예: "1,234,567원" → "●,●●●,●●●원") — 금액 감추기 설정용 */
 export function maskAmount(display: string): string {
   return display.replace(/\d/g, '●')

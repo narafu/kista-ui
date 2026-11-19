@@ -44,6 +44,14 @@ describe('OrderRows', () => {
     expect(screen.queryByText('개장 선접수')).toBeNull()
   })
 
+  it('모바일 카드에 유형 라벨과 "주" 수량을 표시한다', () => {
+    render(<OrderRows orders={[{ ticker: 'SOXL', direction: 'BUY', orderType: 'LIMIT', quantity: 12, price: '30' }]} />)
+    const card = screen.getByRole('listitem')
+    expect(within(card).getByText('LIMIT(지정가)')).toBeInTheDocument()
+    expect(within(card).getByText('12주')).toBeInTheDocument()
+    expect(within(card).getByText('SOXL')).toBeInTheDocument()
+  })
+
   it('shows "-" instead of $0.00 for market orders (MOC·MOO)', () => {
     render(
       <OrderRows

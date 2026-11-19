@@ -6,12 +6,13 @@ import type { AdminUsersQueryParams } from '@entities/admin'
 import { ChangeRoleButton } from '@features/admin/change-role'
 import { WithdrawUserButton } from '@features/admin/withdraw-user'
 import { fmtDate } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { Badge } from '@shared/ui/Badge'
 import { ADMIN_USER_STATUS_LABEL, USER_ROLE_LABEL, USER_STATUS_TONE } from '@entities/user'
@@ -74,15 +75,15 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
       </div>
 
       <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="사용자 목록" tabIndex={0}>
-        <table className="min-w-[720px] w-full text-sm">
+        <table className={cn('min-w-[720px] w-full text-sm', evenColumnsClass(4))}>
           <thead className="bg-muted/50">
             <tr>
               <SortableHeadCell sortKey="nickname" className="whitespace-nowrap" {...head}>닉네임</SortableHeadCell>
               <SortableHeadCell sortKey="status" className="whitespace-nowrap" {...head}>상태</SortableHeadCell>
               <SortableHeadCell sortKey="role" className="whitespace-nowrap" {...head}>역할</SortableHeadCell>
               <SortableHeadCell sortKey="createdAt" className="whitespace-nowrap" {...head}>가입일</SortableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">역할 변경</TableHeadCell>
-              <TableHeadCell className="whitespace-nowrap">탈퇴 처리</TableHeadCell>
+              <TableHeadCell className="w-px whitespace-nowrap">역할 변경</TableHeadCell>
+              <TableHeadCell className="w-px whitespace-nowrap">탈퇴 처리</TableHeadCell>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">

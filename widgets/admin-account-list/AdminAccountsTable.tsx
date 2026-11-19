@@ -4,8 +4,9 @@ import { useMeta } from '@entities/meta'
 import { strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
 import type { AdminAccount, AdminAccountStrategy } from '@entities/admin'
 import { Badge } from '@shared/ui/Badge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { cn } from '@shared/lib/utils'
 
 const HEAD_CLASS = 'whitespace-nowrap'
 
@@ -24,7 +25,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
 
   return (
     <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="계좌 목록" tabIndex={0}>
-      <table className="min-w-[720px] w-full text-sm">
+      <table className={cn('min-w-[720px] w-full text-sm', evenColumnsClass(5))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <TableHeadCell className={HEAD_CLASS}>소유자</TableHeadCell>

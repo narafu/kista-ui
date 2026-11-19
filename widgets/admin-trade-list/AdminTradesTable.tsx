@@ -1,5 +1,5 @@
 import { useMeta } from '@entities/meta'
-import { fmtDate, fmtMoney, fmtQuantity } from '@shared/lib/format'
+import { fmtDate, fmtMoney, fmtShares } from '@shared/lib/format'
 import { toCurrency } from '@shared/lib/api-schema'
 import { directionBadgeClass } from '@entities/trade'
 import { orderStatusBadgeClass } from '@entities/order'
@@ -8,6 +8,8 @@ import { Badge } from '@shared/ui/Badge'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { useTableSort, type SortDirection } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
+import { evenColumnsClass } from '@shared/ui/TableHeadCell'
+import { cn } from '@shared/lib/utils'
 import type { AdminTrade } from '@entities/admin'
 
 type SortKey = 'default' | 'tradeDate' | 'owner' | 'strategy' | 'ticker' | 'direction' | 'orderType' | 'price' | 'quantity' | 'status'
@@ -61,7 +63,7 @@ export function AdminTradesTable({ trades, sort }: Props) {
 
   return (
     <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="거래 내역" tabIndex={0}>
-      <table className="min-w-[960px] w-full text-sm">
+      <table className={cn('min-w-[960px] w-full text-sm', evenColumnsClass(9))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>
             <SortableHeadCell sortKey="tradeDate" {...sort} className="whitespace-nowrap">날짜</SortableHeadCell>
@@ -90,8 +92,8 @@ export function AdminTradesTable({ trades, sort }: Props) {
                   <Badge tone="none" size="sm" className={directionBadgeClass(trade.direction)}>{labelOf('orderDirections', trade.direction)}</Badge>
                 </TableDataCell>
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">{labelOf('orderTypes', trade.orderType)}</TableDataCell>
-                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtMoney(trade.price, toCurrency(trade.currency) ?? 'USD')}</TableDataCell>
-                <TableDataCell className="text-right tabular-nums whitespace-nowrap">{fmtQuantity(trade.quantity)}</TableDataCell>
+                <TableDataCell className="tabular-nums whitespace-nowrap">{fmtMoney(trade.price, toCurrency(trade.currency) ?? 'USD')}</TableDataCell>
+                <TableDataCell className="tabular-nums whitespace-nowrap">{fmtShares(trade.quantity)}</TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
                   <Badge tone="none" className={orderStatusBadgeClass(trade.status)}>
                     {labelOf('orderStatuses', trade.status)}

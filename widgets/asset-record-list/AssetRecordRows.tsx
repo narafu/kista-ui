@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@shared/ui/Badge'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { cn } from '@shared/lib/utils'
@@ -98,14 +98,14 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
           <GroupSharedBadge groupId={snapshot.groupId} />
         </span>
       </TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountOwner && 'text-muted-foreground')}>{snapshot.accountOwner || '-'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '-'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '-'}</TableDataCell>
-      <TableDataCell className={cn(!snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '-'}</TableDataCell>
+      <TableDataCell className={cn('whitespace-nowrap', !snapshot.accountOwner && 'text-muted-foreground')}>{snapshot.accountOwner || '-'}</TableDataCell>
+      <TableDataCell className={cn('whitespace-nowrap', !snapshot.accountInstitution && 'text-muted-foreground')}>{snapshot.accountInstitution ?? '-'}</TableDataCell>
+      <TableDataCell className={cn('whitespace-nowrap', !snapshot.accountName && 'text-muted-foreground')}>{snapshot.accountName ?? '-'}</TableDataCell>
+      <TableDataCell className={cn('whitespace-nowrap', !snapshot.strategy && 'text-muted-foreground')}>{snapshot.strategy ?? '-'}</TableDataCell>
       <TableDataCell>{labelOf('markets', snapshot.market)}</TableDataCell>
       <TableDataCell>{labelOf('assetClasses', snapshot.assetClass)}</TableDataCell>
       {/* 부채는 카테고리 배지로 구분한다 — 금액을 빨강으로 칠하면 요약의 상승(text-pos)과 같은 색이 돼 뜻이 섞인다 */}
-      <TableDataCell className="text-right tabular-nums whitespace-nowrap">
+      <TableDataCell className="tabular-nums whitespace-nowrap">
         {maskIfHidden(fmtKrw(snapshot.amount))}
       </TableDataCell>
       <TableDataCell title={snapshot.memo} className={cn('max-w-48 truncate', !snapshot.memo && 'text-muted-foreground')}>{snapshot.memo ?? '-'}</TableDataCell>
@@ -132,10 +132,10 @@ interface TableProps {
 export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, allPagedSelected, somePagedSelected, onToggleAll }: TableProps) {
   return (
     <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
-      <table className="w-full min-w-[1200px] text-sm" aria-label="자산 기록">
+      <table className={cn('w-full min-w-[1200px] text-sm', evenColumnsClass(10))} aria-label="자산 기록">
         <thead className="bg-muted/50">
           <tr>
-            <TableHeadCell className="w-10">
+            <TableHeadCell className="w-px">
               <Checkbox
                 aria-label="현재 페이지 전체 선택"
                 checked={allPagedSelected}
@@ -155,7 +155,7 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
             <SortableHeadCell sortKey="assetClass" activeKey={sortKey} direction={sortDirection} onSort={onSort}>자산군</SortableHeadCell>
             <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={onSort}>금액</SortableHeadCell>
             <SortableHeadCell sortKey="memo" activeKey={sortKey} direction={sortDirection} onSort={onSort}>메모</SortableHeadCell>
-            <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
+            <TableHeadCell className="w-px whitespace-nowrap">작업</TableHeadCell>
           </tr>
         </thead>
         <tbody>

@@ -1,5 +1,5 @@
 import type { SkipReason, OrderReadiness } from '@entities/order'
-import { fmtQuantity, fmtUsd } from '@shared/lib/format'
+import { fmtShares, fmtUsd } from '@shared/lib/format'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
@@ -52,7 +52,7 @@ function correctionExcludedText(correctionExcludedBuyUsd: number | null): string
 // (계좌, 종목) 단위 값이라 필요 수량은 같은 종목 전략 전체 SELL 합계다
 function sellShortfallText({ holdingsShortfall }: OrderReadiness): string | null {
   if (!holdingsShortfall) return null
-  return `보유 수량 부족(판매가능 ${fmtQuantity(holdingsShortfall.availableQuantity)}주 / 종목 전체 필요 ${fmtQuantity(holdingsShortfall.requiredSellQuantity)}주)`
+  return `보유 수량 부족(판매가능 ${fmtShares(holdingsShortfall.availableQuantity)} / 종목 전체 필요 ${fmtShares(holdingsShortfall.requiredSellQuantity)})`
 }
 
 // 404만 화면 고유 문구, 나머지는 서버 detail을 그대로 노출한다 — 증권사 장애 503·API 키 오류 422·호출 한도 429는

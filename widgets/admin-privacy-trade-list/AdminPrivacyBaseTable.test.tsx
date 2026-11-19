@@ -60,7 +60,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     expect(within(mobileList).getByText('시작금액')).toBeInTheDocument()
     expect(within(mobileList).getByText('$1,234.56')).toBeInTheDocument()
     expect(within(mobileList).getByText('보유')).toBeInTheDocument()
-    expect(within(mobileList).getByText('3')).toBeInTheDocument()
+    expect(within(mobileList).getByText('3주')).toBeInTheDocument()
     expect(within(mobileList).getByText('평단가')).toBeInTheDocument()
     expect(within(mobileList).getByText('$98.76')).toBeInTheDocument()
     expect(within(mobileList).getByText('실현손익')).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe('AdminPrivacyBaseTable desktop table', () => {
     expect(document.getElementById('privacy-base-base-1-details')).not.toBeNull()
   })
 
-  it('centers headers, shrinks numeric columns and right-aligns numeric cells', () => {
+  it('centers headers and cells, with numeric columns sharing width evenly', () => {
     renderTable()
 
     const table = screen.getByTestId('admin-privacy-desktop-table')
@@ -128,26 +128,25 @@ describe('AdminPrivacyBaseTable desktop table', () => {
     const dateCell = desktopTable.getByText('2026-07-02').closest('td')
     const tickerCell = desktopTable.getByText('NVDA').closest('td')
     const startCell = desktopTable.getByText('$1,234.56').closest('td')
-    const holdingsCell = desktopTable.getByText('3').closest('td')
+    const holdingsCell = desktopTable.getByText('3주').closest('td')
     const avgCell = desktopTable.getByText('$98.76').closest('td')
     const realizedCell = desktopTable.getByText('+12.34').closest('td')
     const ordersCell = desktopTable.getByText('1건').closest('td')
 
     expect(dateHeader).toHaveClass('text-center')
     expect(tickerHeader).toHaveClass('text-center')
-    expect(startHeader).toHaveClass('text-center', 'w-px')
-    expect(holdingsHeader).toHaveClass('text-center', 'w-px')
-    expect(avgHeader).toHaveClass('text-center', 'w-px')
-    expect(realizedHeader).toHaveClass('text-center', 'w-px')
-    expect(ordersHeader).toHaveClass('text-center', 'w-px')
+    for (const header of [startHeader, holdingsHeader, avgHeader, realizedHeader, ordersHeader]) {
+      expect(header).toHaveClass('text-center')
+      expect(header).not.toHaveClass('w-px')
+    }
 
     expect(dateCell).toHaveClass('text-center')
     expect(tickerCell).toHaveClass('text-center')
-    expect(startCell).toHaveClass('text-right')
-    expect(holdingsCell).toHaveClass('text-right')
-    expect(avgCell).toHaveClass('text-right')
-    expect(realizedCell).toHaveClass('text-right')
-    expect(ordersCell).toHaveClass('text-right')
+    expect(startCell).toHaveClass('text-center')
+    expect(holdingsCell).toHaveClass('text-center')
+    expect(avgCell).toHaveClass('text-center')
+    expect(realizedCell).toHaveClass('text-center')
+    expect(ordersCell).toHaveClass('text-center')
   })
 })
 

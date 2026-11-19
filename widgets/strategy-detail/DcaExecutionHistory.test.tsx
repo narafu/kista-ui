@@ -42,7 +42,7 @@ describe('DcaExecutionHistory', () => {
     })
     render(<DcaExecutionHistory strategyId="d1" rules={[rule]} />)
     const heads = table().getAllByRole('columnheader').map((h) => h.textContent)
-    expect(heads).toEqual(['방향', '주기', '규칙', '수량', '체결', '사유'])
+    expect(heads).toEqual(['날짜', '방향', '주기', '규칙', '수량', '체결', '사유'])
   })
 
   it('같은 날 규칙별 행을 모두 보여주고 삭제된 규칙은 방향 배지와 함께 표시한다', () => {
@@ -51,7 +51,7 @@ describe('DcaExecutionHistory', () => {
       data: { content: [row, x], page: 0, size: 20, totalElements: 2 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" rules={[rule]} />)
-    const rows = table().getAllByRole('row').filter((tr) => tr.querySelector('td')) // 날짜 소제목 행 제외
+    const rows = table().getAllByRole('row').filter((tr) => tr.querySelector('td')) // 머리글 행 제외
     expect(rows).toHaveLength(2)
     expect([...rows[0].querySelectorAll('td')].slice(0, 3).map((c) => c.textContent)).toEqual(['매수', '매일', '-'])
     expect(rows[1]).toHaveTextContent('삭제된 규칙')
@@ -68,10 +68,10 @@ describe('DcaExecutionHistory', () => {
       isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" rules={[rule, ruleB]} />)
-    const order = table().getAllByRole('row').filter((tr) => tr.querySelector('td')).map((r) => (r.textContent?.includes('삭제된 규칙') ? '삭제' : r.querySelectorAll('td')[0].textContent))
+    const order = table().getAllByRole('row').filter((tr) => tr.querySelector('td')).map((r) => (r.textContent?.includes('삭제된 규칙') ? '삭제' : (r.querySelectorAll('td')[r.querySelector('td[rowspan]') ? 1 : 0]).textContent))
     expect(order).toEqual(['매수', '매도', '삭제', '매수', '매도'])
-    // 같은 거래일은 소제목 한 줄로 묶인다 — 10-01, 09-30 두 그룹
-    expect(table().getAllByRole('row').filter((tr) => tr.querySelector('th[scope="rowgroup"]'))).toHaveLength(2)
+    // 같은 거래일은 날짜 셀 하나(rowSpan)로 묶인다 — 10-01, 09-30 두 그룹
+    expect(table().getAllByRole('row').filter((tr) => tr.querySelector('th[rowspan]'))).toHaveLength(2)
   })
 
   it('모바일 카드에 날짜 그룹·규칙·결과·수량·체결가·사유를 표시한다', () => {

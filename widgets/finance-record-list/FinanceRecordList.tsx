@@ -9,7 +9,7 @@ import { LoadingRow } from '@shared/ui/LoadingRow'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
-import { TableHeadCell } from '@shared/ui/TableHeadCell'
+import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
@@ -192,14 +192,14 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           ) : (
             <>
               <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="거래내역 표" tabIndex={0}>
-                <table className="w-full min-w-[720px] text-sm" aria-label="거래내역">
+                <table className={cn('w-full min-w-[720px] text-sm', evenColumnsClass(4))} aria-label="거래내역">
                   <thead className="bg-muted/50">
                     <tr>
                       <SortableHeadCell sortKey="transactionDate" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>날짜</SortableHeadCell>
                       <SortableHeadCell sortKey="category" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>카테고리</SortableHeadCell>
                       <SortableHeadCell numeric sortKey="amount" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>금액</SortableHeadCell>
                       <SortableHeadCell sortKey="memo" activeKey={sortKey} direction={sortDirection} onSort={handleSort}>메모</SortableHeadCell>
-                      <TableHeadCell className="whitespace-nowrap">작업</TableHeadCell>
+                      <TableHeadCell className="w-px whitespace-nowrap">작업</TableHeadCell>
                     </tr>
                   </thead>
                   <tbody>
@@ -219,7 +219,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                               <GroupSharedBadge groupId={t.groupId} />
                             </span>
                           </TableDataCell>
-                          <TableDataCell className="text-right tabular-nums whitespace-nowrap">{maskIfHidden(fmtKrw(t.amount))}</TableDataCell>
+                          <TableDataCell className="tabular-nums whitespace-nowrap">{maskIfHidden(fmtKrw(t.amount))}</TableDataCell>
                           <TableDataCell className={cn(!t.memo && 'text-muted-foreground')}>{t.memo ?? '-'}</TableDataCell>
                           <TableDataCell>
                             <div className="flex items-center justify-center">

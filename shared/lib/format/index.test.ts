@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtMoneyOrDash, fmtQuantity, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtMoneyOrDash, fmtQuantity, fmtShares, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -177,6 +177,13 @@ describe('fmtMoney', () => {
 
   it('KRW는 원 단위로 표시한다', () => {
     expect(fmtMoney(1234567, 'KRW')).toBe('1,234,567원')
+  })
+})
+
+describe('fmtShares', () => {
+  it('수량 뒤에 "주"를 붙인다', () => {
+    expect(fmtShares(12)).toBe('12주')
+    expect(fmtShares(0.5)).toBe('0.5주')
   })
 })
 

@@ -37,7 +37,8 @@ widget 슬라이스끼리 cross-import 금지. **단, 아래 "대표 슬라이�
 - **시맨틱 토큰 용도**: `--info`/`--info-bg`(대기·일반 정보성 상태 — 사이클 투자금 MAX, 주문 PLACED/LOC 등) · `--admin-fg`/`--admin-bg`(관리자 전용 액센트, 골드 계열) · `--status-error`/`--status-error-bg`(실패·에러, FAILED 배지 등).
 - `--gold`는 다크 오버라이드 존재(`.dark { --gold: ... }`) — 휴장 표시 등 라이트 전용 골드값을 다크에서 그대로 쓰지 않는다
 - 거래내역 테이블 헤더는 전용 클래스 패턴 유지
-- **테이블 정렬**: 열 헤더(`TableHeadCell`·`SortableHeadCell`)는 기본값 가운데 정렬이고 `text-right`/`text-left`로 덮어쓰지 않는다. 숫자 데이터 셀(`TableDataCell`)은 `text-right tabular-nums`로 자릿수를 맞추고, 그 열의 헤더는 `numeric` prop을 준다 — 헤더는 가운데 그대로 두고 열 폭만 내용에 맞게 좁힌다(`w-px whitespace-nowrap`, 숫자 데이터 셀도 `whitespace-nowrap`). 값까지 가운데면 길이가 다른 금액의 자릿수가 어긋난다. 열 폭을 퍼센트로 고정한 비교 표(`HousingBenchmarkSummary`)는 `w-px`와 충돌하므로 행 헤더·값을 모두 가운데 정렬(`tabular-nums` 유지)한다 — 값 길이가 비슷한 퍼센트라 자릿수 어긋남이 작다
+- **테이블 정렬·열 폭**: 열 헤더(`TableHeadCell`·`SortableHeadCell`)와 데이터 셀(`TableDataCell`)은 금액·수량을 포함해 전부 가운데 정렬이다 — `text-right`/`text-left`로 덮어쓰지 않는다(2026-11 사용자 결정: 열 간격을 고르게 하는 쪽을 택해, 길이가 다른 금액의 자릿수 어긋남은 감수한다). 숫자 셀은 `tabular-nums whitespace-nowrap`. 헤더는 전부 줄바꿈하지 않는다(`TableHeadCell` 기본값, `numeric` prop은 스타일 없는 표시용). 열 폭은 `<table>`에 `evenColumnsClass(n)`(`@shared/ui/TableHeadCell`)을 줘 균등 분배한다 — 안 주면 남는 폭이 내용이 긴 한 열(유형·티커 등)로 몰린다. 아이콘·체크박스·행 펼침처럼 내용 폭만 쓸 열은 헤더에 `w-px`를 주고 n에서 뺀다. 열 폭을 퍼센트로 직접 고정한 비교 표(`HousingBenchmarkSummary`)는 예외
+- **수량 표기**: 주식 수량은 표·카드·문구 모두 `fmtShares`(`@shared/lib/format`, "12주")로 표기한다 — 숫자만 쓰거나 `${n}주`를 손으로 잇지 않는다
 - 로즈골드/다크모드 gradient는 `globals.css` 오버라이드 기준으로 맞춘다
 - **`.reveal-stagger`**: 컨테이너에 부여 시 직계 자식이 `revealUp` 키프레임으로 순차 페이드업(`nth-child(1~5)` 개별 delay, `n+6`은 동일 delay로 묶임 — 직계 자식 5개 이하 컨테이너에서 가장 효과적). `prefers-reduced-motion: reduce`에서 애니메이션 비활성화 자동 처리. 페이지 최초 진입(첫 페인트) 같은 고임팩트 순간에만 사용 — 남용 금지
 

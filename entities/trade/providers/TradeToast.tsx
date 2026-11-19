@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, Info, AlertCircle } from 'lucide-react'
-import { fmtMoney } from '@shared/lib/format'
+import { fmtMoney, fmtShares } from '@shared/lib/format'
 import type { TradeEvent } from '@entities/trade'
 
 interface Props {
@@ -31,7 +31,7 @@ export function TradeToast({ event }: Props) {
         </div>
         <p className="text-sm font-semibold text-foreground mt-0.5">
           {event.ticker}
-          {event.quantity != null && ` ${event.quantity}주`}
+          {event.quantity != null && ` ${fmtShares(event.quantity)}`}
           {event.price != null && ` @ ${fmtMoney(event.price, currency)}`}
         </p>
         {event.message && (
