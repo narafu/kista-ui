@@ -25,7 +25,9 @@ function Caption({ children }: { children: React.ReactNode }) {
 
 // 규칙 편집 화면의 실행 시점·주기 — 방향은 편집 화면 제목이 보여 주고 바꿀 수 없다(규칙 정체성)
 export function DcaSettingsSection({ form, orderTypes, frequencies }: Props) {
-  const { labelOf } = useMeta()
+  const { meta, labelOf } = useMeta()
+  // 화면 전역의 주문 유형은 코드형 짧은 이름이라, 고르는 이 폼에서만 서버 라벨의 괄호 설명("종가시장가")을 덧붙인다
+  const orderTypeHint = (code: string) => meta.orderTypes.find((t) => t.code === code)?.label?.match(/\((.*)\)$/)?.[1]
   // 미국 거래일 기준이라 평일만
   const weekdays = STOCK_WEEKDAYS
   const scheduleErrorId = useId()
@@ -43,6 +45,7 @@ export function DcaSettingsSection({ form, orderTypes, frequencies }: Props) {
             <SelectionCard key={code} selected={orderType === code} onClick={() => setValue('orderType', code as DcaRuleFormValues['orderType'])}
               className="flex-1 px-3 py-2 text-center">
               <div className="text-sm font-[800]">{labelOf('orderTypes', code)}</div>
+              {orderTypeHint(code) && <div className="text-xs text-muted-foreground">{orderTypeHint(code)}</div>}
             </SelectionCard>
           ))}
         </div>
