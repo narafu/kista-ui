@@ -4392,26 +4392,10 @@ export interface components {
             /** @description UI 모바일 약칭 */
             description: string;
             /**
-             * @description 거래 시장
-             * @example US_STOCK
-             */
-            market: string;
-            /**
              * @description 계좌 기준 통화
-             * @example KRW
+             * @example USD
              */
             currency: string;
-            /**
-             * @description 시장 최소 주문 금액 (견적 통화, plain 문자열 — 0은 하한 없음)
-             * @example 5000
-             */
-            minOrderAmount: string;
-            /**
-             * Format: int32
-             * @description 주문 금액 소수 자릿수 (KRW 0, USD 2)
-             * @example 0
-             */
-            amountScale: number;
             /**
              * @description API 키 만료일 출처 (NONE·ESTIMATED)
              * @example ESTIMATED
@@ -4528,8 +4512,6 @@ export interface components {
             description: string;
             /** @description 익절 목표 수익률 */
             targetProfitRate: number;
-            /** @description 거래 가능 시장 목록 (Market name()) */
-            markets: string[];
         };
         MarketSessionResponse: {
             /**
