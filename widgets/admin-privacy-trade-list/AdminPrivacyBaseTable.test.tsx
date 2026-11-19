@@ -79,7 +79,7 @@ describe('AdminPrivacyBaseTable mobile UX', () => {
     fireEvent.click(toggle)
 
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(within(mobileList).getByText('LOC(종가지정가)')).toBeInTheDocument()
+    expect(within(mobileList).getByText('LOC')).toBeInTheDocument()
     expect(within(mobileList).getByText('$100.25')).toBeInTheDocument()
   })
 })
@@ -190,7 +190,7 @@ describe('AdminPrivacyBaseTable empty states', () => {
     const table = screen.getByTestId('admin-privacy-desktop-table')
     fireEvent.click(within(table).getByRole('button', { name: '2026-07-02 NVDA 주문 명세' }))
     fireEvent.click(within(table).getByRole('button', { name: /삭제$/ }))
-    expect(screen.getByText('매수 LOC(종가지정가) $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
+    expect(screen.getByText('매수 LOC $100.25 × 1주 주문을 삭제합니다.')).toBeInTheDocument()
   })
 })
 
@@ -220,7 +220,7 @@ describe('AdminPrivacyBaseTable dialog requests', () => {
 
     const dialog = screen.getByRole('dialog')
     await pick('방향', '매도')
-    await pick('유형', 'MOC(종가시장가)')
+    await pick('유형', 'MOC')
     await userEvent.type(within(dialog).getByLabelText('가격'), '50.5')
     await userEvent.type(within(dialog).getByLabelText(/^수량/), '2')
     await userEvent.click(within(dialog).getByRole('button', { name: '추가' }))

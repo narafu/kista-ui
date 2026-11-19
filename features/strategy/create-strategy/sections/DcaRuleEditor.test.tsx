@@ -46,7 +46,7 @@ describe('DcaRuleEditor', () => {
     expect(screen.getByRole('button', { name: '주문 안 함' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByText(STOCK_BUY_NOTE)).toBeInTheDocument()
     // 서버 메타가 아직 시장가(MARKET)를 내려도 주식 주문 방식만 보인다
-    expect(screen.getByRole('button', { name: 'MOC(종가시장가)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'MOC' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'MARKET(시장가)' })).not.toBeInTheDocument()
   })
 

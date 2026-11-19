@@ -17,5 +17,8 @@ describe('MetaProvider labelOf', () => {
     expect(result.current.labelOf('strategyTypes', 'INFINITE')).toBe('무한매수법')
     expect(result.current.labelOf('strategyTypes', 'VR')).toBe('VR')
     expect(result.current.labelOf('strategyStatuses', 'ACTIVE')).toBe('운영중')
+    // 주문 유형은 괄호 설명을 뗀 짧은 이름
+    expect(result.current.labelOf('orderTypes', 'LOC')).toBe('LOC')
+    expect(result.current.labelOf('orderTypes', 'LIMIT')).toBe('LIMIT')
   })
 })

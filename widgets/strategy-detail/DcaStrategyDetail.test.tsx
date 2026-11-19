@@ -88,7 +88,7 @@ describe('DcaStrategyDetail', () => {
     const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
     expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
     // 주기·주문 방식은 배지 옆 요약 한 줄, 금액·조건은 라벨 행이다
-    expect(ruleSummary()).toHaveTextContent('매월 말일 · MOC(종가시장가)')
+    expect(ruleSummary()).toHaveTextContent('매월 말일 · MOC')
     expect(ruleField('금액')).toHaveTextContent('$300.00')
     expect(within(card).getByText('매수')).toBeInTheDocument()
     expect(ruleField('조건')).toHaveTextContent('RSI(14) 35 이하')
