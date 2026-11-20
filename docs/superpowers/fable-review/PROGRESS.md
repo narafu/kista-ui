@@ -404,7 +404,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - `6a3e0a14`(S1 코인 제거): 시드 의존 e2e 5건(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`)이 로컬 DB가 비어 단언까지 가지 못했다. 시드를 넣은 뒤 `npm run test:e2e`(worktree 절차)와 `npm run visual-diff -- 190caf90`(계좌 상세·전략 등록·`stock-dca-strategy`)을 돌린다.
   - 2026-11-20: 시드가 들어간 로컬 DB에서 `strategy.spec.ts` 4건 모두 통과했다(`f224bc5c` 기준). 32·51(투자금 추가·인출)은 시드 무한매수 전략이 사이클 대기 중(`cycleInProgress=false`)이라 버튼이 없어 실패했고, `f224bc5c`에서 진행 중 사이클 전략을 고르는 `seed.capital`로 고쳤다. 남은 것: visual-diff.
   - 2026-11-20(S2): `ledger-budget.spec.ts`를 포함한 chromium 15건과 setup이 통과했다(`--project=setup --project=chromium --no-deps`). 남은 것은 visual-diff(`npm run visual-diff -- 190caf90`)뿐이다.
-- S3 커밋(`refactor(form): …(S3, 지침서 04 5d·5e)`)과 "바로 주문" 제거 커밋(2026-11-21): 로컬 api가 `KISTA_ROLE=web`이고 시드 사용자가 없어 e2e·a11y-check를 돌리지 못했다. api를 `KISTA_ROLE=all`로 띄우고 시드를 넣은 뒤 다음을 돌린다.
+- `265247be`(S3)와 `01782862`("바로 주문" 제거, kista-api 요청, 2026-11-21): 로컬 api가 `KISTA_ROLE=web`이고 시드 사용자가 없어 e2e·a11y-check를 돌리지 못했다. api를 `KISTA_ROLE=all`로 띄우고 시드를 넣은 뒤 다음을 돌린다.
   - `npx playwright test --project=setup --project=chromium --no-deps`(dev 서버가 없거나 worktree 절차로)
   - `npm run a11y-check -- --url http://localhost:3000`(가계부 다이얼로그, 운영 설정, 전략 상세)
   - 운영 설정 화면과 `CredentialsCard`의 전후 화면 확인
@@ -461,7 +461,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 
 ## S3 실행 기록 — 폼 마무리 (지침서 04의 5d·7b·5e, 2026-11-21)
 
-- 한 커밋으로 묶었다(`refactor(form): 제출 버튼을 진행 중·잠금에만 막고 운영 설정 폼을 useAppForm으로 옮긴다 (S3, 지침서 04 5d·5e)`). SDD로 5d(Sonnet)와 5e(Opus)를 병렬로 위임했다(파일이 겹치지 않음). 리뷰는 전체가 끝난 뒤 `/code-review medium` 1회, 수정 라운드 1회, 수정분 재리뷰 1회를 했다.
+- 한 커밋으로 묶었다(`265247be`). 바로 앞 `01782862`는 S3가 아니라 kista-api 요청으로 한 "바로 주문" 제거다(사용자 승인). SDD로 5d(Sonnet)와 5e(Opus)를 병렬로 위임했다(파일이 겹치지 않음). 리뷰는 전체가 끝난 뒤 `/code-review medium` 1회, 수정 라운드 1회, 수정분 재리뷰 1회를 했다.
 - 실측: 제품 19파일 +266/−206, 테스트 10파일 +329/−28. 감량은 없다. 5d는 조건을 zod로 옮기며 오류 문구가 늘었다. 5e는 줄 수가 331 → 334로 거의 그대로이고 `useState`가 4 → 1이다.
 - **착수 전 재측정**: `canSubmit` 비테스트 사용처는 지침서 보정 절과 같았다(가계부 4, 자산 기록, `CredentialsCard`, 전략 4). 제출 버튼 방식은 둘로 나뉘어 있었다.
   - 빈 값이면 비활성: 7개. 보정 절에 없던 `AcceptInvitationForm`이 포함된다(`disabled={… watch('code') …}`).
@@ -484,7 +484,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - **검증**:
   - typecheck·lint(경로 표 검사 포함)·knip 0건.
   - 전체 vitest 259파일 1,803건 통과(+ `it.fails` 1건).
-  - 변이 확인: 5d는 zod 필수 검사를 빼면 새 테스트 11건이 실패한다. 5e는 변이 4건에 수정 라운드 2건을 더해 모두 실패를 냈다.
+  - 변이 확인: 5d는 zod 필수 검사를 빼면 새 테스트 11건이 실패한다. 5e는 변이 4건에 수정 라운드 2건을 더해 모두 실패를 냈다. 수정 라운드의 카테고리 `aria-invalid` 전달을 빼면 예산·거래 테스트 2건이 실패한다.
 - **전후 스크린샷**(scratchpad, 세션이 끝나면 남지 않음): 거래내역·예산·재무계좌·카테고리 다이얼로그, 자산 기록, 초대 코드.
   - 전: 빈 값에서 버튼이 비활성이다.
   - 후: 버튼이 활성이고, 누르면 필드 오류가 보인다.
