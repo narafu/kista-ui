@@ -24,9 +24,8 @@ interface Props {
   strategy: Strategy
 }
 
-// 모든 타일을 같은 글씨 크기로, 모바일(sm 미만)에서는 타일마다 전체 폭 — 2열 값 칸(360px에서 약 100px)에는 긴 금액·"적립식 분할매매"가 한 줄로 안 들어가고, 타일 개수가 6개라 일부만 전체 폭이면 빈 칸이 생긴다
-const TILE = { className: 'col-span-2 sm:col-span-1 p-4 lg:p-5', valueClassName: 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep' }
-// 값이 없어도('-') 단위는 통화 기준으로 붙인다
+// 주식 전략 상세의 전략타입·금액 타일(StrategyMetaSection TILE_VALUE)과 같은 크기·모바일 2열 — 긴 전략타입 이름은 2열 칸에서 두 줄로 접힐 수 있다
+const TILE = { className: 'p-4 lg:p-5', valueClassName: 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep' }
 // 규칙 카드는 한 줄 배치라 메타 라벨(가용만큼 주문·주문하지 않음) 대신 짧게 — 모르는 코드는 메타 라벨로
 const SHORTFALL_SHORT: Record<string, string> = { PARTIAL: '잔량', REJECT: '주문 안 함' }
 const UNAVAILABLE = <span className="text-base font-normal text-muted-foreground">확인 불가</span>
