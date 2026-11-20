@@ -50,11 +50,12 @@ describe('AccountFormDialog 제출 요청', () => {
     expect(screen.queryByRole('switch', { name: '그룹으로 저장' })).not.toBeInTheDocument()
   })
 
-  it('이름이 비면 요청 없이 막는다', async () => {
+  it('이름이 비면 제출 시 필드 오류가 보이고 요청이 나가지 않는다', async () => {
     const user = userEvent.setup()
     const { requests } = setup()
     renderApp(<AccountFormDialog open onClose={() => {}} />)
     await user.click(await screen.findByRole('button', { name: '저장' }))
+    expect(await screen.findByText('계좌 이름을 입력하세요.')).toBeInTheDocument()
     expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
   })
 

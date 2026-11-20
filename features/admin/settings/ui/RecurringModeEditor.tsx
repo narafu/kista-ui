@@ -8,11 +8,13 @@ import type { RecurringMode, RuntimeFieldSettings } from '@entities/runtime-conf
 import { VR_RECURRING_MODE_LABEL } from '@entities/strategy'
 import { RECURRING_MODE_OPTIONS } from './recurringModeOptions'
 
-export function RecurringModeEditor({ label, field, error, onChange }: {
+export function RecurringModeEditor({ label, field, error, onChange, inputRef }: {
   label: string
   field: RuntimeFieldSettings<RecurringMode>
   error?: string
   onChange: (field: RuntimeFieldSettings<RecurringMode>) => void
+  // 제출 시 오류 포커스용. 이 필드의 오류는 고정·허용값 규칙이라 사용자 변경 스위치로 보낸다
+  inputRef?: (element: HTMLElement | null) => void
 }) {
   const [inputError, setInputError] = useState<string>()
   const setCustomizable = (customizable: boolean) => {
@@ -38,6 +40,7 @@ export function RecurringModeEditor({ label, field, error, onChange }: {
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">사용자 변경</span>
           <Switch
+            ref={inputRef}
             checked={field.customizable}
             onCheckedChange={setCustomizable}
             aria-label={`${label} 사용자 변경 허용`}

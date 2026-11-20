@@ -93,6 +93,34 @@ describe('useAppForm', () => {
   })
 })
 
+function ServerBackedForm({ name }: { name: string }) {
+  const mutation = useMutation({ mutationFn: async (_body: { name: string; sortOrder: string }) => {} })
+  const form = useAppForm({ schema, values: { name, sortOrder: '1' }, resetOptions: { keepDirtyValues: true }, mutation })
+  return (
+    <form onSubmit={form.submit}>
+      <FormField control={form.control} name="name" label="이름">
+        {(field) => <Input {...field} />}
+      </FormField>
+    </form>
+  )
+}
+
+describe('useAppForm 옵션 통과', () => {
+  it('values·resetOptions를 useForm에 넘겨 서버값을 따라가되 편집한 값은 남긴다', async () => {
+    const { rerender } = renderApp(<ServerBackedForm name="식비" />)
+    const input = screen.getByLabelText('이름')
+    expect(input).toHaveValue('식비')
+
+    rerender(<ServerBackedForm name="교통" />)
+    await waitFor(() => expect(input).toHaveValue('교통'))
+
+    await userEvent.clear(input)
+    await userEvent.type(input, '외식')
+    rerender(<ServerBackedForm name="주거" />)
+    await waitFor(() => expect(input).toHaveValue('외식'))
+  })
+})
+
 describe('serverFieldErrors', () => {
   it('ProblemDetail의 fieldErrors를 필드 오류로 바꾼다', () => {
     const err = new ApiError(400, { fieldErrors: [{ field: 'name', detail: '이미 있는 이름입니다.' }, { field: 1, detail: 'x' }] })

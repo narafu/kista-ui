@@ -77,6 +77,19 @@ describe('TransactionFormDialog 제출 요청', () => {
     expect(requests.some((r) => r.method === 'POST')).toBe(false)
   })
 
+  it('빈 값으로 제출하면 카테고리·금액 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const user = userEvent.setup()
+    const { requests } = setup({ 'POST /api/finance/transactions': source as never })
+    renderApp(<TransactionFormDialog open onClose={() => {}} type="EXPENSE" />)
+
+    await user.click(await screen.findByRole('button', { name: '등록' }))
+
+    expect(await screen.findByText('카테고리를 선택하세요.')).toBeInTheDocument()
+    expect(screen.getByText('금액을 입력하세요.')).toBeInTheDocument()
+    expect(screen.getByLabelText('카테고리')).toHaveAttribute('aria-invalid', 'true')
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
+  })
+
   it('마감된 달이면 안내를 보이고 저장 버튼이 잠긴다', async () => {
     setup({ 'GET /api/finance/monthly-closings': [{ month: '2026-03', completed: true, groupId: undefined }] })
     renderApp(<TransactionFormDialog open onClose={() => {}} type="EXPENSE" initial={source} />)

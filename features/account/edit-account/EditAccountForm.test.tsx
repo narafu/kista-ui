@@ -36,14 +36,14 @@ describe('EditAccountForm', () => {
     expect(screen.getByLabelText('App Secret')).toHaveValue('')
   })
 
-  it('키·시크릿이 비어 있으면 키 재등록 버튼이 잠겨 있다', async () => {
-    mockApi({})
+  it('키·시크릿이 비어 있으면 제출 시 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const { requests } = mockApi({ ...base, 'PUT /api/accounts/{id}/credentials': { id: 'm1' } as never })
     renderApp(<EditAccountForm account={meritzAccount} />)
-    expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeDisabled()
-    await userEvent.type(screen.getByLabelText('App Key'), 'k')
-    expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeDisabled()
-    await userEvent.type(screen.getByLabelText('App Secret'), 's')
-    expect(screen.getByRole('button', { name: 'API 키 재등록' })).toBeEnabled()
+    const submit = screen.getByRole('button', { name: 'API 키 재등록' })
+    expect(submit).toBeEnabled()
+    await userEvent.click(submit)
+    expect(await screen.findAllByText('값을 입력하세요.')).toHaveLength(2)
+    expect(requests.filter((r) => r.method === 'PUT')).toHaveLength(0)
   })
 
   it('추정 만료일 broker(TOSS)는 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {

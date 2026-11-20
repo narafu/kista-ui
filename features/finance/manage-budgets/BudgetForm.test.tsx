@@ -119,15 +119,34 @@ describe('BudgetForm', () => {
     expect(screen.getByLabelText('월 예산')).toHaveValue('')
   })
 
-  it('월 예산이 0원이면 저장 버튼이 비활성화된다', async () => {
+  it('월 예산이 0원이면 제출 시 필드 오류가 보이고 요청이 나가지 않는다', async () => {
     const user = userEvent.setup()
-    setup()
+    const { requests } = setup({ 'POST /api/finance/budgets': source })
     renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
+    await categoryLabel('식비')
 
     await user.clear(screen.getByLabelText('월 예산'))
     await user.type(screen.getByLabelText('월 예산'), '0')
+    await user.click(screen.getByRole('button', { name: '추가' }))
 
-    expect(screen.getByRole('button', { name: '추가' })).toBeDisabled()
+    expect(await screen.findByText('0보다 큰 금액을 입력하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
+  })
+
+  it('빈 값으로 제출하면 카테고리·금액 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const user = userEvent.setup()
+    const { requests } = setup({ 'POST /api/finance/budgets': source })
+    renderApp(<BudgetForm type="EXPENSE" onDone={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: '추가' }))
+
+    expect(await screen.findByText('카테고리를 선택하세요.')).toBeInTheDocument()
+    expect(screen.getByText('금액을 입력하세요.')).toBeInTheDocument()
+    // 첫 오류 필드(카테고리)로 aria 연결·포커스가 닿는다
+    const trigger = screen.getByLabelText('카테고리')
+    expect(trigger).toHaveAttribute('aria-invalid', 'true')
+    expect(trigger).toHaveAttribute('aria-describedby', expect.stringContaining('budgetCategory-error'))
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
   })
 
   it('추가 폼은 이번 달 1일을 시작일 기본값으로 채운다', () => {

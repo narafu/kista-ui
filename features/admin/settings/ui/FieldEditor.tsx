@@ -5,7 +5,7 @@ import type { RuntimeFieldSettings } from '@entities/runtime-config'
 import { normalizeText } from '../model/normalizers'
 import { ValueListEditor } from './ValueListEditor'
 
-export function FieldEditor<T extends string | number>({ id, label, field, error, fixed, suggestions, unit, inputType = 'text', normalize, onChange }: {
+export function FieldEditor<T extends string | number>({ id, label, field, error, fixed, suggestions, unit, inputType = 'text', normalize, onChange, inputRef }: {
   id: string
   label: string
   field: RuntimeFieldSettings<T>
@@ -16,6 +16,8 @@ export function FieldEditor<T extends string | number>({ id, label, field, error
   inputType?: 'text' | 'number'
   normalize?: (value: string) => T | null
   onChange: (field: RuntimeFieldSettings<T>) => void
+  // 제출 시 오류 포커스용 — 사용자 변경을 허용하면 추가 입력칸, 고정이면 허용 스위치
+  inputRef?: (element: HTMLElement | null) => void
 }) {
   const normalizeValue = normalize ?? ((value: string) => normalizeText(value) as T)
 
@@ -37,6 +39,7 @@ export function FieldEditor<T extends string | number>({ id, label, field, error
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">사용자 변경</span>
           <Switch
+            ref={field.customizable ? undefined : inputRef}
             checked={field.customizable}
             onCheckedChange={(customizable) => onChange(customizable
               ? { ...field, customizable: true }
@@ -57,6 +60,7 @@ export function FieldEditor<T extends string | number>({ id, label, field, error
             suggestions={suggestions}
             unit={unit}
             normalize={normalizeValue}
+            inputRef={inputRef}
             onChange={(value) => onChange({ ...field, ...value })}
           />
         ) : (

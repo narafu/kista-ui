@@ -206,7 +206,7 @@ const form = useAppForm({
 - **폼인지 애매하면** "폼의 판정 기준" 세 조건으로 가른다. 조건을 다 채우는데 전환 이득이 작아 보여도 전환한다. 예외 목록을 늘리지 않는다.
 - **폼 필드 이름은 요청 바디의 필드 이름과 같게 짓는다.** 서버 `fieldErrors`가 이름으로 붙기 때문이다. 화면 사정으로 다르게 지어야 하면 그대로 두고, 그 필드의 서버 오류는 버튼 위 한 줄로 나오게 둔다.
 - **버튼을 막던 조건을 옮길 때**: 값이 비었거나 형식이 틀린 것은 zod 오류 문구로, 서버 상태 때문에 못 하는 것은 `locked`로, 두 필드를 비교하는 것은 api T7까지 그대로 둔다.
-- **zod 오류 문구**는 "무엇을 하면 되는지"를 한 문장으로 쓴다("이름을 입력해 주세요."). 문구 규칙은 `docs/agents/copy.md`를 따른다.
+- **zod 오류 문구**는 "무엇을 하면 되는지"를 한 문장으로 쓴다("이름을 입력하세요."). 문구 규칙은 `docs/agents/copy.md`를 따른다. (2026-11-21 정정: copy.md는 검증 오류를 '~하세요.'로 정한다)
 - **성공 토스트**는 mutation hook이 이미 띄우면 `successMessage`를 넘기지 않는다. 02 뒤에는 hook 쪽을 지우고 `successMessage`로 모은다.
 - **한 폼만 필요한 동작**(저장 뒤 추가 무효화, 확인 단계)은 그 폼에 적는다. 확인 단계가 있는 폼은 `<form onSubmit={form.handleSubmit(확인 열기)}>`로 열고 확인 버튼에서 `form.submit()`을 부른다.
 - **화면 모양이 바뀌는 전환**(라벨 크기, 힌트 글씨 크기)은 `FormField` 기본값을 따르고 태스크 보고에 한 줄 남긴다. 폼마다 `className`으로 예전 모양을 되살리지 않는다.
@@ -269,3 +269,21 @@ const form = useAppForm({
 중단 조건의 대체 경로: 실기기 확인(166·175행)은 로드맵 4-5의 3. 197행(태스크 6은 05·T5·T7·T10 뒤)은 대체 경로가 없다. 올 때까지 6을 하지 않는다.
 
 배포: 5d·5e는 조작 결과가 달라진다(사용자 승인 2026-11-13). 전후 스크린샷을 완료 보고에 붙인다. ui 단독.
+
+### S3 실행 보정 (2026-11-21, 5d·5e 완료)
+
+바꾼 판정 명령(로드맵 4-1의 2):
+
+- 5d: `git grep -n canSubmit -- '*.ts' '*.tsx' ':!*.test.*'` 0건, `git grep -n canSubmit -- docs/agents '*CLAUDE.md'` 0건. 여기에 `git grep -n -E "disabled=\{[^}]*watch\(" -- '*.tsx' ':!*.test.*'` 0건을 더했다. `AcceptInvitationForm`은 `FormActions`를 쓰지 않고 `disabled={… !form.watch('code').trim()}`로 같은 패턴을 써서, 원래 판정으로는 걸리지 않았다.
+- 5e: `grep -n "useState" features/admin/settings/ui/AdminSettingsForm.tsx`는 import 줄과 `StrategyBlock`의 펼침 상태(`open`) 2줄이다(import 줄 제외 1건).
+
+자체 결정:
+
+- 5d 대상은 보정 절의 목록과 `AcceptInvitationForm`(manage-group)이다. 빈 값으로 버튼을 막던 폼이 7개(FormActions 6 + 초대 코드 1), 이미 항상 활성이던 `useAppForm` 폼이 5개(`EditAccountForm`, 텔레그램 연결(훅 1개를 두 화면이 씀), `CapitalForm`, 관리자 개인정보 2), 전략 폼 4곳은 prop 이름만 바꿨다. 전략 폼에서 `canSubmit`이 리터럴 `true`이거나 `!pending`이던 3곳(`DcaRuleEditor`, `ReconfigureVrForm`, `DcaStrategyForm`)은 `locked`로 옮기지 않고 prop을 지웠다(동작 같음).
+- 계단식 카테고리 선택은 RHF 밖 상태다. 그래서 거래·예산은 선택값을 RHF 필드 `categoryId`로 미러링해 빈 카테고리도 zod 오류로 보인다. 요청 바디는 기존대로 경로 상태 값을 쓴다. `CascadingCategorySelect`가 첫 트리거에 `ref`·`aria-invalid`·`aria-describedby`를 받도록 했다(첫 오류 포커스).
+- 자산 기록: 경로로 풀리지 않는 `categoryId`는 `locked`로 둔다. "선택한 카테고리를 찾을 수 없습니다" 문구는 카테고리 조회가 성공한 뒤에만 띄운다. 로딩 중에는 문구 없이 잠근다(전과 같다).
+- 예산 종료일 < 시작일은 `locked`에 남겼다(api T7까지, 기존 힌트가 이유를 보인다).
+- 5e 검증: `validateAdminSettings`는 형식 검증이 아니라 설정 간 일관성 규칙이고 05 판정도 없다. 그래서 zod로 옮기지 않았다. 통과형 스키마의 `superRefine`이 그 함수를 그대로 불러 `strategies.X.fields.Y`·`benchmarks.etf` 경로에 붙인다. `z.object`가 모르는 키를 지워 바디가 바뀌는 것을 피하려는 것이다.
+- 5e 저장·되돌리기 버튼은 `!isDirty`·`!dca`에서 비활성을 유지했다. 빈 값·형식 조건이 아니고 둘 다 이유 문장이 있다. 바꾸면 결정 표에 없는 "버튼이 눌리는 조건" 변경이다.
+- 5e는 `keepDirtyValues`만으로 끝나지 않았다(RHF 7.79의 `_reset` 동작). 장치 셋을 더했다: `resetOptions`에 `keepIsSubmitted`·`keepErrors`, 서버 스냅샷의 모든 전략 필드를 렌더마다 `register`, `settings`가 바뀔 때 dirty를 다시 재는 effect. 렌더마다 `register`하지 않으면 접힌 전략 필드가 옛 값에 고정되고, 저장할 때 다른 관리자의 값을 덮어쓴다. 이 셋은 RHF 내부 동작에 기대므로, `react-hook-form`을 올릴 때 `features/admin/settings` 테스트를 다시 돌린다.
+- `useAppForm`이 지정 옵션 밖의 RHF 옵션(`values`, `resetOptions`)을 `useForm`에 그대로 넘긴다(본문 문장대로).

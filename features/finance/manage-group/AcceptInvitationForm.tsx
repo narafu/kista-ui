@@ -25,7 +25,7 @@ export function AcceptInvitationForm() {
         {(f) => (
           <div className="flex gap-2">
             <Input {...f} placeholder="초대 코드 입력" disabled={form.isPending} className="h-11 flex-1" />
-            <Button type="submit" className="h-11" disabled={form.isPending || !form.watch('code').trim()}>
+            <Button type="submit" className="h-11" disabled={form.isPending}>
               참여
             </Button>
           </div>

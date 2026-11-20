@@ -193,7 +193,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
             error={rulesErrorMessage}
           />
         </div>
-        <FormActions onCancel={onCancel} isPending={pending} canSubmit={!pending} label={initial ? '수정' : '등록'} className="py-6" />
+        <FormActions onCancel={onCancel} isPending={pending} label={initial ? '수정' : '등록'} className="py-6" />
       </form>
     </>
   )

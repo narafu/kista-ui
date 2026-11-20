@@ -190,7 +190,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
       <FormActions
         onCancel={onCancel}
         isPending={form.loading}
-        canSubmit={!form.cannotSubmit}
+        locked={form.cannotSubmit}
         label={initial ? '수정' : '등록'}
         className="py-6"
       />

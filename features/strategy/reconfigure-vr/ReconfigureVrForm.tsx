@@ -148,7 +148,6 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
       <FormActions
         onCancel={handleDone}
         isPending={disabled}
-        canSubmit
         label="재설정"
         pendingLabel="재설정 중..."
         submitVariant="destructive"

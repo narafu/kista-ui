@@ -106,14 +106,36 @@ describe('AssetForm', () => {
     expect(screen.getByLabelText('금액')).toHaveValue('1,234,567')
   })
 
-  it('create 모드는 카테고리 미선택 상태로 시작해 제출 버튼이 비활성화된다', async () => {
-    setup()
+  it('create 모드는 카테고리 미선택 상태로 시작해, 제출하면 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const { requests } = setup({ handlers: { 'POST /api/finance/asset-snapshots': existing as never } })
     renderForm('create')
 
     await userEvent.type(screen.getByLabelText('금액'), '1000')
+    const button = screen.getAllByRole('button', { name: '등록' })[0]
+    expect(button).toBeEnabled()
+    await userEvent.click(button)
 
     // 기준일은 오늘 날짜로 기본 채워지지만 카테고리를 아직 선택하지 않았다
-    expect(screen.getAllByRole('button', { name: '등록' })[0]).toBeDisabled()
+    expect(await screen.findByText('카테고리를 선택하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
+  })
+
+  it('수정으로 열 때 카테고리 목록이 로딩 중이면 제출은 잠겨 있지만 "찾을 수 없습니다" 문구는 띄우지 않는다', async () => {
+    setup({ handlers: { 'GET /api/finance/categories': () => new Promise(() => {}) } })
+    renderForm('edit', existing)
+
+    expect(screen.getAllByRole('button', { name: '수정' })[0]).toBeDisabled()
+    expect(screen.queryByText(/선택한 카테고리를 찾을 수 없습니다/)).not.toBeInTheDocument()
+  })
+
+  it('금액을 비우고 제출하면 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const { requests } = setup({ handlers: { 'POST /api/finance/asset-snapshots': existing as never } })
+    renderForm('create')
+
+    await userEvent.click(screen.getAllByRole('button', { name: '등록' })[0])
+
+    expect(await screen.findByText('금액을 입력하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
   })
 
   it('등록: 그룹 소속이면 "그룹으로 저장"이 기본 켜져 shareToGroup=true로 POST한다', async () => {
@@ -216,13 +238,16 @@ describe('AssetForm', () => {
     expect(await screen.findByRole('option', { name: '미래에셋증권 · 미래에셋 · 홍길동' })).toBeInTheDocument()
   })
 
-  it('기준일을 비우면 제출 버튼이 비활성화된다', async () => {
-    setup()
+  it('기준일을 비우고 제출하면 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const { requests } = setup({ handlers: { 'PUT /api/finance/asset-snapshots/{id}': existing as never } })
     renderForm('edit', existing)
 
-    await submitButton('수정')
+    const button = await submitButton('수정')
     await userEvent.clear(screen.getByLabelText('기준일'))
-    expect(screen.getAllByRole('button', { name: '수정' })[0]).toBeDisabled()
+    await userEvent.click(button)
+
+    expect(await screen.findByText('기준일을 선택하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'PUT')).toHaveLength(0)
   })
 
   it('duplicate 모드는 금액을 포함한 초기값을 채우고, POST로 새로 등록한다', async () => {

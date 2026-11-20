@@ -12,7 +12,6 @@ describe('AcceptInvitationForm', () => {
     const { requests } = mockApi({ 'PATCH /api/finance/invitations/{code}': { id: 'g1', name: '우리집' } })
     renderApp(<AcceptInvitationForm />)
 
-    expect(screen.getByRole('button', { name: '참여' })).toBeDisabled()
     await user.type(screen.getByLabelText('초대 코드가 있으신가요?'), ' ABC123 ')
     await user.click(screen.getByRole('button', { name: '참여' }))
 
@@ -22,5 +21,16 @@ describe('AcceptInvitationForm', () => {
     expect(posts[0].path).toBe('/api/finance/invitations/ABC123')
     expect(posts[0].body).toEqual({ status: 'ACCEPTED' })
     expect(screen.getByLabelText('초대 코드가 있으신가요?')).toHaveValue('')
+  })
+
+  it('빈 코드로 제출하면 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const user = userEvent.setup()
+    const { requests } = mockApi({ 'PATCH /api/finance/invitations/{code}': { id: 'g1', name: '우리집' } })
+    renderApp(<AcceptInvitationForm />)
+
+    await user.click(screen.getByRole('button', { name: '참여' }))
+
+    expect(await screen.findByText('초대 코드를 입력하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'PATCH')).toHaveLength(0)
   })
 })

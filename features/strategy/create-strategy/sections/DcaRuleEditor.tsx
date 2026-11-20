@@ -54,7 +54,7 @@ export function DcaRuleEditor({ initial, isNew, onDone, onDelete, onCancel }: Pr
           규칙 삭제
         </Button>
       )}
-      <FormActions onCancel={onCancel} cancelLabel="이전" isPending={false} canSubmit label="완료" className="py-6" />
+      <FormActions onCancel={onCancel} cancelLabel="이전" isPending={false} label="완료" className="py-6" />
     </form>
   )
 }

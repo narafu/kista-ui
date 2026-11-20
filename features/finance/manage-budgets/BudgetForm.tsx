@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
 import { useAppForm } from '@shared/ui/form/useAppForm'
@@ -23,9 +23,12 @@ import type { FinanceBudget, FinanceBudgetRequest, FlowType } from '@entities/fi
 
 // 금액은 입력 중 콤마 표시를 위해 숫자 문자열로 들고 있다가 제출 때 Number로 바꾼다
 const schema = z.object({
-  applyStartDate: z.string().min(1),
+  // 카테고리는 RHF 밖 계단식 상태(useCategoryPathState)를 미러링한다 — 요청 바디는 path 상태에서 만든다
+  categoryId: z.string().min(1, '카테고리를 선택하세요.'),
+  applyStartDate: z.string().min(1, '적용 시작일을 선택하세요.'),
   applyEndDate: z.string(),
-  amount: z.string(),
+  // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다
+  amount: z.string().min(1, '금액을 입력하세요.').refine((v) => Number(v) > 0, '0보다 큰 금액을 입력하세요.'),
   shareToGroup: z.boolean(),
 })
 
@@ -66,10 +69,11 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
   const form = useAppForm({
     schema,
     defaultValues: {
+      categoryId,
       // 월 예산이라 신규 등록은 이번 달 1일을 기본 시작일로 둔다.
       applyStartDate: seed?.applyStartDate || monthStartDate(todayKst().slice(0, 7)),
       applyEndDate: seed?.applyEndDate ?? '',
-      // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(canSubmit).
+      // amount<=0은 값이 없는 것으로 취급한다 — 0원 예산은 제출할 수 없다(zod).
       amount: seed && seed.amount > 0 ? String(seed.amount) : '',
       shareToGroup: true,
     },
@@ -90,22 +94,33 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
   const applyStartDate = form.watch('applyStartDate')
   const applyEndDate = form.watch('applyEndDate')
   const endBeforeStart = applyEndDate !== '' && applyEndDate < applyStartDate
-  const canSubmit = categoryId !== '' && applyStartDate !== '' && !endBeforeStart && Number(form.watch('amount')) > 0
+  // 잠금 — 종료일이 시작일보다 빠르면 제출할 수 없다(hint가 이유를 알린다. 서버 검증 T7 전까지 유지)
+  const locked = endBeforeStart
+
+  // 계단식 선택(RHF 밖 상태)을 폼 필드로 미러링 — 선택 후 오류가 있던 필드는 바로 갱신한다
+  const { setValue } = form
+  const isSubmitted = form.formState.isSubmitted
+  useEffect(() => { setValue('categoryId', categoryId, { shouldValidate: isSubmitted }) }, [setValue, categoryId, isSubmitted])
 
   return (
-    <form onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="budgetCategory">카테고리</Label>
-        <CascadingCategorySelect
-          levels={cascadeLevels}
-          path={selectedPath}
-          onPathChange={setSelectedPath}
-          allowClear={false}
-          id="budgetCategory"
-          className="w-full h-11"
-          disabled={form.isPending}
-        />
-      </div>
+    <form onSubmit={(e) => (locked ? e.preventDefault() : form.submit(e))} className="space-y-4">
+      <FormField control={form.control} name="categoryId" label="카테고리" required id="budgetCategory">
+        {(f) => (
+          <CascadingCategorySelect
+            levels={cascadeLevels}
+            path={selectedPath}
+            onPathChange={setSelectedPath}
+            allowClear={false}
+            id={f.id}
+            triggerRef={f.ref}
+            aria-invalid={f['aria-invalid']}
+            aria-describedby={f['aria-describedby']}
+            aria-required={f['aria-required']}
+            className="w-full h-11"
+            disabled={form.isPending}
+          />
+        )}
+      </FormField>
 
       <FormField control={form.control} name="applyStartDate" label="적용 시작일" required>
         {(f) => <Input {...f} type="date" min={MIN_APPLY_DATE} max={MAX_APPLY_DATE} disabled={form.isPending} className="h-11" />}
@@ -152,7 +167,7 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
         <ShareToGroupSwitch id="budgetShareToGroup" checked={form.watch('shareToGroup')} onCheckedChange={(v) => form.setValue('shareToGroup', v)} disabled={form.isPending} />
       )}
 
-      <FormActions form={form} onCancel={onDone} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '추가'} className="pt-2" />
+      <FormActions form={form} onCancel={onDone} locked={locked} label={mode === 'edit' ? '수정' : '추가'} className="pt-2" />
     </form>
   )
 }

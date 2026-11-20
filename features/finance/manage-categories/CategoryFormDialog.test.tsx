@@ -51,6 +51,7 @@ describe('CategoryFormDialog(그룹 스코프) 제출 요청', () => {
     renderGroup(null)
     await user.click(await screen.findByRole('switch', { name: '그룹으로 저장' }))
     await user.click(screen.getByRole('button', { name: '저장' }))
+    expect(await screen.findByText('이름을 입력하세요.')).toBeInTheDocument()
     expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
 
     await user.type(screen.getByLabelText('이름'), '식비')
@@ -134,6 +135,18 @@ describe('CategoryFormDialog(시스템 스코프) 제출 요청', () => {
     expect(posts[0].body).toEqual({ type: 'EXPENSE', name: '식비', sortOrder: 0 })
     // 관리자 화면은 그룹 개념이 없어 그룹 목록을 조회하지 않는다
     expect(requests.some((r) => r.path === '/api/finance/groups')).toBe(false)
+  })
+
+  it('이름이 비면 제출 시 필드 오류가 보이고 요청이 나가지 않는다', async () => {
+    const user = userEvent.setup()
+    const { requests } = setup({ 'POST /api/admin/finance/categories': existing })
+    renderSystem(null)
+    await waitFor(() => expect(document.activeElement?.id).toBe('systemCategoryParentId'))
+
+    await user.click(screen.getByRole('button', { name: '저장' }))
+
+    expect(await screen.findByText('이름을 입력하세요.')).toBeInTheDocument()
+    expect(requests.filter((r) => r.method === 'POST')).toHaveLength(0)
   })
 
   it('수정은 PUT /api/admin/finance/categories/{id}', async () => {

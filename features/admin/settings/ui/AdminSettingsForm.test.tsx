@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
@@ -74,7 +74,7 @@ describe('AdminSettingsForm', () => {
     await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
     expect(screen.getByText(/가입 승인 대기 상태가 해제/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }))
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({ auth: { approvalRequired: false } }), expect.anything())
   })
 
   it('DCA 전략 토글을 켜서 저장하면 strategies.DCA.enabled=true로 전송한다', async () => {
@@ -84,7 +84,7 @@ describe('AdminSettingsForm', () => {
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       strategies: expect.objectContaining({ DCA: expect.objectContaining({ enabled: true }) }),
-    }))
+    }), expect.anything())
   })
 
   it('꺼진 전략은 요약만 보이고 펼치면 설정을 편집할 수 있다', async () => {
@@ -127,6 +127,52 @@ describe('AdminSettingsForm', () => {
     expect(screen.getByText('기본값은 허용값에 포함되어야 합니다.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /설정 (펼치기|접기)/ })).not.toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
+  })
+
+  it('저장 시도 뒤 서버값이 바뀌어도 오류 문구와 펼친 전략을 유지한다', async () => {
+    const user = userEvent.setup()
+    const invalid = { ...settings, strategies: { ...settings.strategies, DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO'], defaultValue: 'BITO' } } } } }
+    queryState.data = invalid
+    const { rerender } = render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    expect(screen.getByText('기본값은 허용값에 포함되어야 합니다.')).toBeInTheDocument()
+
+    const latest = structuredClone(invalid)
+    latest.brokers.MERITZ.enabled = false
+    queryState.data = latest
+    rerender(<AdminSettingsForm />)
+    await waitFor(() => expect(screen.getByRole('switch', { name: '메리츠증권' })).not.toBeChecked())
+    expect(screen.getByText('기본값은 허용값에 포함되어야 합니다.')).toBeInTheDocument()
+    expect(document.getElementById('dca-ticker-add')).not.toBeNull()
+  })
+
+  it('저장 시 첫 오류 필드의 입력으로 포커스를 옮긴다', async () => {
+    const user = userEvent.setup()
+    const invalid = structuredClone(settings)
+    invalid.strategies.INFINITE.fields.divisionCount!.defaultValue = 99
+    queryState.data = invalid
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    expect(screen.getByRole('textbox', { name: '분할 수 추가' })).toHaveFocus()
+    expect(mutateMock).not.toHaveBeenCalled()
+  })
+
+  // 낡은 응답(benchmarks 없음)은 전환 전처럼 기본 벤치마크를 채워 보낸다 — benchmarks: {}나 etf: undefined가 생기면 안 된다
+  it('benchmarks가 없는 응답을 저장하면 기본 벤치마크를 채운 바디를 보낸다', async () => {
+    const user = userEvent.setup()
+    const { benchmarks: _omit, ...legacy } = structuredClone(settings)
+    queryState.data = legacy
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock.mock.calls[0][0]).toEqual({
+      ...legacy,
+      brokers: { ...legacy.brokers, TOSS: { enabled: false } },
+      benchmarks: { etf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'SPY' } },
+    })
   })
 
   it('런타임 설정에 DCA 키가 없으면 새로고침 안내를 띄우고 저장을 막는다', async () => {
@@ -175,7 +221,7 @@ describe('AdminSettingsForm', () => {
           divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }),
         }),
       }) }),
-    }))
+    }), expect.anything())
   })
 
   it('rejects empty duplicate and malformed added values before save', async () => {
@@ -213,7 +259,7 @@ describe('AdminSettingsForm', () => {
           ticker: expect.objectContaining({ allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }),
         }),
       }) }),
-    }))
+    }), expect.anything())
   })
 
   it('collapses customizable values to the current default when user changes are disabled', async () => {
@@ -229,7 +275,7 @@ describe('AdminSettingsForm', () => {
           divisionCount: { customizable: false, allowedValues: [20], defaultValue: 20 },
         }),
       }) }),
-    }))
+    }), expect.anything())
   })
 
   it('edits recurring mode using fixed candidates and forces HOLD when fixed', async () => {
@@ -247,10 +293,11 @@ describe('AdminSettingsForm', () => {
           recurringMode: { customizable: false, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
         }),
       }) }),
-    }))
+    }), expect.anything())
   })
 
-  it('preserves dirty edits across incoming server data and resets to the latest snapshot', async () => {
+  // 서버값이 바뀌면 편집한 필드만 남고 편집하지 않은 필드는 새 서버값을 따른다(2026-11-13 승인 — 예전엔 편집 중이면 초안 전체를 보존했다)
+  it('keeps only edited fields across incoming server data and resets to the latest snapshot', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<AdminSettingsForm />)
     const meritz = screen.getByRole('switch', { name: '메리츠증권' })
@@ -260,9 +307,83 @@ describe('AdminSettingsForm', () => {
     queryState.data = latest
     rerender(<AdminSettingsForm />)
     expect(meritz).not.toBeChecked()
+    await waitFor(() => expect(screen.getByRole('switch', { name: '토스증권' })).not.toBeChecked())
     await user.click(screen.getByRole('button', { name: /변경 취소/ }))
     expect(screen.getByRole('switch', { name: '메리츠증권' })).toBeChecked()
     expect(screen.getByRole('switch', { name: '토스증권' })).not.toBeChecked()
+  })
+
+  it('stops treating an edit as dirty once the server reaches the same value', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+
+    const same = structuredClone(settings)
+    same.brokers.TOSS.enabled = false
+    queryState.data = same
+    rerender(<AdminSettingsForm />)
+    await waitFor(() => expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument())
+
+    queryState.data = structuredClone(settings)
+    rerender(<AdminSettingsForm />)
+    await waitFor(() => expect(screen.getByRole('switch', { name: '토스증권' })).toBeChecked())
+    expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument()
+  })
+
+  it('keeps an edited allowed-values list whole while other fields follow incoming server data', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<AdminSettingsForm />)
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'qld')
+    await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
+
+    const latest = structuredClone(settings)
+    latest.strategies.INFINITE.fields.ticker.allowedValues = ['SOXL', 'TQQQ', 'IBIT']
+    latest.strategies.INFINITE.fields.divisionCount!.allowedValues = [20, 30, 50]
+    queryState.data = latest
+    rerender(<AdminSettingsForm />)
+    await waitFor(() => expect(screen.getByRole('radio', { name: '50 기본값' })).toBeInTheDocument())
+    expect(screen.queryByRole('radio', { name: 'IBIT 기본값' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    const body = mutateMock.mock.calls[0][0] as RuntimeConfig
+    expect(body.strategies.INFINITE.fields.ticker.allowedValues).toEqual(['SOXL', 'TQQQ', 'QLD'])
+    expect(body.strategies.INFINITE.fields.divisionCount!.allowedValues).toEqual([20, 30, 50])
+  })
+
+  it('lets collapsed fields follow incoming server data while another strategy is edited', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<AdminSettingsForm />)
+    await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
+    await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
+
+    // DCA는 꺼져 있어 접힌 채라 편집기가 마운트된 적이 없다
+    const latest = structuredClone(settings)
+    latest.strategies.DCA.fields.ticker.defaultValue = 'QLD'
+    queryState.data = latest
+    rerender(<AdminSettingsForm />)
+    await waitFor(() => expect(screen.getByText('종목 QLD')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+    const body = mutateMock.mock.calls[0][0] as RuntimeConfig
+    expect(body.strategies.DCA.fields.ticker).toEqual({ customizable: true, allowedValues: ['UPRO', 'QLD'], defaultValue: 'QLD' })
+    expect(body.strategies.INFINITE.fields.divisionCount!.allowedValues).toEqual([20, 30, 40])
+  })
+
+  it('keeps editing and saving working after changes are discarded', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+    await user.click(screen.getByRole('button', { name: /변경 취소/ }))
+
+    await user.click(screen.getByRole('switch', { name: '메리츠증권' }))
+    await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
+    await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    const expected = structuredClone(settings)
+    expected.brokers.MERITZ.enabled = false
+    expected.strategies.INFINITE.fields.divisionCount!.allowedValues = [20, 30, 40]
+    expect(mutateMock.mock.calls[0][0]).toEqual(expected)
   })
 
   it('does not warn when approval was already disabled on the server', async () => {
@@ -287,7 +408,48 @@ describe('AdminSettingsForm', () => {
       benchmarks: {
         etf: { allowedValues: ['SPY', 'QQQ', 'QLD'], defaultValue: 'QLD' },
       },
-    }))
+    }), expect.anything())
+  })
+
+  // 전 사용자의 전략 기본값을 바꾸는 요청이다 — 폼 구현이 바뀌어도 나가는 바디 전체가 그대로여야 한다
+  it('여러 구역을 함께 편집해 저장하면 요청 바디 전체가 편집 결과와 정확히 같다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+
+    await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
+    await user.click(screen.getByRole('switch', { name: '토스증권' }))
+    await user.click(screen.getByRole('switch', { name: '적립식 분할매매' }))
+    await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
+    await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
+    await user.click(screen.getByRole('radio', { name: '40 기본값' }))
+    await user.type(screen.getByRole('textbox', { name: '밴드 폭 추가' }), '20')
+    await user.click(screen.getByRole('button', { name: '밴드 폭 추가 확정' }))
+    await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'qld')
+    await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledTimes(1)
+    expect(mutateMock.mock.calls[0][0]).toEqual({
+      auth: { approvalRequired: false },
+      brokers: { TOSS: { enabled: false }, MOCK: { enabled: true }, MERITZ: { enabled: true } },
+      benchmarks: {
+        etf: { allowedValues: ['SPY', 'QQQ', 'QLD'], defaultValue: 'SPY' },
+      },
+      strategies: {
+        INFINITE: { enabled: true, fields: {
+          ticker: { customizable: true, allowedValues: ['SOXL', 'TQQQ'], defaultValue: 'SOXL' },
+          divisionCount: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 40 },
+        } },
+        PRIVACY: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } } },
+        VR: { enabled: true, fields: {
+          ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' },
+          recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
+          bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },
+          intervalWeeks: { customizable: true, allowedValues: [1, 2], defaultValue: 2 },
+        } },
+        DCA: { enabled: true, fields: { ticker: { customizable: true, allowedValues: ['UPRO', 'QLD'], defaultValue: 'UPRO' } } },
+      },
+    })
   })
 
 })

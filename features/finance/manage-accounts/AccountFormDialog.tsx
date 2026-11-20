@@ -118,7 +118,7 @@ function AccountForm({ account, onDone }: { account?: FinanceAccount; onDone: ()
         <ShareToGroupSwitch id="accountShareToGroup" checked={form.watch('shareToGroup')} onCheckedChange={(v) => form.setValue('shareToGroup', v)} disabled={form.isPending} />
       )}
 
-      <FormActions form={form} onCancel={onDone} label="저장" canSubmit={!!form.watch('name').trim()} className="pt-2" />
+      <FormActions form={form} onCancel={onDone} label="저장" className="pt-2" />
     </form>
   )
 }

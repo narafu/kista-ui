@@ -13,7 +13,8 @@ type ValueSet<T extends string | number> = {
   defaultValue: T
 }
 
-export function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, unit, normalize, onChange }: {
+// inputRef: 폼이 제출 시 첫 오류 필드로 포커스를 옮길 때 쓰는 주 입력(추가 입력칸)
+export function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, unit, normalize, onChange, inputRef }: {
   id: string
   label: string
   field: ValueSet<T>
@@ -23,6 +24,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
   unit?: string
   normalize: (value: string) => T | null
   onChange: (field: ValueSet<T>) => void
+  inputRef?: (element: HTMLElement | null) => void
 }) {
   const unitId = useId()
   const [raw, setRaw] = useState('')
@@ -105,6 +107,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
         <InputWithUnit unit={unit ?? ''} unitId={unitId} className="flex-1">
           <Input
             id={`${id}-add`}
+            ref={inputRef}
             value={raw}
             type="text"
             list={datalistId}

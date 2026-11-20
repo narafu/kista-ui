@@ -1,6 +1,8 @@
 'use client'
 
-import { type FormEvent, type ReactNode, useMemo, useRef, useState } from 'react'
+import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { Controller, useController, type Control, type Path } from 'react-hook-form'
+import { z } from 'zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { AlertTriangle, ChevronDown, RotateCcw, Save } from 'lucide-react'
@@ -8,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { cn } from '@shared/lib/utils'
 import { SectionError } from '@shared/ui/SectionError'
+import { useAppForm } from '@shared/ui/form/useAppForm'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
 import { useMeta } from '@entities/meta'
@@ -17,7 +20,6 @@ import {
   runtimeConfigKeys,
   type RuntimeBenchmarkFieldSettings,
   type RuntimeConfig,
-  type RuntimeFieldSettings,
   type RuntimeStrategyType,
 } from '@entities/runtime-config'
 import { validateAdminSettings } from '../model/validateAdminSettings'
@@ -30,20 +32,18 @@ import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 // kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
 const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BITO', 'EETH']
 
-const hasStrategyError = (errors: Record<string, string>, strategy: RuntimeStrategyType) =>
-  Object.keys(errors).some((key) => key.startsWith(`${strategy}.`))
-
 // 전략 토글 아래에 그 전략의 생성 설정을 붙인다. 꺼진 전략은 요약 한 줄로 접되, 켜기 전에 미리 맞출 수 있게 펼칠 수 있다.
 // 저장 시도 후 오류가 있으면 접힌 상태라도 펼친다 — 보이지 않는 오류로 저장만 막히지 않게
-function StrategyBlock({ strategy, label, enabled, onToggle, summary, hasError, children }: {
+function StrategyBlock({ control, strategy, label, summary, hasError, children }: {
+  control: Control<RuntimeConfig>
   strategy: RuntimeStrategyType
   label: string
-  enabled: boolean
-  onToggle: (enabled: boolean) => void
   summary: string
   hasError: boolean
   children: ReactNode
 }) {
+  const { field } = useController({ control, name: `strategies.${strategy}.enabled` })
+  const enabled = field.value
   const [open, setOpen] = useState(false)
   const expanded = enabled || open || hasError
   const panelId = `strategy-${strategy}-fields`
@@ -51,7 +51,7 @@ function StrategyBlock({ strategy, label, enabled, onToggle, summary, hasError, 
   return (
     <div>
       {/* 토글할 때마다 수동 펼침을 되돌린다 — 다시 끄면 접힌 상태로 돌아가게 */}
-      <ToggleRow id={`strategy-${strategy}`} label={label} checked={enabled} onChange={(next) => { setOpen(false); onToggle(next) }} />
+      <ToggleRow id={`strategy-${strategy}`} label={label} checked={enabled} onChange={(next) => { setOpen(false); field.onChange(next) }} />
       {!enabled && (
         <div className="-mt-1 flex items-center justify-between gap-3 pb-3">
           <p className="min-w-0 truncate text-xs text-muted-foreground">{summary}</p>
@@ -86,18 +86,27 @@ export function AdminSettingsForm() {
   return <AdminSettingsFormContent settings={data} />
 }
 
+// z.object는 모르는 키를 지워 요청 바디가 바뀐다 — 값을 그대로 통과시키고 기존 규칙(validateAdminSettings)을 필드 경로에 붙인다
+const errorPath = (key: string) => {
+  const [head, name] = key.split('.')
+  return head === 'benchmarks' ? ['benchmarks', name] : ['strategies', head, 'fields', name]
+}
+const schema = z.custom<RuntimeConfig>().superRefine((settings, ctx) => {
+  for (const [key, message] of Object.entries(validateAdminSettings(settings))) {
+    ctx.addIssue({ code: 'custom', path: errorPath(key), message })
+  }
+})
+
+// 서버값이 바뀌면 편집한 필드만 남기고 나머지는 새 서버값을 따른다. 저장 시도 상태와 오류는 저장이 끝날 때까지 유지한다
+// (저장 응답이 캐시에 먼저 들어가 서버값 반영이 저장 중에 일어난다)
+const RESET_OPTIONS = { keepDirtyValues: true, keepIsSubmitted: true, keepErrors: true }
+const END_ATTEMPT = { keepIsSubmitted: false, keepErrors: false }
+
 function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
   const queryClient = useQueryClient()
-  const [draft, setDraft] = useState(() => clone(settings))
+  // 서버값이 바뀔 때만 복제한다 — RHF는 values를 매 렌더 깊은 비교하므로 새 객체여도 다시 반영하진 않지만, 복제·비교를 렌더마다 하지 않게 메모한다
   const serverSnapshot = useMemo(() => clone(settings), [settings])
-  const [prevSettings, setPrevSettings] = useState(settings)
-  // 서버값이 바뀌었을 때 초안이 이전 서버값과 같았다면(미편집) 새 서버값으로 따라간다 — 편집 중이면 초안을 보존
-  if (settings !== prevSettings) {
-    setPrevSettings(settings)
-    if (JSON.stringify(draft) === JSON.stringify(clone(prevSettings))) setDraft(clone(settings))
-  }
-  const [attempted, setAttempted] = useState(false)
   const activatesPendingUsersRef = useRef(false)
   const mutation = useUpdateAdminSettingsMutation({
     onSuccess: async () => {
@@ -124,66 +133,52 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
       await Promise.allSettled(invalidations)
 
       toast.success('운영 설정을 저장했습니다')
-      setAttempted(false)
+      form.reset(undefined, { keepValues: true, keepDefaultValues: true, ...END_ATTEMPT })
     },
   })
-  const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
+  const form = useAppForm({ schema, values: serverSnapshot, resetOptions: RESET_OPTIONS, mutation })
+  const { control, register, reset } = form
+  const { errors, isDirty, isSubmitted } = form.formState
+  const draft = form.watch()
 
-  const errors = useMemo(() => validateAdminSettings(draft), [draft])
+  // 접힌 전략의 필드는 마운트되지 않는다. keepDirtyValues는 마운트된 필드만 서버값으로 바꾸고, strategies 아래 편집이 하나라도 있으면
+  // 나머지는 현재 값으로 둔다 — 모든 필드를 등록해 편집하지 않은 필드가 서버값을 따라가게 한다(되돌리기가 등록을 비우므로 렌더마다)
+  for (const [strategy, config] of Object.entries(serverSnapshot.strategies)) {
+    for (const name of Object.keys(config.fields)) register(`strategies.${strategy}.fields.${name}` as Path<RuntimeConfig>)
+  }
+  // keepDirtyValues는 서버값을 반영할 때 dirtyFields를 다시 재지 않는다 — 저장해서 서버값과 같아진 필드가 "편집함"으로 남아 다음 서버값을 막지 않게 다시 잰다
+  useEffect(() => {
+    reset(undefined, { keepValues: true, keepDefaultValues: true, keepErrors: true, keepIsSubmitted: true })
+  }, [settings, reset])
+
+  const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
   // 배포 직후 낡은 응답엔 DCA 키가 없다 — 그대로 저장하면 kista-api가 400을 낸다
   const dca = draft.strategies.DCA
-  const dirty = JSON.stringify(draft) !== JSON.stringify(serverSnapshot)
-  const setStrategyField = <T extends string | number>(strategy: RuntimeStrategyType, field: string, value: RuntimeFieldSettings<T>) => {
-    setDraft((current) => ({
-      ...current,
-      strategies: {
-        ...current.strategies,
-        [strategy]: {
-          ...current.strategies[strategy],
-          fields: { ...current.strategies[strategy].fields, [field]: value },
-        },
-      },
-    }))
-  }
-  const setStrategyEnabled = (strategy: RuntimeStrategyType, enabled: boolean) => setDraft((current) => {
-    return {
-      ...current,
-      strategies: {
-        ...current.strategies,
-        [strategy]: { ...current.strategies[strategy], enabled },
-      },
-    }
-  })
-  const setBenchmarkEtf = (value: RuntimeBenchmarkFieldSettings<string>) => {
-    setDraft((current) => ({
-      ...current,
-      benchmarks: { ...(current.benchmarks ?? DEFAULT_RUNTIME_BENCHMARKS), etf: value },
-    }))
-  }
+  const hasError = (strategy: RuntimeStrategyType) => isSubmitted && !!errors.strategies?.[strategy]
   const submit = (event: FormEvent) => {
-    event.preventDefault()
-    setAttempted(true)
-    if (Object.keys(errors).length > 0 || mutation.isPending || !dca) return
-    activatesPendingUsersRef.current = serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired
-    mutation.mutate(draft)
+    if (!dca || form.isPending) {
+      event.preventDefault()
+      return
+    }
+    activatesPendingUsersRef.current = serverSnapshot.auth.approvalRequired && !form.getValues('auth.approvalRequired')
+    void form.submit(event)
   }
-  const reset = () => {
-    setDraft(clone(settings))
-    setAttempted(false)
-  }
+  const discard = () => reset(serverSnapshot, { keepDirtyValues: false, keepFieldsRef: true, ...END_ATTEMPT })
 
   return (
     <form onSubmit={submit} className="space-y-5">
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <section className="border-b border-border px-4 py-4 sm:px-5">
           <h2 className="text-base font-bold">가입 승인</h2>
-          <ToggleRow
-            id="approval-required"
-            label="관리자 승인 필요"
-            description="끄면 승인 대기 사용자도 즉시 활성화"
-            checked={draft.auth.approvalRequired}
-            onChange={(approvalRequired) => setDraft((current) => ({ ...current, auth: { approvalRequired } }))}
-          />
+          <Controller control={control} name="auth.approvalRequired" render={({ field }) => (
+            <ToggleRow
+              id="approval-required"
+              label="관리자 승인 필요"
+              description="끄면 승인 대기 사용자도 즉시 활성화"
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )} />
           {serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired && (
             <div className="flex gap-2 rounded-md border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-xs text-[var(--warn)]">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" /> 저장 즉시 가입 승인 대기 상태가 해제됩니다.
@@ -196,8 +191,9 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           {(Object.keys(draft.brokers) as BrokerCode[])
             .sort((a, b) => Number(isMockBroker(a)) - Number(isMockBroker(b)))
             .map((broker) => (
-            <ToggleRow key={broker} id={`broker-${broker}`} label={labelOf('brokers', broker)} checked={draft.brokers[broker].enabled}
-              onChange={(enabled) => setDraft((current) => ({ ...current, brokers: { ...current.brokers, [broker]: { enabled } } }))} />
+            <Controller key={broker} control={control} name={`brokers.${broker}.enabled`} render={({ field }) => (
+              <ToggleRow id={`broker-${broker}`} label={labelOf('brokers', broker)} checked={field.value} onChange={field.onChange} />
+            )} />
           ))}
         </section>
 
@@ -205,85 +201,90 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           <h2 className="text-base font-bold">전략 생성</h2>
           <div className="divide-y divide-border">
             <StrategyBlock
+              control={control}
               strategy="INFINITE"
               label={labelOf('strategyTypes', 'INFINITE')}
-              enabled={draft.strategies.INFINITE.enabled}
-              onToggle={(enabled) => setStrategyEnabled('INFINITE', enabled)}
               summary={`종목 ${draft.strategies.INFINITE.fields.ticker.defaultValue} · 분할 ${draft.strategies.INFINITE.fields.divisionCount?.defaultValue ?? '-'}`}
-              hasError={attempted && hasStrategyError(errors, 'INFINITE')}
+              hasError={hasError('INFINITE')}
             >
-              <FieldEditor
-                id="infinite-ticker"
-                label="종목"
-                field={draft.strategies.INFINITE.fields.ticker}
-                error={attempted ? errors['INFINITE.ticker'] : undefined}
-                suggestions={tickerSuggestions}
-                normalize={normalizeSymbol}
-                onChange={(value) => setStrategyField('INFINITE', 'ticker', value)}
-              />
-              <FieldEditor
-                id="infinite-division"
-                label="분할 수"
-                field={draft.strategies.INFINITE.fields.divisionCount!}
-                error={attempted ? errors['INFINITE.divisionCount'] : undefined}
-                inputType="number"
-                normalize={normalizeNumber}
-                onChange={(value) => setStrategyField('INFINITE', 'divisionCount', value)}
-              />
+              <Controller control={control} name="strategies.INFINITE.fields.ticker" render={({ field, fieldState }) => (
+                <FieldEditor
+                  id="infinite-ticker"
+                  label="종목"
+                  field={field.value}
+                  error={fieldState.error?.message} inputRef={field.ref}
+                  suggestions={tickerSuggestions}
+                  normalize={normalizeSymbol}
+                  onChange={field.onChange}
+                />
+              )} />
+              <Controller control={control} name="strategies.INFINITE.fields.divisionCount" render={({ field, fieldState }) => (
+                <FieldEditor
+                  id="infinite-division"
+                  label="분할 수"
+                  field={field.value!}
+                  error={fieldState.error?.message} inputRef={field.ref}
+                  inputType="number"
+                  normalize={normalizeNumber}
+                  onChange={field.onChange}
+                />
+              )} />
             </StrategyBlock>
 
             <StrategyBlock
+              control={control}
               strategy="PRIVACY"
               label={labelOf('strategyTypes', 'PRIVACY')}
-              enabled={draft.strategies.PRIVACY.enabled}
-              onToggle={(enabled) => setStrategyEnabled('PRIVACY', enabled)}
               summary={`종목 ${draft.strategies.PRIVACY.fields.ticker.defaultValue}`}
-              hasError={attempted && hasStrategyError(errors, 'PRIVACY')}
+              hasError={hasError('PRIVACY')}
             >
-              <FieldEditor id="privacy-ticker" label="종목" fixed field={draft.strategies.PRIVACY.fields.ticker}
-                onChange={(value) => setStrategyField('PRIVACY', 'ticker', value)} />
+              <Controller control={control} name="strategies.PRIVACY.fields.ticker" render={({ field }) => (
+                <FieldEditor id="privacy-ticker" label="종목" fixed field={field.value} onChange={field.onChange} />
+              )} />
             </StrategyBlock>
 
             <StrategyBlock
+              control={control}
               strategy="VR"
               label={labelOf('strategyTypes', 'VR')}
-              enabled={draft.strategies.VR.enabled}
-              onToggle={(enabled) => setStrategyEnabled('VR', enabled)}
               summary={`종목 ${draft.strategies.VR.fields.ticker.defaultValue} · 밴드 ${draft.strategies.VR.fields.bandWidth?.defaultValue ?? '-'}% · ${draft.strategies.VR.fields.intervalWeeks?.defaultValue ?? '-'}주`}
-              hasError={attempted && hasStrategyError(errors, 'VR')}
+              hasError={hasError('VR')}
             >
-              <FieldEditor id="vr-ticker" label="종목" fixed field={draft.strategies.VR.fields.ticker}
-                onChange={(value) => setStrategyField('VR', 'ticker', value)} />
-              <RecurringModeEditor
-                label="정기 입출금 방식"
-                field={draft.strategies.VR.fields.recurringMode!}
-                error={attempted ? errors['VR.recurringMode'] : undefined}
-                onChange={(value) => setStrategyField('VR', 'recurringMode', value)}
-              />
-              <FieldEditor id="vr-band" label="밴드 폭" unit="%" field={draft.strategies.VR.fields.bandWidth!}
-                error={attempted ? errors['VR.bandWidth'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'bandWidth', value)} />
-              <FieldEditor id="vr-interval" label="주기" unit="주" field={draft.strategies.VR.fields.intervalWeeks!}
-                error={attempted ? errors['VR.intervalWeeks'] : undefined} inputType="number" normalize={normalizeNumber} onChange={(value) => setStrategyField('VR', 'intervalWeeks', value)} />
+              <Controller control={control} name="strategies.VR.fields.ticker" render={({ field }) => (
+                <FieldEditor id="vr-ticker" label="종목" fixed field={field.value} onChange={field.onChange} />
+              )} />
+              <Controller control={control} name="strategies.VR.fields.recurringMode" render={({ field, fieldState }) => (
+                <RecurringModeEditor label="정기 입출금 방식" field={field.value!} error={fieldState.error?.message} inputRef={field.ref} onChange={field.onChange} />
+              )} />
+              <Controller control={control} name="strategies.VR.fields.bandWidth" render={({ field, fieldState }) => (
+                <FieldEditor id="vr-band" label="밴드 폭" unit="%" field={field.value!}
+                  error={fieldState.error?.message} inputRef={field.ref} inputType="number" normalize={normalizeNumber} onChange={field.onChange} />
+              )} />
+              <Controller control={control} name="strategies.VR.fields.intervalWeeks" render={({ field, fieldState }) => (
+                <FieldEditor id="vr-interval" label="주기" unit="주" field={field.value!}
+                  error={fieldState.error?.message} inputRef={field.ref} inputType="number" normalize={normalizeNumber} onChange={field.onChange} />
+              )} />
             </StrategyBlock>
 
             {dca ? (
               <StrategyBlock
+                control={control}
                 strategy="DCA"
                 label={labelOf('strategyTypes', 'DCA')}
-                enabled={dca.enabled}
-                onToggle={(enabled) => setStrategyEnabled('DCA', enabled)}
                 summary={`종목 ${dca.fields.ticker.defaultValue}`}
-                hasError={attempted && hasStrategyError(errors, 'DCA')}
+                hasError={hasError('DCA')}
               >
-                <FieldEditor
-                  id="dca-ticker"
-                  label="종목"
-                  field={dca.fields.ticker}
-                  error={attempted ? errors['DCA.ticker'] : undefined}
-                  suggestions={DCA_TICKER_SUGGESTIONS}
-                  normalize={normalizeSymbol}
-                  onChange={(value) => setStrategyField('DCA', 'ticker', value)}
-                />
+                <Controller control={control} name="strategies.DCA.fields.ticker" render={({ field, fieldState }) => (
+                  <FieldEditor
+                    id="dca-ticker"
+                    label="종목"
+                    field={field.value}
+                    error={fieldState.error?.message} inputRef={field.ref}
+                    suggestions={DCA_TICKER_SUGGESTIONS}
+                    normalize={normalizeSymbol}
+                    onChange={field.onChange}
+                  />
+                )} />
               </StrategyBlock>
             ) : (
               <div className="py-3">
@@ -300,30 +301,32 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             <div className="flex min-h-8 items-center sm:pr-4">
               <span className="text-sm font-medium">ETF 벤치마크 자산</span>
             </div>
-            <ValueListEditor
-              id="benchmark-etf"
-              label="ETF 벤치마크 자산"
-              field={draft.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
-              error={attempted ? errors['benchmarks.etf'] : undefined}
-              suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
-              normalize={normalizeSymbol}
-              onChange={(value) => setBenchmarkEtf(value as RuntimeBenchmarkFieldSettings<string>)}
-            />
+            <Controller control={control} name="benchmarks.etf" render={({ field, fieldState }) => (
+              <ValueListEditor
+                id="benchmark-etf"
+                label="ETF 벤치마크 자산"
+                field={field.value ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
+                error={fieldState.error?.message} inputRef={field.ref}
+                suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
+                normalize={normalizeSymbol}
+                onChange={(value) => field.onChange(value as RuntimeBenchmarkFieldSettings<string>)}
+              />
+            )} />
           </div>
         </section>
       </div>
 
       <div className="sticky bottom-3 flex justify-end gap-2 rounded-lg border border-border bg-background/95 p-3 shadow-sm backdrop-blur">
-        {(!dca || !dirty) && (
+        {(!dca || !isDirty) && (
           <p className="mr-auto self-center text-xs text-muted-foreground">
             {!dca ? 'DCA 설정이 없어 저장할 수 없습니다.' : '변경 사항이 없습니다.'}
           </p>
         )}
-        <Button type="button" variant="outline" onClick={reset} disabled={!dirty || mutation.isPending}>
+        <Button type="button" variant="outline" onClick={discard} disabled={!isDirty || form.isPending}>
           <RotateCcw /> 변경 취소
         </Button>
-        <Button type="submit" disabled={!dirty || mutation.isPending || !dca}>
-          <Save /> {mutation.isPending ? '저장 중...' : '변경 저장'}
+        <Button type="submit" disabled={!isDirty || form.isPending || !dca}>
+          <Save /> {form.isPending ? '저장 중...' : '변경 저장'}
         </Button>
       </div>
     </form>

@@ -10,17 +10,17 @@ import type { AssetClass, AssetSnapshot, AssetSnapshotRequest, FinanceAccount, M
 
 export type AssetFormMode = 'create' | 'edit' | 'duplicate'
 
-// 형식 검증만 — 필수 값이 빠지면 제출 버튼이 잠긴다(canSubmit). 서버 규칙은 넣지 않는다.
+// 형식 검증만 — 필수 값이 비면 제출 시 필드 오류로 알린다. 서버 규칙은 넣지 않는다.
 // 변환이 없어 입력 타입과 출력 타입이 같다.
 export const assetFormSchema = z.object({
-  entryDate: z.string().min(1),
-  categoryId: z.string().min(1),
+  entryDate: z.string().min(1, '기준일을 선택하세요.'),
+  categoryId: z.string().min(1, '카테고리를 선택하세요.'),
   accountId: z.string(),
   assetClass: z.custom<AssetClass>(),
   market: z.custom<Market>(),
   strategy: z.string(),
   memo: z.string(),
-  amountDigits: z.string().min(1),
+  amountDigits: z.string().min(1, '금액을 입력하세요.'),
   // 생성·복제 모드에서만 payload에 얹는다
   shareToGroup: z.boolean(),
 })

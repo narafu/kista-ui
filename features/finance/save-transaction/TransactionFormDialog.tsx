@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import { z } from 'zod'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { FormDialog } from '@shared/ui/FormDialog'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
@@ -27,8 +27,10 @@ import { initialTransactionDate, isDateInWindow, isTransactionLocked } from './t
 
 // 금액은 입력 중 콤마 표시를 위해 숫자 문자열로 들고 있다가 제출 때 Number로 바꾼다
 const schema = z.object({
-  transactionDate: z.string().min(1),
-  amount: z.string().min(1),
+  transactionDate: z.string().min(1, '날짜를 선택하세요.'),
+  // 카테고리는 RHF 밖 계단식 상태(useCategoryPathState)를 미러링한다 — 빈 값을 제출 시 필드 오류로 보이려는 용도이며 요청 바디는 path 상태에서 만든다
+  categoryId: z.string().min(1, '카테고리를 선택하세요.'),
+  amount: z.string().min(1, '금액을 입력하세요.'),
   memo: z.string(),
   shareToGroup: z.boolean(),
 })
@@ -74,6 +76,7 @@ function TransactionForm({ type, initial, duplicateFrom, windowFrom, windowTo, o
     schema,
     defaultValues: {
       transactionDate: initialTransactionDate(initial, duplicateFrom, todayKst(), windowFrom, windowTo),
+      categoryId,
       amount: seed ? String(seed.amount) : '',
       memo: seed?.memo ?? '',
       shareToGroup: true,
@@ -97,13 +100,18 @@ function TransactionForm({ type, initial, duplicateFrom, windowFrom, windowTo, o
   const transactionDate = form.watch('transactionDate')
   const monthClosed = isTransactionLocked(monthlyClosings, closingScopeGroupId, transactionDate, initial)
 
-  const dateInWindow = isDateInWindow(transactionDate, windowFrom, windowTo)
-  const dateOutOfWindow = transactionDate !== '' && !dateInWindow
-  const canSubmit = transactionDate !== '' && dateInWindow && categoryId !== '' && form.watch('amount') !== '' && !monthClosed
+  const dateOutOfWindow = transactionDate !== '' && !isDateInWindow(transactionDate, windowFrom, windowTo)
+  // 잠금 — 월 마감·기간 밖 날짜는 무엇을 입력해도 제출할 수 없다(이유는 아래 안내·날짜 hint). 빈 값은 zod가 제출 시 알린다
+  const locked = monthClosed || dateOutOfWindow
+
+  // 계단식 선택(RHF 밖 상태)을 폼 필드로 미러링 — 선택 후 오류가 있던 필드는 바로 갱신한다
+  const { setValue } = form
+  const isSubmitted = form.formState.isSubmitted
+  useEffect(() => { setValue('categoryId', categoryId, { shouldValidate: isSubmitted }) }, [setValue, categoryId, isSubmitted])
 
   return (
-    <form onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())} className="space-y-4">
-      {/* 직접 입력하면 min/max가 걸러주지 못해 저장 버튼만 비활성이 된다 — 이유를 알린다 */}
+    <form onSubmit={(e) => (locked ? e.preventDefault() : form.submit(e))} className="space-y-4">
+      {/* 직접 입력하면 min/max가 걸러주지 못해 저장이 잠긴다 — 이유를 알린다 */}
       <FormField
         control={form.control}
         name="transactionDate"
@@ -118,18 +126,23 @@ function TransactionForm({ type, initial, duplicateFrom, windowFrom, windowTo, o
         {(f) => <Input {...f} type="date" min={windowFrom} max={windowTo} disabled={form.isPending} aria-invalid={f['aria-invalid'] || dateOutOfWindow || undefined} className="h-11" />}
       </FormField>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">카테고리</Label>
-        <CascadingCategorySelect
-          levels={cascadeLevels}
-          path={selectedPath}
-          onPathChange={setSelectedPath}
-          allowClear={false}
-          id="category"
-          className="w-full h-11"
-          disabled={form.isPending}
-        />
-      </div>
+      <FormField control={form.control} name="categoryId" label="카테고리" required id="category">
+        {(f) => (
+          <CascadingCategorySelect
+            levels={cascadeLevels}
+            path={selectedPath}
+            onPathChange={setSelectedPath}
+            allowClear={false}
+            id={f.id}
+            triggerRef={f.ref}
+            aria-invalid={f['aria-invalid']}
+            aria-describedby={f['aria-describedby']}
+            aria-required={f['aria-required']}
+            className="w-full h-11"
+            disabled={form.isPending}
+          />
+        )}
+      </FormField>
 
       <FormField control={form.control} name="amount" label="금액" required>
         {(f) => (
@@ -159,7 +172,7 @@ function TransactionForm({ type, initial, duplicateFrom, windowFrom, windowTo, o
 
       {monthClosed && <MonthClosedNotice />}
 
-      <FormActions form={form} onCancel={onDone} canSubmit={canSubmit} label={mode === 'edit' ? '수정' : '등록'} className="pt-2" />
+      <FormActions form={form} onCancel={onDone} locked={locked} label={mode === 'edit' ? '수정' : '등록'} className="pt-2" />
     </form>
   )
 }

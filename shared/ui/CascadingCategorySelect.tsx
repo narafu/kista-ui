@@ -23,13 +23,18 @@ interface Props {
   disabled?: boolean
   // 최상단(levelIndex===0) SelectTrigger에만 부여 — 등록 폼의 <Label htmlFor> 연결용.
   id?: string
+  // FormField가 넘기는 ref·aria — 최상단 SelectTrigger에만 붙여 오류 포커스와 오류 문구 연결이 닿게 한다
+  triggerRef?: React.Ref<HTMLButtonElement>
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
+  'aria-required'?: boolean
 }
 
 /**
  * 임의 depth 계단식 카테고리 Select — 거래내역/예산/자산 기록 필터, 예산·거래내역·자산 등록
  * 폼(카테고리 필수 선택)이 동일한 getCascadeLevels 기반 UI를 재사용한다.
  */
-export function CascadingCategorySelect({ levels, path, onPathChange, allowClear = true, levelAriaLabel, className, disabled, id }: Props) {
+export function CascadingCategorySelect({ levels, path, onPathChange, allowClear = true, levelAriaLabel, className, disabled, id, triggerRef, 'aria-invalid': ariaInvalid, 'aria-describedby': ariaDescribedBy, 'aria-required': ariaRequired }: Props) {
   return (
     <>
       {levels.map((level, levelIndex) => {
@@ -53,6 +58,10 @@ export function CascadingCategorySelect({ levels, path, onPathChange, allowClear
           >
             <SelectTrigger
               id={levelIndex === 0 ? id : undefined}
+              ref={levelIndex === 0 ? triggerRef : undefined}
+              aria-invalid={levelIndex === 0 ? ariaInvalid : undefined}
+              aria-describedby={levelIndex === 0 ? ariaDescribedBy : undefined}
+              aria-required={levelIndex === 0 ? ariaRequired : undefined}
               aria-label={levelAriaLabel?.(levelIndex) ?? (levelIndex === 0 ? '카테고리' : `하위 카테고리 ${levelIndex}`)}
               className={className}
               disabled={disabled}

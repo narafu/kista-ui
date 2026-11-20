@@ -1,7 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, type DefaultValues, type FieldValues, type Path, type UseFormReturn } from 'react-hook-form'
+import { useForm, type DefaultValues, type FieldValues, type Path, type UseFormProps, type UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
 import { ApiError } from '@shared/lib/api-client'
@@ -25,9 +25,9 @@ interface MutationLike<TPayload> {
   isPending: boolean
 }
 
-interface Options<TInput extends FieldValues, TOutput, TPayload> {
+// 아래 여섯 개 밖의 옵션(values, resetOptions, mode 등)은 useForm에 그대로 넘긴다. 서버값을 따라가는 폼은 defaultValues 대신 values를 준다
+type Options<TInput extends FieldValues, TOutput, TPayload> = Omit<UseFormProps<TInput, unknown, TOutput>, 'resolver' | 'defaultValues' | 'values'> & {
   schema: z.ZodType<TOutput, TInput>
-  defaultValues: DefaultValues<TInput>
   // 생성·수정은 호출부가 mode로 hook 하나를 골라 넘긴다
   mutation: MutationLike<TPayload>
   // 폼 값 → 요청 바디. 없으면 폼 값을 그대로 보낸다
@@ -35,7 +35,7 @@ interface Options<TInput extends FieldValues, TOutput, TPayload> {
   // 성공 토스트를 hook이 이미 띄우면 넘기지 않는다
   successMessage?: string
   onDone?: () => void
-}
+} & ({ defaultValues: DefaultValues<TInput>; values?: TInput } | { defaultValues?: DefaultValues<TInput>; values: TInput })
 
 export type AppForm<TInput extends FieldValues = FieldValues, TOutput = TInput> = UseFormReturn<TInput, unknown, TOutput> & {
   /** `<form onSubmit>`에 건다. 검증 → mutate → 성공 토스트·onDone */
@@ -46,9 +46,9 @@ export type AppForm<TInput extends FieldValues = FieldValues, TOutput = TInput> 
 // 폼 구현 하나 — zod 검증(형식만), 제출, 진행 상태, 성공 처리, 서버 필드 오류 매핑을 묶는다.
 // 진행 상태는 RHF isSubmitting이 아니라 mutation.isPending이다(mutate는 기다리지 않고, hook의 async onSuccess까지 pending이 이어진다)
 export function useAppForm<TInput extends FieldValues, TOutput = TInput, TPayload = TOutput>({
-  schema, defaultValues, mutation, toPayload, successMessage, onDone,
+  schema, mutation, toPayload, successMessage, onDone, ...formProps
 }: Options<TInput, TOutput, TPayload>): AppForm<TInput, TOutput> {
-  const form = useForm<TInput, unknown, TOutput>({ resolver: zodResolver(schema as never), defaultValues })
+  const form = useForm<TInput, unknown, TOutput>({ ...formProps, resolver: zodResolver(schema as never) })
   const submit = form.handleSubmit((values) => {
     mutation.mutate(toPayload ? toPayload(values) : (values as unknown as TPayload), {
       onSuccess: () => {

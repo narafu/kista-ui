@@ -173,6 +173,36 @@ describe('AdminSettingsForm mutation lifecycle', () => {
     }
   }, 15000)
 
+  // 저장 응답이 캐시에 들어가 서버값이 바뀌면 저장한 필드는 더 이상 "편집함"이 아니다 — 다음 서버값도 따라가야 한다
+  it('clears dirty state after a successful save so saved fields follow later server data', async () => {
+    const queryClient = createTestQueryClient()
+    const refetches = prepareRequiredRefetches(queryClient)
+    const user = userEvent.setup()
+
+    try {
+      await renderLoadedForm(queryClient)
+      await user.click(screen.getByRole('switch', { name: '토스증권' }))
+      await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+      await waitFor(() => expect(queryClient.isMutating()).toBe(1))
+      await act(async () => {
+        refetches.runtime.resolve(settings)
+      })
+      await waitFor(() => expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다'))
+      expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /변경 저장/ })).toBeDisabled()
+      expect(screen.getByRole('switch', { name: '토스증권' })).not.toBeChecked()
+
+      // 다른 관리자가 같은 필드를 다시 켰다
+      await act(async () => {
+        queryClient.setQueryData(adminSettingsKeys.all, settings)
+      })
+      await waitFor(() => expect(screen.getByRole('switch', { name: '토스증권' })).toBeChecked())
+      expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument()
+    } finally {
+      queryClient.clear()
+    }
+  }, 15000)
+
   it('still reports success when a required refetch rejects after the save was applied', async () => {
     const queryClient = createTestQueryClient()
     const refetches = prepareRequiredRefetches(queryClient)

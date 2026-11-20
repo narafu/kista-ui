@@ -80,23 +80,26 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
     successMessage: mode === 'edit' ? '자산 기록이 수정되었습니다' : mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다',
     onDone: onSuccess,
   })
-  const [entryDate, categoryId, amountDigits] = form.watch(['entryDate', 'categoryId', 'amountDigits'])
+  const [entryDate, categoryId] = form.watch(['entryDate', 'categoryId'])
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const monthClosed = isEntryLocked(monthlyClosings, closingScopeGroupId, entryDate, mode, initial)
-  // 경로로 풀리지 않는 categoryId(삭제된 카테고리·목록 로드 실패)는 제출을 잠근다 — 전환 전과 같이 경로 기준으로 판정
+  // 경로로 풀리지 않는 categoryId(삭제된 카테고리·목록 로드 실패)는 제출을 잠근다 — 전환 전과 같이 경로 기준으로 판정.
+  // 카테고리를 아직 고르지 않은 경우(categoryId '')는 잠금이 아니라 zod의 필드 오류다
   const { selectedPath, setSelectedPath, cascadeLevels, categoryId: pathCategoryId } = useCategoryPathState(categories, initial?.categoryId)
   // 운용전략 필드는 L1 카테고리가 '투자'(고정 시스템 카테고리)일 때만 노출한다.
   const showStrategy = isInvestmentCategoryId(selectedPath[0])
   const fixedAssetMeta = FIXED_ASSET_META[selectedPath[0] ?? '']
   const isPending = form.isPending
 
-  const canSubmit = entryDate !== '' && categoryId !== '' && pathCategoryId !== '' && amountDigits !== '' && !monthClosed
+  const categoryUnresolved = categoryId !== '' && pathCategoryId === ''
+  // 목록 로딩 중에도 잠근다(전환 전과 같은 수준) — 문구는 로드가 끝나 정말 못 풀 때만 띄운다. 로드 실패는 아래 "불러오지 못했습니다" 문구가 이유다
+  const locked = monthClosed || categoryUnresolved
 
   const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
 
   return (
-    <form onSubmit={(e) => (canSubmit ? form.submit(e) : e.preventDefault())}>
+    <form onSubmit={(e) => (locked ? e.preventDefault() : form.submit(e))}>
       <div className="max-w-xl">
         <div className={cn(cardClass, 'space-y-4')}>
           <FormField control={form.control} name="entryDate" label="기준일" required>
@@ -120,11 +123,18 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
                 }}
                 allowClear={false}
                 id={f.id}
+                triggerRef={f.ref}
+                aria-invalid={f['aria-invalid']}
+                aria-describedby={f['aria-describedby']}
+                aria-required={f['aria-required']}
                 className="w-full h-11"
                 disabled={isPending}
               />
             )}
           </FormField>
+          {categoryUnresolved && categoriesQuery.isSuccess && (
+            <p className="text-xs text-destructive">선택한 카테고리를 찾을 수 없습니다. 카테고리를 다시 선택하세요.</p>
+          )}
           {categoriesFailed && (
             <p className="text-xs text-destructive">카테고리 목록을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           )}
@@ -139,7 +149,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
 
           {showStrategy && <ComboField control={form.control} placeholder="예: VR, 자유 메모" suggestions={strategySuggestions} disabled={isPending} />}
 
-          <FormField control={form.control} name="amountDigits" label="금액" id="amount">
+          <FormField control={form.control} name="amountDigits" label="금액" required id="amount">
             {(f) => (
               <InputWithUnit unit="원" unitId="amountUnit">
                 <Input
@@ -164,7 +174,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           {/* 저장이 막힌 이유를 버튼 바로 위에서 알린다 */}
           {monthClosed && <MonthClosedNotice />}
 
-          <FormActions onCancel={onCancel} form={form} canSubmit={canSubmit} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
+          <FormActions onCancel={onCancel} form={form} locked={locked} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
         </div>
       </div>
     </form>

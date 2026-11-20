@@ -112,7 +112,7 @@ function CategoryForm({ type, l1Categories, category, system, onDone }: Omit<Pro
         <p className="text-xs text-muted-foreground">개인 카테고리 하위에는 그룹 공유 카테고리를 만들 수 없습니다.</p>
       )}
 
-      <FormActions form={form} onCancel={onDone} label="저장" canSubmit={!!form.watch('name').trim()} className="pt-2" />
+      <FormActions form={form} onCancel={onDone} label="저장" className="pt-2" />
     </form>
   )
 }

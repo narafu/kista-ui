@@ -14,7 +14,9 @@ interface Props {
   // useAppForm 폼은 form만 넘긴다(진행 상태를 거기서 읽는다). 전략 폼(04-6 전)은 isPending을 직접 넘긴다
   form?: { isPending: boolean }
   isPending?: boolean
-  canSubmit?: boolean
+  // 잠금: 지금 무엇을 입력해도 제출할 수 없는 서버 상태(월 마감 등)일 때만 준다. 빈 값·형식 오류로는
+  // 잠그지 않는다 — 제출하면 zod가 필드에 오류를 붙인다
+  locked?: boolean
   label: string
   pendingLabel?: string
   // 되돌릴 수 없는 작업(VR 재설정 등)은 destructive로 위계를 표시한다
@@ -24,7 +26,7 @@ interface Props {
 
 // 폼 맨 끝에 놓이는 취소(outline) + 제출(spinner) 버튼 행 — 모바일·PC 모두 화면에 띄우지(fixed) 않고
 // 콘텐츠 흐름 안에 둔다. AssetForm·StrategyForm·EditAccountForm·ReconfigureVrForm이 공유한다.
-export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form, isPending: pendingProp, canSubmit = true, label, pendingLabel = `${label} 중…`, submitVariant = 'default', className }: Props) {
+export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form, isPending: pendingProp, locked = false, label, pendingLabel = `${label} 중…`, submitVariant = 'default', className }: Props) {
   const isPending = form?.isPending ?? pendingProp ?? false
   const cancelClassName = cn(buttonVariants({ variant: 'outline', size: 'form' }), 'flex-1')
   return (
@@ -36,7 +38,7 @@ export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form
           {cancelLabel}
         </button>
       ) : null}
-      <Button type="submit" variant={submitVariant} size="form" className="flex-1" disabled={isPending || !canSubmit}>
+      <Button type="submit" variant={submitVariant} size="form" className="flex-1" disabled={isPending || locked}>
         {isPending ? (
           <>
             <Spinner size={14} />
