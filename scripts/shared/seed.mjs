@@ -1,5 +1,5 @@
 // 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
-// 로컬 API(8080·8081)가 떠 있으면 MOCK·TOSS 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
+// 로컬 API(8080, KISTA_ROLE=all)가 떠 있으면 MOCK·TOSS 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
 import { API_BASE, TRADING_API_BASE, devToken } from './browser.mjs'
 

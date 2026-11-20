@@ -2,7 +2,7 @@
 // 이 파일은 import가 없다 — e2e/global.setup.ts(TS)도 가져다 쓴다
 
 export const API_BASE = process.env.E2E_API_BASE ?? 'http://localhost:8080'
-export const TRADING_API_BASE = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8081'
+export const TRADING_API_BASE = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8080'
 export const VIEWPORTS = { pc: { width: 1440, height: 900 }, mo: { width: 390, height: 844 } }
 
 const ENDPOINT = { user: 'dev-token', admin: 'dev-admin-token', e2e: 'dev-e2e-token' } // local 프로파일 전용. e2e = 시드 없는 빈 사용자

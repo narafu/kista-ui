@@ -1,11 +1,11 @@
 import { defineConfig } from '@playwright/test'
 
 // E2E 전제: 로컬 kista-api(local 프로파일, :8080) 실행 필수 — dev 토큰 발급에 사용.
-// kista-trading(:8081)도 필수 — dev 서버가 trading 경로를 프록시하며, 없으면 shared/lib/env.ts가 예외를 던진다.
+// 매매 경로(trading)까지 쓰려면 kista-api를 KISTA_ROLE=all로 띄운다 — E2E_TRADING_API_BASE 기본값도 같은 :8080이다.
 // 다른 worktree의 dev 서버를 재사용하지 않도록 전용 포트에서 항상 새로 기동한다.
 const e2ePort = Number(process.env.E2E_PORT ?? 3100)
 const apiBase = process.env.E2E_API_BASE ?? 'http://localhost:8080'
-const tradingApiBase = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8081'
+const tradingApiBase = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8080'
 
 export default defineConfig({
   testDir: '.',

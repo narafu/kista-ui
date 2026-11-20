@@ -1,5 +1,5 @@
 // 두 커밋의 화면을 같은 데이터로 띄워 픽셀 비교한다. 사용법은 같은 디렉토리 README.md
-// 안전장치: kista-api(8080)·kista-trading(8081)은 기동하지 않고 확인만, 프록시는 GET만 통과,
+// 안전장치: kista-api(8080)는 기동하지 않고 확인만, 프록시는 GET만 통과,
 // 내가 띄운 next dev 프로세스 그룹만 종료(포트가 이미 점유돼 있으면 다른 세션으로 보고 중단)
 import { spawn, execFileSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'

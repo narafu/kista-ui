@@ -1,4 +1,4 @@
-// kista-trading(8081) fixture — 실데이터로는 만들 수 없는 preview 분기(원장 부족·축소·체결·스킵·빈 주문)만 모드로 덮는다.
+// trading 경로(kista-api 8080) fixture — 실데이터로는 만들 수 없는 preview 분기(원장 부족·축소·체결·스킵·빈 주문)만 모드로 덮는다.
 // 기본 모드 real은 dev 시드 실데이터를 그대로 통과시킨다
 import { seed, tickerOf } from '../../shared/seed.mjs'
 

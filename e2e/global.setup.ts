@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { test as setup, expect } from '@playwright/test'
 
-const TRADING_API_BASE = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8081'
+const TRADING_API_BASE = process.env.E2E_TRADING_API_BASE ?? 'http://localhost:8080'
 
 // dev 토큰(kista-api local 프로파일 전용)으로 kista-token 쿠키만 담긴 storageState를 만든다. proxy가 첫 요청에서 /me로 검증한다.
 function storageState(accessToken: string) {
@@ -24,7 +24,7 @@ function storageState(accessToken: string) {
 
 setup('dev 토큰으로 격리된 E2E storageState 생성', async ({ request }) => {
   const trading = await request.get(`${TRADING_API_BASE}/actuator/health`).catch(() => null)
-  expect(trading?.ok(), 'kista-trading 헬스체크 실패 — 로컬 kista-trading이 :8081에 떠 있는지 확인').toBe(true)
+  expect(trading?.ok(), 'trading API 헬스체크 실패 — 로컬 kista-api가 KISTA_ROLE=all로 :8080에 떠 있는지 확인').toBe(true)
 
   mkdirSync('e2e/.auth', { recursive: true })
   // 정적 import하면 같은 워커에서 seed.mjs가 browser.mjs를 ESM으로 다시 읽을 때 export를 못 찾는다(playwright의 .mjs 변환 캐시)
