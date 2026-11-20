@@ -3,6 +3,8 @@
 # upstream 공용 설정(keepalive off·lb_try·health 주기)은 kista-infra Caddyfile의 `(upstream)` snippet이 소유한다 — 여기서는 health_uri만 넘긴다.
 # /api/health는 Docker healthcheck와 같은 대상(인증 불필요 Route Handler)
 {$UI_DOMAIN} {
+	# 공용 보안 헤더·접근 로그(/data/access/kista-ui.log) — kista-infra Caddyfile `(site)` snippet 소유(infra 7556a9c 배포 뒤 추가)
+	import site kista-ui
 	encode zstd gzip
 	reverse_proxy kista-ui:3000 {
 		import upstream /api/health

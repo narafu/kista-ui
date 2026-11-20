@@ -19,5 +19,6 @@ D="$BATS_TEST_DIRNAME/../../deploy/server"
 @test "caddy 스니펫: 파일명=앱 이름(reconcile이 caddy/<앱>.caddy만 설치), upstream snippet에 healthcheck와 같은 경로" {
   grep -q '127.0.0.1:3000/api/health"' "$D/docker-compose.yml"
   grep -qE '^[[:space:]]*import upstream /api/health$' "$D/caddy/kista-ui.caddy"
+  grep -qE '^[[:space:]]*import site kista-ui$' "$D/caddy/kista-ui.caddy"
   grep -q '^{\$UI_DOMAIN} {' "$D/caddy/kista-ui.caddy"
 }
