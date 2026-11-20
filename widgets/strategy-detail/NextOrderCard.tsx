@@ -27,26 +27,6 @@ interface Props {
   mode: 'preview' | 'executed'
   canExecute: boolean
   bannerText: string | null
-  marketStatusMessage: string | null
-  isConfirmedHoliday: boolean
-  execute: () => void
-  isExecuting: boolean
-}
-
-// 반환된 메시지가 있으면 실행하지 않고 토스트로만 안내한다
-function executeBlockMessages(
-  mode: 'preview' | 'executed',
-  marketStatusMessage: string | null,
-  isConfirmedHoliday: boolean,
-  readiness: OrderReadiness,
-): string[] {
-  // executed 모드는 오늘자 주문(PLANNED/PLACED)이 이미 있는 상태 — 백엔드 수동 실행 가드가
-  // 전략 단위(방향 무관)로 걸려 있어 눌러도 항상 거부된다. 버튼을 숨기지 않고 이유만 안내한다
-  if (mode === 'executed') return ['이미 접수된 주문이 있어 실행할 수 없습니다']
-  if (marketStatusMessage) return [marketStatusMessage]
-  if (isConfirmedHoliday) return ['오늘은 미국 증시 휴장일입니다']
-  if (readiness.ledgerShortfall) return ['전략 원장 예수금이 부족합니다']
-  return []
 }
 
 // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
@@ -152,10 +132,6 @@ export function NextOrderCard({
   mode,
   canExecute,
   bannerText,
-  marketStatusMessage,
-  isConfirmedHoliday,
-  execute,
-  isExecuting,
 }: Props) {
   const { labelOf } = useMeta()
   const listRef = useRef<HTMLDivElement>(null)
@@ -192,23 +168,6 @@ export function NextOrderCard({
                 {canExecute ? '매 거래일 개장 시 자동실행' : '일시중지 중, 자동실행 되지 않음'}
               </p>
             </div>
-            {canExecute && (
-              <Button
-                type="button"
-                variant="brand"
-                onClick={() => {
-                  const messages = executeBlockMessages(mode, marketStatusMessage, isConfirmedHoliday, readiness)
-                  if (messages.length > 0) {
-                    messages.forEach((message) => toast.info(message))
-                    return
-                  }
-                  execute()
-                }}
-                disabled={isExecuting || (mode === 'preview' && orders.length === 0)}
-              >
-                {isExecuting ? '주문 중...' : '바로 주문'}
-              </Button>
-            )}
           </div>
         </CardHeader>
         <CardContent

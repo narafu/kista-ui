@@ -58,7 +58,6 @@ vi.mock('../api', () => ({
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
   listDcaExecutions: listDcaExecutionsMock,
-  executeStrategy: vi.fn(),
   getStrategySeedPreview: vi.fn(),
 }))
 

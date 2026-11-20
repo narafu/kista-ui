@@ -27,7 +27,6 @@ export {
   useDeleteStrategyMutation,
   usePauseStrategyMutation,
   useResumeStrategyMutation,
-  useExecuteStrategyMutation,
 } from './hooks/useStrategyQueries'
 export {
   strategyDetailQueryOptions,

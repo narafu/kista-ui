@@ -70,7 +70,7 @@ function RuleField({ label, className, inline, children }: { label: string; clas
   )
 }
 
-// DCA 상세 — 바로 주문·미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
+// DCA 상세 — 미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
 // 구성은 주식 전략 상세(전략 정보 카드 + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
 export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
@@ -82,7 +82,6 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
     onArchived: () => push(`/accounts/${accountId}`),
-    strategyId: strategy.id,
   })
   const toggleLoading = isPausing || isResuming
   const loading = toggleLoading || isDeleting || isArchiving

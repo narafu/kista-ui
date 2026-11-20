@@ -16,7 +16,7 @@ vi.mock('@entities/account', async (orig) => ({
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 vi.mock('@features/strategy/manage-strategy', async (orig) => ({
   ...(await orig<typeof import('@features/strategy/manage-strategy')>()),
-  useManageStrategyMutations: () => ({ pause: vi.fn(), resume: vi.fn(), remove: vi.fn(), execute: vi.fn(), isPausing: false, isResuming: false, isDeleting: false, isExecuting: false }),
+  useManageStrategyMutations: () => ({ pause: vi.fn(), resume: vi.fn(), remove: vi.fn(), isPausing: false, isResuming: false, isDeleting: false }),
 }))
 vi.mock('@entities/strategy', async (orig) => ({
   ...(await orig<typeof import('@entities/strategy')>()),
@@ -122,10 +122,6 @@ describe('DcaStrategyDetail', () => {
     const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, conditions: [fg] }] } })
     expect(ruleField('조건')).toHaveTextContent(/공포탐욕지수\(CNN\) 20/)
-  })
-  it('바로 주문 버튼이 없다', () => {
-    renderDetail()
-    expect(screen.queryByRole('button', { name: /바로 주문/ })).not.toBeInTheDocument()
   })
   it('회차 이력: 건너뜀 사유·detail (결과 열 없음)', () => {
     renderDetail()

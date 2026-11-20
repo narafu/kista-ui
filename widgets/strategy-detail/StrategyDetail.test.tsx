@@ -7,7 +7,6 @@ import { StrategyDetail } from './StrategyDetail'
 
 const mockPush = vi.fn()
 const deleteMutate = vi.fn()
-const executeMutate = vi.fn()
 const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 let deleteSuccessHandler: (() => void) | undefined
@@ -90,11 +89,9 @@ vi.mock('@features/strategy/manage-strategy', async (orig) => ({
       remove: deleteMutate,
       archive: archiveMutate,
       isArchiving: false,
-      execute: executeMutate,
       isPausing: false,
       isResuming: false,
       isDeleting: false,
-      isExecuting: false,
     }
   },
 }))
@@ -474,36 +471,30 @@ describe('StrategyDetail server trading day (KST 토요일 새벽 = 미국 금�
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-11-07T00:50:00+09:00')) // KST 토요일
-    executeMutate.mockClear()
     vi.mocked(toast.info).mockClear()
   })
 
   afterEach(() => {
     vi.useRealTimers()
     sessionQueryResult = {}
-    executeMutate.mockClear()
   })
 
-  it('KST 주말이어도 서버가 거래일이라 하면 휴장 배너 없이 바로 주문한다', () => {
+  it('KST 주말이어도 서버가 거래일이라 하면 휴장 배너를 띄우지 않는다', () => {
     sessionQueryResult = { session: { tradeDateKst: '2026-11-07', tradingDay: true } }
     mockPreviewQuery.mockReturnValueOnce(previewWithOrder)
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
 
     expect(screen.queryByText('오늘은 휴장일입니다')).not.toBeInTheDocument()
-    expect(executeMutate).toHaveBeenCalled()
   })
 
-  it('서버가 거래일이 아니라고 하면 휴장 배너를 띄우고 실행을 막는다', () => {
+  it('서버가 거래일이 아니라고 하면 휴장 배너를 띄운다', () => {
     sessionQueryResult = { session: { tradeDateKst: '2026-11-07', tradingDay: false } }
     mockPreviewQuery.mockReturnValueOnce(previewWithOrder)
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
 
     expect(screen.getByText('오늘은 휴장일입니다')).toBeInTheDocument()
-    expect(executeMutate).not.toHaveBeenCalled()
   })
 
   it('서버 거래일이 null이면 KST 날짜 판정으로 폴백한다', () => {
@@ -521,14 +512,12 @@ describe('StrategyDetail market-holiday failure', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00'))
     holidayQueryResult = { holidays: [], isError: true }
-    executeMutate.mockClear()
     vi.mocked(toast.info).mockClear()
   })
 
   afterEach(() => {
     vi.useRealTimers()
     holidayQueryResult = { holidays: [] }
-    executeMutate.mockClear()
   })
 
   it('does not classify an unknown weekday market status as a confirmed trading day', () => {
@@ -547,14 +536,11 @@ describe('StrategyDetail market-holiday failure', () => {
     })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
 
     expect(screen.getByText('미국 증시 휴장 여부를 확인하지 못했습니다')).toBeInTheDocument()
-    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하지 못했습니다')
-    expect(executeMutate).not.toHaveBeenCalled()
   })
 
-  it('blocks immediate execution while weekday holiday status is still loading', () => {
+  it('shows the loading reason while weekday holiday status is still loading', () => {
     holidayQueryResult = { holidays: [], loading: true }
     mockPreviewQuery.mockReturnValueOnce({
       data: {
@@ -571,11 +557,8 @@ describe('StrategyDetail market-holiday failure', () => {
     })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
 
     expect(screen.getByText('미국 증시 휴장 여부를 확인하는 중입니다')).toBeInTheDocument()
-    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하는 중입니다')
-    expect(executeMutate).not.toHaveBeenCalled()
   })
 
   it('keeps the loading reason when a refetch retains today as a cached holiday', () => {
@@ -595,11 +578,8 @@ describe('StrategyDetail market-holiday failure', () => {
     })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
 
     expect(screen.getByText('미국 증시 휴장 여부를 확인하는 중입니다')).toBeInTheDocument()
-    expect(toast.info).toHaveBeenCalledWith('미국 증시 휴장 여부를 확인하는 중입니다')
-    expect(executeMutate).not.toHaveBeenCalled()
   })
 })
 
@@ -663,10 +643,6 @@ describe('StrategyDetail unplaced order banner', () => {
     expect(orderTables).toHaveLength(2)
     expect(orderTables[0]).toHaveTextContent('SELL-TSLA')
     expect(orderTables[1]).toHaveTextContent('BUY-TSLA')
-
-    // executed 모드(오늘자 주문 존재)에서는 "바로 주문"이 숨지 않고 남아있되, 눌러도 항상 거부 사유만 안내한다
-    fireEvent.click(screen.getByText('바로 주문'))
-    expect(toast.info).toHaveBeenCalledWith('이미 접수된 주문이 있어 실행할 수 없습니다')
   })
 
   it('does not show a banner when every planned direction was placed', () => {
@@ -795,7 +771,6 @@ describe('StrategyDetail ledger check', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-07-21T10:00:00+09:00')) // 화요일 — 휴장일 배지에 가려지지 않도록 평일 고정
-    executeMutate.mockClear()
     vi.mocked(toast.info).mockClear()
   })
 
@@ -823,16 +798,6 @@ describe('StrategyDetail ledger check', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.getByText('전략 원장 예수금 부족(원장 $50.00 / 필요 $100.00)')).toBeInTheDocument()
-  })
-
-  it('원장 부족이면 "바로 주문" 클릭 시 토스트로 안내하고 주문을 실행하지 않는다', () => {
-    mockPreview({ ledgerCheck: SHORT })
-
-    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
-    fireEvent.click(screen.getByText('바로 주문'))
-
-    expect(toast.info).toHaveBeenCalledWith('전략 원장 예수금이 부족합니다')
-    expect(executeMutate).not.toHaveBeenCalled()
   })
 
   it('원장이 충분하면 배너와 안내 문구를 보이지 않는다', () => {

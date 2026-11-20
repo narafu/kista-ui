@@ -29,7 +29,7 @@ export function computeOrderReadiness(preview: NextOrderPreview | undefined): Or
 
   const plannedDirections = new Set(orders.map((o) => o.direction))
   // AT_CLOSE는 마감 배치(04:30 KST) 대상이라 개장 선접수(AT_OPEN)만 된 시점엔 아직 접수 전이다 — 오늘 AT_CLOSE 주문이
-  // 하나라도 접수됐으면(수동 실행 등) 마감 접수가 시도된 것으로 보고 판정 대상에 넣는다 (timing 없는 구 응답은 기존처럼 판정)
+  // 하나라도 접수됐으면 마감 접수가 시도된 것으로 보고 판정 대상에 넣는다 (timing 없는 구 응답은 기존처럼 판정)
   const closePlaced = todayOrders.some((o) => o.timing === 'AT_CLOSE')
   const dueDirections = new Set(orders.filter((o) => o.timing !== 'AT_CLOSE' || closePlaced).map((o) => o.direction))
   const placedDirections = new Set(todayOrders.map((o) => o.direction))

@@ -200,7 +200,7 @@ describe('useStrategyForm submit policy', () => {
 
     await createSuccessHandler?.({ todayOpenBatchMissed: true })
     expect(toastInfoMock).toHaveBeenCalledOnce()
-    expect(toastInfoMock.mock.calls[0][0]).toContain('바로 주문')
+    expect(toastInfoMock.mock.calls[0][0]).toContain('자동으로 나가지 않습니다')
   })
 
   it('edit payload does not include initialDeposit', async () => {

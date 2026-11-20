@@ -14,8 +14,6 @@ const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 const deleteMutate = vi.fn()
 const archiveMutate = vi.fn()
-const executeMutate = vi.fn()
-let executeSuccessHandler: (() => void | Promise<void>) | undefined
 const { toastSuccessMock } = vi.hoisted(() => ({ toastSuccessMock: vi.fn() }))
 
 vi.mock('@entities/strategy', () => ({
@@ -23,10 +21,6 @@ vi.mock('@entities/strategy', () => ({
   useResumeStrategyMutation: () => ({ mutate: resumeMutate, isPending: false }),
   useDeleteStrategyMutation: () => ({ mutate: deleteMutate, isPending: false }),
   useArchiveStrategyMutation: () => ({ mutate: archiveMutate, isPending: false }),
-  useExecuteStrategyMutation: (_strategyId: string | undefined, onSuccess?: () => void | Promise<void>) => {
-    executeSuccessHandler = onSuccess
-    return { mutate: executeMutate, isPending: false }
-  },
 }))
 
 vi.mock('sonner', () => ({
@@ -55,7 +49,6 @@ function createWrapper(queryClient: QueryClient) {
 describe('useManageStrategyMutations', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    executeSuccessHandler = undefined
   })
 
   it('invalidates order previews after strategy configuration changes', async () => {
@@ -114,26 +107,6 @@ describe('useManageStrategyMutations', () => {
       expect(toastSuccessMock).toHaveBeenCalledWith('전략을 보관했습니다')
       expect(queryClient.getQueryState(statsKeys.summary())?.isInvalidated).toBe(true)
       expect(onArchived).toHaveBeenCalled()
-    })
-  })
-
-  it('invalidates dependencies after execution succeeds', async () => {
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-    queryClient.setQueryData(orderKeys.preview(strategy.id), { orders: [] })
-    queryClient.setQueryData(statsKeys.summary(), { total: 1 })
-    queryClient.setQueryData(tradeKeys.strategyCycleHistory(strategy.id, null), { content: [] })
-    executeMutate.mockImplementation(() => executeSuccessHandler?.())
-
-    const { result } = renderHook(() => useManageStrategyMutations({ strategyId: strategy.id }), {
-      wrapper: createWrapper(queryClient),
-    })
-
-    act(() => result.current.execute())
-
-    await waitFor(() => {
-      expect(queryClient.getQueryState(orderKeys.preview(strategy.id))?.isInvalidated).toBe(true)
-      expect(queryClient.getQueryState(statsKeys.summary())?.isInvalidated).toBe(true)
-      expect(queryClient.getQueryState(tradeKeys.strategyCycleHistory(strategy.id, null))?.isInvalidated).toBe(true)
     })
   })
 

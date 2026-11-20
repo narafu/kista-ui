@@ -17,7 +17,6 @@ import {
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
-  executeStrategy,
   getStrategySeedPreview,
 } from '../api'
 import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionFilters, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
@@ -225,16 +224,4 @@ export function useDeleteStrategyMutation() {
 
 export function useArchiveStrategyMutation() {
   return useRemoveFromListsMutation((id) => archiveStrategy(id))
-}
-
-export function useExecuteStrategyMutation(strategyId: string | undefined, onSuccess?: () => void | Promise<void>) {
-  return useMutation({
-    mutationFn: () => executeStrategy(strategyId!),
-    onSuccess: () => {
-      toast.success('매매 실행이 요청됐습니다. 장 마감 후 체결 결과를 확인하세요.')
-      return onSuccess?.()
-    },
-    // 서버 detail 우선(오늘 이미 주문·권한 없음·예수금 부족 등 409/403 사유별 문구) — 없으면 기본 문구
-    onError: (e) => toast.error(apiMsg(e, '실행 중 오류가 발생했습니다.')),
-  })
 }

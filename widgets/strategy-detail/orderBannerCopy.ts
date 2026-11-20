@@ -26,7 +26,7 @@ export function directionUnplacedMessage(direction: 'BUY' | 'SELL', readiness: O
   return '장 마감 시 매수 예정'
 }
 
-// 카드 상단 배너 문구 — 휴장일/전략 원장·계좌 예수금 부족/보유 수량 부족을 "바로 주문" 가능 여부와 함께 안내한다.
+// 카드 상단 배너 문구 — 휴장일/전략 원장·계좌 예수금 부족/보유 수량 부족을 안내한다.
 // 원장 거절은 재시도가 없어 preview·executed 모두 "장 마감 시 매수 예정" 같은 약속 문구를 붙이지 않는다
 export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, readiness: OrderReadiness): string | null {
   if (!canExecute) return null

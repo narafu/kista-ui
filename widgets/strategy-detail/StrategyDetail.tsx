@@ -39,10 +39,9 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const canExecute = strategy.status === 'ACTIVE'
   const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, readiness)
 
-  const { pause, resume, remove, archive, execute, isPausing, isResuming, isDeleting, isArchiving, isExecuting } = useManageStrategyMutations({
+  const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
     onArchived: () => push(`/accounts/${accountId}`),
-    strategyId: strategy.id,
   })
   const toggleLoading = isPausing || isResuming
   const loading = toggleLoading || isDeleting || isArchiving
@@ -82,10 +81,6 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
             mode={mode}
             canExecute={canExecute}
             bannerText={bannerText}
-            marketStatusMessage={marketStatusMessage}
-            isConfirmedHoliday={isConfirmedHoliday}
-            execute={execute}
-            isExecuting={isExecuting}
           />
         </div>
       </div>

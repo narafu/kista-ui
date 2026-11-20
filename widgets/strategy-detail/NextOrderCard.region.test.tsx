@@ -48,10 +48,6 @@ function renderCard() {
           mode="preview"
           canExecute
           bannerText={null}
-          marketStatusMessage={null}
-          isConfirmedHoliday={false}
-          execute={() => {}}
-          isExecuting={false}
         />
       </MetaProvider>
     </QueryClientProvider>,

@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { useArchiveStrategyMutation, useDeleteStrategyMutation, useExecuteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation } from '@entities/strategy'
+import { useArchiveStrategyMutation, useDeleteStrategyMutation, usePauseStrategyMutation, useResumeStrategyMutation } from '@entities/strategy'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
@@ -13,10 +13,9 @@ import type { Strategy } from '@entities/strategy'
 interface Options {
   onDeleted?: () => void
   onArchived?: () => void
-  strategyId?: string
 }
 
-export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }: Options = {}) {
+export function useManageStrategyMutations({ onDeleted, onArchived }: Options = {}) {
   const queryClient = useQueryClient()
   const pauseMutation = usePauseStrategyMutation()
   const resumeMutation = useResumeStrategyMutation()
@@ -29,7 +28,7 @@ export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
       // 전략 합산 예수금·평가금·미배정 예수금이 바로 반영되도록 함께 무효화한다
-      // execute는 계좌 id를 모르고 나머지는 전략을 받지만 공용 경로라 전 계좌를 무효화한다(의도된 폴백)
+      // 공용 경로라 계좌를 특정하지 않고 전 계좌를 무효화한다(의도된 폴백)
       invalidateLedgerTotals(queryClient),
     ])
   }
@@ -51,8 +50,6 @@ export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }
     })
   }
 
-  const executeMutation = useExecuteStrategyMutation(strategyId, invalidateDependents)
-
   function pause(strategy: Strategy) {
     withActionFeedback(pauseMutation, strategy, '전략을 일시중지했습니다', '일시중지에 실패했습니다')
   }
@@ -69,20 +66,14 @@ export function useManageStrategyMutations({ onDeleted, onArchived, strategyId }
     withActionFeedback(archiveMutation, strategy, '전략을 보관했습니다', '보관에 실패했습니다', onArchived)
   }
 
-  function execute() {
-    executeMutation.mutate()
-  }
-
   return {
     pause,
     resume,
     remove,
     archive,
-    execute,
     isPausing: pauseMutation.isPending,
     isResuming: resumeMutation.isPending,
     isDeleting: deleteMutation.isPending,
     isArchiving: archiveMutation.isPending,
-    isExecuting: executeMutation.isPending,
   }
 }

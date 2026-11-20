@@ -1,11 +1,9 @@
-import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
+import { fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
 import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionFilters, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
-import type { PlacedOrder } from '@shared/model/placed-order'
-import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 
 // VR 요약 숫자 문자열 → number 변환
 function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
@@ -196,14 +194,6 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
   return fetchEither<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
 }
 
-function normalizePlacedOrder(raw: unknown): PlacedOrder {
-  const o = raw as Record<string, unknown>
-  return {
-    ...normalizePlacedOrderBase(raw),
-    status: String(o.status ?? 'PLACED') as PlacedOrder['status'],
-  }
-}
-
 export async function getStrategySeedPreview(
   accountId: string,
   params: { type: string; ticker: string; divisionCount: number },
@@ -226,16 +216,4 @@ export async function getStrategySeedPreview(
     skipReason: raw.skipReason != null ? String(raw.skipReason) : null,
     availableCash: raw.availableCash != null ? toNum(raw.availableCash) : null,
   }
-}
-
-export async function executeStrategy(id: string): Promise<PlacedOrder[]> {
-  const raw = await clientFetch<{ orders?: unknown[] } | undefined>(
-    `/api/trading-cycles/${id}/execute`,
-    { method: 'POST' }
-  )
-  return (raw?.orders ?? []).reduce<PlacedOrder[]>((acc, o) => {
-    const n = normalizePlacedOrder(o)
-    if (n.id && n.id !== 'null') acc.push(n)
-    return acc
-  }, [])
 }

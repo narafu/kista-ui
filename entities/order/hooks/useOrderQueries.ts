@@ -10,7 +10,7 @@ import { orderPreviewQueryOptions } from '../model/queryOptions'
 export function useStrategyOrderPreviewQuery(strategyId: string) {
   return useQuery<NextOrderPreview>({
     ...orderPreviewQueryOptions(strategyId),
-    // staleTime 60초 — 카드 목록 재진입 시 캐시 재사용. "바로 주문"/취소는 invalidateQueries로 별도 강제 갱신되므로 신선도에 영향 없음
+    // staleTime 60초 — 카드 목록 재진입 시 캐시 재사용. 취소는 invalidateQueries로 별도 강제 갱신되므로 신선도에 영향 없음
   })
 }
 
