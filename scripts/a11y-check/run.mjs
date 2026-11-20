@@ -2,47 +2,20 @@
 // 위반이 하나라도 있으면 exit 1. 사용법·전제·제외 규칙 근거는 같은 디렉토리 README.md
 // 안전장치: 이미 떠 있는 dev 서버(--url)를 읽기만 한다 — 브라우저에서 나가는 GET/HEAD 외 요청은 전부 abort(로컬 DB 실데이터 보호).
 // 예외는 계좌 등록 위저드의 연결 테스트 POST 하나로, 브라우저 안에서 가짜 응답을 돌려줘 서버에 도달하지 않는다
-import { readFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
-import { seed, stubSeedCash } from '../shared/seed.mjs'
+import axe from 'axe-core'
+import { VIEWPORTS, authedContext, devToken } from '../shared/browser.mjs'
+import { ROUTES, fill } from '../shared/routes.mjs'
+import { resolveContext, seed, stubSeedCash } from '../shared/seed.mjs'
 
-// axe-core는 eslint-plugin-jsx-a11y의 전이 의존성으로 설치돼 있다 — 별도 devDependency로 추가하지 않음
-const axeSrc = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8')
-const API = 'http://localhost:8080'
-const VIEWPORTS = { pc: { width: 1440, height: 900 }, mo: { width: 390, height: 844 } }
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice']
 const SETTLE_MS = 2500
 // base-ui 포커스 가드는 비동기로 포커스를 되돌린다 — Tab 직후 바로 읽으면 가드 요소를 잡는 오탐
 const TAB_WAIT_MS = 150
 const MAX_TABS = 80
 
-const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
-const ACCT = `/accounts/${seed.infinite.accountId}`
 const WIZARD = '/accounts/new'
-// 가용 예수금 힌트·채우기 버튼은 availableCash가 있어야 뜬다 — TOSS 시드 계좌로 열고 stubSeedCash로 채운다
-const TOSS_NEW_STRATEGY = `/accounts/${seed.toss.accountId}/strategies/new`
-const PAGES = {
-  guest: ['/login', '/dashboard'],
-  user: [
-    '/dashboard', '/accounts', WIZARD, ACCT, `${ACCT}/edit`, `${ACCT}/strategies/new`, TOSS_NEW_STRATEGY, detail(seed.infinite), detail(seed.vr),
-    '/stats', '/stats/benchmark', '/stats/backtest',
-    '/finance', '/finance/income', '/finance/expense', '/finance/saving', '/finance/settings', '/settings',
-  ],
-  admin: ['/admin', '/admin/users', '/admin/pending', '/admin/accounts', '/admin/trades', '/admin/privacy-trades', '/admin/logs', '/admin/settings'],
-}
-// 트리거([data-slot=*-trigger])로 여는 다이얼로그를 점검할 페이지
-const DIALOG_PAGES = {
-  user: ['/settings', '/finance/settings', ACCT, `${ACCT}/edit`, detail(seed.infinite), '/finance'],
-  admin: ['/admin/users', '/admin/pending', '/admin/accounts', '/admin/privacy-trades', '/admin/settings', '/admin/logs'],
-}
-// 폼 다이얼로그(FormDialog — PC 가운데, 모바일 전체 화면): [이름, 시작 페이지, 트리거 셀렉터]
-// 열림 상태를 부모가 쥐어 트리거가 data-slot=dialog-trigger가 아니므로 checkDialogs가 잡지 못해 따로 연다
-const FORM_DIALOGS = [
-  ['투자금 추가', detail(seed.capital), 'button:has-text("투자금 추가"):visible'],
-  ['예산 추가', '/finance/budgets/expense', 'button:has-text("예산 추가"):visible'],
-]
 
 const { values: opts } = parseArgs({
   options: {
@@ -58,30 +31,25 @@ if (!opts.url) {
 const BASE = opts.url.replace(/\/$/, '')
 const only = opts.only ? new RegExp(opts.only) : null
 const skip = new Set(opts.skip.split(',').filter(Boolean))
-const pick = (list) => list.filter((p) => !only || only.test(p))
 
 const failures = []
 const fail = (msg) => { failures.push(msg); console.log(`  ✗ ${msg}`) }
 
-async function devToken(endpoint) {
-  // dev 토큰 발급만 8080에 직접 POST. local 프로파일 전용 엔드포인트
-  const r = await fetch(`${API}/api/auth/${endpoint}`, { method: 'POST' }).catch(() => null)
-  if (!r?.ok) throw new Error(`${endpoint} 발급 실패 — kista-api(:8080)가 local 프로파일로 떠 있는지 확인. 이 도구는 백엔드를 기동하지 않는다`)
-  return (await r.json()).accessToken
-}
+const newContext = (browser, token, vp, scheme, cookies) => authedContext(browser, {
+  token, cookies, host: new URL(BASE).hostname, readOnly: BASE,
+  viewport: VIEWPORTS[vp], colorScheme: scheme, isMobile: vp === 'mo', hasTouch: vp === 'mo',
+})
 
-async function newContext(browser, token, vp, scheme) {
-  const mobile = vp === 'mo'
-  const ctx = await browser.newContext({ viewport: VIEWPORTS[vp], colorScheme: scheme, isMobile: mobile, hasTouch: mobile, locale: 'ko-KR', timezoneId: 'Asia/Seoul', reducedMotion: 'reduce' })
-  if (token) await ctx.addCookies([{ name: 'kista-token', value: token, domain: new URL(BASE).hostname, path: '/', httpOnly: true, sameSite: 'Lax' }])
-  await ctx.route('**/*', (route) => {
-    const req = route.request()
-    if (req.method() === 'GET' || req.method() === 'HEAD') return route.continue()
-    // HMR·클라이언트 에러 리포트 같은 개발용 요청은 조용히 막는다
-    if (!/\/_next\/|__nextjs|client-errors/.test(req.url())) console.log(`  · blocked ${req.method()} ${req.url().replace(BASE, '')}`)
-    return route.abort()
-  })
-  return ctx
+// 표(shared/routes.mjs)의 행을 실제 경로로 채운다. 시드·데이터가 없어 못 채우는 행은 건너뛰고 끝에 알린다(실패 아님)
+const skipped = []
+const resolveRows = (role, ctx) => {
+  const rows = []
+  for (const row of ROUTES.filter((r) => r.role === role && !r.redirect)) {
+    const path = fill(row, ctx)
+    if (!path) skipped.push(`${role} ${row.path}`)
+    else rows.push({ ...row, path })
+  }
+  return rows
 }
 
 async function open(page, path) {
@@ -93,7 +61,7 @@ async function open(page, path) {
 }
 
 async function runAxe(page, scope) {
-  if (!(await page.evaluate(() => !!window.axe))) await page.addScriptTag({ content: axeSrc })
+  if (!(await page.evaluate(() => !!window.axe))) await page.addScriptTag({ content: axe.source })
   return page.evaluate(([sel, tags]) => window.axe.run(sel ? [...document.querySelectorAll(sel)].pop() : document, { runOnly: { type: 'tag', values: tags } }), [scope, AXE_TAGS])
 }
 
@@ -246,8 +214,8 @@ async function checkDialogs(page, path) {
   }
 }
 
-async function checkFormDialogs(page, vp) {
-  for (const [name, start, sel] of FORM_DIALOGS) {
+async function checkFormDialogs(page, vp, rows) {
+  for (const { path: start, formDialog: [name, sel] } of rows) {
     await open(page, start)
     const link = page.locator(sel).first()
     if (!(await link.count())) { fail(`[modal] ${name} ${vp}: 트리거 없음(${sel}) — 시드 데이터 확인`); continue }
@@ -261,42 +229,53 @@ async function checkFormDialogs(page, vp) {
 
 let browser
 try {
-  const tokens = { guest: null, user: await devToken('dev-token'), admin: await devToken('dev-admin-token') }
+  const tokens = { guest: undefined, user: await devToken('user'), admin: await devToken('admin') }
+  const ctx = { seed, ...(await resolveContext(tokens.user)) }
   browser = await chromium.launch()
   for (const role of ['guest', 'user', 'admin']) {
-    const pages = pick(PAGES[role])
+    const rows = resolveRows(role, ctx)
+    const picked = rows.filter((r) => !only || only.test(r.path)) // --only는 화면 점검에만 적용 — 폼 다이얼로그는 예전처럼 항상 돈다
+    // 같은 경로(시드 키만 다른 행)는 한 번만 본다
+    const pages = picked.filter((r, i) => picked.findIndex((x) => x.path === r.path) === i)
+    // 상태 쿠키가 있는 화면(/pending·/rejected)은 다른 화면을 리다이렉트시키므로 쿠키별 컨텍스트로 나눈다
+    const groups = Object.values(Object.groupBy(pages, (r) => JSON.stringify(r.cookies ?? {})))
     for (const vp of Object.keys(VIEWPORTS)) {
       for (const scheme of ['light', 'dark']) {
         if (skip.has('axe') && (skip.has('tab') || scheme === 'dark')) continue
         console.log(`== ${role} ${vp}/${scheme}`)
-        const ctx = await newContext(browser, tokens[role], vp, scheme)
-        const page = await ctx.newPage()
-        if (role === 'user') await stubSeedCash(page)
-        for (const path of pages) {
-          await open(page, path)
-          await checkPage(page, path, vp, scheme)
-          if (path === WIZARD) await checkAccountWizard(page, vp, scheme)
+        for (const group of groups) {
+          const ctxt = await newContext(browser, tokens[role], vp, scheme, group[0].cookies)
+          const page = await ctxt.newPage()
+          if (role === 'user') await stubSeedCash(page)
+          for (const row of group) {
+            await row.setup?.(page)
+            await open(page, row.path)
+            await checkPage(page, row.path, vp, scheme)
+            if (row.path === WIZARD) await checkAccountWizard(page, vp, scheme)
+          }
+          await ctxt.close()
         }
-        await ctx.close()
       }
     }
     if (role === 'guest') continue
-    const ctx = await newContext(browser, tokens[role], 'pc', 'light')
-    const page = await ctx.newPage()
+    const dctx = await newContext(browser, tokens[role], 'pc', 'light')
+    const page = await dctx.newPage()
     if (!skip.has('dialog')) {
       console.log(`== ${role} dialogs`)
-      for (const path of pick(DIALOG_PAGES[role])) { await open(page, path); await checkDialogs(page, path) }
+      for (const { path } of picked.filter((r) => r.dialogs)) { await open(page, path); await checkDialogs(page, path) }
     }
-    await ctx.close()
+    await dctx.close()
+    const formRows = rows.filter((r) => r.formDialog)
     if (role === 'user' && !skip.has('modal')) {
       for (const vp of Object.keys(VIEWPORTS)) {
         console.log(`== form dialogs ${vp}`)
         const mctx = await newContext(browser, tokens.user, vp, 'light')
-        await checkFormDialogs(await mctx.newPage(), vp)
+        await checkFormDialogs(await mctx.newPage(), vp, formRows)
         await mctx.close()
       }
     }
   }
+  if (skipped.length) console.log(`\n== 건너뜀(시드·데이터 없음) ${skipped.length}건: ${[...new Set(skipped)].join(', ')}`)
 } catch (e) {
   failures.push(`중단: ${e.message}`)
   console.error(`\n중단: ${e.message}`)

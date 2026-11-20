@@ -6,14 +6,5 @@
   ],
   "ignoreFiles": [
     "scripts/visual-diff/sheet.mjs"
-  ],
-  "ignoreDependencies": [
-    "sharp"
-  ],
-  "ignoreIssues": {
-    "components/ui/**": [
-      "exports",
-      "types"
-    ]
-  }
+  ]
 }

@@ -11,10 +11,11 @@ import { startProxy } from './proxy.mjs'
 import * as apiFixture from './fixtures/api.mjs'
 import * as tradingFixture from './fixtures/trading.mjs'
 import { scenarios as allScenarios } from './scenarios.mjs'
-import { seed } from '../shared/seed.mjs'
+import { API_BASE, TRADING_API_BASE, devToken } from '../shared/browser.mjs'
+import { resolveContext } from '../shared/seed.mjs'
 import { shoot } from './shoot.mjs'
 
-const UPSTREAM = { api: 'http://localhost:8080', trading: 'http://localhost:8081' }
+const UPSTREAM = { api: API_BASE, trading: TRADING_API_BASE }
 const PORTS = { head: 3100, base: 3200, api: 8180, trading: 8181 }
 const READY_TIMEOUT_MS = 180_000
 
@@ -141,21 +142,6 @@ async function waitReady({ child, logFile }, port) {
   throw new Error(`next dev(:${port}) 준비 시간 초과 — ${logFile}`)
 }
 
-async function devToken(endpoint) {
-  // dev 토큰 발급은 8080에 직접 POST(프록시는 쓰기를 막는다). local 프로파일 전용 엔드포인트
-  const r = await fetch(`${UPSTREAM.api}/api/auth/${endpoint}`, { method: 'POST' })
-  if (!r.ok) throw new Error(`${endpoint} 발급 실패(${r.status}) — kista-api가 local 프로파일로 떠 있는지 확인`)
-  return (await r.json()).accessToken
-}
-
-// 시나리오 경로에 필요한 실데이터 id — 8080 직접 GET
-async function resolveContext(token) {
-  const r = await fetch(`${UPSTREAM.api}/api/finance/asset-snapshots`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) })
-  const list = r.ok ? await r.json() : []
-  const first = Array.isArray(list) ? list[0] : undefined
-  return { assetSnapshotId: seed.assetSnapshotId ?? first?.id ?? 'missing-asset-snapshot' }
-}
-
 // 첫 Turbopack 컴파일이 느려 촬영 대기 시간 안에 안 끝날 수 있다 — 경로마다 한 번씩 미리 연다
 async function warmUp(port, scenarios, tokens) {
   const seen = new Set()
@@ -200,8 +186,8 @@ try {
   for (const [name, port] of Object.entries(PORTS)) {
     if (await portInUse(port)) throw new Error(`포트 ${port}(${name}) 사용 중 — 다른 세션이 이 도구를 돌리는 중일 수 있다. 종료하지 않고 중단`)
   }
-  const tokens = { user: await devToken('dev-token'), admin: await devToken('dev-admin-token') }
-  const ctx = await resolveContext(tokens.user)
+  const tokens = { user: await devToken('user'), admin: await devToken('admin') }
+  const ctx = { assetSnapshotId: (await resolveContext(tokens.user)).assetSnapshotId ?? 'missing-asset-snapshot' }
   const scenarios = selected.map((s) => ({ ...s, path: typeof s.path === 'function' ? s.path(ctx) : s.path }))
 
   proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, route: apiFixture.route, log: plog }))

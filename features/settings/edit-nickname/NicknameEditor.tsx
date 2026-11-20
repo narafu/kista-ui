@@ -32,7 +32,6 @@ export function NicknameEditor({ initialNickname }: Props) {
 
   const { setFocus } = form
   useEffect(() => {
-    // eslint-disable-next-line react-doctor/no-event-handler
     if (editing) setFocus('nickname')
   }, [editing, setFocus])
 

@@ -17,17 +17,12 @@ export function fmtCompactUsd(n: number): string {
   return compactUsdFormat.format(n)
 }
 
-/** 달러 축약 표기, 유효숫자 2자리로 더 짧게(예: "$12B", "$120K") */
-export function fmtCompactUsdNarrow(n: number): string {
-  return narrowCompactUsdFormat.format(n)
-}
-
 const narrowCompactKrwFormat = new Intl.NumberFormat('ko-KR', { notation: 'compact', maximumSignificantDigits: 2 })
 
 /** 계좌 통화 축약 표기, 유효숫자 2자리(예: "$12K", "12만원"; 좁은 칸용) */
 export function fmtCompactMoneyNarrow(n: number, currency: Currency): string {
   if (currency === 'KRW') return `${narrowCompactKrwFormat.format(n)}원`
-  return fmtCompactUsdNarrow(n)
+  return narrowCompactUsdFormat.format(n)
 }
 
 /** 0~1 비율을 부호 포함 %로. null/undefined는 '-' */

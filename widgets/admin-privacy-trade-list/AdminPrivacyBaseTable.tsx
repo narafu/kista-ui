@@ -463,7 +463,7 @@ function FragmentRow({
       </tr>
       {open && (
         <tr id={`privacy-base-${b.id}-details`} className="bg-muted/10">
-          <td></td>{/* eslint-disable-line react-doctor/control-has-associated-label */}
+          <td></td>
           <td colSpan={8} className="px-4 py-3">
             <OrderDetailsSection orders={b.orders} onEditOrder={onEditOrder} onAddOrder={onAddOrder} onDeleteOrder={onDeleteOrder} />
           </td>

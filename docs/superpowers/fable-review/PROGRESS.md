@@ -402,7 +402,8 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 실행 세션이 로컬 api 없이 커밋한 화면 변경이 생기면 커밋 해시와 돌릴 명령을 여기 적는다.
 
 - `6a3e0a14`(S1 코인 제거): 시드 의존 e2e 5건(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`)이 로컬 DB가 비어 단언까지 가지 못했다. 시드를 넣은 뒤 `npm run test:e2e`(worktree 절차)와 `npm run visual-diff -- 190caf90`(계좌 상세·전략 등록·`stock-dca-strategy`)을 돌린다.
-  - 2026-11-20: 시드가 들어간 로컬 DB에서 `strategy.spec.ts` 4건 모두 통과했다(`f224bc5c` 기준). 32·51(투자금 추가·인출)은 시드 무한매수 전략이 사이클 대기 중(`cycleInProgress=false`)이라 버튼이 없어 실패했고, `f224bc5c`에서 진행 중 사이클 전략을 고르는 `seed.capital`로 고쳤다. 남은 것: `ledger-budget.spec.ts:9`, visual-diff.
+  - 2026-11-20: 시드가 들어간 로컬 DB에서 `strategy.spec.ts` 4건 모두 통과했다(`f224bc5c` 기준). 32·51(투자금 추가·인출)은 시드 무한매수 전략이 사이클 대기 중(`cycleInProgress=false`)이라 버튼이 없어 실패했고, `f224bc5c`에서 진행 중 사이클 전략을 고르는 `seed.capital`로 고쳤다. 남은 것: visual-diff.
+  - 2026-11-20(S2): `ledger-budget.spec.ts`를 포함한 chromium 15건과 setup이 통과했다(`--project=setup --project=chromium --no-deps`). 남은 것은 visual-diff(`npm run visual-diff -- 190caf90`)뿐이다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -418,6 +419,41 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - e2e(worktree에 변경분을 적용해 실행, 로컬 api :8080·:8081): 12건 통과, 1건 건너뜀, 5건 실패. 실패 5건은 전부 시드 의존이다(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`, "dev 시드에 MOCK·TOSS 계좌가 있어야 한다"). 로컬 DB가 비어 있어서이고 이번 변경을 검증하지 못한 것이다(전략 목록 카드·등록 폼·투자금 추가·인출 화면). 아래 "e2e 대기"에 적었다.
 - memory "완료 작업 재작업 금지": 코인 항목을 "삭제했고 다시 만들지 않는다"로 바꿨다.
 - 배포: 2026-11-16 운영 배포됨(운영 ui 이미지 `8743fa99`, 2026-11-16 14:30 KST `docker ps`, api 세션 확인). api `cross-repo.md` G1 아래 줄에 배포일이 기록됐다(api 커밋 `47eee29a3`).
+
+## S2 실행 기록 — 도구·설정 (지침서 11의 12·1, 09의 2·3, 2026-11-20)
+
+- 한 커밋으로 묶었다. 태스크는 SDD로 Sonnet 2개에 순서대로 위임했다. 첫째는 11의 12와 09의 2·3(sharp·B5), 둘째는 11의 1과 09의 B6(axe-core)이다. 리뷰는 전체가 끝난 뒤 `/code-review medium` 1회만 돌렸다.
+- **11의 12 react-doctor 삭제**
+  - 억제 주석 48줄을 지웠다. 단독 줄이 43줄, 코드 줄 끝 주석이 5줄이다.
+  - stub 플러그인을 지우고 `linterOptions.reportUnusedDisableDirectives: 'error'`를 명시했다. 쓸모없는 `no-console` 억제를 고의로 1건 넣어 보고되는지 확인한 뒤 되돌렸다.
+  - 기존 `react-hooks/exhaustive-deps` 억제 3건은 실제로 필요해서 남았다.
+  - 지운 파일: `doctor.config.json`, `.react-doctor/`, `.github/workflows/react-doctor.yml`, `.claude/skills/react-doctor/`. 함께 지운 것: `package.json`의 `doctor` 스크립트, `.claude/settings.json`의 허용 규칙(`allow`는 빈 배열로 남음), `commands.md`와 `finance-widgets.md`의 언급.
+  - 판정 `git grep -n -i "react-doctor\|doctor" -- . ':!docs/superpowers' ':!package-lock.json'` 0건.
+  - 리뷰 지적에 따라, 억제 주석의 `--` 뒤에 있던 사유 중 코드 이해에 쓸모 있는 것(Suspense를 쓰지 않는 이유, index key, 무효화가 없는 이유 등)은 일반 주석으로 되살렸다.
+- **09의 2**
+  - A1 후속: S1 뒤로 `fmtCompactUsdNarrow`는 `fmtCompactMoneyNarrow`의 USD 분기에서만 쓰여서 그 안으로 접었다. 테스트는 같은 기대값을 `fmtCompactMoneyNarrow(n, 'USD')`로 단언한다.
+  - A2·A3·A5·A7도 끝냈다. A5에 맞춰 `finance.md`의 `isLiability` 문장을 "엔티티 내부 판정"으로 고쳤다.
+- **09의 3**
+  - `sharp` 0.34.5와 `axe-core` 4.14.0을 devDependency로 명시했다. 둘 다 전이 의존성으로 이미 설치돼 있던 버전이다. knip `ignoreDependencies`를 지웠다.
+  - a11y-check는 `createRequire().resolve` 대신 `import axe from 'axe-core'`와 `axe.source`를 쓴다.
+  - B5는 `components/ui/**` 예외를 빼도 knip이 0건이라 예외를 지웠다.
+- **11의 1 도구 준비 코드**
+  - `scripts/shared/browser.mjs`에 `devToken(role)`, `authedContext`, `VIEWPORTS`, `API_BASE`·`TRADING_API_BASE`를 모았다.
+  - `scripts/shared/routes.mjs`에 경로 표 하나를 두었다. 표는 seed를 import하지 않고 시드 키 이름만 가진다. `statusCookies`와 `stubStatusStream`도 여기로 옮겼다.
+  - `scripts/shared/check-routes.mjs`를 `npm run lint` 뒤에 붙였다. CI의 `ci.yml`이 lint를 돌린다.
+  - 판정 `git grep -n "dev-token\|dev-admin-token" -- 'scripts/**/*.mjs' 'e2e/**/*.ts' 'tests/**/*.ts'`는 1줄이다.
+  - 경로 검사 변이 확인: 표에서 행을 빼거나 없는 경로를 넣으면 exit 1이다.
+  - e2e는 `tests/e2e/**`를 `e2e/`로 모았다. vitest 단위 테스트 `tests/account-cache-fixture.test.ts`는 vitest exclude(`e2e/**`)에 걸리지 않게 `tests/`에 남겼고 import 경로만 고쳤다(15건이 실제로 돈다).
+  - `e2e/global.setup.ts`는 `devToken`을 동적으로 import한다. 정적 import는 setup과 chromium을 한 실행에서 돌릴 때 `seed.mjs`가 `browser.mjs`의 export를 찾지 못하는 SyntaxError를 냈다(재현함). Playwright의 `.mjs` 변환 캐시가 원인으로 보이지만 확정하지 못했다.
+  - 줄 수는 거의 줄지 않았다. 중복을 지운 만큼 새 공용 파일 약 120줄이 생겼다. 효과는 a11y-check의 사각지대를 없앤 것이다.
+- **검증**
+  - typecheck·lint·knip 0건. 전체 vitest 259파일 1790건 통과.
+  - a11y-check(dev 서버, 로컬 api 읽기 전용): 새 9개 화면(`/strategies`, `/pending`, `/rejected`, 가계부 4개, 전략 수정, VR 재설정)을 포함해 위반 0, 차단 요청 0, 건너뜀 0.
+  - e2e: setup과 chromium 16건이 통과했다. `playwright --list`는 전후 18건이고 프로젝트 배치도 같다.
+  - visual-diff 시나리오 58개는 전후 이름·경로·mode가 같다. 촬영은 돌리지 않았다.
+- **돌리지 않은 것**: `account-cache` 프로젝트 2건(계좌 생성·삭제). "로컬 DB는 GET만" 제약 때문이다. 이 spec은 import 경로만 바뀌었다.
+- **리뷰에서 남긴 것**: `components.json`의 `hooks` alias 삭제(A7)가 shadcn 기본값과 같은 `@/hooks`라 동작 차이가 없다고 보고 그대로 뒀다.
+- push 전에 확인할 것: 화면 변경이 없어 e2e 대기에 추가하지 않는다. `.github/workflows/react-doctor.yml` 삭제는 PR에만 걸리던 검사라 배포에 영향이 없다.
 
 ## 측정 산출물
 

@@ -9,8 +9,8 @@ import {
   assertAccountCacheOwnership,
   cleanupRecordedAccounts,
   selectLeftoverAccounts,
-} from './e2e/support/account-cache-fixture'
-import { acquireAccountCacheLock } from './e2e/support/account-cache-lock'
+} from '../e2e/support/account-cache-fixture'
+import { acquireAccountCacheLock } from '../e2e/support/account-cache-lock'
 
 const reserved = { id: 'reserved-1', nickname: 'e2e-account-cache-leftover' }
 const created = { id: 'created-1', nickname: 'created-by-this-spec-id' }

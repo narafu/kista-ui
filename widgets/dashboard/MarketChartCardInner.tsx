@@ -77,7 +77,6 @@ function readChartColors() {
 }
 
 export default function MarketChartCardInner({ category }: Props) {
-  // eslint-disable-next-line react-doctor/no-derived-useState
   const [symbol, setSymbol] = useState(category.options[0].symbol)
   const [candleCount, setCandleCount] = useState<CandleCount>(50)
   const [showRsi, setShowRsi] = useState(true)
@@ -123,8 +122,7 @@ export default function MarketChartCardInner({ category }: Props) {
     })
 
     const sorted = candles.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
-    // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
-    series.setData( // eslint-disable-next-line react-doctor/no-pass-live-state-to-parent
+    series.setData(
       sorted.map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
 

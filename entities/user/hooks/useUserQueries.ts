@@ -79,7 +79,7 @@ export function useUpdateNicknameMutation() {
 }
 
 export function useDeleteMeMutation() {
-  return useMutation({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
+  return useMutation({
     mutationFn: deleteMe,
     onError: (err) => toast.error(apiMsg(err, '탈퇴 처리 중 오류가 발생했습니다.')),
   })

@@ -4,14 +4,12 @@ import type { PropsWithChildren } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { components } from '@shared/lib/api-types'
 import type {
-  CurrentExchangeRate,
   HousingBenchmark,
   HousingBenchmarkComparison,
   HousingBenchmarkParams,
   HousingBenchmarkPeriod,
   HousingBenchmarkPoint,
   HousingBenchmarkQuality,
-  HousingBenchmarkStrategy,
   HousingBenchmarkSummary,
 } from '../model/types'
 import { statsKeys } from '../model/queryKeys'
@@ -27,14 +25,6 @@ type Equal<Left, Right> = (
 type Assert<Condition extends true> = Condition
 type HousingBenchmarkSchemas = components['schemas']
 
-type _CurrentExchangeRateMatchesSchema = Assert<Equal<
-  CurrentExchangeRate,
-  HousingBenchmarkSchemas['HousingBenchmarkCurrentExchangeRate']
->>
-type _StrategyMatchesSchema = Assert<Equal<
-  HousingBenchmarkStrategy,
-  HousingBenchmarkSchemas['HousingBenchmarkStrategyInfo']
->>
 type _BenchmarkMatchesSchema = Assert<Equal<
   HousingBenchmark,
   HousingBenchmarkSchemas['HousingBenchmarkDefinition']

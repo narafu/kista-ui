@@ -65,7 +65,6 @@ export function useLoadFailToast(isMock: boolean, pricesError: boolean) {
   useEffect(() => {
     if (isMock) return
     if (pricesError) {
-      // eslint-disable-next-line react-doctor/no-event-handler
       toast.error('현재가 조회에 실패했습니다', { id: 'strategy-form-load-fail' })
     }
   }, [isMock, pricesError])
@@ -87,7 +86,6 @@ export function useInitialSeedReset({
   useEffect(() => {
     if (initial) return
     if (minSeed === null) return
-    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({ seedUsdInput: Math.ceil(minSeed) })
   }, [initial, minSeed, resetSeed])
 
@@ -95,7 +93,6 @@ export function useInitialSeedReset({
   useEffect(() => {
     if (initial) return
     if (!isVr) return
-    // eslint-disable-next-line react-doctor/no-pass-data-to-parent
     resetSeed({ seedUsdInput: 0 })
   }, [initial, isVr, resetSeed])
 }

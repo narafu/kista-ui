@@ -1,20 +1,16 @@
 // 시나리오마다 head/base를 같은 조건으로 fullPage 촬영하고 픽셀 비교한다
 import { mkdirSync } from 'node:fs'
 import { chromium } from '@playwright/test'
-// sharp는 next의 전이 의존성으로 설치돼 있다 — 별도 devDependency로 추가하지 않음
 import sharp from 'sharp'
+import { VIEWPORTS, authedContext } from '../shared/browser.mjs'
 
-const VIEWPORTS = { pc: { width: 1440, height: 900 }, mo: { width: 390, height: 844 } }
 // 월요일 10:00 KST — 주말에 돌리면 휴장일 배너가 부족 배너를 가린다. 시계 고정 시 양쪽에 hydration 에러가 나는 건 정상
 const WEEKDAY = new Date('2026-10-05T01:00:00Z')
 const SETTLE_MS = 4000
 const PIXEL_THRESHOLD = 30
 
 async function capture(browser, { url, token, viewport, scenario, file }) {
-  const ctx = await browser.newContext({ viewport, locale: 'ko-KR', timezoneId: 'Asia/Seoul', reducedMotion: 'reduce' })
-  const cookies = { ...(scenario.guest ? {} : { 'kista-token': token }), ...scenario.cookies }
-  const cookieList = Object.entries(cookies).map(([name, value]) => ({ name, value, domain: 'localhost', path: '/', httpOnly: true, sameSite: 'Lax' }))
-  if (cookieList.length) await ctx.addCookies(cookieList)
+  const ctx = await authedContext(browser, { token: scenario.guest ? undefined : token, cookies: scenario.cookies, viewport })
   const page = await ctx.newPage()
   if (scenario.setup) await scenario.setup(page)
   const errs = []

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fmtCompactUsd, fmtCompactUsdNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtMoneyOrDash, fmtQuantity, fmtShares, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
+import { fmtCompactUsd, fmtCompactMoneyNarrow, fmtKrw, fmtKrwEok, fmtMoney, fmtMoneyOrDash, fmtQuantity, fmtShares, fmtSignedMoney, roundMoney, fmtSignedUsd, fmtUsd, pnlTextClass, todayKst, fmtSignedPercent, fmtSignedPercentPoint, fmtDate, fmtDateTime, fmtMonthDay } from './index'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -214,11 +214,11 @@ describe('fmtCompactUsd', () => {
 
 })
 
-describe('fmtCompactUsdNarrow', () => {
+describe('fmtCompactMoneyNarrow USD', () => {
   it('유효숫자 2자리로 축약한다', () => {
-    expect(fmtCompactUsdNarrow(12_345_000_000)).toBe('$12B')
-    expect(fmtCompactUsdNarrow(123_456)).toBe('$120K')
-    expect(fmtCompactUsdNarrow(1_234)).toBe('$1.2K')
+    expect(fmtCompactMoneyNarrow(12_345_000_000, 'USD')).toBe('$12B')
+    expect(fmtCompactMoneyNarrow(123_456, 'USD')).toBe('$120K')
+    expect(fmtCompactMoneyNarrow(1_234, 'USD')).toBe('$1.2K')
   })
 })
 

@@ -75,7 +75,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       {/* 모바일 카드 리스트 — 주문 내역과 같은 카드 패턴 */}
       <ul className="space-y-2 p-4 lg:hidden">
         {sorted.map((o, i) => (
-          // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
+          // id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
           <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -122,7 +122,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
         </thead>
         <tbody>
           {sorted.map((o, i) => (
-            // eslint-disable-next-line react-doctor/no-array-index-as-key -- id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
+            // id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
             <tr key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="border-t hover:bg-muted/30 transition-colors">
               <TableDataCell>
                 <Badge tone="none" size="sm" className={cn('lg:h-[24px] lg:text-sm', directionBadgeClass(o.direction))}>

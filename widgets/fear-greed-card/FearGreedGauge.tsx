@@ -1,4 +1,3 @@
-// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { PieChart, Pie, Cell } from 'recharts'
 import type { ReactNode } from 'react'
 import { FEAR_GREED_ZONES, zoneOf } from './fearGreedZones'

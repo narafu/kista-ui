@@ -41,11 +41,10 @@ export default async function MainLayout({ children }: Props) {
         {/* 모바일은 앱 셸(h-dvh) 안에서 main만 스크롤한다 — iOS standalone PWA에서 문서 스크롤 시 visualViewport가 어긋나
             position:fixed 하단 네비가 화면 밖으로 밀리던 문제(app_error_logs MOBILE_NAV_VIEWPORT_*)를 네비를 flex 형제로 둬 구조적으로 없앤다 */}
         <div className="flex lg:min-h-screen max-lg:h-dvh max-lg:overflow-hidden bg-background">
-        {/* eslint-disable-next-line react-doctor/nextjs-no-use-search-params-without-suspense -- cookies() 사용으로 이미 동적 렌더링이라 CSR bailout 없음, Suspense fallback은 사이드바 깜빡임 유발 */}
+        {/* useSearchParams를 Suspense로 감싸지 않는다 — cookies() 사용으로 이미 동적 렌더링이라 CSR bailout 없음, Suspense fallback은 사이드바 깜빡임 유발 */}
         <DesktopSidebar isAdmin={isAdmin} isAuthenticated={isAuthenticated} />
         <div className="flex flex-col flex-1 min-w-0 max-lg:min-h-0">
           <MobileHeader
-            // eslint-disable-next-line react-doctor/jsx-no-jsx-as-prop
             trailing={
               isAuthenticated ? (
                 <div className="flex items-center gap-1.5">

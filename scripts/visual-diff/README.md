@@ -37,7 +37,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 ## 전제와 안전장치
 
 - 로컬 kista-api(:8080)와 kista-trading(:8081)이 local 프로파일로 떠 있어야 한다. 이 도구는 백엔드를 **기동하지 않는다**. 응답이 없으면 그대로 중단한다.
-- 로컬 DB에는 실데이터가 있다. 프록시(:8180→8080, :8181→8081)는 GET/HEAD만 넘기고 쓰기 요청은 전부 403으로 막는다. 쓰기성 호출은 dev 토큰 발급(`POST /api/auth/dev-token`, `dev-admin-token`, 8080 직접 호출) 하나뿐이다.
+- 로컬 DB에는 실데이터가 있다. 프록시(:8180→8080, :8181→8081)는 GET/HEAD만 넘기고 쓰기 요청은 전부 403으로 막는다. 쓰기성 호출은 dev 토큰 발급(8080 직접 POST, `../shared/browser.mjs`의 `devToken`) 하나뿐이다.
 - 포트 3100/3200/8180/8181 중 하나라도 이미 쓰이고 있으면 다른 세션이 이 도구를 돌리는 중으로 보고 중단한다. 남의 프로세스는 종료하지 않는다.
 - 종료할 때는 이 도구가 띄운 `next dev` 프로세스 그룹만 끈다. 그 뒤 worktree 2개를 제거한다(Ctrl-C로 끊어도 같다).
 - 메인 작업 트리에서 다른 세션의 `next dev`가 돌고 있어도 충돌하지 않는다(`.next` 잠금). head도 별도 worktree로 띄우기 때문이다.
@@ -46,6 +46,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 
 기본은 dev 시드 실데이터다(kista-api `scripts/dev-seed/seed.sh`, 멱등). MOCK 계좌의 ACTIVE 전략은 preview·prices 등이 실제로 200을 준다. TOSS 시드 전략은 PAUSED이고 preview가 503이다. fixture는 실데이터로 만들 수 없는 것만 채운다.
 
+- `../shared/browser.mjs`(a11y-check·e2e setup과 공용): `devToken`, `VIEWPORTS`, 쿠키를 심는 `authedContext`(컨텍스트 옵션은 호출자가 넘기므로 `shoot.mjs`는 `viewport`만 준다 — `isMobile`·`colorScheme`을 얹으면 픽셀이 바뀐다).
 - `../shared/seed.mjs`(a11y-check와 공용): 시나리오가 여는 계좌·전략 ID. 실행 시 로컬 API에서 MOCK·TOSS 시드 계좌(`[시드] 모의계좌`·`[시드] 토스 계좌`)와 전략을 조회해 정하고(실패 시 기본값), `KISTA_DEV_SEED=<json>`을 주면 그 파일로 최상위 키 단위 덮어쓰기(동작 상세는 `../a11y-check/README.md` "전제와 안전장치").
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`=원장 부족/`trimmed`=원장 축소/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
   - `dca`: 시드 무한매수 계좌(MOCK)에 합성 주식 DCA 전략 1건을 덧붙인다(실행 이력 2건: 현재 규칙·삭제된 규칙). 시나리오 `stock-dca-*`가 쓴다. 런타임 설정의 DCA 활성화는 `fixtures/api.mjs`가 같은 모드에서 보강한다(`run.mjs`가 `setMode`를 두 fixture에 함께 넘긴다 — 두 모듈은 모드 상태를 따로 가진다).
@@ -57,7 +58,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 
 ## 시나리오 추가
 
-`scenarios.mjs`에 `{ name, path, admin?, steps?, mode?, clock?, guest?, cookies?, setup? }`를 추가한다.
+`scenarios.mjs`에 `{ name, path, admin?, steps?, mode?, clock?, guest?, cookies?, setup? }`를 추가한다. 화면 경로·쿠키·`setup`은 `../shared/routes.mjs` 표(a11y-check와 공용)에서 `screen()`·`at()`으로 가져온다 — 새 화면이면 표에 행을 먼저 추가한다(없으면 `findRow`가 던진다). 시나리오는 표에 상태 변형(`mode`·`steps`·`clock`)을 더하는 층이다.
 
 - `steps`에는 열기·탭 전환·선택만 넣는다. 제출/저장 버튼은 누르지 않는다.
 - `clock: true`는 브라우저 시계를 평일로 고정한다. 주말에 돌리면 휴장일 배너가 부족 배너를 가린다.

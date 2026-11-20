@@ -6,7 +6,6 @@ import type { MouseHandlerDataParam } from 'recharts'
 // 부모 PrivacyBaseChart.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
 // (asset-trend/AssetTrendInner.tsx 등 기존 recharts 위젯과 동일한 처리).
-// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'

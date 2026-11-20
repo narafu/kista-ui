@@ -4,7 +4,6 @@ import { getApiBaseUrlOrNull } from '@shared/lib/env'
 import { STATUS_COOKIE, KISTA_TOKEN_COOKIE } from '@shared/lib/auth/cookies'
 import { safeRedirectPath } from '@shared/lib/auth/redirectPath'
 
-// eslint-disable-next-line react-doctor/nextjs-no-side-effect-in-get-handler
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const host = request.headers.get('host') ?? 'localhost:3000'

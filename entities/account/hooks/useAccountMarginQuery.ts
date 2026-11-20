@@ -93,7 +93,7 @@ export function useCreateAccountMutation() {
 
 // side effect 없음 — UI에서 isSuccess/isError로 인라인 표시
 export function useTestBrokerConnectionMutation() {
-  return useMutation<void, Error, { appKey: string; appSecret: string; broker?: string }>({ // eslint-disable-line react-doctor/query-mutation-missing-invalidation
+  return useMutation<void, Error, { appKey: string; appSecret: string; broker?: string }>({
     mutationFn: ({ appKey, appSecret, broker }) => testBrokerConnection(appKey, appSecret, broker),
   })
 }

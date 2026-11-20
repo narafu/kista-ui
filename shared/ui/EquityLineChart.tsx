@@ -1,6 +1,5 @@
 'use client'
 
-// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts'
 import { fmtMonthDay, fmtDate } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'

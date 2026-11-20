@@ -140,7 +140,7 @@ function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previe
   return <OrderRows orders={orders} />
 }
 
-// eslint-disable-next-line react-doctor/no-many-boolean-props -- 상태별 플래그를 부모(StrategyDetail)가 계산해 내려주는 표시 전용 카드, props 리팩토링은 범위 밖
+// 상태별 플래그를 부모(StrategyDetail)가 계산해 내려주는 표시 전용 카드, props 리팩토링은 범위 밖
 export function NextOrderCard({
   strategy,
   broker,

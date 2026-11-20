@@ -63,6 +63,4 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp) {
   })
 }
 
-export const reconfigureVrFormSchema = createReconfigureVrFormSchema()
-
-export type ReconfigureVrFormValues = z.infer<typeof reconfigureVrFormSchema>
+export type ReconfigureVrFormValues = z.infer<ReturnType<typeof createReconfigureVrFormSchema>>

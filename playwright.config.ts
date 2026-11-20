@@ -21,13 +21,13 @@ export default defineConfig({
       name: 'account-cache',
       dependencies: ['setup'],
       fullyParallel: false,
-      testMatch: 'tests/e2e/account-cache-consistency.spec.ts',
+      testMatch: 'e2e/account-cache-consistency.spec.ts',
     },
     {
       name: 'chromium',
       dependencies: ['account-cache'],
       testMatch: 'e2e/**/*.spec.ts',
-      testIgnore: 'tests/e2e/**/*.spec.ts',
+      testIgnore: 'e2e/account-cache-consistency.spec.ts',
     },
   ],
   webServer: {

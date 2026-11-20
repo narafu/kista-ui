@@ -96,8 +96,6 @@ export type HousingBenchmarkParams =
 
 type HousingBenchmarkSchemas = components['schemas']
 
-export type CurrentExchangeRate = HousingBenchmarkSchemas['HousingBenchmarkCurrentExchangeRate']
-export type HousingBenchmarkStrategy = HousingBenchmarkSchemas['HousingBenchmarkStrategyInfo']
 
 export type HousingBenchmark = HousingBenchmarkSchemas['HousingBenchmarkDefinition']
 export type HousingBenchmarkPeriod = HousingBenchmarkSchemas['HousingBenchmarkPeriod']

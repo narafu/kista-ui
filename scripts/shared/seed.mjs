@@ -1,6 +1,7 @@
 // 로컬 dev 시드(kista-api scripts/dev-seed/seed.sh)의 계좌·전략 ID. visual-diff(시나리오·trading fixture)와 a11y-check가 함께 참조한다.
 // 로컬 API(8080·8081)가 떠 있으면 MOCK·TOSS 시드 계좌·전략 ID를 실행 시 조회해 덮는다. KISTA_DEV_SEED=<json 경로>를 주면 조회 대신 그 파일로 최상위 키 단위 덮어쓰기
 import { readFileSync } from 'node:fs'
+import { API_BASE, TRADING_API_BASE, devToken } from './browser.mjs'
 
 // MOCK 계좌: ACTIVE 전략, preview·prices 등 trading API가 실제로 200
 const MOCK = 'a24b77e4-4b7e-42bc-9a4d-b52a7a686c7f'
@@ -31,9 +32,9 @@ const defaults = {
 async function resolveFromApi() {
   try {
     // 요청마다 타임아웃을 따로 둔다 — 하나로 묶으면 앞 요청이 느릴 때 뒤 요청까지 중단돼 조용히 기본값으로 떨어진다
-    const { accessToken } = await (await fetch('http://localhost:8080/api/auth/dev-token', { method: 'POST', signal: AbortSignal.timeout(3000) })).json()
+    const accessToken = await devToken('user', { timeout: 3000 })
     const get = async (path) => {
-      const r = await fetch(`http://localhost:8081${path}`, { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(3000) })
+      const r = await fetch(`${TRADING_API_BASE}${path}`, { headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(3000) })
       if (!r.ok) throw new Error(`${path} ${r.status}`)
       return r.json()
     }
@@ -104,3 +105,10 @@ export const stubSeedCash = (p) => p.route(`**/api/accounts/${seed.toss.accountI
   // 원본 헤더(content-length·content-encoding)를 넘기면 바뀐 본문과 어긋난다 — 상태 코드만 옮긴다
   r.fulfill({ status: res.status(), json: { ...(await res.json()), availableCash: 5000 } })
 })
+
+/** 시나리오·화면 경로에 필요한 실데이터 id — 8080 직접 GET. 못 찾으면 assetSnapshotId는 undefined */
+export async function resolveContext(token) {
+  const r = await fetch(`${API_BASE}/api/finance/asset-snapshots`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) }).catch(() => null)
+  const list = r?.ok ? await r.json() : []
+  return { assetSnapshotId: seed.assetSnapshotId ?? (Array.isArray(list) ? list[0]?.id : undefined) }
+}

@@ -117,7 +117,7 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
   // 이 콜백은 비동기일 수밖에 없다. 대신 여기서 명시적으로 form.trigger()를 await해
-  // reconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
+  // createReconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
   // poolLimitFloor<=initialPoolLimitRate, 적립·인출 금액>0, injectShares>0이면 injectSharePrice 필수)을
   // 통과했을 때만 확인 다이얼로그를 연다 — 검증 실패 시 다이얼로그 자체가 뜨지 않는다.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

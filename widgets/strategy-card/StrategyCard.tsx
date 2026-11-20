@@ -79,20 +79,17 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
       {/* 2행: 티커 + 분할 + 회차 + 금액 */}
       <div data-testid="strategy-card-mobile-main-row" className="flex items-center gap-2">
         <span className="font-bold text-base text-foreground">{strategy.ticker}</span>
-        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
         {usesDivisionCount && (
           <Badge tone="neutral" size="sm" className="text-foreground">
             {strategy.divisionCount}분할
           </Badge>
         )}
         {/* VR 전략 compact V값 배지 */}
-        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
         {isVr && strategy.vr && (
           <Badge tone="neutral" size="sm" className="text-foreground">
             V ${fmtUsd(strategy.vr.value)}
           </Badge>
         )}
-        {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
           <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
         )}
@@ -113,14 +110,12 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
             <Badge tone="brand" size="md" className="h-[22px]">{typeLabel}</Badge>
             {statusLabel && <Badge tone="neutral" size="sm" className="h-[22px]">{statusLabel}</Badge>}
             <OrderSignalBadge signal={orderSignal} className="h-[22px]" />
-            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {usesDivisionCount && (
               <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
                 {strategy.divisionCount}분할
               </Badge>
             )}
             {/* VR 전략 compact V값 배지 */}
-            {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
             {isVr && strategy.vr && (
               <Badge tone="neutral" size="sm" className="h-[22px] text-foreground">
                 V ${fmtUsd(strategy.vr.value)}
@@ -144,7 +139,6 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           <span className="font-bold text-xl tracking-tight text-foreground leading-none">
             {strategy.ticker}
           </span>
-          {/* eslint-disable-next-line react-doctor/rendering-conditional-render */}
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
             <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
           )}

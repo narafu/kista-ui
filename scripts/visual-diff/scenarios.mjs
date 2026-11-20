@@ -1,6 +1,7 @@
 // 촬영 시나리오. 뮤테이션 금지: 제출/저장 버튼은 누르지 않는다 — 열기·탭 전환·선택만.
 // { name, path(문자열 또는 실행 시 조회값 ctx를 받는 함수), admin?, steps?, mode?(trading fixture 모드, 기본 real=실데이터), clock?(평일 시계 고정 — 휴장일 배너가 부족 배너를 가리는 것 방지),
 //   guest?(kista-token 없이 비회원으로), cookies?({ 이름: 값 } 추가 쿠키), setup?(page => goto 전에 실행 — 브라우저 요청을 page.route로 덮을 때) }
+import { fill, findRow } from '../shared/routes.mjs'
 import { seed, stubSeedCash } from '../shared/seed.mjs'
 
 const clickText = (t) => async (p) => { await p.getByText(t, { exact: true }).first().click(); await p.waitForTimeout(800) }
@@ -36,78 +37,82 @@ const adminCascade = async (p) => {
   }
 }
 
-const detail = ({ accountId, strategyId }) => `/accounts/${accountId}/strategies/${strategyId}`
-const INF = detail(seed.infinite)
-const VR = detail(seed.vr)
-const PAUSED = detail(seed.paused)
-const ACCT = `/accounts/${seed.infinite.accountId}`
-const NEW_STRATEGY = `${ACCT}/strategies/new`
+// 화면 경로·쿠키·준비 함수는 shared/routes.mjs 표에서 가져온다 — 여기는 상태 변형(mode·steps·clock)만 더한다
+const screen = (path, seedKey, params) => {
+  const row = findRow(path, seedKey)
+  return { path: fill(row, { seed }, params), cookies: row.cookies, setup: row.setup }
+}
+// 실행 시 조회한 id(ctx)가 필요한 화면 — path를 함수로 둔다
+const screenWith = (path) => ({ path: (ctx) => fill(findRow(path), { seed, ...ctx }) })
+const at = (...args) => screen(...args).path
+const STRATEGY = '/accounts/[id]/strategies/[sid]'
+const INF = at(STRATEGY, 'infinite')
+const VR = at(STRATEGY, 'vr')
+const PAUSED = at(STRATEGY, 'infinite', { id: seed.paused.accountId, sid: seed.paused.strategyId }) // paused는 일부러 표 밖 — a11y 대상이 아니다(TOSS 전략, preview 503)
+const ACCT = at('/accounts/[id]', 'infinite')
+const NEW_STRATEGY = at('/accounts/[id]/strategies/new', 'infinite')
 // MOCK 계좌는 잔고 확인이 강제로 꺼져 예수금 입력칸만 나온다 — 사용 비율 게이지는 TOSS 계좌로 연다
-const TOSS_NEW_STRATEGY = `/accounts/${seed.toss.accountId}/strategies/new`
-// 사용자 상태는 proxy.ts가 상태·역할 쿠키가 있으면 /me 대신 그 값을 쓴다 — dev 사용자(ACTIVE)로 대기·반려 화면을 연다
-const statusCookies = (status) => ({ 'kista-user-status': status, 'kista-user-role': 'USER' })
-// 대기 화면의 상태 SSE가 ACTIVE를 보내면 /dashboard로 이동한다 — 204로 닫아 재연결도 막는다
-const stubStatusStream = (p) => p.route('**/api/auth/status-stream', (r) => r.fulfill({ status: 204 }))
+const TOSS_NEW_STRATEGY = at('/accounts/[id]/strategies/new', 'toss')
 
 const modes = (prefix, path, list, extra = {}) => list.map((mode) => ({ name: `${prefix}-${mode}`, path, mode, ...extra }))
 
 export const scenarios = [
-  { name: 'strategies', path: '/strategies' },
+  { name: 'strategies', path: at('/strategies') },
   { name: 'detail-infinite', path: INF },
   { name: 'detail-vr', path: VR },
   { name: 'detail-paused', path: PAUSED },
   { name: 'account-detail', path: ACCT },
-  { name: 'account-new', path: '/accounts/new' },
-  { name: 'account-new-toss', path: '/accounts/new', steps: [clickRole('button', /토스|TOSS/i)] },
-  { name: 'account-new-mock', path: '/accounts/new', steps: [clickRole('button', /모의|MOCK|Mock/)] },
+  { name: 'account-new', path: at('/accounts/new') },
+  { name: 'account-new-toss', path: at('/accounts/new'), steps: [clickRole('button', /토스|TOSS/i)] },
+  { name: 'account-new-mock', path: at('/accounts/new'), steps: [clickRole('button', /모의|MOCK|Mock/)] },
   { name: 'create-strategy', path: NEW_STRATEGY },
   { name: 'create-strategy-vr', path: NEW_STRATEGY, steps: [pickVr] },
   { name: 'create-strategy-vr-advanced', path: NEW_STRATEGY, steps: [pickVr, openAdvanced] },
   { name: 'create-strategy-seed-cash', path: TOSS_NEW_STRATEGY, setup: stubSeedCash },
   { name: 'create-strategy-seed-fill', path: TOSS_NEW_STRATEGY, setup: stubSeedCash, steps: [clickRole('button', /^50%$/)] },
-  { name: 'reconfigure-vr', path: `${VR}/reconfigure-vr` },
-  { name: 'finance', path: '/finance' },
-  { name: 'finance-month-popover', path: '/finance', steps: [clickRole('button', /^기준 연월/)] },
-  { name: 'finance-expense', path: '/finance/expense' },
-  { name: 'finance-expense-annual', path: '/finance/expense', steps: [clickText('연간')] },
-  { name: 'finance-expense-tx-dialog', path: '/finance/expense', steps: [clickRole('button', '거래내역 등록')] },
-  { name: 'finance-income', path: '/finance/income' },
-  { name: 'finance-saving', path: '/finance/saving' },
-  { name: 'finance-new', path: '/finance/new' },
+  { name: 'reconfigure-vr', path: at(`${STRATEGY}/reconfigure-vr`, 'vr') },
+  { name: 'finance', path: at('/finance') },
+  { name: 'finance-month-popover', path: at('/finance'), steps: [clickRole('button', /^기준 연월/)] },
+  { name: 'finance-expense', path: at('/finance/expense') },
+  { name: 'finance-expense-annual', path: at('/finance/expense'), steps: [clickText('연간')] },
+  { name: 'finance-expense-tx-dialog', path: at('/finance/expense'), steps: [clickRole('button', '거래내역 등록')] },
+  { name: 'finance-income', path: at('/finance/income') },
+  { name: 'finance-saving', path: at('/finance/saving') },
+  { name: 'finance-new', path: at('/finance/new') },
   // 시드 자산 스냅샷 id는 월이 바뀌면 달라져 실행 시 조회한다(run.mjs)
-  { name: 'finance-asset-edit', path: (ctx) => `/finance/${ctx.assetSnapshotId}/edit` },
-  { name: 'finance-asset-dup', path: (ctx) => `/finance/new?duplicateFrom=${ctx.assetSnapshotId}` },
-  { name: 'finance-settings', path: '/finance/settings' },
-  { name: 'finance-settings-category-dialog', path: '/finance/settings', steps: [clickText('카테고리 추가')] },
-  { name: 'stats', path: '/stats' },
-  { name: 'benchmark-etf', path: '/stats/benchmark' },
-  { name: 'benchmark-apt', path: '/stats/benchmark', steps: [clickText('아파트')] },
-  { name: 'admin-trades', path: '/admin/trades', admin: true },
-  { name: 'admin-accounts', path: '/admin/accounts', admin: true },
+  { name: 'finance-asset-edit', ...screenWith('/finance/[id]/edit') },
+  { name: 'finance-asset-dup', path: (ctx) => `${at('/finance/new')}?duplicateFrom=${ctx.assetSnapshotId}` },
+  { name: 'finance-settings', path: at('/finance/settings') },
+  { name: 'finance-settings-category-dialog', path: at('/finance/settings'), steps: [clickText('카테고리 추가')] },
+  { name: 'stats', path: at('/stats') },
+  { name: 'benchmark-etf', path: at('/stats/benchmark') },
+  { name: 'benchmark-apt', path: at('/stats/benchmark'), steps: [clickText('아파트')] },
+  { name: 'admin-trades', path: at('/admin/trades'), admin: true },
+  { name: 'admin-accounts', path: at('/admin/accounts'), admin: true },
   // P 매매표는 로컬 DB에 없어 fixtures/api.mjs가 채운다
   // 차트 아래 정보 줄이 sticky bottom-0이라 스크롤 0에서는 화면 하단에 붙어 실현손익 차트를 덮는다 — 맨 아래로 내려 제자리에 찍는다
-  { name: 'admin-privacy-trades', path: '/admin/privacy-trades', admin: true, steps: [scrollToBottom] },
-  { name: 'admin-privacy-trades-expanded', path: '/admin/privacy-trades', admin: true, steps: [expandPrivacyBase] },
+  { name: 'admin-privacy-trades', path: at('/admin/privacy-trades'), admin: true, steps: [scrollToBottom] },
+  { name: 'admin-privacy-trades-expanded', path: at('/admin/privacy-trades'), admin: true, steps: [expandPrivacyBase] },
   // 운영 설정의 VR 정기 입출금 방식과 오류 로그는 fixtures/api.mjs가 고정한다
-  { name: 'admin-settings', path: '/admin/settings', admin: true },
+  { name: 'admin-settings', path: at('/admin/settings'), admin: true },
   // 감사·이상 징후 섹션은 실데이터라 오류 로그 섹션만 연다
-  { name: 'admin-logs', path: '/admin/logs?type=error', admin: true },
+  { name: 'admin-logs', path: `${at('/admin/logs')}?type=error`, admin: true },
   // 행 하나만 고르면 전체 선택이 indeterminate가 된다 — 클라이언트 상태만 바뀌고 요청은 없다
-  { name: 'admin-logs-partial', path: '/admin/logs?type=error', admin: true, steps: [clickRole('checkbox', /^오류 로그 선택/)] },
-  { name: 'pending', path: '/pending', cookies: statusCookies('PENDING'), setup: stubStatusStream },
-  { name: 'rejected', path: '/rejected', cookies: statusCookies('REJECTED') },
-  { name: 'dashboard-guest', path: '/dashboard', guest: true },
+  { name: 'admin-logs-partial', path: `${at('/admin/logs')}?type=error`, admin: true, steps: [clickRole('checkbox', /^오류 로그 선택/)] },
+  { name: 'pending', ...screen('/pending') },
+  { name: 'rejected', ...screen('/rejected') },
+  { name: 'dashboard-guest', path: at('/dashboard'), guest: true },
   // 404 화면에 초 단위 시계가 있어 시계를 고정한다
   { name: 'not-found', path: '/visual-diff-not-found', clock: true },
-  { name: 'admin-trades-select', path: '/admin/trades', admin: true, steps: [adminCascade] },
+  { name: 'admin-trades-select', path: at('/admin/trades'), admin: true, steps: [adminCascade] },
   // 실데이터로 못 만드는 preview 분기 — 실데이터(real) 화면은 위 기본 시나리오가 담당
   ...modes('m-inf', INF, ['deficit', 'trimmed', 'executed', 'skip', 'empty']),
   ...modes('m-vr', VR, ['executed']),
-  ...modes('m-list', '/strategies', ['deficit', 'executed']),
+  ...modes('m-list', at('/strategies'), ['deficit', 'executed']),
   ...modes('m-acct', ACCT, ['executed']),
   // dca 모드: 시드 무한매수 계좌에 합성 주식 DCA 전략 1건 — 상세(실행 이력 2건: 현재 규칙·삭제된 규칙)와 목록 규칙 요약 확인용. 런타임 설정의 DCA는 fixtures/api.mjs가 보강
-  { name: 'stock-dca-strategy', path: `/accounts/${seed.infinite.accountId}/strategies/00000000-0000-4000-8000-0000000c0172`, mode: 'dca' },
-  { name: 'stock-dca-strategies', path: '/strategies', mode: 'dca' },
+  { name: 'stock-dca-strategy', path: at(STRATEGY, 'infinite', { sid: '00000000-0000-4000-8000-0000000c0172' }), mode: 'dca' },
+  { name: 'stock-dca-strategies', path: at('/strategies'), mode: 'dca' },
   ...modes('w-inf', INF, ['real', 'deficit', 'trimmed', 'executed'], { clock: true }),
-  ...modes('w-list', '/strategies', ['deficit', 'executed'], { clock: true }),
+  ...modes('w-list', at('/strategies'), ['deficit', 'executed'], { clock: true }),
 ]

@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react'
 // 아래 AssetTrend.tsx의 next/dynamic({ ssr: false }) 셸이 이 파일 자체를 지연 로드한다. 룰은 파일 간
 // 도달 가능성을 보지 않고 recharts import를 정적으로만 감지해 분리 구조와 무관하게 항상 발화한다
 // (EquityCurveChart.tsx 등 기존 recharts 위젯과 동일한 처리).
-// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent'

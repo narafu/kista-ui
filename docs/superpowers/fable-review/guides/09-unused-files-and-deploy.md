@@ -158,3 +158,5 @@ fable-infra가 알린 것 중 이 레포에서 고칠 것:
 - "삭제의 실제 실행은 사용자 승인 뒤"(5행) → A2·A3·A5·A7과 B5·B6은 제품 참조 0이 명령으로 확인되는 것이라 진행한다. 그 밖의 삭제는 묻는다.
 
 배포: 태스크 2·3·8은 화면과 무관하다. 태스크 5·6·7은 위와 같다.
+
+- **S2 실행 반영(2026-11-20)**: A1은 S1 뒤에 `fmtCompactUsdNarrow`를 `fmtCompactMoneyNarrow` 안으로 접는 것으로 끝냈다. A2·A3·A5·A7, B5(예외 삭제, knip 0)와 B6(`sharp`·`axe-core` devDependency 명시, a11y-check는 `import axe` + `axe.source`)도 끝냈다. 남은 것은 태스크 1(사용자 결정 B1·B2·B4·B7)과 5~8이다.

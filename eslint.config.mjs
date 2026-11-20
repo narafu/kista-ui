@@ -3,14 +3,6 @@ import jsxA11y from 'eslint-plugin-jsx-a11y'
 import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
-// react-doctor(`npm run doctor`)는 ESLint 플러그인을 배포하지 않지만, 코드의
-// `eslint-disable react-doctor/*` 주석을 억제 지시로 읽는다. ESLint가 그 주석을
-// "rule not found"로 막지 않도록 어떤 규칙명이든 no-op으로 응답하는 stub을 등록한다.
-const noopRule = { create: () => ({}) }
-const reactDoctorStub = {
-  rules: new Proxy({}, { get: (_, name) => (typeof name === 'string' ? noopRule : undefined) }),
-}
-
 // 런타임 소스 구조 규칙(docs/agents/shared.md "cache"·"metadata"). no-restricted-syntax는 config 객체끼리 병합되지 않고
 // 뒤 객체가 덮어쓰므로, 파일 묶음마다 해당 selector를 모두 합쳐 건다.
 const runtimeFiles = ['app/**', 'widgets/**', 'features/**', 'entities/**']
@@ -38,10 +30,8 @@ export default tseslint.config(
     },
   },
   {
-    plugins: { 'react-doctor': reactDoctorStub },
-    // stub은 아무것도 보고하지 않아 react-doctor 주석이 전부 "unused directive"로 잡히고,
-    // `eslint --fix`가 그 주석을 지워버린다 — 규칙 단위로 끌 수 없어 전역으로 끈다.
-    linterOptions: { reportUnusedDisableDirectives: 'off' },
+    // 쓸모없어진 eslint-disable 주석을 잡는다
+    linterOptions: { reportUnusedDisableDirectives: 'error' },
   },
   {
     plugins: { 'react-hooks': reactHooks },

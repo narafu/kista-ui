@@ -3,7 +3,6 @@
 import type { Currency } from '@shared/lib/api-schema'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
-// eslint-disable-next-line react-doctor/prefer-dynamic-import
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { HousingBenchmark, HousingBenchmarkPoint } from '@entities/stats'
