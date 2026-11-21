@@ -101,4 +101,24 @@ describe('DataList', () => {
     expect(within(shown).getByText('비밀')).toBeInTheDocument()
     expect(within(secret).queryByText('비밀')).not.toBeInTheDocument()
   })
+
+  it('titleBadge는 모바일 제목만 배지로 그리고 PC 셀은 그대로 둔다', () => {
+    const badgeColumns: DataListColumn<Row>[] = [{ ...columns[0], mobile: 'titleBadge' }, columns[2]]
+    render(<DataList {...base} columns={badgeColumns} rows={[rows[0]]} />)
+
+    const mobile = within(screen.getByRole('list', { name: '목록' })).getByText('나')
+    const desktop = within(screen.getByRole('table')).getByText('나')
+    expect(mobile).toHaveClass('font-bold')
+    expect(desktop).not.toHaveClass('font-bold')
+  })
+
+  it('날짜 그룹 카드는 라벨과 값을 한 줄에 두고 값을 굵게 그린다', () => {
+    // PC용 굵기를 준 컬럼도 카드에서는 같은 굵기로 보인다
+    const weighted = columns.map((c) => (c.key === 'value' ? { ...c, className: 'font-medium' } : c))
+    render(<DataList {...base} columns={weighted} rows={[rows[0]]} groupBy={{ header: '날짜', key: (r) => r.day }} />)
+
+    const value = within(screen.getByRole('list', { name: '07-01' })).getByText('2')
+    expect(value).toHaveClass('font-semibold')
+    expect(value.parentElement).toHaveClass('flex')
+  })
 })

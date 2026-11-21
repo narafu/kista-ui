@@ -36,7 +36,7 @@ function entryKey(entry: CycleHistoryItem, index: number) {
 const usd = (value: number | null | undefined) => (value != null ? `$${fmtUsd(value)}` : '-')
 
 const COLUMNS: DataListColumn<CycleHistoryItem>[] = [
-  { key: 'ticker', header: '티커', mobile: 'title', className: 'font-medium', cell: (e) => e.ticker ?? '-' },
+  { key: 'ticker', header: '티커', mobile: 'titleBadge', className: 'font-medium', cell: (e) => e.ticker ?? '-' },
   { key: 'holdings', header: '수량', mobile: 'badge', numeric: true, cell: (e) => fmtShares(e.holdings) },
   { key: 'avgPrice', header: '평단가', numeric: true, cell: (e) => usd(e.avgPrice) },
   // DCA는 시드를 두지 않아 예수금이 항상 0 — PC는 '-', 모바일은 항목을 뺀다

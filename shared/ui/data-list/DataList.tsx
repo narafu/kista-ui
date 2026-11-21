@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { useTableSort, type SortDirection } from '@shared/lib/hooks/use-table-sort'
 import { cn, groupConsecutiveBy } from '@shared/lib/utils'
+import { Badge } from '@shared/ui/Badge'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
@@ -21,8 +22,8 @@ export interface DataListColumn<T> {
   numeric?: boolean
   /** PC 셀과 모바일 값에 함께 붙는 클래스 */
   className?: string | ((row: T) => string | false | undefined)
-  /** 모바일 카드 안 위치. 생략하면 라벨-값 항목 */
-  mobile?: 'title' | 'badge' | 'hidden'
+  /** 모바일 카드 안 위치. `titleBadge`는 제목 자리에 브랜드 배지로 그린다. 생략하면 라벨-값 항목 */
+  mobile?: 'title' | 'titleBadge' | 'badge' | 'hidden'
   /** 이 행의 모바일 카드에서만 항목을 뺀다. PC 셀은 `cell`이 그대로 그린다 */
   mobileHiddenWhen?: (row: T) => boolean
   /** 전량형 목록의 정렬 값. null·undefined 행은 방향과 무관하게 맨 아래 */
@@ -94,7 +95,7 @@ function columnClass<T>(column: DataListColumn<T>, row: T) {
 
 function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListColumn<T>[]; grouped: boolean }) {
   const visible = columns.filter((c) => c.mobile !== 'hidden' && !c.mobileHiddenWhen?.(row))
-  const titles = visible.filter((c) => c.mobile === 'title')
+  const titles = visible.filter((c) => c.mobile === 'title' || c.mobile === 'titleBadge')
   const badges = visible.filter((c) => c.mobile === 'badge')
   const fields = visible.filter((c) => !c.mobile)
   return (
@@ -102,7 +103,9 @@ function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListCol
       {titles.length + badges.length > 0 && (
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-            {titles.map((c) => <div key={c.key} className={cn(columnClass(c, row), 'text-sm font-semibold')}>{c.cell(row)}</div>)}
+            {titles.map((c) => c.mobile === 'titleBadge'
+              ? <Badge key={c.key} tone="brand" size="sm" className="px-2.5 font-bold">{c.cell(row)}</Badge>
+              : <div key={c.key} className={cn(columnClass(c, row), 'text-sm font-semibold')}>{c.cell(row)}</div>)}
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             {badges.map((c) => <div key={c.key} className={cn(columnClass(c, row), 'text-sm font-semibold')}>{c.cell(row)}</div>)}
@@ -110,12 +113,13 @@ function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListCol
         </div>
       )}
       {fields.length > 0 && (
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        // 날짜 그룹 카드는 건수가 많아 라벨과 값을 한 줄에 둔다
+        <dl className={grouped ? 'flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm' : 'grid grid-cols-2 gap-x-4 gap-y-3 text-sm'}>
           {fields.map((c) => (
-            <div key={c.key} className="min-w-0">
+            <div key={c.key} className={grouped ? 'flex min-w-0 items-baseline gap-1' : 'min-w-0'}>
               {/* 공백: 라벨과 값의 텍스트가 붙지 않게 한다(스크린리더·textContent) */}
-              <dt className="text-xs text-muted-foreground">{c.header}</dt>{' '}
-              <dd className={cn('mt-0.5', c.numeric && 'tabular-nums', columnClass(c, row))}>{c.cell(row)}</dd>
+              <dt className={grouped ? 'text-muted-foreground' : 'text-xs text-muted-foreground'}>{c.header}</dt>{' '}
+              <dd className={cn(grouped ? 'text-foreground' : 'mt-0.5', c.numeric && 'tabular-nums', columnClass(c, row), grouped && 'font-semibold')}>{c.cell(row)}</dd>
             </div>
           ))}
         </dl>
