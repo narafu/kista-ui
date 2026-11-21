@@ -86,3 +86,12 @@ Q-01~Q-05와 구현 평가의 틀린 전제 15건(`findings/r-implementation-rev
 - 선택지: (A) shared.md 위치를 승인하고 08의 문서 정리 대상에 반영. (B) app.md(또는 08이 정할 새 위치)로 옮긴다.
 - 멈춘 범위: 없음
 - 답: (Fable) 지침서 04 태스크 7 개정, 지침서 08 태스크 12 개정 — `shared.md`의 프리미티브 설명은 승인한다(08 태스크 13이 레이어 문서와 함께 지운다). 다만 폼을 쓰는 쪽이 지켜야 할 규칙 3줄(폼 판정 기준과 프리미티브 사용, 제출 버튼 비활성 조건, 필수·선택 표기)은 features·widgets에서 로드되지 않는 `shared.md`·`app.md`가 아니라 `a11y.md` "폼" 항목에 둔다. 5d와 같은 커밋에 넣는다. 08 태스크 12가 `ui.md`로 옮긴다. 커밋 `e9e1000e`.
+
+### Q-06 VR 입력의 소수 자릿수 제한
+- 상태: 사용자 결정 필요
+- 묶음·태스크: S4 / 지침서 06 태스크 5
+- 걸린 곳: `features/strategy/reconfigure-vr/ReconfigureVrSections.tsx`의 편입 매수단가와 `entities/strategy/ui/VrFieldControls.tsx`의 적립·인출 금액은 `AmountInput`에 자릿수 제한이 없다. 돈이 움직이는 폼의 입력 조건이 바뀌는 일이라 S4에서 고치지 않았다.
+- 근거: api `VrConfigRequest`의 `recurringAmount`는 `Integer`이고 `injectSharePrice`는 `BigDecimal`이다. `VrReconfigureService`는 매수단가의 자릿수를 검증하지 않고 그대로 평단 계산에 쓴다. 적립·인출에 소수를 보내면 잘리는지 거절되는지는 실행해 확인하지 않았다.
+- 선택지: (A) 적립·인출은 정수만(`maxDecimals={0}`), 매수단가는 `currency="USD"`(소수 2자리)로 제한한다. (B) 지금대로 둔다. 매수단가의 소수 3자리 이상이 평단에 그대로 들어가고, 적립·인출의 소수 처리는 서버에 맡긴다.
+- 권고: (A). 서버 타입과 입력 조건이 맞고, 확인한 값과 저장값이 달라질 여지가 없어진다.
+- 멈춘 범위: 이 두 입력만. S4의 다른 태스크는 막지 않는다.
