@@ -124,7 +124,7 @@ describe('VrSettingsSection', () => {
       expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 100)
     })
 
-    it('preserves decimal recurring amount so form validation can reject it', () => {
+    it('서버 필드가 정수라 적립·인출 금액의 소수 입력을 받지 않는다', () => {
       render(
         <VrSettingsSection
           fields={baseFields}
@@ -135,7 +135,7 @@ describe('VrSettingsSection', () => {
       const recurringInput = getInputByLabelText('적립금(+)/인출금(-)')
       fireEvent.change(recurringInput, { target: { value: '10.5' } })
 
-      expect(mockSetField).toHaveBeenCalledWith('recurringAmount', 10.5)
+      expect(mockSetField).not.toHaveBeenCalledWith('recurringAmount', 10.5)
     })
   })
 

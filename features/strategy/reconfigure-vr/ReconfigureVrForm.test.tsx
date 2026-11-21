@@ -245,6 +245,21 @@ describe('ReconfigureVrForm', () => {
     expect(screen.getByLabelText('매수단가')).toBeInTheDocument()
   })
 
+  it('매수단가는 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
+    const user = userEvent.setup()
+    renderForm(strategy)
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
+    const input = screen.getByLabelText('매수단가') as HTMLInputElement
+
+    await user.type(input, '87.123')
+    expect(input.value).toBe('87.12')
+
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+    expect((await submittedAfterSend()).injectSharePrice).toBe(87.12)
+  })
+
   it('추가 예수금은 소수점 둘째 자리까지만 입력되고 제출값에도 그대로 반영된다', async () => {
     const user = userEvent.setup()
     renderForm(strategy)

@@ -97,6 +97,8 @@ export function RecurringModeField({
         value={amount !== null ? Math.abs(amount) : null}
         onChange={setAmount}
         unit="USD"
+        // 서버 필드가 정수다(전략 등록·재설정·백테스트 공통)
+        maxDecimals={0}
         disabled={disabled || mode === 'HOLD'}
         ariaLabel="적립금(+)/인출금(-)"
         placeholder="0"

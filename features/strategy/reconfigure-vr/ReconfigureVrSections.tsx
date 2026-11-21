@@ -115,7 +115,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
         {injectShares != null && injectShares > 0 && (
           <div className="space-y-2">
             <Label htmlFor="injectSharePrice">매수단가</Label>
-            <AmountInput id="injectSharePrice" unit="USD" unitClassName="ml-2" disabled={disabled}
+            <AmountInput id="injectSharePrice" unit="USD" currency="USD" unitClassName="ml-2" disabled={disabled}
             value={form.watch('injectSharePrice') ?? null}
             onChange={(v) => form.setValue('injectSharePrice', toUndef(v), { shouldValidate: true })} />
             {form.formState.errors.injectSharePrice && <p className="text-sm text-destructive">{form.formState.errors.injectSharePrice.message}</p>}
