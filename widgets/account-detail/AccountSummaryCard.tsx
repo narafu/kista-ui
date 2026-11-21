@@ -10,11 +10,8 @@ import { useMeta } from '@entities/meta'
 import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account, AccountLedgerTotals } from '@entities/account'
 
-// 모든 타일을 같은 글씨 크기로 — 모바일 2열 타일 폭(360px에서 약 100px)에서 숫자가 중간에 끊기지 않게 한다
-const TILE_VALUE = 'text-lg sm:text-xl lg:text-2xl tabular-nums break-keep'
-// 금액 타일은 모바일에서 전체 폭을 줘 긴 금액이 한 줄에 들어가게 한다
-const MONEY_TILE = 'col-span-2 sm:col-span-1'
-
+// 모든 타일을 같은 글씨 크기로 — 모바일 2열 타일 폭(360px에서 약 100px)에 금액이 들어가게 하고, 더 길면 타일 밖으로 넘치지 않게 줄바꿈한다
+const TILE_VALUE = 'text-base sm:text-xl lg:text-2xl tabular-nums break-keep [overflow-wrap:anywhere]'
 
 interface Props {
   account: Account
@@ -46,8 +43,8 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
           {expiry && <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
-        <div className="grid grid-cols-2 gap-3">
+      <CardContent className="px-4 pb-6 sm:px-6">
+        <div className="grid grid-cols-2 gap-3 [&>div]:p-3 sm:[&>div]:p-5">
           {account.accountNoMasked != null && (
             <KpiCard
               label="계좌번호"
@@ -63,17 +60,17 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
           )}
           <KpiCard label="증권사" className={account.accountNoMasked == null ? 'col-span-2' : undefined} value={brokerLabel} valueClassName={TILE_VALUE} />
           <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">전략 기준</p>
-          <KpiCard label="예수금" className={MONEY_TILE} value={ledgerDeposit} valueClassName={TILE_VALUE} />
-          <KpiCard label="평가금" className={MONEY_TILE} value={ledgerEval} valueClassName={TILE_VALUE} />
-          <KpiCard label="미배정 예수금" className="col-span-2" value={ledgerUnassigned} valueClassName={TILE_VALUE} sub="주문 가능 기준" />
+          <KpiCard label="예수금" value={ledgerDeposit} valueClassName={TILE_VALUE} />
+          <KpiCard label="평가금" value={ledgerEval} valueClassName={TILE_VALUE} />
+          <KpiCard label="미배정 예수금" className="col-span-2 hidden sm:flex" value={ledgerUnassigned} valueClassName={TILE_VALUE} sub="주문 가능 기준" />
           {ledgerTotalsError && (
             <p role="status" className="col-span-2 text-xs text-muted-foreground">전략 기준 금액을 불러오지 못했습니다.</p>
           )}
           {!isMock && (
             <>
               <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">증권사 기준</p>
-              <KpiCard label="예수금" className={MONEY_TILE} value={`$${fmtUsd(deposit)}`} valueClassName={TILE_VALUE} />
-              <KpiCard label="평가금" className={MONEY_TILE} value={`$${fmtUsd(posEvalUsd)}`} valueClassName={TILE_VALUE} />
+              <KpiCard label="예수금" value={`$${fmtUsd(deposit)}`} valueClassName={TILE_VALUE} />
+              <KpiCard label="평가금" value={`$${fmtUsd(posEvalUsd)}`} valueClassName={TILE_VALUE} />
             </>
           )}
         </div>
