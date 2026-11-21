@@ -230,3 +230,12 @@
 - 로컬 api가 필요한 화면(155행) → 로드맵 4-5의 2.
 
 배포: 태스크 1·3~7은 ui 단독이고 모양만 달라진다. 태스크 2의 페이지형과 8은 05의 5와 같은 날이다.
+
+S4 1차 실행 보정 (2026-11-21, `309d6046`, 태스크 1·4·5):
+
+- 착수 전 재측정: `<AlertDialog` 13파일(14 아님), `components/ui/card` 27파일, `-[var(--` 213줄·112파일, `lg:hidden` 21파일, `animate-pulse`가 있는 `app` 파일 15개.
+- 태스크 1: `DataList`의 입력은 본문의 `query`가 아니라 `rows` + `isLoading`·`isError`다. 시범 화면 둘 다 RQ 결과를 그대로 갖고 있지 않다. `isError`에는 호출부가 계산한 `isError && !data`를 넘긴다. 날짜 그룹 `groupBy`는 3개 화면이 쓰는 일반 옵션이고, 행별 모바일 숨김은 `mobileHiddenWhen`이다.
+- 태스크 1 실측: `StrategyTypeComparison` 139 → 97, `CycleHistoryTable` 178 → 117로 화면당 평균 51줄이 줄었다. 본문 추정(15개 표에 700~900줄, 표당 47~60줄) 안이라 태스크 2를 멈출 조건이 아니다. `DataList` 197줄을 빼면 시범 2개만으로는 순증 94줄이다.
+- 태스크 4 판정 제외: `widgets/strategy-detail/CloseStrategyDialog.tsx`. 보관·삭제 라디오에 따라 확인 동작과 버튼 색이 바뀌어 틀에 담지 않는다. 판정 명령은 `git grep -l -E '<AlertDialog[ >]' -- '*.tsx' ':!*.test.*' ':!components/ui' ':!shared/ui'`가 이 파일 1건이면 통과다.
+- 태스크 4: 트리거는 `ConfirmDialog`의 `trigger` prop으로 넘겨 Base UI 트리거로 렌더한다. 일반 버튼으로 두면 Safari·iOS에서 닫은 뒤 포커스가 트리거로 돌아오지 않는다. 처리 중 차단은 `blockTriggerWhile`이다.
+- 태스크 5 판정 제외: `type="number"` 4파일(`CategoryFormDialog`, `DcaConditionsSection`, `PrivacyBaseFormDialog`, `PrivacyOrderFields`)은 스피너·`min`·`step`에 기대거나 값이 문자열이라 옮기면 동작이 달라진다. `InputWithUnit` 4파일(`AssetForm`, `BudgetForm`, `TransactionFormDialog`, `ValueListEditor`)은 콤마 문자열 폼이라 그대로 둔다.

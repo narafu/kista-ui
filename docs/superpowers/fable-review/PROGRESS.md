@@ -409,6 +409,8 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - `a11y-check` 위반 0건.
   - 운영 설정과 API 키 재등록(`CredentialsCard`) 화면을 확인했다(후 스크린샷만).
   - 함정: 셸 환경변수 `TRADING_API_BASE_URL=http://localhost:8081`이 `.env`를 덮어쓴다. 그래서 그냥 띄운 dev 서버의 `/api/accounts`가 ECONNREFUSED로 500이 됐고, 첫 a11y-check가 대시보드 h1 누락으로 위반 6건을 냈다. dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`로 띄운다. e2e는 `playwright.config.ts`가 주소를 주입해 영향이 없다.
+- `309d6046`(S4 1차): 로컬 api가 내려가 있어 돌리지 못했다. api를 `KISTA_ROLE=all`로 띄운 뒤 읽기 전용 e2e(`--project=setup --project=chromium --no-deps`, worktree 절차), `npm run a11y-check -- --url <dev 주소>`, `npm run visual-diff -- 20982123`을 돌린다. visual-diff에서 잔고 이력·전략 유형 비교의 모바일 카드와 확인 다이얼로그를 본다.
+- S1의 `npm run visual-diff -- 190caf90`은 2026-11-21에 돌렸지만 판정할 수 없었다. 116샷 중 30샷이 api 5xx를 받았고(`accounts`·`trading-cycles` 503 "이 서버 역할에서는 처리하지 않는 요청"), 기준 커밋 뒤의 S2·S3 변경이 차이에 섞였다. 대기를 유지한다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -492,6 +494,22 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - 운영 설정 화면은 로컬 api 상태 때문에 전후 모두 "불러오지 못했습니다"라 화면을 확인하지 못했다. `CredentialsCard`는 시드 계좌가 없어 찍지 못했다.
 - **e2e·a11y-check**: 처음에는 로컬 api 상태 때문에 돌리지 못했다. 사용자 승인 뒤 api 세션이 복구했고, 읽기 전용 e2e 16건 통과, a11y-check 위반 0건이다("e2e 대기" 참고).
 - 미검증(실기기 필요): 바뀐 다이얼로그 오류 표시의 모바일 키보드 겹침.
+
+## S4 실행 기록 — 화면 프리미티브 1차 (지침서 06의 1·4·5, 2026-11-21)
+
+- 한 커밋(`309d6046`), 52파일 +1,100/−895(테스트·문서 포함). S4가 100파일을 넘어 세 세션으로 나눴다. **남은 것: 06의 3, 그다음 06의 6·7 + 11의 11.** 06의 6·7과 11의 11은 visual-diff가 판정이라 로컬 api가 `KISTA_ROLE=all`로 떠 있는 세션에서 한다.
+- `DataList`: 시범 전환 2개(`StrategyTypeComparison`, `CycleHistoryTable`). 실측과 API 결정은 06 보정 절의 "S4 1차 실행 보정".
+- `ConfirmDialog`: `ConfirmDeleteDialog`를 넓혔다. `AlertDialog` 직접 조립은 `CloseStrategyDialog` 1파일만 남았다. 계좌 삭제의 별칭 입력 확인도 `typeToConfirm`으로 옮겼다.
+- `AmountInput`: `UnitInput`을 넓혔다. `type="number"` 4파일과 `InputWithUnit` 4파일은 동작 보존을 위해 그대로 뒀다. 돈이 움직이는 폼의 요청 바디는 바뀌지 않았다.
+- 화면에서 달라진 것:
+  - 잔고 이력 모바일 카드: 티커가 배지에서 굵은 글자로, "평단"이 "평단가"로, 값이 2열 라벨-값으로.
+  - 전략 유형 비교 모바일: 사이클 값이 흐린 색으로.
+  - 승인·거절·역할 변경·탈퇴 다이얼로그: 성공하면 닫힌다(전에는 열린 채 남았다).
+  - 계좌 삭제 다이얼로그: 진행 중 스피너 없이 문구만, 입력칸 100자 제한 제거.
+- **리뷰**: `/code-review high` 7건 중 5건을 고쳤고 수정분 재리뷰에서 결함이 없었다. 고친 것: 닫힘 중 확인 재클릭(역할이 되돌아갈 수 있었다), Safari 포커스 복귀, 삭제 성공 뒤 이동 전 재요청, 처리 중 트리거 차단, USD 자릿수 표기.
+- **사용자 결정 대기**: VR 재설정의 편입 매수단가(`ReconfigureVrSections`)와 적립·인출 금액(`VrFieldControls`)은 USD인데 자릿수 제한이 없다. 기존 동작이고, 제한을 넣으면 돈 폼의 입력 조건이 바뀌어 고치지 않았다.
+- **검증**: typecheck·lint·knip 0건, 전체 vitest 261파일 1,819건 통과(+ `it.fails` 1건). 변이 확인: 모바일 숨김 옵션 제거, 이전 회차 성공 가드, 닫힘 중 클릭 가드.
+- **미검증**: 전후 스크린샷, e2e, a11y-check, visual-diff. 로컬 api가 내려가 있다("e2e 대기" 참고). e2e 대기가 남아 있으니 push를 요청하지 않는다.
 
 ## 로드맵 재점검 (2026-11-21)
 
