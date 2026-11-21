@@ -409,8 +409,12 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - `a11y-check` 위반 0건.
   - 운영 설정과 API 키 재등록(`CredentialsCard`) 화면을 확인했다(후 스크린샷만).
   - 함정: 셸 환경변수 `TRADING_API_BASE_URL=http://localhost:8081`이 `.env`를 덮어쓴다. 그래서 그냥 띄운 dev 서버의 `/api/accounts`가 ECONNREFUSED로 500이 됐고, 첫 a11y-check가 대시보드 h1 누락으로 위반 6건을 냈다. dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`로 띄운다. e2e는 `playwright.config.ts`가 주소를 주입해 영향이 없다.
-- `309d6046`(S4 1차): 로컬 api가 내려가 있어 돌리지 못했다. api를 `KISTA_ROLE=all`로 띄운 뒤 읽기 전용 e2e(`--project=setup --project=chromium --no-deps`, worktree 절차), `npm run a11y-check -- --url <dev 주소>`, `npm run visual-diff -- 20982123`을 돌린다. visual-diff에서 잔고 이력·전략 유형 비교의 모바일 카드와 확인 다이얼로그를 본다.
-- S1의 `npm run visual-diff -- 190caf90`은 2026-11-21에 돌렸지만 판정할 수 없었다. 116샷 중 30샷이 api 5xx를 받았고(`accounts`·`trading-cycles` 503 "이 서버 역할에서는 처리하지 않는 요청"), 기준 커밋 뒤의 S2·S3 변경이 차이에 섞였다. 대기를 유지한다.
+- `309d6046`·`9c7d8557`(S4 1차): **해소(2026-11-21)**. 로컬 api(`KISTA_ROLE=all`)에서 돌렸다.
+  - 읽기 전용 e2e 15건 통과, a11y-check 위반 0건.
+  - 함정: `--project=setup --project=chromium --no-deps`를 한 번에 돌리면 병렬로 시작해 `admin.json`이 없다는 실패가 날 수 있다. `--project=setup --no-deps`를 먼저 돌리고 `--project=chromium --no-deps`를 돌린다.
+  - visual-diff(`20982123` 대 `9c7d8557`) 116샷 중 16샷이 다르다. 14샷은 잔고 이력이 든 모바일 화면의 높이 차이다(카드 한 장 약 +20px, 8건이면 +165px, 티커 배지가 굵은 글자로, 금액이 보통 굵기로). `/stats` 모바일은 전략 유형 비교 카드, PC는 12×14px 글자 영역이다. 모바일 카드 모양은 사용자 확인 대기다.
+  - 집계할 때 `diff > 0`만 세면 크기 불일치(`diff`가 `"SIZE …"` 문자열)를 놓친다. `diff !== 0`으로 센다.
+- `6a3e0a14`(S1)의 visual-diff: **해소(2026-11-21)**. 대상 화면만(`--only '^(account-detail|account-new|create-strategy|stock-dca)'`) `190caf90` 대 `6a3e0a14`로 돌렸다. 22샷 중 2샷만 다르고, 계좌 등록의 "증권사·거래소" → "증권사" 문구로 의도한 변경이다. 전체 시나리오를 돌린 실행은 옛 커밋 worktree의 폰트 모듈 오류로 판정에 쓰지 않았다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -509,7 +513,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - **리뷰**: `/code-review high` 7건 중 5건을 고쳤고 수정분 재리뷰에서 결함이 없었다. 고친 것: 닫힘 중 확인 재클릭(역할이 되돌아갈 수 있었다), Safari 포커스 복귀, 삭제 성공 뒤 이동 전 재요청, 처리 중 트리거 차단, USD 자릿수 표기.
 - **VR 입력 자릿수**(`questions.md` Q-06, 사용자 결정 A): 적립·인출은 정수만, 재설정의 매수단가는 소수 2자리까지 받는다.
 - **검증**: typecheck·lint·knip 0건, 전체 vitest 261파일 1,819건 통과(+ `it.fails` 1건). 변이 확인: 모바일 숨김 옵션 제거, 이전 회차 성공 가드, 닫힘 중 클릭 가드.
-- **미검증**: 전후 스크린샷, e2e, a11y-check, visual-diff. 로컬 api가 내려가 있다("e2e 대기" 참고). e2e 대기가 남아 있으니 push를 요청하지 않는다.
+- **e2e·a11y-check·visual-diff**: 통과 또는 차이 확인 완료("e2e 대기" 참고). 남은 것은 잔고 이력 모바일 카드 모양의 사용자 확인이다.
 
 ## 로드맵 재점검 (2026-11-21)
 
