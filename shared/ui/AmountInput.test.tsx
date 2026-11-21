@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { UnitInput } from './UnitInput'
+import { AmountInput } from './AmountInput'
 
-function ControlledUnitInput({ maxDecimals }: { maxDecimals?: number } = {}) {
+function ControlledAmountInput({ maxDecimals }: { maxDecimals?: number } = {}) {
   const [value, setValue] = useState<number | null>(null)
   return (
-    <UnitInput
+    <AmountInput
       value={value}
       onChange={setValue}
       unit="USD"
@@ -18,9 +18,9 @@ function ControlledUnitInput({ maxDecimals }: { maxDecimals?: number } = {}) {
   )
 }
 
-describe('UnitInput', () => {
+describe('AmountInput', () => {
   it('keeps a trailing decimal point visible while typing', () => {
-    render(<ControlledUnitInput />)
+    render(<ControlledAmountInput />)
     const input = screen.getByLabelText('평단가') as HTMLInputElement
 
     fireEvent.change(input, { target: { value: '87' } })
@@ -30,7 +30,7 @@ describe('UnitInput', () => {
   })
 
   it('allows entering a value with two decimal places', () => {
-    render(<ControlledUnitInput />)
+    render(<ControlledAmountInput />)
     const input = screen.getByLabelText('평단가') as HTMLInputElement
 
     fireEvent.change(input, { target: { value: '87' } })
@@ -42,7 +42,7 @@ describe('UnitInput', () => {
   })
 
   it('rejects a third decimal digit when maxDecimals is 2', () => {
-    render(<ControlledUnitInput maxDecimals={2} />)
+    render(<ControlledAmountInput maxDecimals={2} />)
     const input = screen.getByLabelText('평단가') as HTMLInputElement
 
     fireEvent.change(input, { target: { value: '87.50' } })
@@ -53,13 +53,13 @@ describe('UnitInput', () => {
 
   it('strips commas before emitting the value', () => {
     const onChange = vi.fn()
-    render(<UnitInput value={null} onChange={onChange} unit="USD" disabled={false} ariaLabel="금액" />)
+    render(<AmountInput value={null} onChange={onChange} unit="USD" disabled={false} ariaLabel="금액" />)
     fireEvent.change(screen.getByLabelText('금액'), { target: { value: '1,000' } })
     expect(onChange).toHaveBeenLastCalledWith(1000)
   })
 
   it('ignores exponent input', () => {
-    render(<ControlledUnitInput />)
+    render(<ControlledAmountInput />)
     const input = screen.getByLabelText('평단가') as HTMLInputElement
     fireEvent.change(input, { target: { value: '5' } })
     fireEvent.change(input, { target: { value: '5e-1' } })
@@ -67,7 +67,7 @@ describe('UnitInput', () => {
   })
 
   it('uses numeric inputmode and rejects a dot when maxDecimals is 0', () => {
-    render(<ControlledUnitInput maxDecimals={0} />)
+    render(<ControlledAmountInput maxDecimals={0} />)
     const input = screen.getByLabelText('평단가') as HTMLInputElement
     expect(input).toHaveAttribute('inputmode', 'numeric')
     fireEvent.change(input, { target: { value: '5' } })
@@ -77,7 +77,7 @@ describe('UnitInput', () => {
 
   it('lets touch gestures pass through a disabled input to its scroll container', () => {
     render(
-      <UnitInput
+      <AmountInput
         value={0}
         onChange={() => {}}
         unit="주"
@@ -90,7 +90,7 @@ describe('UnitInput', () => {
   })
 
   it('focuses the input when the unit inside the box is clicked', async () => {
-    render(<ControlledUnitInput />)
+    render(<ControlledAmountInput />)
 
     await userEvent.click(screen.getByText('USD'))
 
@@ -101,11 +101,23 @@ describe('UnitInput', () => {
     render(
       <>
         <label htmlFor="grace">gradient 유예(주)</label>
-        <UnitInput id="grace" value={null} onChange={() => {}} unit="주" disabled={false} />
+        <AmountInput id="grace" value={null} onChange={() => {}} unit="주" disabled={false} />
       </>,
     )
 
     const input = screen.getByRole('textbox', { name: 'gradient 유예(주)' })
     expect(input).toHaveAccessibleDescription('주')
+  })
+
+  it('currency 자릿수는 CURRENCY_SCALE을 따른다 (KRW 0, USD 2)', () => {
+    const { rerender } = render(<AmountInput value={null} onChange={() => {}} unit="원" disabled={false} ariaLabel="금액" currency="KRW" />)
+    const krw = screen.getByLabelText('금액') as HTMLInputElement
+    fireEvent.change(krw, { target: { value: '10.5' } })
+    expect(krw.value).toBe('')
+    rerender(<AmountInput value={null} onChange={() => {}} unit="USD" disabled={false} ariaLabel="금액" currency="USD" />)
+    const usd = screen.getByLabelText('금액') as HTMLInputElement
+    fireEvent.change(usd, { target: { value: '10.55' } })
+    fireEvent.change(usd, { target: { value: '10.555' } })
+    expect(usd.value).toBe('10.55')
   })
 })

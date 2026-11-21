@@ -1,7 +1,7 @@
 'use client'
 
 import { useId, type ReactNode } from 'react'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
@@ -27,21 +27,21 @@ export function InitialHoldingsSection({
       <div className="grid grid-cols-2 gap-2">
         <div>
           <StrategyFieldLabel htmlFor={`${id}-avgPrice`}>평단가</StrategyFieldLabel>
-          <UnitInput
+          <AmountInput
             id={`${id}-avgPrice`}
             value={avgPrice}
             onChange={(value) => setField('avgPrice', value)}
             unit="USD"
             disabled={loading}
             unitClassName="ml-1.5"
-            maxDecimals={2}
+            currency="USD"
             errorId={errors?.avgPrice ? `${id}-avgPrice-error` : pairErrorId}
           />
           {errors?.avgPrice && <p id={`${id}-avgPrice-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.avgPrice}</p>}
         </div>
         <div>
           <StrategyFieldLabel htmlFor={`${id}-quantity`}>수량</StrategyFieldLabel>
-          <UnitInput
+          <AmountInput
             id={`${id}-quantity`}
             value={quantity}
             onChange={(value) => setField('quantity', value)}

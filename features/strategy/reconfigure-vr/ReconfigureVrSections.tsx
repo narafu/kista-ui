@@ -3,7 +3,7 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import { RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
@@ -53,12 +53,12 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
         <h2 className="text-sm font-bold text-foreground">파라미터</h2>
         <div className="space-y-2">
           <Label htmlFor="bandWidth">밴드 폭</Label>
-          <UnitInput id="bandWidth" unit="%" disabled={disabled} value={form.watch('bandWidth') ?? null}
+          <AmountInput id="bandWidth" unit="%" disabled={disabled} value={form.watch('bandWidth') ?? null}
             onChange={(v) => form.setValue('bandWidth', toUndef(v), { shouldValidate: true })} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="intervalWeeks">리밸런싱 주기</Label>
-          <UnitInput id="intervalWeeks" maxDecimals={0} unit="주" disabled={disabled} value={form.watch('intervalWeeks') ?? null}
+          <AmountInput id="intervalWeeks" maxDecimals={0} unit="주" disabled={disabled} value={form.watch('intervalWeeks') ?? null}
             onChange={(v) => form.setValue('intervalWeeks', toUndef(v), { shouldValidate: true })} />
         </div>
         <RecurringModeField
@@ -115,7 +115,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
         {injectShares != null && injectShares > 0 && (
           <div className="space-y-2">
             <Label htmlFor="injectSharePrice">매수단가</Label>
-            <UnitInput id="injectSharePrice" unit="USD" unitClassName="ml-2" disabled={disabled}
+            <AmountInput id="injectSharePrice" unit="USD" unitClassName="ml-2" disabled={disabled}
             value={form.watch('injectSharePrice') ?? null}
             onChange={(v) => form.setValue('injectSharePrice', toUndef(v), { shouldValidate: true })} />
             {form.formState.errors.injectSharePrice && <p className="text-sm text-destructive">{form.formState.errors.injectSharePrice.message}</p>}
@@ -123,7 +123,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
         )}
         <div className="space-y-2">
           <Label htmlFor="injectDeposit">추가 예수금</Label>
-          <UnitInput id="injectDeposit" unit="USD" unitClassName="ml-2" maxDecimals={2} placeholder="0" disabled={disabled}
+          <AmountInput id="injectDeposit" unit="USD" unitClassName="ml-2" currency="USD" placeholder="0" disabled={disabled}
             value={form.watch('injectDeposit') ?? null}
             onChange={(v) => form.setValue('injectDeposit', v, { shouldValidate: true })} />
           {form.formState.errors.injectDeposit && <p className="text-sm text-destructive">{form.formState.errors.injectDeposit.message}</p>}
@@ -144,7 +144,7 @@ export function WithdrawSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="withdrawDeposit">인출 예수금</Label>
-          <UnitInput id="withdrawDeposit" unit="USD" unitClassName="ml-2" maxDecimals={2} placeholder="0" disabled={disabled}
+          <AmountInput id="withdrawDeposit" unit="USD" unitClassName="ml-2" currency="USD" placeholder="0" disabled={disabled}
             value={form.watch('withdrawDeposit') ?? null}
             onChange={(v) => form.setValue('withdrawDeposit', v, { shouldValidate: true })} />
           {form.formState.errors.withdrawDeposit && <p className="text-sm text-destructive">{form.formState.errors.withdrawDeposit.message}</p>}

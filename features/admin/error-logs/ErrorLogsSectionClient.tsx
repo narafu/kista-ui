@@ -4,19 +4,10 @@ import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { useDeleteAdminErrorLogsMutation, type AppErrorLog } from '@entities/admin'
 import { cn } from '@shared/lib/utils'
+import { blockTriggerWhile } from '@shared/ui/blockTriggerWhile'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { ErrorLogItem } from './ErrorLogItem'
 
 interface Props {
@@ -88,28 +79,26 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           <span id={selectAllLabelId} hidden>현재 페이지 오류 로그 전체 선택</span>
         </label>
         {selectedCount > 0 && <span className="text-sm text-muted-foreground">{selectedCount}건 선택됨</span>}
-        <AlertDialog open={open} onOpenChange={setOpen}>
-          <AlertDialogTrigger
-            className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
-            // disabled로 바꾸면 모달을 닫은 뒤 포커스가 body로 빠진다
-            aria-disabled={selectedCount === 0 || mutation.isPending}
-            onClick={(e) => { if (selectedCount === 0 || mutation.isPending) e.preventBaseUIHandler() }}
-          >
-            {mutation.isPending ? '삭제 중...' : selectedLabel}
-          </AlertDialogTrigger>
-          <AlertDialogContent size="sm">
-            <AlertDialogHeader>
-              <AlertDialogTitle>선택한 오류 로그를 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>현재 페이지에서 선택한 오류 로그 {selectedCount}건을 삭제합니다.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={mutation.isPending}>취소</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" disabled={mutation.isPending} onClick={handleDelete}>
-                {mutation.isPending ? '삭제 중...' : '삭제'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmDialog
+          // disabled로 바꾸면 모달을 닫은 뒤 포커스가 body로 빠진다
+          trigger={
+            <button
+              type="button"
+              className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
+              aria-disabled={selectedCount === 0 || mutation.isPending}
+              onClick={blockTriggerWhile(selectedCount === 0 || mutation.isPending)}
+            >
+              {mutation.isPending ? '삭제 중...' : selectedLabel}
+            </button>
+          }
+          open={open}
+          onOpenChange={setOpen}
+          title="선택한 오류 로그를 삭제하시겠습니까?"
+          description={`현재 페이지에서 선택한 오류 로그 ${selectedCount}건을 삭제합니다.`}
+          pending={mutation.isPending}
+          pendingLabel="삭제 중..."
+          onConfirm={handleDelete}
+        />
       </div>
 
       {logs.map((log) => (

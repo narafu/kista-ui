@@ -20,7 +20,7 @@ import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
-import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { filterAdminPrivacyBasesByRange, useAdminPrivacyBasesQuery, useDeleteAdminPrivacyOrderMutation } from '@entities/privacy'
 import type { AdminPrivacyBase, AdminPrivacyOrder } from '@entities/privacy'
 import { PrivacyBaseFormDialog } from './PrivacyBaseFormDialog'
@@ -254,13 +254,14 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
         <PrivacyOrderFormDialog baseId={addOrderBase.id} open onClose={() => setAddOrderBaseId(null)} />
       )}
 
-      <ConfirmDeleteDialog
+      <ConfirmDialog
         open={deleteOrderTarget != null}
         onOpenChange={(next) => { if (!next) setDeleteOrderRef(null) }}
         title="주문 삭제"
         description={deleteOrderTarget ? `${describeOrder(deleteOrderTarget.order, labelOf)} 주문을 삭제합니다.` : ''}
         onConfirm={handleDeleteOrder}
-        isPending={deleteOrderMutation.isPending}
+        pending={deleteOrderMutation.isPending}
+        pendingLabel="삭제 중..."
       />
     </>
   )

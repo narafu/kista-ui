@@ -5,7 +5,7 @@ import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { ConfirmDeleteDialog } from './ConfirmDeleteDialog'
+import { ConfirmDialog } from './ConfirmDialog'
 import { IconButton } from './IconButton'
 
 function normalizeText(value: string) {
@@ -96,13 +96,14 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
         ))}
       </ul>
       {deleteDialog.target !== null && (
-        <ConfirmDeleteDialog
+        <ConfirmDialog
           open
           onOpenChange={deleteDialog.onOpenChange}
           title={`"${deleteDialog.target}" 추천값을 삭제하시겠습니까?`}
           description="추천 목록에서만 빠지며, 이미 등록된 자산 기록은 바뀌지 않습니다."
           onConfirm={deleteValue}
-          isPending={Boolean(disabled)}
+          pending={Boolean(disabled)}
+          pendingLabel="삭제 중..."
         />
       )}
     </div>

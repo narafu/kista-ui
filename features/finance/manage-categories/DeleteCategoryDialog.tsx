@@ -1,15 +1,6 @@
 'use client'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 
 interface Props {
   open: boolean
@@ -25,22 +16,14 @@ export function DeleteCategoryDialog({ open, onOpenChange, categoryName, subtree
   const childCount = Math.max(subtreeCount - 1, 0)
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{categoryName} 카테고리를 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>
-            {childCount > 0 && `하위 ${childCount}개 카테고리가 함께 삭제됩니다. `}
-            이 카테고리를 사용한 과거 기록은 유지됩니다.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>취소</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm} disabled={isPending}>
-            {isPending ? '삭제 중...' : '삭제'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`${categoryName} 카테고리를 삭제하시겠습니까?`}
+      description={`${childCount > 0 ? `하위 ${childCount}개 카테고리가 함께 삭제됩니다. ` : ''}이 카테고리를 사용한 과거 기록은 유지됩니다.`}
+      pendingLabel="삭제 중..."
+      onConfirm={onConfirm}
+      pending={isPending}
+    />
   )
 }

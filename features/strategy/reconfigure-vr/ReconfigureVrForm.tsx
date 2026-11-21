@@ -6,16 +6,7 @@ import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { FormActions } from '@shared/ui/FormActions'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
@@ -154,22 +145,16 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
         className="pt-2"
       />
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>VR 전략을 재설정하시겠습니까?</AlertDialogTitle>
-            <AlertDialogDescription>
-              진행 중인 사이클이 즉시 종료되고 새 사이클이 시작됩니다. 오늘 접수된 미체결 주문은 모두 취소됩니다. 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleConfirm} disabled={disabled}>
-              {mutation.isPending ? '재설정 중...' : '재설정 확정'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="VR 전략을 재설정하시겠습니까?"
+        description="진행 중인 사이클이 즉시 종료되고 새 사이클이 시작됩니다. 오늘 접수된 미체결 주문은 모두 취소됩니다. 이 작업은 되돌릴 수 없습니다."
+        confirmLabel="재설정 확정"
+        pendingLabel={mutation.isPending ? '재설정 중...' : '재설정 확정'}
+        onConfirm={handleConfirm}
+        pending={disabled}
+      />
     </form>
   )
 }

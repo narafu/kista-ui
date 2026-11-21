@@ -1,16 +1,7 @@
 'use client'
 
 import { toast } from 'sonner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { useDeleteFinanceAccountMutation } from '@entities/finance'
 import type { FinanceAccount } from '@entities/finance'
 
@@ -23,31 +14,16 @@ interface Props {
 export function DeleteAccountDialog({ open, onOpenChange, account }: Props) {
   const deleteMutation = useDeleteFinanceAccountMutation()
 
-  function handleConfirm() {
-    deleteMutation.mutate(account.id, {
-      onSuccess: () => {
-        toast.success('계좌가 삭제되었습니다')
-        onOpenChange(false)
-      },
-    })
-  }
-
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{account.name} 계좌를 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>
-            이 계좌를 사용한 자산 기록이 있으면 삭제할 수 없습니다. 먼저 해당 기록의 계좌 매핑을 해제해주세요.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={deleteMutation.isPending}>취소</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleConfirm} disabled={deleteMutation.isPending}>
-            {deleteMutation.isPending ? '삭제 중...' : '삭제'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`${account.name} 계좌를 삭제하시겠습니까?`}
+      description="이 계좌를 사용한 자산 기록이 있으면 삭제할 수 없습니다. 먼저 해당 기록의 계좌 매핑을 해제해주세요."
+      pendingLabel="삭제 중..."
+      mutation={deleteMutation}
+      variables={account.id}
+      onSuccess={() => toast.success('계좌가 삭제되었습니다')}
+    />
   )
 }

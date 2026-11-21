@@ -6,20 +6,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { AlertTriangle } from 'lucide-react'
-import { Spinner } from '@shared/ui/Spinner'
-import { Button } from '@/components/ui/button'
+import { blockTriggerWhile } from '@shared/ui/blockTriggerWhile'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { cn } from '@shared/lib/utils'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
@@ -45,8 +36,8 @@ const schema = z.object({
 
 export function EditAccountForm({ account }: Props) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  // 삭제 확인 타이핑은 폼 필드가 아니라 확인 절차라 RHF 밖에 둔다
-  const [deleteConfirm, setDeleteConfirm] = useState('')
+  // 삭제 성공 뒤 목록으로 이동하기 전까지 다이얼로그가 열려 있어 확인이 다시 눌리지 않게 잠근다. 실패하면 켜지지 않는다
+  const [leaving, setLeaving] = useState(false)
   const showExpiry = isEstimatedExpiry(useMeta().findBroker(account.broker)?.apiKeyExpirySource)
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -63,10 +54,12 @@ export function EditAccountForm({ account }: Props) {
     onDone: () => router.push(`/accounts/${account.id}`),
   })
 
+  const deleteBlocked = deleteMutation.isPending || leaving
+
   function handleDelete() {
-    if (deleteConfirm !== account.nickname) return
     deleteMutation.mutate(undefined, {
       onSuccess: async () => {
+        setLeaving(true)
         toast.success('계좌가 삭제되었습니다')
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: strategyKeys.all }).catch(() => null),
@@ -125,48 +118,33 @@ export function EditAccountForm({ account }: Props) {
           계좌를 삭제하면 {isMockBroker(account.broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 이 계좌의 전략과 거래 기록을 더 이상 볼 수 없습니다.
         </p>
 
-        <Dialog open={isDeleteOpen} onOpenChange={(open) => { setIsDeleteOpen(open); if (!open) setDeleteConfirm('') }}>
-          <DialogTrigger className={cn(buttonVariants({ variant: 'destructive' }), 'w-full')}>
-            계좌 삭제
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>계좌 삭제 확인</DialogTitle>
-              <DialogDescription>
-                이 작업은 되돌릴 수 없습니다. 계속하려면 계좌 별칭{' '}
-                <strong className="text-foreground">{account.nickname}</strong>을(를) 정확히 입력하세요.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2 py-2">
-              <Input
-                placeholder={account.nickname}
-                value={deleteConfirm}
-                onChange={(e) => setDeleteConfirm(e.target.value)}
-                disabled={deleteMutation.isPending}
-                maxLength={100}
-                className="h-11"
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDeleteOpen(false)} disabled={deleteMutation.isPending}>
-                취소
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending || deleteConfirm !== account.nickname}
-                className="gap-2"
-              >
-                {deleteMutation.isPending ? (
-                  <>
-                    <Spinner size={14} />
-                    삭제 중...
-                  </>
-                ) : '영구 삭제'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          trigger={
+            <button
+              type="button"
+              aria-disabled={deleteBlocked}
+              onClick={blockTriggerWhile(deleteBlocked)}
+              className={cn(buttonVariants({ variant: 'destructive' }), 'w-full aria-disabled:opacity-50')}
+            >
+              계좌 삭제
+            </button>
+          }
+          open={isDeleteOpen}
+          onOpenChange={setIsDeleteOpen}
+          size="default"
+          title="계좌 삭제 확인"
+          description={
+            <>
+              이 작업은 되돌릴 수 없습니다. 계속하려면 계좌 별칭{' '}
+              <strong className="text-foreground">{account.nickname}</strong>을(를) 정확히 입력하세요.
+            </>
+          }
+          typeToConfirm={account.nickname}
+          confirmLabel="영구 삭제"
+          pendingLabel="삭제 중..."
+          onConfirm={handleDelete}
+          pending={deleteBlocked}
+        />
       </div>
     </div>
   )

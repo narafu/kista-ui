@@ -4,7 +4,7 @@ import { useId, type ReactNode } from 'react'
 import { Label } from '@/components/ui/label'
 import { ratioToPercent, percentToRatio } from '@shared/lib/format'
 import { SelectionCard } from '@shared/ui/selection-card'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import { applyGStepWeeksChange, applyPStepWeeksChange } from '../model/poolLimitRamp'
 import { VR_RECURRING_MODE_LABEL, type VrRampValues, type VrRecurringMode } from '../model/vrRamp'
 
@@ -93,7 +93,7 @@ export function RecurringModeField({
           </ChoiceButton>
         ))}
       </div>
-      <UnitInput
+      <AmountInput
         value={amount !== null ? Math.abs(amount) : null}
         onChange={setAmount}
         unit="USD"
@@ -185,24 +185,24 @@ export function VrRampFields({
     <div className="grid grid-cols-2 gap-x-3 gap-y-5 mt-5">
       <div>
         <Label htmlFor={`${id}-initialGradient`} className={VR_FIELD_LABEL_CLASS}>초기 gradient(G)</Label>
-        <UnitInput id={`${id}-initialGradient`} maxDecimals={0} value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder={String(rampDefaults.initialGradient)} />
+        <AmountInput id={`${id}-initialGradient`} maxDecimals={0} value={fields.initialGradient} onChange={(v) => setField('initialGradient', v)} unit="" disabled={disabled} placeholder={String(rampDefaults.initialGradient)} />
       </div>
       <div>
         <Label htmlFor={`${id}-gGraceWeeks`} className={VR_FIELD_LABEL_CLASS}>gradient 유예</Label>
-        <UnitInput id={`${id}-gGraceWeeks`} maxDecimals={0} value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gGraceWeeks ?? 52)} />
+        <AmountInput id={`${id}-gGraceWeeks`} maxDecimals={0} value={fields.gGraceWeeks} onChange={(v) => setField('gGraceWeeks', v)} unit="주" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gGraceWeeks ?? 52)} />
       </div>
       <div>
         <Label htmlFor={`${id}-gMax`} className={VR_FIELD_LABEL_CLASS}>gradient 상한</Label>
-        <UnitInput id={`${id}-gMax`} maxDecimals={0} value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gMax)} errorId={errorId('gMax')} />
+        <AmountInput id={`${id}-gMax`} maxDecimals={0} value={fields.gMax} onChange={(v) => setField('gMax', v)} unit="" disabled={disabled || gStepWeeksIsZero} placeholder={String(rampDefaults.gMax)} errorId={errorId('gMax')} />
         {fieldError('gMax')}
       </div>
       <div>
         <Label htmlFor={`${id}-gStepWeeks`} className={VR_FIELD_LABEL_CLASS}>gradient 단계주기</Label>
-        <UnitInput id={`${id}-gStepWeeks`} maxDecimals={0} value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.gStepWeeks ?? 26)} />
+        <AmountInput id={`${id}-gStepWeeks`} maxDecimals={0} value={fields.gStepWeeks} onChange={handleGStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.gStepWeeks ?? 26)} />
       </div>
       <div>
         <Label htmlFor={`${id}-initialPoolLimitRate`} className={VR_FIELD_LABEL_CLASS}>초기 poolLimitRate</Label>
-        <UnitInput
+        <AmountInput
           id={`${id}-initialPoolLimitRate`}
           value={toPercentOrNull(fields.initialPoolLimitRate)}
           onChange={(v) => setField('initialPoolLimitRate', toRatioOrNull(v))}
@@ -214,11 +214,11 @@ export function VrRampFields({
       </div>
       <div>
         <Label htmlFor={`${id}-pGraceWeeks`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 유예</Label>
-        <UnitInput id={`${id}-pGraceWeeks`} maxDecimals={0} value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder={String(rampDefaults.pGraceWeeks ?? 52)} />
+        <AmountInput id={`${id}-pGraceWeeks`} maxDecimals={0} value={fields.pGraceWeeks} onChange={(v) => setField('pGraceWeeks', v)} unit="주" disabled={disabled || pStepWeeksIsZero} placeholder={String(rampDefaults.pGraceWeeks ?? 52)} />
       </div>
       <div>
         <Label htmlFor={`${id}-poolLimitFloor`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 하한</Label>
-        <UnitInput
+        <AmountInput
           id={`${id}-poolLimitFloor`}
           value={toPercentOrNull(fields.poolLimitFloor)}
           onChange={(v) => setField('poolLimitFloor', toRatioOrNull(v))}
@@ -232,7 +232,7 @@ export function VrRampFields({
       </div>
       <div>
         <Label htmlFor={`${id}-pStepWeeks`} className={VR_FIELD_LABEL_CLASS}>poolLimitRate 단계주기</Label>
-        <UnitInput id={`${id}-pStepWeeks`} maxDecimals={0} value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.pStepWeeks ?? 26)} />
+        <AmountInput id={`${id}-pStepWeeks`} maxDecimals={0} value={fields.pStepWeeks} onChange={handlePStepWeeksChange} unit="주" disabled={disabled} placeholder={String(rampDefaults.pStepWeeks ?? 26)} />
       </div>
     </div>
   )

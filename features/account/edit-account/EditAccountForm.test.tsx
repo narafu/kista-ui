@@ -153,4 +153,23 @@ describe('EditAccountForm', () => {
     expect(invalidate).toHaveBeenCalledTimes(4)
     expect(toast.success).toHaveBeenCalledWith('계좌가 삭제되었습니다')
   })
+
+  it('삭제 성공 뒤 이동하기 전에는 영구 삭제를 다시 누를 수 없고 트리거도 잠긴다', async () => {
+    const { requests } = mockApi({ ...base, 'DELETE /api/accounts/{id}': undefined as never })
+    const queryClient = createQueryClient()
+    // 무효화가 끝나지 않는 동안(이동 전)을 만든다
+    const gate = new Promise<void>(() => {})
+    vi.spyOn(queryClient, 'invalidateQueries').mockReturnValue(gate)
+    renderApp(<EditAccountForm account={account} />, { queryClient })
+
+    await userEvent.click(screen.getByText('계좌 삭제'))
+    await userEvent.type(screen.getByPlaceholderText(account.nickname), account.nickname)
+    const deleteButton = screen.getByRole('button', { name: '영구 삭제' })
+    await userEvent.click(deleteButton)
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌가 삭제되었습니다'))
+    await waitFor(() => expect(screen.getByRole('button', { name: '삭제 중...' })).toBeDisabled())
+    expect(useRouter().push).not.toHaveBeenCalledWith('/accounts')
+    expect(requests.filter((r) => r.method === 'DELETE')).toHaveLength(1)
+  })
 })

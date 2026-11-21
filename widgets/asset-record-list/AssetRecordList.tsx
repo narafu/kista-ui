@@ -9,7 +9,7 @@ import { SectionError } from '@shared/ui/SectionError'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
@@ -256,7 +256,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
         </>
       )}
 
-      <ConfirmDeleteDialog
+      <ConfirmDialog
         open={deleteDialog.open}
         onOpenChange={deleteDialog.onOpenChange}
         title={
@@ -266,7 +266,8 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
         }
         description="삭제한 기록은 복구할 수 없습니다."
         onConfirm={confirmDelete}
-        isPending={deleteManyMutation.isPending}
+        pending={deleteManyMutation.isPending}
+        pendingLabel="삭제 중..."
       />
     </div>
   )

@@ -1,20 +1,11 @@
 'use client'
 
 import { useId } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
+import { blockTriggerWhile } from '@shared/ui/blockTriggerWhile'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 
 interface Props {
   open: boolean
@@ -36,25 +27,30 @@ interface Props {
 export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onConfirm, disabled, isDeleting, isArchived, triggerAriaLabel, caption }: Props) {
   const captionId = useId()
   const dialog = (
-    // 처리 중 열기만 막는다 — 삭제 진행 중 닫기 동작은 기존과 동일
-    <AlertDialog open={open} onOpenChange={(next) => { if (!(next && disabled)) onOpenChange(next) }}>
-      {/* disabled로 바꾸면 포커스가 body로 빠져 모달을 닫은 뒤 이 버튼으로 복귀하지 못한다 */}
-      <AlertDialogTrigger className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), caption ? 'w-full aria-disabled:opacity-50' : 'flex-1 aria-disabled:opacity-50')} aria-disabled={disabled} aria-label={triggerAriaLabel} aria-describedby={caption ? captionId : undefined}>
-        삭제
-      </AlertDialogTrigger>
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>전략을 삭제하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>{ticker} 전략을 삭제하시겠습니까? {isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.{isArchived ? '' : ' 통계를 남기려면 보관하세요.'}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm} disabled={disabled}>
-            {isDeleting ? '삭제 중...' : '삭제'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      {/* disabled로 바꾸면 포커스가 body로 빠져 모달을 닫은 뒤 이 버튼으로 복귀하지 못한다 — 처리 중 열기만 막는다 */}
+      <ConfirmDialog
+        trigger={
+          <button
+            type="button"
+            className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), caption ? 'w-full aria-disabled:opacity-50' : 'flex-1 aria-disabled:opacity-50')}
+            aria-disabled={disabled}
+            aria-label={triggerAriaLabel}
+            aria-describedby={caption ? captionId : undefined}
+            onClick={blockTriggerWhile(disabled)}
+          >
+            삭제
+          </button>
+        }
+        open={open}
+        onOpenChange={onOpenChange}
+        title="전략을 삭제하시겠습니까?"
+        description={`${ticker} 전략을 삭제하시겠습니까? ${isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.${isArchived ? '' : ' 통계를 남기려면 보관하세요.'}`}
+        pendingLabel={isDeleting ? '삭제 중...' : '삭제'}
+        onConfirm={onConfirm}
+        pending={disabled}
+      />
+    </>
   )
   if (!caption) return dialog
   return (

@@ -2,18 +2,9 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@shared/ui/Badge'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { useRemoveFinanceGroupMemberMutation } from '@entities/finance'
 import type { FinanceGroupMember } from '@entities/finance'
 
@@ -26,40 +17,6 @@ function memberLabel(member: FinanceGroupMember) {
 
 // kista-api가 role을 OWNER/MEMBER 코드로 내려준다 — 화면에는 원문 대신 이 라벨을 쓴다(미지 코드는 원문 폴백).
 const GROUP_ROLE_LABEL: Record<string, string> = { OWNER: '소유자', MEMBER: '멤버' }
-
-// features/finance/manage-categories·manage-accounts의 삭제 확인 다이얼로그와 동일하게
-// 목록이 open state를 소유하고 다이얼로그는 순수 controlled 프레젠테이션만 담당한다.
-function KickMemberDialog({
-  open,
-  onOpenChange,
-  member,
-  isPending,
-  onConfirm,
-}: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  member: FinanceGroupMember | null
-  isPending: boolean
-  onConfirm: () => void
-}) {
-  const label = member ? memberLabel(member) : ''
-  return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent size="sm">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{label}님을 추방하시겠습니까?</AlertDialogTitle>
-          <AlertDialogDescription>추방된 멤버는 이 그룹의 데이터에 더 이상 접근할 수 없습니다. 기존 데이터는 삭제되지 않고 남은 멤버가 계속 볼 수 있습니다.</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>취소</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={isPending} onClick={onConfirm}>
-            {isPending ? '처리 중...' : '추방'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  )
-}
 
 interface Props {
   groupId: string
@@ -107,12 +64,16 @@ export function GroupMemberList({ groupId, members, isOwner, myUserId }: Props) 
         </div>
       ))}
 
-      <KickMemberDialog
+      {/* 목록이 open state를 소유하고 다이얼로그는 순수 controlled 프레젠테이션만 담당한다 */}
+      <ConfirmDialog
         open={kickTarget !== null}
         onOpenChange={(next) => { if (!next) setKickTarget(null) }}
-        member={kickTarget}
-        isPending={mutation.isPending}
+        title={`${kickTarget ? memberLabel(kickTarget) : ''}님을 추방하시겠습니까?`}
+        description="추방된 멤버는 이 그룹의 데이터에 더 이상 접근할 수 없습니다. 기존 데이터는 삭제되지 않고 남은 멤버가 계속 볼 수 있습니다."
+        confirmLabel="추방"
+        pendingLabel="처리 중..."
         onConfirm={handleConfirmKick}
+        pending={mutation.isPending}
       />
     </div>
   )

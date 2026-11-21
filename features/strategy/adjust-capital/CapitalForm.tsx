@@ -4,22 +4,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { useWatch } from 'react-hook-form'
 import type { z } from 'zod'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
 import { useAppForm } from '@shared/ui/form/useAppForm'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import { currencyUnit, fmtMoney } from '@shared/lib/format'
-import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
+import { type Currency } from '@shared/lib/api-schema'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
@@ -113,7 +104,7 @@ export function CapitalForm({ kind, accountId, strategy, currency, onDone }: Pro
 
       <FormField control={form.control} name={c.field} label={c.label}>
         {(f) => (
-          <UnitInput id={f.id} unit={currencyUnit(currency)} unitClassName="ml-2" maxDecimals={CURRENCY_SCALE[currency]} placeholder="0" disabled={form.isPending}
+          <AmountInput id={f.id} unit={currencyUnit(currency)} unitClassName="ml-2" currency={currency} placeholder="0" disabled={form.isPending}
             ref={f.ref} onBlur={f.onBlur}
             errorId={f['aria-invalid'] ? `${f.id}-error` : undefined}
             value={f.value ?? null}
@@ -123,22 +114,17 @@ export function CapitalForm({ kind, accountId, strategy, currency, onDone }: Pro
 
       <FormActions form={form} onCancel={onDone} label={c.action} className="pt-2" />
 
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{c.confirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>
-              예수금 {fmtMoney(value ?? 0, currency)}을(를) {c.confirmVerb}. {timing}부터 반영되며, 이 작업은 되돌릴 수 없습니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={form.isPending}>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={() => form.submit()} disabled={form.isPending}>
-              {form.isPending ? `${c.action} 중…` : `${c.action} 확정`}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        destructive={false}
+        title={c.confirmTitle}
+        description={`예수금 ${fmtMoney(value ?? 0, currency)}을(를) ${c.confirmVerb}. ${timing}부터 반영되며, 이 작업은 되돌릴 수 없습니다.`}
+        confirmLabel={`${c.action} 확정`}
+        pendingLabel={`${c.action} 중…`}
+        onConfirm={() => form.submit()}
+        pending={form.isPending}
+      />
     </form>
   )
 }

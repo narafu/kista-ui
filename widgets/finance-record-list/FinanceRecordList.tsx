@@ -15,7 +15,7 @@ import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
-import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
@@ -318,12 +318,13 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
           windowTo={registerWindowTo}
         />
       )}
-      <ConfirmDeleteDialog
+      <ConfirmDialog
         open={deleteDialog.open}
         onOpenChange={deleteDialog.onOpenChange}
         title="거래내역을 삭제하시겠습니까?"
         description="삭제한 거래내역은 복구할 수 없습니다."
-        isPending={deleteMutation.isPending}
+        pending={deleteMutation.isPending}
+        pendingLabel="삭제 중..."
         onConfirm={handleDelete}
       />
     </div>

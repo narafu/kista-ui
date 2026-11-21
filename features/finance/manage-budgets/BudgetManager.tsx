@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { SectionError } from '@shared/ui/SectionError'
-import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
@@ -242,13 +242,14 @@ export function BudgetManager({ type }: Props) {
       <BudgetFormDialog type={type} target={formTarget} open={formOpen} onClose={() => setFormOpen(false)} />
 
       {deleteDialog.target && (
-        <ConfirmDeleteDialog
+        <ConfirmDialog
           open
           onOpenChange={deleteDialog.onOpenChange}
           title="예산을 삭제하시겠습니까?"
           description="삭제한 예산은 복구할 수 없습니다."
           onConfirm={handleDelete}
-          isPending={deleteMutation.isPending}
+          pending={deleteMutation.isPending}
+          pendingLabel="삭제 중..."
         />
       )}
     </div>

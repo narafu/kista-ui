@@ -76,7 +76,7 @@ async function checkTabOrder(page, path, vp) {
     document.activeElement?.blur()
     window.scrollTo(0, 0)
     // outline-style이 none이면 폭·색이 바뀌어도 보이지 않는다(outline-none + focus 시 폭만 바뀌는 오탐).
-    // 단위·기호를 품은 컨테이너가 focus-within으로 링을 그리는 입력(UnitInput·SeedAmountInput)이 있어 부모 2단계까지 본다.
+    // 단위·기호를 품은 컨테이너가 focus-within으로 링을 그리는 입력(AmountInput·SeedAmountInput)이 있어 부모 2단계까지 본다.
     // 카드처럼 큰 래퍼의 hover·focus-within 변화가 링으로 오인되지 않도록 입력칸 크기(높이 64px 이하)인 부모만 센다
     const own = (el) => { const cs = getComputedStyle(el); const outline = cs.outlineStyle === 'none' ? 'none' : `${cs.outlineStyle}|${cs.outlineWidth}|${cs.outlineColor}`; return `${outline}|${cs.boxShadow}|${cs.borderColor}` }
     const fieldBox = (el) => el && el.getBoundingClientRect().height <= 64

@@ -1,22 +1,14 @@
 'use client'
 
-import { Fragment } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { fmtUsd, fmtDate, fmtShares } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
 import { EmptyState } from '@shared/ui/EmptyState'
-import { Badge } from '@shared/ui/Badge'
-import { cn, groupConsecutiveBy } from '@shared/lib/utils'
-import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
-import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
-import { TableDataCell } from '@shared/ui/TableDataCell'
+import { DataList, type DataListColumn } from '@shared/ui/data-list/DataList'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { resolveRangeStrict } from '@shared/lib/date-range'
-import { SectionError } from '@shared/ui/SectionError'
-import { LoadingRow } from '@shared/ui/LoadingRow'
-import { Button } from '@/components/ui/button'
 
 interface HistoryQueryResult {
   cycleHistory: CycleHistoryItem[]
@@ -41,6 +33,31 @@ function entryKey(entry: CycleHistoryItem, index: number) {
   return `${entry.createdAt}-${entry.strategyType}-${entry.ticker}-${index}`
 }
 
+const usd = (value: number | null | undefined) => (value != null ? `$${fmtUsd(value)}` : '-')
+
+const COLUMNS: DataListColumn<CycleHistoryItem>[] = [
+  { key: 'ticker', header: '티커', mobile: 'title', className: 'font-medium', cell: (e) => e.ticker ?? '-' },
+  { key: 'holdings', header: '수량', mobile: 'badge', numeric: true, cell: (e) => fmtShares(e.holdings) },
+  { key: 'avgPrice', header: '평단가', numeric: true, cell: (e) => usd(e.avgPrice) },
+  // DCA는 시드를 두지 않아 예수금이 항상 0 — PC는 '-', 모바일은 항목을 뺀다
+  {
+    key: 'deposit',
+    header: '예수금',
+    numeric: true,
+    className: 'font-medium',
+    mobileHiddenWhen: (e) => e.strategyType === 'DCA',
+    cell: (e) => (e.strategyType === 'DCA' ? '-' : usd(e.deposit ?? 0)),
+  },
+  {
+    key: 'evalAmount',
+    header: '평가금액',
+    mobile: 'hidden',
+    numeric: true,
+    className: 'font-medium',
+    cell: (e) => usd(e.avgPrice != null && e.holdings > 0 ? e.avgPrice * e.holdings : null),
+  },
+]
+
 export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }: Props) {
   const { rangeType, customFrom, customTo, pageSize, setRangeType, setCustomFrom, setCustomTo, setPageSize } =
     useRangeFilterState()
@@ -61,9 +78,6 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
     )
   }
 
-  // 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지
-  const groups = groupConsecutiveBy(cycleHistory, (item) => fmtDate(item.createdAt))
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -83,95 +97,20 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
       </CardHeader>
 
       <CardContent className="p-0">
-        {isLoading ? (
-          <LoadingRow />
-        ) : isError ? (
-          <SectionError message="잔고 이력을 불러오지 못했습니다." />
-        ) : cycleHistory.length === 0 ? (
-          <EmptyState variant="text" message="잔고 이력이 없습니다." />
-        ) : (
-          <>
-            {/* 모바일: 카드 리스트 */}
-            <div className="space-y-2 p-4 lg:hidden">
-              {groups.map((g, i) => (
-                <div key={`${g.key}-${i}`} className="space-y-1.5">
-                  <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
-                  {g.items.map((entry, i) => (
-                    <div key={entryKey(entry, i)} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Badge tone="brand" size="sm" className="px-2.5 font-bold">
-                          {entry.ticker ?? '-'}
-                        </Badge>
-                        <span className="text-sm font-semibold">{fmtShares(entry.holdings)}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">
-                          평단 <span className="font-semibold text-foreground">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</span>
-                        </span>
-                        {/* DCA는 시드를 두지 않아 예수금이 항상 0 — 표시하지 않는다 */}
-                        {entry.strategyType !== 'DCA' && (
-                          <span className="text-muted-foreground">
-                            예수금 <span className="font-semibold text-foreground">${fmtUsd(entry.deposit ?? 0)}</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-            {/* 데스크탑: 테이블 */}
-            <div className="hidden lg:block">
-              <table className={cn('w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal', evenColumnsClass(6))}>
-                <thead className="bg-muted/50 sticky top-0 z-10">
-                  <tr>
-                    <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
-                    <TableHeadCell>티커</TableHeadCell>
-                    <TableHeadCell numeric>수량</TableHeadCell>
-                    <TableHeadCell numeric>평단가</TableHeadCell>
-                    <TableHeadCell numeric>예수금</TableHeadCell>
-                    <TableHeadCell numeric>평가금액</TableHeadCell>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.map((g, i) => (
-                    <Fragment key={`${g.key}-${i}`}>
-                      {g.items.map((entry, i) => {
-                        const evalAmount = entry.avgPrice != null && entry.holdings > 0
-                          ? entry.avgPrice * entry.holdings
-                          : null
-                        return (
-                          <tr key={entryKey(entry, i)} className="border-t hover:bg-muted/30 transition-colors">
-                            {/* 하루 여러 건은 날짜 셀 하나로 묶는다 */}
-                            {i === 0 && (
-                              <th scope="row" rowSpan={g.items.length} className="px-4 py-3 text-center align-middle font-normal whitespace-nowrap tabular-nums text-muted-foreground">{g.key}</th>
-                            )}
-                            <TableDataCell className="font-medium">{entry.ticker ?? '-'}</TableDataCell>
-                            <TableDataCell className="tabular-nums whitespace-nowrap">{fmtShares(entry.holdings)}</TableDataCell>
-                            <TableDataCell className="tabular-nums whitespace-nowrap">{entry.avgPrice != null ? `$${fmtUsd(entry.avgPrice)}` : '-'}</TableDataCell>
-                            <TableDataCell className="tabular-nums whitespace-nowrap font-medium">{entry.strategyType === 'DCA' ? '-' : `$${fmtUsd(entry.deposit ?? 0)}`}</TableDataCell>
-                            <TableDataCell className="tabular-nums whitespace-nowrap font-medium">{evalAmount != null ? `$${fmtUsd(evalAmount)}` : '-'}</TableDataCell>
-                          </tr>
-                        )
-                      })}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* 더 보기 버튼 — 모바일·데스크탑 공통 */}
-            {(hasNextPage || isFetchingNextPage) && (
-              <div className="flex flex-col items-center gap-1 py-4 border-t">
-                {isFetchNextPageError && !isFetchingNextPage && (
-                  <p role="alert" className="text-sm text-[var(--status-error)]">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
-                )}
-                <Button type="button" variant="outline" onClick={fetchNextPage} disabled={isFetchingNextPage}>
-                  {isFetchingNextPage ? '불러오는 중…' : '더 보기'}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
+        {/* 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지 */}
+        <DataList
+          label={title}
+          rows={cycleHistory}
+          columns={COLUMNS}
+          rowKey={entryKey}
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage="잔고 이력을 불러오지 못했습니다."
+          empty="잔고 이력이 없습니다."
+          groupBy={{ header: '날짜', key: (item) => fmtDate(item.createdAt) }}
+          loadMore={{ hasMore: hasNextPage, isFetching: isFetchingNextPage, isError: isFetchNextPageError, onLoadMore: fetchNextPage }}
+          tableClassName="xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal"
+        />
       </CardContent>
     </Card>
   )

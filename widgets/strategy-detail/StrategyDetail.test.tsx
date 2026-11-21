@@ -1,3 +1,4 @@
+import { cloneElement } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
@@ -46,7 +47,7 @@ vi.mock('@/components/ui/button-variants', () => ({
 
 vi.mock('@/components/ui/alert-dialog', () => ({
   AlertDialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogTrigger: ({ children, ...props }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
+  AlertDialogTrigger: ({ children, render, ...props }: React.ComponentProps<'button'> & { render?: React.ReactElement }) => (render ? cloneElement(render, props) : <button {...props}>{children}</button>),
   AlertDialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   AlertDialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   AlertDialogTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

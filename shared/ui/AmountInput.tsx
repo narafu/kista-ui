@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, Ref } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
+import { CURRENCY_SCALE, type Currency } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
 
@@ -27,7 +28,7 @@ function inputBoxClass(disabled: boolean) {
 }
 
 // 우측 정렬 숫자 입력 + 단위 라벨 — VR 상세 설정, 중간부터 시작(평단가·수량), 백테스트 폼 등 여러 도메인이 공유하는 마크업
-export function UnitInput({
+export function AmountInput({
   id,
   value,
   onChange,
@@ -37,7 +38,8 @@ export function UnitInput({
   placeholder,
   wrapperClassName,
   unitClassName,
-  maxDecimals,
+  currency,
+  maxDecimals: maxDecimalsProp,
   errorId,
   ref,
   onBlur,
@@ -52,13 +54,17 @@ export function UnitInput({
   placeholder?: string
   wrapperClassName?: string
   unitClassName?: string
-  maxDecimals?: number
   // 바깥에 렌더한 오류 문구 id — 주면 aria-invalid와 함께 설명으로 연결한다
   errorId?: string
   // react-hook-form Controller의 field.ref/onBlur 연결용 — 제출 실패 시 첫 오류 필드 포커스 이동
   ref?: Ref<HTMLInputElement>
   onBlur?: () => void
-}) {
+} & (
+  // 소수 자릿수 규칙은 하나만 — 통화(CURRENCY_SCALE) 또는 직접 지정(퍼센트·수량)
+  | { currency?: Currency; maxDecimals?: never }
+  | { currency?: never; maxDecimals?: number }
+)) {
+  const maxDecimals = currency ? CURRENCY_SCALE[currency] : maxDecimalsProp
   const unitId = useId()
   // 소수점 입력 중(예: "87.", "87.50") 문자열을 보존 — 매 렌더마다 value(파싱된 숫자)로 되돌리면 트레일링 점/0이 사라짐
   const [text, setText] = useState(value !== null ? String(value) : '')

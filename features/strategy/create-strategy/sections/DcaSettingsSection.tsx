@@ -3,9 +3,8 @@
 import { useId } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CURRENCY_SCALE } from '@shared/lib/api-schema'
 import { SelectionCard } from '@shared/ui/selection-card'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import { useMeta } from '@entities/meta'
 import { STOCK_WEEKDAYS, WEEKDAY_LABEL, type DcaWeekday } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
@@ -136,7 +135,7 @@ export function DcaSizingSection({ form }: Pick<Props, 'form'>) {
           <>
             <StrategyFieldLabel htmlFor={percentId}>보유 비율</StrategyFieldLabel>
             <Controller control={form.control} name="percent" render={({ field }) => (
-              <UnitInput id={percentId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="%" maxDecimals={2} disabled={false}
+              <AmountInput id={percentId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="%" maxDecimals={2} disabled={false}
                 errorId={errors.percent ? `${percentId}-error` : undefined} />
             )} />
             {errors.percent && <p id={`${percentId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.percent.message}</p>}
@@ -146,7 +145,7 @@ export function DcaSizingSection({ form }: Pick<Props, 'form'>) {
           <>
             <StrategyFieldLabel htmlFor={amountId}>회차당 금액</StrategyFieldLabel>
             <Controller control={form.control} name="amount" render={({ field }) => (
-              <UnitInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="USD" maxDecimals={CURRENCY_SCALE.USD} disabled={false}
+              <AmountInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="USD" currency="USD" disabled={false}
                 errorId={errors.amount ? `${amountId}-error` : undefined} />
             )} />
             {errors.amount && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amount.message}</p>}

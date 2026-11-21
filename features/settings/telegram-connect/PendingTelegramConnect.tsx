@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDeleteTelegramMutation } from '@entities/user'
-import { ConfirmDeleteDialog } from '@shared/ui/ConfirmDeleteDialog'
+import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
 import type { NotificationChannel } from '@entities/user'
@@ -36,13 +36,13 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
         >
           {isDeleteLoading ? '해제 중...' : '연결 해제'}
         </Button>
-        <ConfirmDeleteDialog
+        <ConfirmDialog
           open={isDisconnectOpen}
           onOpenChange={setIsDisconnectOpen}
           title="텔레그램 연결을 해제하시겠습니까?"
           description="해제하면 텔레그램으로 알림을 받을 수 없습니다."
           onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: () => setIsDisconnectOpen(false) })}
-          isPending={isDeleteLoading}
+          pending={isDeleteLoading}
           confirmLabel="연결 해제"
           pendingLabel="해제 중..."
         />

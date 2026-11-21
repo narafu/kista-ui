@@ -147,11 +147,12 @@ describe('CycleHistoryTable', () => {
 
     const rows = (ticker: string) => {
       const [mobileBadge, desktopCell] = screen.getAllByText(ticker)
-      return { mobile: mobileBadge.parentElement!.parentElement!, desktop: desktopCell.closest('tr')! }
+      return { mobile: mobileBadge.closest('li')!, desktop: desktopCell.closest('tr')! }
     }
     const dca = rows('DCAT')
     expect(dca.mobile).not.toHaveTextContent('예수금')
-    expect(dca.desktop.cells[3]).toHaveTextContent(/^-$/)
+    // 날짜 rowSpan 셀이 있는 그룹 첫 행이라 예수금이 한 칸 뒤다
+    expect(dca.desktop.cells[4]).toHaveTextContent(/^-$/)
     for (const ticker of ['INFT', 'NULT']) {
       const row = rows(ticker)
       expect(row.mobile).toHaveTextContent('예수금 $0.00')

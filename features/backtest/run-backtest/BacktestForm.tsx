@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@shared/ui/Spinner'
 import { SelectionCard } from '@shared/ui/selection-card'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 import type { BacktestType } from '@entities/backtest'
 import { useMeta } from '@entities/meta'
 import type { CycleSeedType } from '@entities/strategy'
@@ -82,33 +82,33 @@ export function BacktestForm({ form }: Props) {
 
         <div>
           <Label htmlFor="backtestSeed" className={FIELD_LABEL_CLASS}>예수금</Label>
-          <UnitInput
+          <AmountInput
             id="backtestSeed"
             value={form.seed}
             onChange={form.setSeed}
             unit="USD"
             disabled={form.isLoading}
             unitClassName="ml-1.5"
-            maxDecimals={2}
+            currency="USD"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label htmlFor="backtestAvgPrice" className={FIELD_LABEL_CLASS}>평단가</Label>
-            <UnitInput
+            <AmountInput
               id="backtestAvgPrice"
               value={form.avgPrice}
               onChange={form.setAvgPrice}
               unit="USD"
               disabled={form.isLoading}
               unitClassName="ml-1.5"
-              maxDecimals={2}
+              currency="USD"
             />
           </div>
           <div>
             <Label htmlFor="backtestQuantity" className={FIELD_LABEL_CLASS}>수량</Label>
-            <UnitInput
+            <AmountInput
               id="backtestQuantity"
               value={form.quantity}
               onChange={(v) => form.setQuantity(v !== null ? Math.round(v) : null)}
@@ -180,13 +180,13 @@ export function BacktestForm({ form }: Props) {
               <div className="grid grid-cols-1 gap-y-5 mt-4">
                 <div>
                   <Label htmlFor="backtestVrInitialValue" className={VR_FIELD_LABEL_CLASS}>초기 V</Label>
-                  <UnitInput
+                  <AmountInput
                     id="backtestVrInitialValue"
                     value={form.vrInitialValue}
                     onChange={form.setVrInitialValue}
                     unit="USD"
                     disabled={form.isLoading}
-                    maxDecimals={2}
+                    currency="USD"
                   />
                 </div>
                 <OptionChoiceGroup

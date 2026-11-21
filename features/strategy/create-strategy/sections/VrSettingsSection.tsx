@@ -6,7 +6,7 @@ import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
 import type { RuntimeFieldSettings } from '@entities/runtime-config'
 import { OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
-import { UnitInput } from '@shared/ui/UnitInput'
+import { AmountInput } from '@shared/ui/AmountInput'
 
 interface Props {
   fields: VrFields
@@ -46,13 +46,13 @@ function VrAdvancedSettings({
       <div className="grid grid-cols-1 gap-y-5 mt-4">
         <div>
           <Label htmlFor={`${id}-initialValue`} className={VR_FIELD_LABEL_CLASS}>초기 V</Label>
-          <UnitInput
+          <AmountInput
             id={`${id}-initialValue`}
             value={fields.initialValue}
             onChange={(v) => setField('initialValue', v)}
             unit="USD"
             disabled={disabled}
-            maxDecimals={2}
+            currency="USD"
           />
         </div>
         <OptionChoiceGroup
@@ -91,7 +91,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         {isEdit && (
           <div>
             <Label htmlFor={`${id}-initialVrValue`} className={VR_FIELD_LABEL_CLASS}>초기 V값</Label>
-            <UnitInput
+            <AmountInput
               id={`${id}-initialVrValue`}
               value={initialVrValue}
               onChange={() => {}}

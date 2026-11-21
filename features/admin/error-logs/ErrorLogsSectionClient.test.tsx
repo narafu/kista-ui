@@ -34,18 +34,6 @@ vi.mock('@/components/ui/button-variants', () => ({
   buttonVariants: () => '',
 }))
 
-vi.mock('@/components/ui/alert-dialog', () => ({
-  AlertDialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogTrigger: ({ children, ...props }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
-  AlertDialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  AlertDialogCancel: ({ children, ...props }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
-  AlertDialogAction: ({ children, ...props }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
-}))
-
 vi.mock('@entities/admin', () => ({
   useDeleteAdminErrorLogsMutation: () => ({ mutateAsync: mutateAsyncMock, isPending: false }),
 }))
