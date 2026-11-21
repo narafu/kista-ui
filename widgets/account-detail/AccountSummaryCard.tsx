@@ -26,14 +26,13 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
   const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
-  // 조회 중·실패(undefined)와 서버가 null로 준 값(조회 실패·MOCK 미배정)은 모두 "-"(fmtMoneyOrDash)
+  // 조회 중·실패(undefined)와 서버가 null로 준 값(조회 실패)은 모두 "-"(fmtMoneyOrDash)
   // 통화는 서버 필드 우선, 없으면(로딩·실패) USD
   const ledgerCurrency = ledgerTotals?.currency ?? 'USD'
   const ledgerMoney = (v: number | null | undefined) =>
     fmtMoneyOrDash(ledgerTotals ? v : null, ledgerCurrency)
   const ledgerDeposit = ledgerMoney(ledgerTotals?.deposit)
   const ledgerEval = ledgerMoney(ledgerTotals?.evaluation)
-  const ledgerUnassigned = ledgerMoney(ledgerTotals?.unassignedCash)
 
   return (
     <Card>
@@ -62,7 +61,6 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
           <p className="col-span-2 mt-1 text-xs font-medium text-muted-foreground">전략 기준</p>
           <KpiCard label="예수금" value={ledgerDeposit} valueClassName={TILE_VALUE} />
           <KpiCard label="평가금" value={ledgerEval} valueClassName={TILE_VALUE} />
-          <KpiCard label="미배정 예수금" className="col-span-2 hidden sm:flex" value={ledgerUnassigned} valueClassName={TILE_VALUE} sub="주문 가능 기준" />
           {ledgerTotalsError && (
             <p role="status" className="col-span-2 text-xs text-muted-foreground">전략 기준 금액을 불러오지 못했습니다.</p>
           )}
