@@ -200,7 +200,7 @@ describe('useStrategyForm submit policy', () => {
 
     await createSuccessHandler?.({ todayOpenBatchMissed: true })
     expect(toastInfoMock).toHaveBeenCalledOnce()
-    expect(toastInfoMock.mock.calls[0][0]).toContain('자동으로 나가지 않습니다')
+    expect(toastInfoMock.mock.calls[0][0]).toBe('오늘 개장 배치(22:00)가 지나 오늘 밤 장 시작 주문은 나가지 않습니다. 장 시작 주문은 다음 거래일부터 자동으로 나갑니다.')
   })
 
   it('edit payload does not include initialDeposit', async () => {
