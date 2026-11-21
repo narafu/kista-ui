@@ -21,13 +21,13 @@ function sliceDays(view: FearGreedSourceView | undefined, days: Days): FearGreed
 export function FearGreedSection() {
   const [cnnDays, setCnnDays] = useState<Days>(30)
 
-  const { data, isError, isPending } = useFearGreedQuery(MAX_DAYS)
+  const { data, error, isPending } = useFearGreedQuery(MAX_DAYS)
 
   return (
     <FearGreedCard
       title="CNN 공포탐욕지수"
       data={sliceDays(data?.cnn, cnnDays)}
-      error={isError}
+      error={error}
       loading={isPending}
       days={cnnDays}
       onDaysChange={(d) => setCnnDays(d as Days)}

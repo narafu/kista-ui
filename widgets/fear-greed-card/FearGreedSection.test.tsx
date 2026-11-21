@@ -21,7 +21,7 @@ vi.mock('./FearGreedCard', () => ({
   }: {
     title: string
     data?: { history: unknown[] }
-    error?: boolean
+    error?: unknown
     days: number
     onDaysChange: (days: number) => void
     daysOptions: readonly number[]
@@ -29,7 +29,7 @@ vi.mock('./FearGreedCard', () => ({
     <div>
       <span>{title}</span>
       <span>{`${title} 점 ${data?.history.length ?? 0}`}</span>
-      {error && !data && <span>{title} 데이터를 불러오지 못했습니다.</span>}
+      {!!error && !data && <span>{title} 데이터를 불러오지 못했습니다.</span>}
       {daysOptions.map((n) => (
         <button key={n} type="button" onClick={() => onDaysChange(n)}>
           {n}
@@ -77,7 +77,7 @@ describe('FearGreedSection', () => {
   })
 
   it('shows the error fallback when the query fails without data', () => {
-    useFearGreedQueryMock.mockImplementation(() => ({ data: undefined, isError: true }))
+    useFearGreedQueryMock.mockImplementation(() => ({ data: undefined, isError: true, error: new Error('fail') }))
     render(<FearGreedSection />)
 
     expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()

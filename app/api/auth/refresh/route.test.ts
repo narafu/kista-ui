@@ -56,6 +56,15 @@ describe('/api/auth/refresh POST', () => {
     expect(await res.json()).toEqual({ error: 'Refresh failed' })
   })
 
+  it('서버 일시 장애면 503이고 쿠키를 건드리지 않는다', async () => {
+    stubCookies('rt1')
+    refreshAccessTokenMock.mockResolvedValue('UNAVAILABLE')
+    const POST = await loadPost()
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(503)
+    expect(res.headers.getSetCookie()).toEqual([])
+  })
+
   it('성공 시 AT + RT relay Set-Cookie 를 모두 부착(둘 다 생존)', async () => {
     stubCookies('rt1')
     refreshAccessTokenMock.mockResolvedValue({

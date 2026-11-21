@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { ROLE_COOKIE, RT_COOKIE, STATUS_COOKIE } from '@shared/lib/auth/cookies'
-import { buildAtSetCookie, refreshAccessToken } from '@shared/lib/auth/refresh'
+import { buildAtSetCookie, REFRESH_UNAVAILABLE, refreshAccessToken } from '@shared/lib/auth/refresh'
 
 // 클라이언트 컴포넌트의 401 재시도용 — RT 쿠키로 AT 갱신 후 새 kista-token 쿠키 세팅
 export async function POST(request: NextRequest) {
@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     rt,
     userAgent: request.headers.get('user-agent') ?? 'unknown',
   })
+  if (refreshed === REFRESH_UNAVAILABLE) return NextResponse.json({ error: 'Refresh unavailable' }, { status: 503 })
   if (!refreshed) return NextResponse.json({ error: 'Refresh failed' }, { status: 401 })
 
   const isSecure = request.headers.get('x-forwarded-proto') === 'https'

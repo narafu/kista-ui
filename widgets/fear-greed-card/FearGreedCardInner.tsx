@@ -70,7 +70,7 @@ export default function FearGreedCardInner({ title, data, loading, days, onDaysC
           {toKstDateString(current.date).replace(/-/g, '.')} KST
         </span>
       )}
-      <AsyncSection data={current} isLoading={!!loading} empty="데이터 없음" skeleton="chart" fallbackClassName="h-[250px]">
+      <AsyncSection data={current} isLoading={!!loading} empty="표시할 데이터가 없습니다." skeleton="chart" fallbackClassName="h-[250px]">
         {(point) => (
           <>
           <FearGreedGauge

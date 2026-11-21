@@ -188,7 +188,7 @@ export function BudgetManager({ type }: Props) {
       <AsyncSection
         data={budgetsQuery.data && categoriesQuery.data ? filtered : undefined}
         isError={(!budgetsQuery.data && budgetsQuery.isError) || (!categoriesQuery.data && categoriesQuery.isError)}
-        error={budgetsQuery.error ?? categoriesQuery.error}
+        error={!budgetsQuery.data ? budgetsQuery.error : categoriesQuery.error}
         errorMessage="예산 목록을 불러오지 못했습니다."
         isEmpty={(rows) => rows.length === 0}
         empty={budgets.length === 0 ? '등록된 예산이 없습니다.' : '조건에 맞는 예산이 없습니다.'}

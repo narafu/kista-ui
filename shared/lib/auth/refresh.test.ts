@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { buildAtSetCookie, refreshAccessToken } from './refresh'
+import { buildAtSetCookie, REFRESH_UNAVAILABLE, refreshAccessToken } from './refresh'
 
 describe('refreshAccessToken', () => {
   afterEach(() => {
@@ -56,21 +56,39 @@ describe('refreshAccessToken', () => {
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
   })
 
-  it('fetch 예외면 null', async () => {
+  it('서버에 닿지 못한 연결 실패는 UNAVAILABLE', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new Error('network down')),
-    )
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed', { cause: { code: 'ECONNREFUSED' } })))
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
+  })
+
+  it.each([
+    ['연결 끊김', new TypeError('fetch failed', { cause: { code: 'ECONNRESET' } })],
+    ['timeout', new DOMException('timed out', 'TimeoutError')],
+  ])('회전이 커밋됐을 수 있는 %s는 null', async (_name, error) => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
   })
 
-  it('API_BASE_URL 미설정이면 fetch 없이 null', async () => {
+  it('503은 UNAVAILABLE', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status: 503 })))
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
+  })
+
+  it.each([500, 502])('%i 응답은 회전 여부를 알 수 없어 null', async (status) => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status })))
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
+  })
+
+  it('API_BASE_URL 미설정이면 fetch 없이 UNAVAILABLE', async () => {
     vi.stubEnv('API_BASE_URL', '')
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', '')
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
-    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
     expect(fetchMock).not.toHaveBeenCalled()
   })
 

@@ -8,7 +8,7 @@ import {
   RT_COOKIE,
 } from '@shared/lib/auth/cookies'
 import { isJwtExpired } from '@shared/lib/auth/jwt'
-import { buildAtSetCookie, refreshAccessToken } from '@shared/lib/auth/refresh'
+import { buildAtSetCookie, REFRESH_UNAVAILABLE, refreshAccessToken } from '@shared/lib/auth/refresh'
 const VALID_STATUSES = new Set(['PENDING', 'REJECTED', 'ACTIVE'])
 // status/role 캐시: 1시간마다 만료 → /me 재호출로 JWT 유효성 재검증
 // secure는 NODE_ENV가 아닌 실제 프로토콜 기준 (docs/agents/app.md — Safari HTTP Secure 쿠키 무시)
@@ -108,7 +108,7 @@ export async function proxy(request: NextRequest) {
     request.headers.get('purpose') === 'prefetch'
   if (isPrefetch) return NextResponse.next({ request: { headers: requestHeaders } })
 
-  // AT 만료 감지 → RT로 자동 갱신 (안정 RT 방식: kista-api가 동일 RT를 갱신된 maxAge로 돌려줌 — 드리프트 없음)
+  // AT 만료 감지 → RT로 자동 갱신 (kista-api가 RT를 회전해 새 RT를 Set-Cookie로 돌려줌)
   if (isJwtExpired(token)) {
     const rt = request.cookies.get(RT_COOKIE)?.value
     const refreshed = rt
@@ -118,6 +118,10 @@ export async function proxy(request: NextRequest) {
           timeoutMs: 5000,
         })
       : null
+    if (refreshed === REFRESH_UNAVAILABLE) {
+      // 서버에 닿지 못했다. 세션 쿠키를 지우지 않는다. 상태·역할을 확인할 수 없어 보호 경로는 열지 않는다
+      return finalize(failDest())
+    }
     if (refreshed) {
       token = refreshed.accessToken
       // 요청 쿠키 헤더에 새 AT 반영 — Server Component의 getAuthToken()이 읽음
@@ -131,7 +135,7 @@ export async function proxy(request: NextRequest) {
       // 브라우저 AT 쿠키 업데이트 — HttpOnly로 XSS 방어 (app/api/auth/refresh/route.ts와 동일 값)
       const isSecure = request.headers.get('x-forwarded-proto') === 'https'
       extraSetCookies.push(buildAtSetCookie(token, isSecure))
-      // RT Set-Cookie relay: 동일 RT + 갱신된 maxAge(슬라이딩) — 브라우저 쿠키 수명 연장
+      // RT Set-Cookie relay: 회전된 새 RT를 브라우저에 저장
       for (const sc of refreshed.setCookieHeaders) extraSetCookies.push(sc)
     } else {
       // RT 없거나 갱신 실패 → 상태 캐시 삭제 후 보호 경로면 로그인 이동
@@ -144,7 +148,7 @@ export async function proxy(request: NextRequest) {
   const resolved = await resolveStatusRole(request, token, apiUrl, extraSetCookies.length > 0)
 
   if (!resolved.ok) {
-    // AT 갱신이 선행된 경우 새 AT 쿠키를 반드시 적용 (RT는 안정 RT이므로 drift 없음)
+    // AT 갱신이 선행된 경우 새 AT·회전된 RT 쿠키를 반드시 적용
     return finalize(failDest(), { clearCache: resolved.clearCache })
   }
 

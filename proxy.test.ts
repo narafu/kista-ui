@@ -160,6 +160,34 @@ describe('proxy', () => {
   })
 
   // ③ status/role 캐시 히트 fast path — /me 미호출
+  describe('만료 AT + refresh가 서버에 닿지 못함', () => {
+    const down = () => new Response('down', { status: 503 })
+
+    it('보호 경로는 쿠키를 지우지 않고 로그인으로 보낸다(/me 호출 없음)', async () => {
+      vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+      const fetchMock = stubFetch({ refresh: down })
+      const res = await proxy(makeRequest('/settings', {
+        'kista-token': EXPIRED_AT,
+        refresh_token: 'valid-rt',
+        'kista-user-status': 'ACTIVE',
+        'kista-user-role': 'USER',
+      }))
+
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(new URL(res.headers.get('location')!).pathname).toBe('/login')
+      expect(res.headers.getSetCookie()).toEqual([])
+    })
+
+    it('비보호 경로는 쿠키를 지우지 않고 통과한다', async () => {
+      vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+      stubFetch({ refresh: down })
+      const res = await proxy(makeRequest('/dashboard', { 'kista-token': EXPIRED_AT, refresh_token: 'valid-rt' }))
+
+      expect(res.headers.get('location')).toBeNull()
+      expect(res.headers.getSetCookie()).toEqual([])
+    })
+  })
+
   it('status/role 캐시 히트 시 /me를 호출하지 않는다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = stubFetch({})

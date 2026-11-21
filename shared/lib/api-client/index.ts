@@ -51,13 +51,16 @@ export function apiErrorCode(err: unknown): ErrorCode | undefined {
 }
 
 // 동시 다발 401 시 RT를 한 번만 사용하도록 in-flight refresh 단일화
-let refreshInFlight: Promise<boolean> | null = null
+let refreshInFlight: Promise<RefreshOutcome> | null = null
 
-function tryRefreshToken(): Promise<boolean> {
+// unavailable: 갱신 요청이 서버에 닿지 못했다. 로그아웃하지 않고 503 ApiError로 알린다
+type RefreshOutcome = 'ok' | 'rejected' | 'unavailable'
+
+function tryRefreshToken(): Promise<RefreshOutcome> {
   if (!refreshInFlight) {
     refreshInFlight = fetch('/api/auth/refresh', { method: 'POST' })
-      .then((r) => r.ok)
-      .catch(() => false)
+      .then((r): RefreshOutcome => (r.ok ? 'ok' : r.status === 502 || r.status === 503 ? 'unavailable' : 'rejected'))
+      .catch((): RefreshOutcome => 'unavailable')
       .finally(() => { refreshInFlight = null })
   }
   return refreshInFlight
@@ -99,14 +102,15 @@ async function parseApiResponse<T>(res: Response): Promise<T> {
 }
 
 // Client Component 전용 — Route Handler 경유 fetch.
-// 401 수신 시 RT로 AT 갱신 후 재시도. 갱신 실패 시 로그아웃.
+// 401 수신 시 RT로 AT 갱신 후 재시도. 갱신이 거절되면 로그아웃, 서버에 닿지 못했으면 503 ApiError.
 export async function clientFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, options)
   if (res.status === 401) {
     // body 먼저 읽어서 이유 캡처 — tryRefreshToken 이후엔 body 접근 불가
     const errorCode = await readErrorCode(res)
     const refreshed = await tryRefreshToken()
-    if (!refreshed) return doLogout(errorCode === 'TOKEN_BLACKLISTED' ? 'token_blacklisted' : undefined)
+    if (refreshed === 'unavailable') throw new ApiError(503, null)
+    if (refreshed === 'rejected') return doLogout(errorCode === 'TOKEN_BLACKLISTED' ? 'token_blacklisted' : undefined)
     // 갱신 성공 → 브라우저 쿠키가 이미 교체됐으므로 원래 요청 재시도
     const retry = await fetch(path, options)
     if (retry.status === 401) return doLogout()

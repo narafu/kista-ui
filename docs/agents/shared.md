@@ -5,7 +5,7 @@
 
 ## api-client
 
-`apiFetch`(`@shared/lib/api-client`)는 Server Component 전용(token 필요), `clientFetch`는 Client Component 전용이며 **401 응답 시 자동 로그아웃**한다. `clientFetch<void>`로 204 응답도 처리한다.
+`apiFetch`(`@shared/lib/api-client`)는 Server Component 전용(token 필요), `clientFetch`는 Client Component 전용이며 401이면 RT로 갱신해 재시도하고, **갱신이 거절되면 자동 로그아웃**한다. 갱신 요청이 서버에 닿지 못했으면(502·503·네트워크) 로그아웃하지 않고 503 `ApiError`를 던진다. kista-api는 RT를 회전하고 grace(60초) 뒤 옛 RT 재제시를 전체 세션 폐기로 처리하므로, 서버 쪽 갱신의 timeout·연결 끊김·500은 회전이 커밋됐을 수 있어 세션 유지 대상이 아니다. `clientFetch<void>`로 204 응답도 처리한다.
 
 ## date-range
 

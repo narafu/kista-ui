@@ -16,7 +16,7 @@ describe('FearGreedCardInner', () => {
       />,
     )
 
-    expect(screen.getByText('데이터 없음')).toBeInTheDocument()
+    expect(screen.getByText('표시할 데이터가 없습니다.')).toBeInTheDocument()
     expect(screen.queryByText('중립')).not.toBeInTheDocument()
   })
 
@@ -33,7 +33,7 @@ describe('FearGreedCardInner', () => {
     )
 
     expect(screen.getByRole('status', { name: '차트 불러오는 중' })).toBeInTheDocument()
-    expect(screen.queryByText('데이터 없음')).not.toBeInTheDocument()
+    expect(screen.queryByText('표시할 데이터가 없습니다.')).not.toBeInTheDocument()
   })
 
   it('renders the current gauge value when data.current is present', () => {
@@ -52,7 +52,7 @@ describe('FearGreedCardInner', () => {
     )
 
     expect(screen.getByText('극탐욕')).toBeInTheDocument()
-    expect(screen.queryByText('데이터 없음')).not.toBeInTheDocument()
+    expect(screen.queryByText('표시할 데이터가 없습니다.')).not.toBeInTheDocument()
   })
 
   it('calls onDaysChange with the clicked option', async () => {

@@ -153,6 +153,23 @@ describe('clientFetch', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' })
   })
 
+  it.each([
+    ['503 응답', () => Promise.resolve(jsonResponse(503, {}))],
+    ['연결 실패', () => Promise.reject(new TypeError('Failed to fetch'))],
+  ])('refresh가 %s이면 로그아웃하지 않고 503 ApiError를 던진다', async (_name, refresh) => {
+    Object.defineProperty(window, 'location', { value: { href: '' }, writable: true })
+    const fetchMock = vi.fn((url: string) => (url === '/api/auth/refresh' ? refresh() : Promise.resolve(jsonResponse(401, {}))))
+    vi.stubGlobal('fetch', fetchMock)
+    const { ApiError, clientFetch } = await import('./index')
+
+    const error = await clientFetch('/api/foo').catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect((error as InstanceType<typeof ApiError>).status).toBe(503)
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' })
+    expect(window.location.href).toBe('')
+  })
+
   it('401 body가 TOKEN_BLACKLISTED면 로그아웃 URL에 에러 쿼리를 포함한다', async () => {
     const fetchMock = vi
       .fn()
