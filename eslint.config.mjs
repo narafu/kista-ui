@@ -16,6 +16,9 @@ const titleSuffixSelectors = [
   { selector: 'Literal[value=/\\| KISTA/], TemplateElement[value.raw=/\\| KISTA/]', message: '접미사 " | KISTA"는 root layout의 title.template이 붙인다(docs/agents/copy.md).' },
 ]
 const nestedLayoutTitleSelector = { selector: "Property[key.name='title'][value.type=/^(Literal|TemplateLiteral)$/]", message: '중첩 layout은 title을 문자열로 쓰지 않는다 — 하위 라우트의 template 상속이 끊긴다.' }
+const formatSelectors = [
+  { selector: "CallExpression[callee.property.name=/^(toFixed|toLocaleString|toLocaleDateString|toLocaleTimeString)$/]", message: '숫자·날짜 표기는 shared/lib/format의 포매터를 쓴다(fmtDecimal, roundDecimal 등).' },
+]
 const restrict = (...selectors) => ({ 'no-restricted-syntax': ['error', ...selectors] })
 
 export default tseslint.config(
@@ -55,15 +58,16 @@ export default tseslint.config(
     files: runtimeFiles,
     ignores: nonRuntimeFiles,
     rules: {
-      ...restrict(...cacheSelectors),
+      ...restrict(...formatSelectors, ...cacheSelectors),
       'no-restricted-imports': ['error', {
         paths: [{ name: 'next/cache', importNames: ['unstable_cache', 'cacheTag'], message: '가변 인증 데이터에 persistent cache를 쓰지 않는다(docs/agents/shared.md "cache").' }],
       }],
     },
   },
-  { files: ['entities/**/hooks/**'], ignores: nonRuntimeFiles, rules: restrict(...cacheSelectors, hookRefreshSelector) },
-  { files: ['app/**'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...cacheSelectors, ...titleSuffixSelectors) },
-  { files: ['app/**/layout.tsx'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...cacheSelectors, ...titleSuffixSelectors, nestedLayoutTitleSelector) },
+  { files: ['entities/**/hooks/**'], ignores: nonRuntimeFiles, rules: restrict(...formatSelectors, ...cacheSelectors, hookRefreshSelector) },
+  { files: ['app/**'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...formatSelectors, ...cacheSelectors, ...titleSuffixSelectors) },
+  { files: ['app/**/layout.tsx'], ignores: [...nonRuntimeFiles, 'app/layout.tsx'], rules: restrict(...formatSelectors, ...cacheSelectors, ...titleSuffixSelectors, nestedLayoutTitleSelector) },
+  { files: ['shared/ui/**'], ignores: nonRuntimeFiles, rules: restrict(...formatSelectors) },
   {
     // shadcn 자동생성 파일 — 직접 수정 금지, false positive 스캔 제외
     ignores: ['node_modules/**', '.worktrees/**', '.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'components/ui/**'],

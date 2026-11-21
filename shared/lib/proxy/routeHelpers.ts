@@ -5,6 +5,18 @@ export function unauthorizedJson(): NextResponse {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 }
 
+// 업스트림 연결 실패(재시작 중 ECONNREFUSED 등)를 502 응답으로 바꾼다. 호출부의 `!res.ok` 경로가 그대로 처리한다.
+// 요청 취소는 실패가 아니므로 그대로 던진다
+export async function fetchUpstream(url: string, init: RequestInit, label: string): Promise<Response> {
+  try {
+    return await fetch(url, init)
+  } catch (e) {
+    if (init.signal?.aborted) throw e
+    console.error(`[${label}] upstream unreachable`, e)
+    return new Response(null, { status: 502 })
+  }
+}
+
 // kista-api 업스트림 비정상 응답을 클라이언트로 매핑한다.
 // 5xx: 서버 로그만 남기고 { error: 'Failed' }로 뭉갠다 (내부 오류 노출 방지)
 // 예외: 증권사 장애 503(code=BROKER_UNAVAILABLE)은 사용자용 고정 문구라 title/detail/status/code만 골라 relay한다

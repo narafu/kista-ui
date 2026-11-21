@@ -32,7 +32,7 @@ describe('FearGreedCardInner', () => {
       />,
     )
 
-    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: '차트 불러오는 중' })).toBeInTheDocument()
     expect(screen.queryByText('데이터 없음')).not.toBeInTheDocument()
   })
 

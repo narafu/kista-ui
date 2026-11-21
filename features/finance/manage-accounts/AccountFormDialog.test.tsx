@@ -24,7 +24,7 @@ describe('AccountFormDialog 제출 요청', () => {
     await user.type(screen.getByLabelText('계좌번호', { exact: false }), '12ab-34')
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌가 추가되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌를 추가했습니다'))
     const posts = requests.filter((r) => r.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].query.get('shareToGroup')).toBe('true')
@@ -68,7 +68,7 @@ describe('AccountFormDialog 제출 요청', () => {
     await user.clear(screen.getByLabelText('소유자', { exact: false }))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌가 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌를 수정했습니다'))
     const puts = requests.filter((r) => r.method === 'PUT')
     expect(puts).toHaveLength(1)
     expect(puts[0].path).toBe('/api/finance/accounts/acc-9')

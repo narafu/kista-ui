@@ -6,9 +6,7 @@ import { useTableSort, type SortDirection } from '@shared/lib/hooks/use-table-so
 import { cn, groupConsecutiveBy } from '@shared/lib/utils'
 import { Badge } from '@shared/ui/Badge'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
-import { EmptyState } from '@shared/ui/EmptyState'
-import { LoadingRow } from '@shared/ui/LoadingRow'
-import { SectionError } from '@shared/ui/SectionError'
+import { asyncFallback } from '@shared/ui/AsyncSection'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -52,6 +50,8 @@ interface Props<T> {
   isLoading?: boolean
   /** 데이터가 없는 실패만 넘긴다(`isError && !data`는 호출부나 훅이 계산) */
   isError?: boolean
+  /** 이 목록의 조회 오류. 502·503이면 서버 재시작 안내를 보인다 */
+  error?: unknown
   /** 생략하면 `SectionError` 기본 문구 */
   errorMessage?: string
   empty: string
@@ -129,10 +129,9 @@ function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListCol
 }
 
 /** 컬럼 정의 하나로 lg 이상 표와 lg 미만 카드, 로딩·실패·빈 상태, 더 보기를 그린다. */
-export function DataList<T>({ label, rows, columns, rowKey, isLoading, isError, errorMessage, empty, sort, groupBy, loadMore, tableClassName }: Props<T>) {
-  if (isLoading) return <LoadingRow />
-  if (isError) return <SectionError message={errorMessage} />
-  if (rows.length === 0) return <EmptyState variant="text" message={empty} />
+export function DataList<T>({ label, rows, columns, rowKey, isLoading, isError, error, errorMessage, empty, sort, groupBy, loadMore, tableClassName }: Props<T>) {
+  const fallback = asyncFallback({ isLoading, isError, error, errorMessage, isEmpty: rows.length === 0, empty })
+  if (fallback) return fallback
 
   const groups = groupBy ? groupConsecutiveBy(rows, groupBy.key) : [{ key: '', items: rows }]
   const grouped = !!groupBy

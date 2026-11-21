@@ -1,7 +1,7 @@
 'use client'
 
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from 'recharts'
-import { fmtMonthDay, fmtDate } from '@shared/lib/format'
+import { fmtMonthDay, fmtDate, fmtDecimal } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
@@ -35,7 +35,7 @@ export function EquityLineChart({
   title,
   assetLabel = '내 자산',
   principalLabel = '투입 원금',
-  valueFormatter = (value: number) => value.toFixed(1),
+  valueFormatter = (value: number) => fmtDecimal(value, 1),
   yAxisWidth = 32,
   yAxisTickFormatter,
   dateTickFormatter = fmtMonthDay,

@@ -47,7 +47,7 @@ export function CategoryManager() {
     if (!deleteDialog.target) return
     deleteMutation.mutate(deleteDialog.target.id, {
       onSuccess: () => {
-        toast.success('카테고리가 삭제되었습니다')
+        toast.success('카테고리를 삭제했습니다')
         deleteDialog.close()
       },
     })

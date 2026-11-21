@@ -7,8 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@shared/ui/Badge'
-import { EmptyState } from '@shared/ui/EmptyState'
-import { SectionError } from '@shared/ui/SectionError'
+import { AsyncSection } from '@shared/ui/AsyncSection'
 import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { ShareableRowActions } from '@shared/ui/ShareableRowActions'
 import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
@@ -151,7 +150,7 @@ export function BudgetManager({ type }: Props) {
     if (!deleteDialog.target) return
     deleteMutation.mutate(deleteDialog.target.id, {
       onSuccess: () => {
-        toast.success('예산이 삭제되었습니다')
+        toast.success('예산을 삭제했습니다')
         deleteDialog.close()
       },
     })
@@ -186,15 +185,15 @@ export function BudgetManager({ type }: Props) {
         </Button>
       </div>
 
-      {(!budgetsQuery.data && budgetsQuery.isError) || (!categoriesQuery.data && categoriesQuery.isError) ? (
-        <SectionError message="예산 목록을 불러오지 못했습니다." />
-      ) : !budgetsQuery.data || !categoriesQuery.data ? (
-        <EmptyState variant="text" message="불러오는 중…" />
-      ) : budgets.length === 0 ? (
-        <EmptyState variant="text" message="등록된 예산이 없습니다." />
-      ) : filtered.length === 0 ? (
-        <EmptyState variant="text" message="조건에 맞는 예산이 없습니다." />
-      ) : (
+      <AsyncSection
+        data={budgetsQuery.data && categoriesQuery.data ? filtered : undefined}
+        isError={(!budgetsQuery.data && budgetsQuery.isError) || (!categoriesQuery.data && categoriesQuery.isError)}
+        error={budgetsQuery.error ?? categoriesQuery.error}
+        errorMessage="예산 목록을 불러오지 못했습니다."
+        isEmpty={(rows) => rows.length === 0}
+        empty={budgets.length === 0 ? '등록된 예산이 없습니다.' : '조건에 맞는 예산이 없습니다.'}
+      >
+        {() => (
         <>
           <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0" aria-label="예산 목록">
             {paged.map((budget) => {
@@ -237,7 +236,8 @@ export function BudgetManager({ type }: Props) {
           </ul>
           {totalPages > 1 && <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
         </>
-      )}
+        )}
+      </AsyncSection>
 
       <BudgetFormDialog type={type} target={formTarget} open={formOpen} onClose={() => setFormOpen(false)} />
 

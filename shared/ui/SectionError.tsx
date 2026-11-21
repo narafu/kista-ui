@@ -4,11 +4,16 @@ import { useContext, useState, useTransition } from 'react'
 import { QueryClientContext } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { isServerRestarting, SERVER_RESTART_MESSAGE } from '@shared/lib/api-client'
 
 interface Props {
   message?: string
   /** Server Component에서 직접 조회한 데이터가 실패한 경우 — 재시도를 router.refresh()로 서버 트리를 다시 그린다 */
   serverRetry?: boolean
+  /** 이미 카드 안에 있을 때 자체 테두리·패딩을 뺀다 */
+  bare?: boolean
+  /** 이 구역의 조회 오류. 502·503이면 `message` 대신 서버 재시작 안내를 보인다 */
+  error?: unknown
 }
 
 /**
@@ -19,14 +24,15 @@ interface Props {
  * 부모 훅·props 여러 단계 위에 있어도 호출부가 refetch를 넘길 필요가 없다(retry=0 기본값이라 자동 재시도 없음).
  * QueryClientProvider 밖(단위 테스트 등)에서는 버튼을 숨긴다.
  */
-export function SectionError({ message = '통계를 불러오지 못했습니다.', serverRetry = false }: Props) {
-  if (serverRetry) return <ServerSectionError message={message} />
-  return <QuerySectionError message={message} />
+export function SectionError({ message: fallbackMessage = '통계를 불러오지 못했습니다.', serverRetry = false, bare = false, error }: Props) {
+  const message = isServerRestarting(error) ? SERVER_RESTART_MESSAGE : fallbackMessage
+  if (serverRetry) return <ServerSectionError message={message} bare={bare} />
+  return <QuerySectionError message={message} bare={bare} />
 }
 
-function ErrorCard({ message, children }: { message: string; children?: React.ReactNode }) {
+function ErrorCard({ message, bare, children }: { message: string; bare: boolean; children?: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--r-lg)] bg-card border border-border p-10 text-center">
+    <div className={bare ? 'text-center' : 'rounded-[var(--r-lg)] bg-card border border-border p-10 text-center'}>
       <p className="text-sm text-muted-foreground">{message}</p>
       {children}
     </div>
@@ -41,18 +47,18 @@ function RetryButton({ pending, onClick }: { pending: boolean; onClick: () => vo
   )
 }
 
-function ServerSectionError({ message }: { message: string }) {
+function ServerSectionError({ message, bare }: { message: string; bare: boolean }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
   return (
-    <ErrorCard message={message}>
+    <ErrorCard message={message} bare={bare}>
       <RetryButton pending={pending} onClick={() => { if (!pending) startTransition(() => router.refresh()) }} />
     </ErrorCard>
   )
 }
 
-function QuerySectionError({ message }: { message: string }) {
+function QuerySectionError({ message, bare }: { message: string; bare: boolean }) {
   const queryClient = useContext(QueryClientContext)
   const [retrying, setRetrying] = useState(false)
 
@@ -65,7 +71,7 @@ function QuerySectionError({ message }: { message: string }) {
   }
 
   return (
-    <ErrorCard message={message}>
+    <ErrorCard message={message} bare={bare}>
       {queryClient && <RetryButton pending={retrying} onClick={handleRetry} />}
     </ErrorCard>
   )

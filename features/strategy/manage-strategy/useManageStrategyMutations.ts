@@ -59,7 +59,7 @@ export function useManageStrategyMutations({ onDeleted, onArchived }: Options = 
   }
 
   function remove(strategy: Strategy) {
-    withActionFeedback(deleteMutation, strategy, '전략이 삭제되었습니다', '삭제에 실패했습니다', onDeleted)
+    withActionFeedback(deleteMutation, strategy, '전략을 삭제했습니다', '삭제에 실패했습니다', onDeleted)
   }
 
   function archive(strategy: Strategy) {

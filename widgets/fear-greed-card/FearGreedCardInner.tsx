@@ -1,6 +1,7 @@
 'use client'
 
 import type { FearGreedPoint, FearGreedSourceView } from '@entities/market'
+import { AsyncSection } from '@shared/ui/AsyncSection'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { toKstDateString } from '@shared/lib/format'
 import { FearGreedGauge } from './FearGreedGauge'
@@ -69,10 +70,11 @@ export default function FearGreedCardInner({ title, data, loading, days, onDaysC
           {toKstDateString(current.date).replace(/-/g, '.')} KST
         </span>
       )}
-      {current ? (
-        <>
+      <AsyncSection data={current} isLoading={!!loading} empty="데이터 없음" skeleton="chart" fallbackClassName="h-[250px]">
+        {(point) => (
+          <>
           <FearGreedGauge
-            value={current.value}
+            value={point.value}
             title={`${title} 게이지`}
             aside={
               <div className="flex flex-col">
@@ -82,12 +84,9 @@ export default function FearGreedCardInner({ title, data, loading, days, onDaysC
             }
           />
           <FearGreedTrend history={data?.history ?? []} title={`${title} 추이`} />
-        </>
-      ) : (
-        <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
-          {loading ? '불러오는 중…' : '데이터 없음'}
-        </div>
-      )}
+          </>
+        )}
+      </AsyncSection>
     </div>
   )
 }

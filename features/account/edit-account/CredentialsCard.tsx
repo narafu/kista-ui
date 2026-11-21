@@ -31,7 +31,7 @@ export function CredentialsCard({ account }: Props) {
     defaultValues: { appKey: '', secretKey: '', apiKeyExpiresOn: '' },
     mutation,
     toPayload: ({ appKey, secretKey, apiKeyExpiresOn }) => ({ appKey, secretKey, ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) }),
-    successMessage: 'API 키가 재등록되었습니다',
+    successMessage: 'API 키를 재등록했습니다',
     onDone: () => form.reset(),
   })
 

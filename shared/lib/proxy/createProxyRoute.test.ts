@@ -13,6 +13,18 @@ describe('createProxyRoute', () => {
     vi.unstubAllEnvs()
   })
 
+  it('업스트림 연결 실패는 502로 알리고 내부 정보를 싣지 않는다', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed: ECONNREFUSED 10.0.0.1')))
+    const { GET } = createProxyRoute({ basePath: '/api/daily-trades' })
+
+    const response = await GET(new NextRequest('https://kista.test/api/daily-trades'))
+
+    expect(response.status).toBe(502)
+    expect(await response.json()).toEqual({ error: 'Failed' })
+  })
+
   it('정적 Route Handler에서 context 없이 기본 경로를 프록시한다', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
     const fetchMock = vi.fn().mockResolvedValue(

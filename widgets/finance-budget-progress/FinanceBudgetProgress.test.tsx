@@ -161,7 +161,7 @@ describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
     const posts = requests.filter((r) => r.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].body).toMatchObject({ categoryId: 'food', amount: 80_000 })
-    expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('예산을 추가했습니다')
   })
 })
 

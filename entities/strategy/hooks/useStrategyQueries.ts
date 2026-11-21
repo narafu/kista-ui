@@ -130,7 +130,7 @@ export function useUpdateStrategyMutation(strategyId: string, onSuccess?: () => 
 export function useReconfigureVrMutation(strategyId: string, onSuccess?: () => void | Promise<void>) {
   return useStrategySaveMutation({
     mutationFn: (data: ReconfigureVrRequest) => reconfigureVr(strategyId, data),
-    successMessage: 'VR 전략이 재설정되었습니다',
+    successMessage: 'VR 전략을 재설정했습니다',
     errorMessage: '재설정에 실패했습니다.',
     onSuccess,
   })

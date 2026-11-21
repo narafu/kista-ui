@@ -38,7 +38,7 @@ describe('TransactionFormDialog 제출 요청', () => {
     await user.type(screen.getByLabelText('금액'), '15000')
     await user.click(screen.getByRole('button', { name: '등록' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('거래내역이 등록되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('거래내역을 등록했습니다'))
     const posts = requests.filter((r) => r.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].path).toBe('/api/finance/transactions')
@@ -68,7 +68,7 @@ describe('TransactionFormDialog 제출 요청', () => {
     await user.clear(screen.getByLabelText('메모', { exact: false }))
     await user.click(screen.getByRole('button', { name: '수정' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('거래내역이 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('거래내역을 수정했습니다'))
     const puts = requests.filter((r) => r.method === 'PUT')
     expect(puts).toHaveLength(1)
     expect(puts[0].path).toBe('/api/finance/transactions/t1')

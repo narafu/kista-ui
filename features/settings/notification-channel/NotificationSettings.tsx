@@ -81,13 +81,13 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         if (channelResult.status === 'rejected') {
           return
         }
-        toast.success('푸시 알림이 등록되었습니다')
+        toast.success('푸시 알림을 등록했습니다')
         return
       }
 
       await mutation.mutateAsync(next)
       if (next === 'FCM' || next === 'ALL') {
-        toast.success('푸시 알림이 등록되었습니다')
+        toast.success('푸시 알림을 등록했습니다')
       }
     } catch {
       // mutation 에러는 React Query가 처리

@@ -1,16 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { asyncFallback } from '@shared/ui/AsyncSection'
 import { Surface } from '@shared/ui/Surface'
 import type { FearGreedSourceView } from '@entities/market'
 
 const FearGreedCardInner = dynamic(() => import('./FearGreedCardInner'), {
   ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-[250px] text-sm text-muted-foreground">
-      차트 불러오는 중…
-    </div>
-  ),
+  loading: () => asyncFallback({ isLoading: true, skeleton: 'chart', fallbackClassName: 'h-[250px]' }),
 })
 
 interface Props {
@@ -26,9 +23,7 @@ interface Props {
 export function FearGreedCard({ title, data, error, loading, days, onDaysChange, daysOptions }: Props) {
   return (
     <Surface className="p-5 flex flex-col gap-2">
-      {error && !data ? (
-        <div className="flex h-[250px] items-center justify-center text-sm text-warn">공포탐욕지수를 불러오지 못했습니다.</div>
-      ) : (
+      {asyncFallback({ isError: error && !data, errorMessage: '공포탐욕지수를 불러오지 못했습니다.', fallbackClassName: 'h-[250px]' }) ?? (
         <FearGreedCardInner title={title} data={data} loading={loading} days={days} onDaysChange={onDaysChange} daysOptions={daysOptions} />
       )}
     </Surface>

@@ -716,7 +716,7 @@ describe('StrategyDetail cancel-all toast', () => {
     fireEvent.click(screen.getByText('전체 취소'))
     cancelAllSuccessHandler?.({ cancelledCount: 1, failedCount: 0, credentialFailedCount: 0 })
 
-    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건 모두 취소됐습니다')
+    expect(vi.mocked(toast.success)).toHaveBeenCalledWith('1건을 모두 취소했습니다')
   })
 
   it('증권사 키 만료로 취소 실패하면 키 재등록을 안내한다', () => {

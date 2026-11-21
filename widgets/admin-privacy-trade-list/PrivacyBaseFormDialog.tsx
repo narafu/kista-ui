@@ -73,7 +73,7 @@ function PrivacyBaseForm({ base, onDone }: { base?: AdminPrivacyBase; onDone: ()
       }
       return base ? fields : { releaseDate: v.releaseDate, ticker: v.ticker, ...fields, orders: v.orders.map(toOrderRequest) }
     },
-    successMessage: base ? 'P 매매표가 수정되었습니다' : 'P 매매표가 등록되었습니다',
+    successMessage: base ? 'P 매매표를 수정했습니다' : 'P 매매표를 등록했습니다',
     onDone,
   })
   const { fields: orderRows, append, remove } = useFieldArray({ control: form.control, name: 'orders' })

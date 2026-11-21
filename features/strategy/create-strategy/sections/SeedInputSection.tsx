@@ -4,7 +4,7 @@ import { Badge } from '@shared/ui/Badge'
 import { Button } from '@/components/ui/button'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { SeedAmountInput } from './SeedAmountInput'
-import { fmtMoney } from '@shared/lib/format'
+import { fmtMoney, roundDecimal } from '@shared/lib/format'
 
 const FILL_PERCENTS = [25, 50, 75, 100]
 
@@ -20,9 +20,9 @@ interface Props {
   mockBadgeLabel?: string
 }
 
-// 채우기 금액은 달러 단위 (toFixed(6)은 부동소수 오차 제거용)
+// 채우기 금액은 달러 단위 (roundDecimal은 부동소수 오차 제거용)
 function fillAmount(availableCash: number, percent: number) {
-  const scaled = Number(((availableCash * percent) / 100).toFixed(6))
+  const scaled = roundDecimal((availableCash * percent) / 100, 6)
   return percent === 100 ? Math.floor(scaled) : Math.ceil(scaled)
 }
 

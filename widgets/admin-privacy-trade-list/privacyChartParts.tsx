@@ -2,6 +2,7 @@
 
 import { useMediaQuery } from '@shared/lib/hooks/use-media-query'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AdminTableBlock } from '@shared/ui/skeletons'
 import { cn } from '@shared/lib/utils'
 
 // 현금비중 경고 기준 — 이 아래 구간은 배경 음영으로 구분한다
@@ -17,11 +18,6 @@ export function avgGapLevel(close: number | null, avgPrice: number | null): 0 | 
   if (close == null || avgPrice == null || avgPrice <= 0) return 0
   const gap = Math.abs(close - avgPrice) / avgPrice
   return gap >= AVG_GAP_LEVELS[1] ? 2 : gap >= AVG_GAP_LEVELS[0] ? 1 : 0
-}
-
-// 부호 없는 정수 % — 현금비중처럼 0~1 비율을 그대로 보여줄 때 쓴다 (다른 사용처는 아직 없어 로컬 유지)
-export function fmtPercent(ratio: number) {
-  return `${Math.round(ratio * 100)}%`
 }
 
 // 범례와 툴팁이 같은 표식을 쓰도록 한곳에 둔다 — 툴팁 값과 차트 요소를 눈으로 짝짓기 위함
@@ -90,6 +86,19 @@ export function ChartSkeleton() {
       <Skeleton className={PANEL_HEIGHT.price} />
       <Skeleton className={PANEL_HEIGHT.cash} />
       <Skeleton className={PANEL_HEIGHT.pnl} />
+    </div>
+  )
+}
+
+// 라우트 loading.tsx가 재수출한다 — 차트 카드 + 표
+export function PrivacyTradesPageSkeleton() {
+  return (
+    <div className="animate-pulse">
+      <Skeleton className="h-8 w-40 mb-6" />
+      <div className="mb-6 rounded-[var(--r-lg)] border border-border bg-card p-4 sm:p-6">
+        <ChartSkeleton />
+      </div>
+      <AdminTableBlock rows={4} />
     </div>
   )
 }

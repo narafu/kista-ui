@@ -1,6 +1,7 @@
 'use client'
 
 import { toast } from 'sonner'
+import { AsyncSection } from '@shared/ui/AsyncSection'
 import { Button } from '@/components/ui/button'
 import {
   useFinanceGroupMembersQuery,
@@ -49,13 +50,9 @@ function GroupSection({ groupId, myUserId }: GroupSectionProps) {
     <div className="space-y-4">
       <p className="text-sm font-semibold">멤버</p>
       {/* 멤버 조회 실패를 "멤버 없음·초대 권한 없음"으로 조용히 보이지 않도록 구분한다 */}
-      {!membersQuery.data && membersQuery.isError ? (
-        <p className="text-sm text-muted-foreground">멤버 목록을 불러오지 못했습니다.</p>
-      ) : !membersQuery.data ? (
-        <p className="text-sm text-muted-foreground">불러오는 중…</p>
-      ) : (
-        <GroupMemberList groupId={groupId} members={members} isOwner={isOwner} myUserId={myUserId} />
-      )}
+      <AsyncSection data={membersQuery.data} isError={membersQuery.isError} error={membersQuery.error} errorMessage="멤버 목록을 불러오지 못했습니다.">
+        {() => <GroupMemberList groupId={groupId} members={members} isOwner={isOwner} myUserId={myUserId} />}
+      </AsyncSection>
 
       <div className="flex gap-2">
         {isOwner && <InviteDialog groupId={groupId} />}

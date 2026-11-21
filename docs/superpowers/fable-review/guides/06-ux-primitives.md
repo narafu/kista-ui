@@ -239,3 +239,18 @@ S4 1차 실행 보정 (2026-11-21, `309d6046`, 태스크 1·4·5):
 - 태스크 4 판정 제외: `widgets/strategy-detail/CloseStrategyDialog.tsx`. 보관·삭제 라디오에 따라 확인 동작과 버튼 색이 바뀌어 틀에 담지 않는다. 판정 명령은 `git grep -l -E '<AlertDialog[ >]' -- '*.tsx' ':!*.test.*' ':!components/ui' ':!shared/ui'`가 이 파일 1건이면 통과다.
 - 태스크 4: 트리거는 `ConfirmDialog`의 `trigger` prop으로 넘겨 Base UI 트리거로 렌더한다. 일반 버튼으로 두면 Safari·iOS에서 닫은 뒤 포커스가 트리거로 돌아오지 않는다. 처리 중 차단은 `blockTriggerWhile`이다.
 - 태스크 5 판정 제외: `type="number"` 4파일(`CategoryFormDialog`, `DcaConditionsSection`, `PrivacyBaseFormDialog`, `PrivacyOrderFields`)은 스피너·`min`·`step`에 기대거나 값이 문자열이라 옮기면 동작이 달라진다. `InputWithUnit` 4파일(`AssetForm`, `BudgetForm`, `TransactionFormDialog`, `ValueListEditor`)은 콤마 문자열 폼이라 그대로 둔다.
+
+S4 2차 실행 보정 (2026-11-21, 태스크 3·7):
+
+- 착수 전 재측정: `불러오는 중` 19줄·17파일, `animate-pulse`가 있는 `app` 파일 15개(17 아님), `loading.tsx` 27개, `toFixed`·`toLocale*` 14줄, 위젯 로컬 `fmt*` 6개. 성공 토스트는 `되었습니다` 21(`toast.success` 11, `successMessage` 10), `됐습니다` 4, `했습니다` 22. `api-types.ts`에 `WRONG_ROLE`은 있고 `ENGINE_RESTARTING`은 없다.
+- 태스크 3 `AsyncSection`: 입력은 `DataList`와 같은 `data`·`isLoading`·`isError`·`empty` 모양이다. 상태 판정은 `asyncFallback` 하나이고 `DataList`도 이것을 부른다. 소비처는 `BudgetManager`, `GroupManager`, `MarketChartCardInner`, `FearGreedCard`·`Inner`, `NextOrderCard`, 차트 래퍼 5개다. 본문의 `title` prop은 넣지 않았다(`SectionTitle`은 태스크 6). 프리셋은 쓰는 곳이 있는 `text`·`chart`만 두었다. `rows`·`cards`는 소비처가 생길 때 더한다.
+- 조회 실패 색(`--status-error`)은 바꾸지 않았다. `SectionError` 35곳이 함께 바뀌어 태스크 6의 visual-diff 세션에서 한다.
+- 서버 재시작 안내: 상태 코드 502·503이고 서버 `detail`이 없을 때만 조회 구역(`SectionError`의 `error`)에 보인다. 프록시가 5xx 본문을 숨겨 `TRADING_CORE_UNAVAILABLE`과 구분되지 않으므로 문구는 "재시작 중이거나 일시적으로 연결할 수 없습니다"다. 오류 코드 분기는 `ENGINE_RESTARTING`이 `api-types.ts`에 들어온 뒤에 더한다.
+- **본문과 다르게 한 것 둘(리뷰 지적).** ① 자동 재시도는 넣지 않았다. 기본 `retry`를 켜면 `fetchQuery`가 상속해 전략 상세가 약 75초 로딩에 머물고(요청 16회), 저장 성공 뒤 목록 동기화가 실패로 보고된다. ② mutation 토스트에 같은 문구를 띄우지 않는다. 연결이 끊긴 쓰기는 커밋됐을 수 있어 재시도를 권하면 돈이 걸린 요청이 중복된다.
+- 프록시와 직접 fetch 하는 Route Handler(`auth/me`, FCM, 재신청)의 업스트림 연결 실패는 `fetchUpstream`이 502로 바꾼다.
+- 태스크 3 판정 제외(`git grep -n "불러오는 중" -- '*.tsx' ':!*.test.*' ':!shared/ui'` 7파일): 이미 스켈레톤인 `role="status"`의 `aria-label` 5파일(`privacyChartParts`, `BenchmarkStates`, `EtfPriceChart`, `HousingPriceIndexChart`, `HousingBenchmarkQuintileTrendChart`), Select placeholder(`BenchmarkFilterFields`), 카드 값 텍스트(`AccountCard`).
+- `loading.tsx`: `animate-pulse` 15파일과 기존 재수출 3파일이 `shared/ui/skeletons`를 쓴다. `privacy-trades`는 위젯의 차트 스켈레톤이 필요해 위젯이 내보낸다(표 자리 막대 폭이 다른 관리자 표와 같아졌다). 본문이 `animate-pulse` 없는 12파일은 이번에 옮기지 않았다.
+- 태스크 7: lint selector는 `formatSelectors`이고 기존 `restrict(...)` 호출마다 합쳤다(`no-restricted-syntax`는 뒤 설정이 덮어쓴다). `shared/ui/**`에도 건다. 고의 위반으로 새 규칙과 기존 cache 규칙이 함께 잡히는 것을 확인하고 되돌렸다.
+- `${n}%`는 lint에 넣지 않았다. 16줄 중 CSS 계산값(`width`, 그라데이션 `offset`)이 섞여 있다. 위젯 로컬 `fmt*`는 공용과 겹치는 `fmtPercent`만 옮겼고 나머지 5개는 그 화면 고유 표기라 그대로 뒀다.
+- 돈 계산의 `toFixed(6)`(`floorToCents`, `SeedInputSection`)은 식을 바꾸지 않고 `roundDecimal`로 옮겼다. 요청 바디 단언의 기대값은 고치지 않았다.
+- 성공 토스트는 "~했습니다"에 마침표 없음이다. 실패 토스트의 레이어별 마침표 규칙은 실패 문구를 서버 `detail`로 옮기는 02까지 그대로 둔다.

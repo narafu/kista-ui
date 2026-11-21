@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { DataList, useDataListSort, type DataListColumn } from '@shared/ui/data-list/DataList'
 import { Badge } from '@shared/ui/Badge'
-import { fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney } from '@shared/lib/format'
+import { fmtSignedMoney, pnlTextClass, fmtSignedPercent, roundMoney, fmtDecimal } from '@shared/lib/format'
 import type { Currency } from '@shared/lib/api-schema'
 import type { StrategyTypeStats } from '@entities/stats'
 import { useMeta } from '@entities/meta'
@@ -43,7 +43,7 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
       header: '소요일',
       numeric: true,
       sortBy: (t) => t.avgDurationDays,
-      cell: (t) => (t.avgDurationDays != null ? `${t.avgDurationDays.toFixed(1)}일` : '-'),
+      cell: (t) => (t.avgDurationDays != null ? `${fmtDecimal(t.avgDurationDays, 1)}일` : '-'),
     },
     // 의도적으로 KPI(실현손익·미실현 평가손익)보다 짧게 — 6열 표 폭 때문에 '미실현'과 같은 방식으로 줄인다
     {

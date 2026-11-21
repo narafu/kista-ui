@@ -71,7 +71,7 @@ export function useUpdateNicknameMutation() {
   return useMutation({
     mutationFn: (nickname: string) => updateNickname(nickname),
     onSuccess: async () => {
-      toast.success('닉네임이 변경됐습니다.')
+      toast.success('닉네임을 변경했습니다')
       await invalidateMe(queryClient)
     },
     onError: (err) => toast.error(apiMsg(err, '닉네임 변경에 실패했습니다.')),
@@ -101,7 +101,7 @@ export function useUpdateTelegramMutation() {
   return useMutation({
     mutationFn: (data: { botToken: string; chatId: string }) => updateTelegram(data),
     onSuccess: async () => {
-      toast.success('텔레그램이 연결됐습니다.')
+      toast.success('텔레그램을 연결했습니다')
       await invalidateMe(queryClient)
     },
     onError: (err) => toast.error(apiMsg(err, '텔레그램 연결에 실패했습니다.')),
@@ -113,7 +113,7 @@ export function useDeleteTelegramMutation() {
   return useMutation({
     mutationFn: deleteTelegram,
     onSuccess: async () => {
-      toast.success('텔레그램 연결이 해제됐습니다.')
+      toast.success('텔레그램 연결을 해제했습니다')
       await invalidateMe(queryClient)
     },
     onError: (err) => toast.error(apiMsg(err, '텔레그램 해제에 실패했습니다.')),

@@ -225,7 +225,7 @@ describe('AdminPrivacyBaseTable dialog requests', () => {
     await userEvent.type(within(dialog).getByLabelText(/^수량/), '2')
     await userEvent.click(within(dialog).getByRole('button', { name: '추가' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('주문이 추가되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('주문을 추가했습니다'))
     const posts = bodiesOf(requests, 'POST')
     expect(posts).toHaveLength(1)
     expect((posts[0].path)).toBe('/api/admin/privacy-trade-bases/base-1/orders')
@@ -247,7 +247,7 @@ describe('AdminPrivacyBaseTable dialog requests', () => {
     await userEvent.type(within(dialog).getByLabelText(/^수량/), '3')
     await userEvent.click(within(dialog).getByRole('button', { name: '수정' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('주문이 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('주문을 수정했습니다'))
     const patches = bodiesOf(requests, 'PATCH')
     expect(patches).toHaveLength(1)
     expect((patches[0].path)).toBe('/api/admin/privacy-trade-bases/base-1/orders/order-1')
@@ -272,7 +272,7 @@ describe('AdminPrivacyBaseTable dialog requests', () => {
     await pick('방향', '매도', 1)
     await userEvent.click(within(dialog).getByRole('button', { name: '등록' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('P 매매표가 등록되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('P 매매표를 등록했습니다'))
     const posts = bodiesOf(requests, 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].path).toBe('/api/admin/privacy-trade-bases')
@@ -298,7 +298,7 @@ describe('AdminPrivacyBaseTable dialog requests', () => {
     await userEvent.type(within(dialog).getByLabelText('보유'), '9')
     await userEvent.click(within(dialog).getByRole('button', { name: '수정' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('P 매매표가 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('P 매매표를 수정했습니다'))
     const patches = bodiesOf(requests, 'PATCH')
     expect(patches).toHaveLength(1)
     expect(patches[0].path).toBe('/api/admin/privacy-trade-bases/base-1')

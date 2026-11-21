@@ -38,7 +38,7 @@ describe('CategoryFormDialog(그룹 스코프) 제출 요청', () => {
     await user.clear(screen.getByLabelText('정렬순서'))
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리가 추가되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리를 추가했습니다'))
     const posts = requests.filter((r) => r.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].query.get('shareToGroup')).toBe('true')
@@ -106,7 +106,7 @@ describe('CategoryFormDialog(그룹 스코프) 제출 요청', () => {
     await user.type(screen.getByLabelText('이름'), '외식')
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리가 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리를 수정했습니다'))
     const puts = requests.filter((r) => r.method === 'PUT')
     expect(puts).toHaveLength(1)
     expect(puts[0].path).toBe('/api/finance/categories/c9')
@@ -128,7 +128,7 @@ describe('CategoryFormDialog(시스템 스코프) 제출 요청', () => {
     await user.type(screen.getByLabelText('정렬순서'), '0')
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리가 추가되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리를 추가했습니다'))
     const posts = requests.filter((r) => r.method === 'POST')
     expect(posts).toHaveLength(1)
     expect(posts[0].query.toString()).toBe('')
@@ -158,7 +158,7 @@ describe('CategoryFormDialog(시스템 스코프) 제출 요청', () => {
     await user.type(screen.getByLabelText('이름'), '외식')
     await user.click(screen.getByRole('button', { name: '저장' }))
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리가 수정되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('카테고리를 수정했습니다'))
     const puts = requests.filter((r) => r.method === 'PUT')
     expect(puts).toHaveLength(1)
     expect(puts[0].path).toBe('/api/admin/finance/categories/c9')

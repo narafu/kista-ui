@@ -29,7 +29,7 @@ export function ReapplyButton() {
       await reapply()
       localStorage.setItem(STORAGE_KEY, Date.now().toString())
       setCooldownMinutes(60)
-      toast.success('승인 재신청이 완료되었습니다')
+      toast.success('승인 재신청을 완료했습니다')
     } catch (err) {
       toast.error(err instanceof ApiError ? '재신청에 실패했습니다' : '오류가 발생했습니다')
     } finally {

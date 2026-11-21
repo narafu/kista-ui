@@ -195,3 +195,18 @@ export function percentToRatio(percent: number): number {
 }
 
 export { pnlTextClass } from './pnl'
+
+// 고정 소수 자릿수 표기
+export function fmtDecimal(n: number, digits: number): string {
+  return n.toFixed(digits)
+}
+
+// 부호 없는 정수 % — 0~1 비율을 받는다
+export function fmtPercent(ratio: number): string {
+  return `${Math.round(ratio * 100)}%`
+}
+
+// 부동소수 오차를 걷어 낸 숫자(표기가 아니라 계산용)
+export function roundDecimal(n: number, digits: number): number {
+  return Number(n.toFixed(digits))
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl, getTradingApiBaseUrl } from '@shared/lib/env'
-import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { fetchUpstream, noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 type Params = { params?: Promise<{ path?: string[] }> }
 type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
@@ -44,13 +44,13 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
       if (text) body = text
     }
 
-    const res = await fetch(url, {
+    const res = await fetchUpstream(url, {
       method: request.method,
       headers,
       body,
       signal: request.signal,
       cache: 'no-store',
-    })
+    }, `${label}${subPath} ${request.method}`)
 
     if (!res.ok) return relayUpstreamError(res, `${label}${subPath} ${request.method}`)
 

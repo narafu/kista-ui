@@ -6,10 +6,12 @@ import { Info } from 'lucide-react'
 import { CHART_CANDLE_COUNT, useCandlesQuery } from '@entities/market'
 import { rsi, sma } from '@shared/lib/indicators'
 import { cn } from '@shared/lib/utils'
+import { AsyncSection } from '@shared/ui/AsyncSection'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { MarketChartCategory } from './marketChartCategories'
+import { roundDecimal } from '@shared/lib/format'
 
 const CANDLE_OPTIONS = [400, 200, 120, 50] as const
 type CandleCount = (typeof CANDLE_OPTIONS)[number]
@@ -51,7 +53,7 @@ function toRgba(cssColor: string): string {
   ctx.fillStyle = cssColor
   ctx.fillRect(0, 0, 1, 1)
   const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
-  return `rgba(${r},${g},${b},${+(a / 255).toFixed(3)})`
+  return `rgba(${r},${g},${b},${roundDecimal(a / 255, 3)})`
 }
 
 function readVar(varName: string, prop: 'color' | 'background-color' = 'color'): string {
@@ -82,7 +84,7 @@ export default function MarketChartCardInner({ category }: Props) {
   const [showRsi, setShowRsi] = useState(true)
   const selected = category.options.find((o) => o.symbol === symbol) ?? category.options[0]
   // 이평선·RSI의 선행 구간을 채우려고 항상 최대치로 조회하고, 캔들 개수 선택은 보이는 범위로만 반영한다
-  const { data: candles, isError, isPending } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
+  const { data: candles, error, isError, isPending } = useCandlesQuery(symbol, CHART_CANDLE_COUNT)
   // 컨테이너는 차트를 그릴 때만 마운트된다 — 다시 마운트될 때 새 컨테이너에 차트를 붙이도록 effect deps에 넣는다.
   // 재조회 실패는 이미 받은 candles를 덮지 않는다(데이터가 없을 때만 오류 표시)
   const showChart = !isPending && !!candles?.length
@@ -258,20 +260,26 @@ export default function MarketChartCardInner({ category }: Props) {
           RSI
         </button>
       </div>
-      {isError && !candles ? (
-        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-warn')}>시장 차트를 불러오지 못했습니다.</div>
-      ) : isPending ? (
-        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-muted-foreground')}>차트 불러오는 중…</div>
-      ) : !showChart ? (
-        <div className={cn(chartHeightClass, 'flex items-center justify-center text-sm text-muted-foreground')}>표시할 시세가 없습니다.</div>
-      ) : (
-        <div
-          ref={containerRef}
-          role="figure"
-          aria-label={`${selected.label} 일봉 차트`}
-          className={cn('w-full', chartHeightClass)}
-        />
-      )}
+      <AsyncSection
+        data={candles}
+        isLoading={isPending}
+        isError={isError}
+        error={error}
+        errorMessage="시장 차트를 불러오지 못했습니다."
+        isEmpty={() => !showChart}
+        empty="표시할 시세가 없습니다."
+        skeleton="chart"
+        fallbackClassName={chartHeightClass}
+      >
+        {() => (
+          <div
+            ref={containerRef}
+            role="figure"
+            aria-label={`${selected.label} 일봉 차트`}
+            className={cn('w-full', chartHeightClass)}
+          />
+        )}
+      </AsyncSection>
     </>
   )
 }

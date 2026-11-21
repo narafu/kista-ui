@@ -1,6 +1,6 @@
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl } from '@shared/lib/env'
-import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { fetchUpstream, noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function DELETE(
   _request: Request,
@@ -11,11 +11,11 @@ export async function DELETE(
 
   const { token } = await params
 
-  const res = await fetch(`${getApiBaseUrl()}/api/fcm/tokens/${encodeURIComponent(token)}`, {
+  const res = await fetchUpstream(`${getApiBaseUrl()}/api/fcm/tokens/${encodeURIComponent(token)}`, {
     method: 'DELETE',
     headers: { 'Authorization': `Bearer ${authToken}` },
     cache: 'no-store',
-  })
+  }, 'fcm/tokens DELETE')
 
   if (!res.ok) return relayUpstreamError(res, 'fcm/tokens DELETE')
   return noContent()

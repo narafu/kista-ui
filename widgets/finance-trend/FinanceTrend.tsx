@@ -1,6 +1,7 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { asyncFallback } from '@shared/ui/AsyncSection'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
@@ -8,11 +9,7 @@ import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 
 const FinanceTrendInner = dynamic(() => import('./FinanceTrendInner'), {
   ssr: false,
-  loading: () => (
-    <div className="flex min-h-[240px] flex-1 items-center justify-center text-sm text-muted-foreground sm:min-h-[280px]">
-      차트 불러오는 중…
-    </div>
-  ),
+  loading: () => asyncFallback({ isLoading: true, skeleton: 'chart', fallbackClassName: 'min-h-[240px] flex-1 sm:min-h-[280px]' }),
 })
 
 interface Props {

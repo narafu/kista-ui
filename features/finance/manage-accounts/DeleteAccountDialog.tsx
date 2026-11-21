@@ -23,7 +23,7 @@ export function DeleteAccountDialog({ open, onOpenChange, account }: Props) {
       pendingLabel="삭제 중..."
       mutation={deleteMutation}
       variables={account.id}
-      onSuccess={() => toast.success('계좌가 삭제되었습니다')}
+      onSuccess={() => toast.success('계좌를 삭제했습니다')}
     />
   )
 }

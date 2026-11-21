@@ -45,7 +45,7 @@ function PrivacyOrderForm({ baseId, order, onDone }: { baseId: string; order?: A
       const { price, quantity, ...create } = toOrderRequest(v)
       return order ? { price, quantity } : { ...create, price, quantity }
     },
-    successMessage: order ? '주문이 수정되었습니다' : '주문이 추가되었습니다',
+    successMessage: order ? '주문을 수정했습니다' : '주문을 추가했습니다',
     onDone,
   })
   return (

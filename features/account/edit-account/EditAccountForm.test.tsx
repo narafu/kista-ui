@@ -29,7 +29,7 @@ describe('EditAccountForm', () => {
     await userEvent.type(screen.getByLabelText('App Key'), 'new-key-1234')
     await userEvent.type(screen.getByLabelText('App Secret'), 'new-secret-1234')
     await userEvent.click(screen.getByRole('button', { name: 'API 키 재등록' }))
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('API 키가 재등록되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('API 키를 재등록했습니다'))
     expect(requests[0]).toMatchObject({ method: 'PUT', path: '/api/accounts/m1/credentials', body: { appKey: 'new-key-1234', secretKey: 'new-secret-1234' } })
     // 성공하면 입력을 비운다
     expect(screen.getByLabelText('App Key')).toHaveValue('')
@@ -106,7 +106,7 @@ describe('EditAccountForm', () => {
     await userEvent.click(screen.getAllByRole('button', { name: '저장' })[0])
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith('/accounts/acc-1'))
     expect(requests.find((r) => r.method === 'PUT')).toMatchObject({ path: '/api/accounts/acc-1', body: { nickname: '새 별칭' } })
-    expect(toast.success).toHaveBeenCalledWith('계좌가 수정되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('계좌를 수정했습니다')
   })
 
   it('별칭이 비어 있으면 요청을 보내지 않는다', async () => {
@@ -136,7 +136,7 @@ describe('EditAccountForm', () => {
     await userEvent.click(deleteButton)
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith('/accounts'))
     expect(requests.find((r) => r.method === 'DELETE')?.path).toBe('/api/accounts/acc-1')
-    expect(toast.success).toHaveBeenCalledWith('계좌가 삭제되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('계좌를 삭제했습니다')
   })
 
   it('종속 도메인 캐시 무효화가 하나 실패해도 삭제 뒤 이동한다', async () => {
@@ -151,7 +151,7 @@ describe('EditAccountForm', () => {
 
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith('/accounts'))
     expect(invalidate).toHaveBeenCalledTimes(4)
-    expect(toast.success).toHaveBeenCalledWith('계좌가 삭제되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('계좌를 삭제했습니다')
   })
 
   it('삭제 성공 뒤 이동하기 전에는 영구 삭제를 다시 누를 수 없고 트리거도 잠긴다', async () => {
@@ -167,7 +167,7 @@ describe('EditAccountForm', () => {
     const deleteButton = screen.getByRole('button', { name: '영구 삭제' })
     await userEvent.click(deleteButton)
 
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌가 삭제되었습니다'))
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌를 삭제했습니다'))
     await waitFor(() => expect(screen.getByRole('button', { name: '삭제 중...' })).toBeDisabled())
     expect(useRouter().push).not.toHaveBeenCalledWith('/accounts')
     expect(requests.filter((r) => r.method === 'DELETE')).toHaveLength(1)

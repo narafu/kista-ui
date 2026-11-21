@@ -19,7 +19,7 @@ import {
 } from '@entities/finance'
 import { useMeta } from '@entities/meta'
 import { Skeleton } from '@/components/ui/skeleton'
-import { fmtKrw, fmtShortYearMonth } from '@shared/lib/format'
+import { fmtKrw, fmtShortYearMonth, fmtDecimal } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
@@ -111,7 +111,7 @@ function CompositionChart({ title, columns, segments, labelFor, colorFor }: Comp
                   cursor={{ fill: 'var(--muted)' }}
                   labelFormatter={(label) => fmtShortYearMonth(String(label))}
                   formatter={(value, name, item) => {
-                    const percent = typeof value === 'number' ? value.toFixed(1) : String(value)
+                    const percent = typeof value === 'number' ? fmtDecimal(value, 1) : String(value)
                     const isMobile = typeof window !== 'undefined' && window.innerWidth < MOBILE_BREAKPOINT_PX
                     const amount = isMobile ? undefined : amountFromPayload(item?.payload, String(name))
                     const amountLabel = typeof amount === 'number' ? ` (${maskIfHidden(fmtKrw(amount))})` : ''

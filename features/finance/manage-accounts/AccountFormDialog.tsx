@@ -71,7 +71,7 @@ function AccountForm({ account, onDone }: { account?: FinanceAccount; onDone: ()
       }
       return account ? payload : { ...payload, shareToGroup: canShareToGroup && v.shareToGroup }
     },
-    successMessage: account ? '계좌가 수정되었습니다' : '계좌가 추가되었습니다',
+    successMessage: account ? '계좌를 수정했습니다' : '계좌를 추가했습니다',
     onDone,
   })
 

@@ -24,7 +24,7 @@ function CategoryForm({ onDone }: { onDone: () => void }) {
     defaultValues: { name: '', sortOrder: '3' },
     mutation,
     toPayload: (v) => ({ name: v.name, sortOrder: Number(v.sortOrder), type: 'EXPENSE' as const }),
-    successMessage: '카테고리가 추가되었습니다',
+    successMessage: '카테고리를 추가했습니다',
     onDone,
   })
   return (
@@ -48,7 +48,7 @@ describe('useAppForm', () => {
 
     await waitFor(() => expect(onDone).toHaveBeenCalledOnce())
     expect(requests.map((r) => r.body)).toEqual([{ name: '식비', sortOrder: 3, type: 'EXPENSE' }])
-    expect(toast.success).toHaveBeenCalledWith('카테고리가 추가되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('카테고리를 추가했습니다')
   })
 
   it('진행 중에는 제출 버튼이 "추가 중…"으로 잠긴다', async () => {

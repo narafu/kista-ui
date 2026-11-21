@@ -5,7 +5,7 @@ import { KpiCard } from '@widgets/kpi-card'
 import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
-import { fmtDate, fmtUsd } from '@shared/lib/format'
+import { fmtDate, fmtUsd, fmtDecimal, fmtPercent } from '@shared/lib/format'
 import { Badge } from '@shared/ui/Badge'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview } from '@entities/order'
@@ -157,7 +157,7 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
         <KpiCard
           label="pool 상한"
           value={`$${fmtUsd(vr.poolLimit)}`}
-          sub={`${(vr.poolLimitRate * 100).toFixed(0)}%`}
+          sub={fmtPercent(vr.poolLimitRate)}
           valueClassName={TILE_VALUE}
         />
       </div>
@@ -179,7 +179,7 @@ function PositionGrid({ preview, isLoadingPreview, isPreviewError }: PositionGri
     <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-2 gap-3">
       {position ? (
         <>
-          <KpiCard label="회차(T)" value={`${position.currentRound.toFixed(1)}회차`} valueClassName={TILE_VALUE} />
+          <KpiCard label="회차(T)" value={`${fmtDecimal(position.currentRound, 1)}회차`} valueClassName={TILE_VALUE} />
           <KpiCard label="단위금액(회)" value={`$${fmtUsd(toNum(position.unitAmount))}`} valueClassName={TILE_VALUE} />
           <KpiCard label="기준가" value={`$${fmtUsd(toNum(position.referencePrice))}`} valueClassName={TILE_VALUE} />
           <KpiCard label="목표가" value={`$${fmtUsd(toNum(position.targetPrice))}`} valueClassName={TILE_VALUE} />

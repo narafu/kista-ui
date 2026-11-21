@@ -87,7 +87,7 @@ export function BudgetForm({ type, initial, duplicateFrom, defaultCategoryId, on
       }
       return mode === 'edit' ? payload : { ...payload, shareToGroup: canShareToGroup && v.shareToGroup }
     },
-    successMessage: mode === 'edit' ? '예산이 수정되었습니다' : '예산이 추가되었습니다',
+    successMessage: mode === 'edit' ? '예산을 수정했습니다' : '예산을 추가했습니다',
     onDone,
   })
 

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { fmtUsd } from '@shared/lib/format'
+import { fmtUsd, fmtDecimal } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
 import type { OrderReadiness } from '@entities/order'
@@ -91,7 +91,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
           </Badge>
         )}
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-          <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
+          <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{fmtDecimal(strategy.currentRound!, 1)}회차</span>
         )}
         <ChevronRight className="ml-auto size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
       </div>
@@ -140,7 +140,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
             {strategy.ticker}
           </span>
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
-            <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{strategy.currentRound!.toFixed(1)}회차</span>
+            <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{fmtDecimal(strategy.currentRound!, 1)}회차</span>
           )}
           <ChevronRight className="ml-2 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
         </div>

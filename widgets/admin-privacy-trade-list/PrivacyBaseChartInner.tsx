@@ -8,9 +8,9 @@ import type { MouseHandlerDataParam } from 'recharts'
 // (asset-trend/AssetTrendInner.tsx 등 기존 recharts 위젯과 동일한 처리).
 import { Area, Brush, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
-import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass } from '@shared/lib/format'
+import { fmtMonthDay, fmtSignedPercent, fmtSignedUsd, fmtUsd, pnlTextClass, fmtPercent } from '@shared/lib/format'
 import { cn } from '@shared/lib/utils'
-import { CASH_THRESHOLD, LegendItems, PANEL_HEIGHT, PANEL_LEGEND, SWATCH, Swatch, avgGapLevel, fmtPercent, useIsNarrow } from './privacyChartParts'
+import { CASH_THRESHOLD, LegendItems, PANEL_HEIGHT, PANEL_LEGEND, SWATCH, Swatch, avgGapLevel, useIsNarrow } from './privacyChartParts'
 import type { PrivacyChartRow } from './model/privacyChartSeries'
 
 interface Props {

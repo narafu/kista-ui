@@ -18,7 +18,8 @@ vi.mock('next/navigation', async (importOriginal) => ({
 
 const fetchEitherMock = vi.fn()
 
-vi.mock('@shared/lib/api-client', () => ({
+vi.mock('@shared/lib/api-client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@shared/lib/api-client')>()),
   fetchEither: (...args: unknown[]) => fetchEitherMock(...args),
 }))
 

@@ -23,7 +23,7 @@ export function useStrategyMutations({
   onSuccess?: () => void
 }) {
   const handleMutationSuccess = async (saved?: Strategy) => {
-    toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
+    toast.success(initial ? '전략을 수정했습니다' : '전략을 등록했습니다')
     // 오늘 시작인데 오늘 개장 배치(22:00) 이후 등록 — 동작은 그대로, 오늘 밤 장 시작 주문이 나가지 않음만 안내
     if (!initial && saved?.todayOpenBatchMissed) {
       toast.info('오늘 개장 배치(22:00)가 지나 오늘 밤 장 시작 주문은 나가지 않습니다. 장 시작 주문은 다음 거래일부터 자동으로 나갑니다.', { duration: 10000 })

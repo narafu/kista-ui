@@ -146,7 +146,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
       { baseId: deleteOrderTarget.baseId, orderId: deleteOrderTarget.order.id },
       {
         onSuccess: () => {
-          toast.success('주문이 삭제되었습니다')
+          toast.success('주문을 삭제했습니다')
           setDeleteOrderRef(null)
         },
       },

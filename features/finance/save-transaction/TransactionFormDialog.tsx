@@ -91,7 +91,7 @@ function TransactionForm({ type, initial, duplicateFrom, windowFrom, windowTo, o
       }
       return mode === 'edit' ? payload : { ...payload, shareToGroup: canShareToGroup && v.shareToGroup }
     },
-    successMessage: mode === 'edit' ? '거래내역이 수정되었습니다' : '거래내역이 등록되었습니다',
+    successMessage: mode === 'edit' ? '거래내역을 수정했습니다' : '거래내역을 등록했습니다',
     onDone,
   })
 

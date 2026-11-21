@@ -77,7 +77,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
       const payload = buildAssetPayload(values)
       return mode === 'edit' ? payload : { ...payload, shareToGroup: canShareToGroup && shareToGroup }
     },
-    successMessage: mode === 'edit' ? '자산 기록이 수정되었습니다' : mode === 'duplicate' ? '자산 기록이 복제되었습니다' : '자산 기록이 등록되었습니다',
+    successMessage: mode === 'edit' ? '자산 기록을 수정했습니다' : mode === 'duplicate' ? '자산 기록을 복제했습니다' : '자산 기록을 등록했습니다',
     onDone: onSuccess,
   })
   const [entryDate, categoryId] = form.watch(['entryDate', 'categoryId'])

@@ -53,7 +53,7 @@ describe('BudgetForm', () => {
     expect(posts).toHaveLength(1)
     expect(posts[0].body).toEqual({ categoryId: 'cat-food', amount: 100_000, applyStartDate: '2026-09-01' })
     expect(requests.some((r) => r.method === 'PUT')).toBe(false)
-    expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('예산을 추가했습니다')
   })
 
   it('그룹 소속이면 생성 제출에 shareToGroup=true 쿼리가 붙는다', async () => {
@@ -94,7 +94,7 @@ describe('BudgetForm', () => {
     expect(puts[0].path).toBe('/api/finance/budgets/b1')
     expect(puts[0].body).toEqual({ categoryId: 'cat-food', amount: 120_000, applyStartDate: '2026-01-01' })
     expect(requests.some((r) => r.method === 'POST')).toBe(false)
-    expect(toast.success).toHaveBeenCalledWith('예산이 수정되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('예산을 수정했습니다')
   })
 
   it('서버가 거절하면(겹침 409) onDone을 부르지 않는다', async () => {

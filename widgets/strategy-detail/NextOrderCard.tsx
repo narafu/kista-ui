@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
+import { asyncFallback } from '@shared/ui/AsyncSection'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import type { NextOrderPreview, OrderReadiness } from '@entities/order'
@@ -108,8 +109,8 @@ interface PreviewBodyProps {
 }
 
 function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previewError, canExecute }: PreviewBodyProps) {
-  if (isLoadingPreview) return <p className="text-base text-muted-foreground text-center px-6 py-4">불러오는 중…</p>
-  if (isPreviewError) return <p className="text-base text-muted-foreground text-center px-6 py-4">{previewErrorMsg(previewError)}</p>
+  const fallback = asyncFallback({ isLoading: isLoadingPreview, isError: isPreviewError, error: previewError, errorMessage: previewErrorMsg(previewError), fallbackClassName: 'px-6 py-4' })
+  if (fallback) return fallback
   // 미리보기는 전략 상태·휴장 무관 강제 계산이라(kista-api: preview() "휴장·상태 무관 강제 계산"),
   // 일시중지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다
   // 사유가 있으면 "계획대로 진행" 안내가 사실과 어긋난다 — 예: 사이클 종료
@@ -185,7 +186,7 @@ export function NextOrderCard({
                 cancelAllMutation.mutate(undefined, {
                   onSuccess: (r) => {
                     if (r.failedCount === 0) {
-                      toast.success(`${r.cancelledCount}건 모두 취소됐습니다`)
+                      toast.success(`${r.cancelledCount}건을 모두 취소했습니다`)
                     } else if (r.credentialFailedCount > 0) {
                       toast.error(`${r.cancelledCount}건 취소, ${r.failedCount}건 실패. 증권사 키가 만료·철회돼 취소할 수 없습니다. 계좌 키를 다시 등록하세요.`)
                     } else {

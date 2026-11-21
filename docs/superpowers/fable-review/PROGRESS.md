@@ -515,6 +515,18 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - **검증**: typecheck·lint·knip 0건, 전체 vitest 261파일 1,819건 통과(+ `it.fails` 1건). 변이 확인: 모바일 숨김 옵션 제거, 이전 회차 성공 가드, 닫힘 중 클릭 가드.
 - **e2e·a11y-check·visual-diff**: 통과 또는 차이 확인 완료("e2e 대기" 참고).
 
+## S4 2차 실행 기록 — 구역 상태·표기 (지침서 06의 3·7, 2026-11-21)
+
+- 한 커밋이다. 판단과 실측은 06 끝의 "S4 2차 실행 보정"에 있다. **남은 S4는 06의 6 + 11의 11이다.** S4b·S4c는 하지 않았다.
+- `AsyncSection`·`asyncFallback`: 소비처를 실제로 옮겨 본 뒤 넣었고 `DataList`와 판정을 공유한다. `shared/ui/skeletons`로 `app`의 `animate-pulse`가 0파일이 됐다.
+- 서버 재시작 안내는 조회 구역에만, 상태 코드(502·503)로 판정한다. 자동 재시도와 mutation 안내는 리뷰 지적으로 뺐다.
+- 사용자 요청으로 범위를 넓혀, 프록시 밖 Route Handler의 업스트림 연결 실패도 `fetchUpstream`으로 502를 낸다.
+- 태스크 7: `toFixed`·`toLocale*` 금지 lint를 위반 0에서 켰고, 성공 토스트 어미를 조사까지 고쳐 통일했다.
+- **리뷰**: `/code-review high` 10건 중 9건을 고쳤다. 남은 1건(프록시 밖 Route Handler)도 사용자 요청으로 고쳤고 그 수정분을 따로 리뷰했다.
+- **검증**: typecheck·lint·knip 0건, 전체 vitest 262파일 1,834건 통과(+ `it.fails` 1건). 변이 확인: 재시작 판정의 `detail` 제외, 502 변환.
+- **e2e·a11y-check·visual-diff**: 로컬 api(`KISTA_ROLE=all`)에서 e2e setup 1건·chromium 15건 통과, a11y-check 위반 0건, visual-diff(`c2f06b7e` 기준) 116샷 중 차이 0건(`diff !== 0`). 첫 재실행의 116건 차이는 기준 쪽 Google 폰트 로드 실패였고 다시 돌려 해소했다. a11y-check와 visual-diff는 `fetchUpstream` 적용 전 코드로 돌렸다. e2e는 `fetchUpstream` 적용 뒤에도 돌렸다. 그때 첫 실행은 setup 결과 줄 없이 chromium 11건이 실패했고, 같은 patch로 다시 돌리니 setup 1건·chromium 15건이 통과했다. 첫 실패의 원인은 확인하지 못했다(로그를 남기지 않았다).
+- **미해결 의심**: 서버 재시작 중 AT가 만료되면 `/api/auth/refresh`가 연결 실패도 401로 돌려 `clientFetch`가 로그아웃시킨다(`shared/lib/auth/refresh.ts`). 인증 흐름 변경이라 사용자 판단을 기다린다.
+
 ## 로드맵 재점검 (2026-11-21)
 
 - 끝난 묶음은 S1·S2·S3이고 다음은 S4다. 현재 상태와 새 배정은 `guides/00-roadmap.md` 1-1절과 2절이 기준이다.

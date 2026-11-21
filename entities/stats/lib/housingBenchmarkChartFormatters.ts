@@ -1,5 +1,6 @@
 import type { Currency } from '@shared/lib/api-schema'
 import type { HousingBenchmarkPoint, HousingBenchmarkSeriesPoint } from '../model/types'
+import { fmtDecimal } from '@shared/lib/format'
 
 export type HousingBenchmarkSeriesKey = 'investmentIndex' | 'benchmarkIndex'
 
@@ -124,17 +125,17 @@ export function calculateSeriesCagr<T>(points: T[], dateKey: keyof T, valueKey: 
 export function formatCagr(value: number | null) {
   if (value == null) return '-'
   const pct = value * 100
-  return `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%/년`
+  return `${pct >= 0 ? '+' : ''}${fmtDecimal(pct, 1)}%/년`
 }
 
 // 비교 차트(투자·벤치마크 정규화 지수)와 '없음' 선택 시 단독 매매가격지수 차트가 함께 사용한다
 export function formatHousingIndexValue(value: unknown) {
-  return typeof value === 'number' ? value.toFixed(1) : '-'
+  return typeof value === 'number' ? fmtDecimal(value, 1) : '-'
 }
 
 function formatPeriodReturn(value: number | null | undefined, isDaily: boolean) {
   if (value == null) return isDaily ? '기준일' : '기준주'
-  return `${value >= 0 ? '+' : ''}${(value * 100).toFixed(1)}% ${isDaily ? '일간' : '주간'}`
+  return `${value >= 0 ? '+' : ''}${fmtDecimal(value * 100, 1)}% ${isDaily ? '일간' : '주간'}`
 }
 
 export function formatHousingBenchmarkTooltipValue(

@@ -7,17 +7,17 @@ import {
   ROLE_COOKIE,
   CLEAR_COOKIE,
 } from '@shared/lib/auth/cookies'
-import { noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { fetchUpstream, noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 export async function GET() {
   const token = await getAuthToken()
   if (!token) return unauthorizedJson()
 
-  const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
+  const res = await fetchUpstream(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
-  })
+  }, 'auth/me GET')
 
   if (!res.ok) return relayUpstreamError(res, 'auth/me GET')
   return NextResponse.json(await res.json())
@@ -27,11 +27,11 @@ export async function DELETE() {
   const token = await getAuthToken()
   if (!token) return unauthorizedJson()
 
-  const res = await fetch(`${getApiBaseUrl()}/api/auth/me`, {
+  const res = await fetchUpstream(`${getApiBaseUrl()}/api/auth/me`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
-  })
+  }, 'auth/me DELETE')
 
   if (!res.ok) return relayUpstreamError(res, 'auth/me DELETE')
 

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  fetchUpstream,
   noContent,
   relayUpstreamError,
   sseAuthErrorResponse,
@@ -111,5 +112,24 @@ describe('sseAuthErrorResponse', () => {
     expect(res.headers.get('Content-Type')).toBe('text/event-stream')
     expect(res.headers.get('Cache-Control')).toBe('no-cache')
     expect(await res.text()).toBe('event: auth-error\ndata: unauthorized\n\n')
+  })
+})
+
+describe('fetchUpstream', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('연결 실패는 502 응답이 된다', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')))
+    const res = await fetchUpstream('https://api.test/x', {}, 'test')
+    expect(res.status).toBe(502)
+  })
+
+  it('요청 취소는 그대로 던진다', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const abort = new DOMException('aborted', 'AbortError')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(abort))
+    await expect(fetchUpstream('https://api.test/x', { signal: controller.signal }, 'test')).rejects.toBe(abort)
   })
 })

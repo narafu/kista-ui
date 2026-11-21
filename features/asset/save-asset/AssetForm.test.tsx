@@ -152,7 +152,7 @@ describe('AssetForm', () => {
     expect(posts).toHaveLength(1)
     expect(posts[0].query.get('shareToGroup')).toBe('true')
     expect(posts[0].body).toEqual({ categoryId: SYSTEM_SAVINGS_CATEGORY_ID, entryDate: todayKst(), assetClass: 'CASH', market: 'DOMESTIC', amount: 5000 })
-    expect(toast.success).toHaveBeenCalledWith('자산 기록이 등록되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('자산 기록을 등록했습니다')
   })
 
   it('등록: 그룹 스위치를 끄면 shareToGroup 쿼리 없이 POST한다', async () => {
@@ -204,7 +204,7 @@ describe('AssetForm', () => {
       strategy: 'VR', memo: '해외ETF 적립', amount: 1_000_000,
     })
     expect(requests.some((r) => r.method === 'POST')).toBe(false)
-    expect(toast.success).toHaveBeenCalledWith('자산 기록이 수정되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('자산 기록을 수정했습니다')
   })
 
   it('메모 입력 필드는 카테고리 선택 여부와 무관하게 항상 노출된다', () => {
@@ -266,7 +266,7 @@ describe('AssetForm', () => {
       categoryId: 'cat-l2-general', accountId: 'acc-1', entryDate: '2026-08-01', assetClass: 'EQUITY', market: 'GLOBAL',
       strategy: 'VR', memo: '해외ETF 적립', amount: 1_000_000,
     })
-    expect(toast.success).toHaveBeenCalledWith('자산 기록이 복제되었습니다')
+    expect(toast.success).toHaveBeenCalledWith('자산 기록을 복제했습니다')
   })
 
   it('카테고리 미선택 상태에서는 운용전략 입력을 숨긴다', () => {

@@ -48,7 +48,7 @@ describe('ReapplyButton', () => {
     await user.click(screen.getByRole('button', { name: '승인 재신청' }))
 
     expect(reapplyMock).toHaveBeenCalled()
-    expect(toastSuccessMock).toHaveBeenCalledWith('승인 재신청이 완료되었습니다')
+    expect(toastSuccessMock).toHaveBeenCalledWith('승인 재신청을 완료했습니다')
     expect(localStorage.getItem('reapply_last_requested_at')).not.toBeNull()
   })
 

@@ -50,7 +50,7 @@ export function EditAccountForm({ account }: Props) {
     defaultValues: { nickname: account.nickname, apiKeyExpiresOn: '' },
     mutation: updateMutation,
     toPayload: ({ nickname, apiKeyExpiresOn }) => ({ nickname, ...(showExpiry && apiKeyExpiresOn ? { apiKeyExpiresOn } : {}) }),
-    successMessage: '계좌가 수정되었습니다',
+    successMessage: '계좌를 수정했습니다',
     onDone: () => router.push(`/accounts/${account.id}`),
   })
 
@@ -60,7 +60,7 @@ export function EditAccountForm({ account }: Props) {
     deleteMutation.mutate(undefined, {
       onSuccess: async () => {
         setLeaving(true)
-        toast.success('계좌가 삭제되었습니다')
+        toast.success('계좌를 삭제했습니다')
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: strategyKeys.all }).catch(() => null),
           queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),

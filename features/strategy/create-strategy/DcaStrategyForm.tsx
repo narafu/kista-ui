@@ -76,7 +76,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
     ])
   }
   const done = () => {
-    toast.success(initial ? '전략이 수정되었습니다' : '전략이 등록되었습니다')
+    toast.success(initial ? '전략을 수정했습니다' : '전략을 등록했습니다')
     onSuccess?.()
   }
   const create = useCreateStrategyMutation(accountId, invalidateDependents)

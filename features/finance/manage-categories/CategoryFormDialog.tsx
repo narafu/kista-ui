@@ -87,7 +87,7 @@ function CategoryForm({ type, l1Categories, category, system, onDone }: Omit<Pro
       const payload = buildCategoryPayload(mode, category, parentId, type, v.name, v.sortOrder, system ? 0 : 1)
       return mode === 'create' && !system ? { ...payload, shareToGroup: shareToGroupAllowed && v.shareToGroup } : payload
     },
-    successMessage: mode === 'edit' ? '카테고리가 수정되었습니다' : '카테고리가 추가되었습니다',
+    successMessage: mode === 'edit' ? '카테고리를 수정했습니다' : '카테고리를 추가했습니다',
     onDone,
   })
 

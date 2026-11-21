@@ -23,6 +23,16 @@ export class ApiError extends Error {
   }
 }
 
+export const SERVER_RESTART_MESSAGE = '서버를 재시작 중이거나 일시적으로 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
+
+// 조회 실패 안내 전용. 502·503을 재시작으로 본다. 서버 문구(detail)가 온 503은 증권사 장애처럼 다른 뜻이라 뺀다.
+// mutation에는 쓰지 않는다 — 연결이 끊긴 쓰기는 커밋됐을 수 있어 재시도를 권하면 중복 실행된다.
+// 오류 코드 분기는 ENGINE_RESTARTING이 api-types.ts에 들어온 뒤에 더한다(지침서 06 보정 절)
+export function isServerRestarting(err: unknown): boolean {
+  if (!(err instanceof ApiError) || (err.status !== 502 && err.status !== 503)) return false
+  return !(err.body as { detail?: unknown } | null)?.detail
+}
+
 // 서버 에러 응답의 detail/message 필드를 추출, 없으면 fallback 문구 사용
 export function apiMsg(err: unknown, fallback: string): string {
   if (err instanceof ApiError) {

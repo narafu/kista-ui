@@ -129,7 +129,7 @@ describe('useManageStrategyMutations', () => {
 
     act(() => result.current.remove(strategy))
 
-    expect(toastSuccessMock).toHaveBeenCalledWith('전략이 삭제되었습니다')
+    expect(toastSuccessMock).toHaveBeenCalledWith('전략을 삭제했습니다')
     expect(invalidate.mock.calls.map(([options]) => options)).toEqual([
       { queryKey: orderKeys.all },
       { queryKey: statsKeys.all },
@@ -158,7 +158,7 @@ describe('useManageStrategyMutations', () => {
 
     act(() => result.current.remove(strategy))
 
-    expect(toastSuccessMock).toHaveBeenCalledWith('전략이 삭제되었습니다')
+    expect(toastSuccessMock).toHaveBeenCalledWith('전략을 삭제했습니다')
     await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce())
   })
 })

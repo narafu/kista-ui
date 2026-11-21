@@ -249,7 +249,7 @@ describe('BudgetManager', () => {
       const posts = requests.filter((r) => r.method === 'POST')
       expect(posts).toHaveLength(1)
       expect(posts[0].body).toMatchObject({ categoryId: 'cat-transit', amount: 50_000 })
-      expect(toast.success).toHaveBeenCalledWith('예산이 추가되었습니다')
+      expect(toast.success).toHaveBeenCalledWith('예산을 추가했습니다')
     })
 
     it('복제는 원본 값이 채워진 예산 복제 대화상자를 열고 제출하면 POST로 새 예산을 만든다', async () => {
@@ -294,7 +294,7 @@ describe('BudgetManager', () => {
       expect(puts).toHaveLength(1)
       expect(puts[0].path).toBe('/api/finance/budgets/b2')
       expect(puts[0].body).toEqual({ categoryId: 'cat-transit', amount: 70_000, applyStartDate: '2026-01-01' })
-      expect(toast.success).toHaveBeenCalledWith('예산이 수정되었습니다')
+      expect(toast.success).toHaveBeenCalledWith('예산을 수정했습니다')
     })
 
     it('취소하면 요청 없이 닫히고, 다시 열면 초기값으로 시작한다', async () => {

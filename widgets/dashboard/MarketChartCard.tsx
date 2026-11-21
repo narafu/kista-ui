@@ -1,16 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { asyncFallback } from '@shared/ui/AsyncSection'
 import { Surface } from '@shared/ui/Surface'
 import type { MarketChartCategory } from './marketChartCategories'
 
 const MarketChartCardInner = dynamic(() => import('./MarketChartCardInner'), {
   ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">
-      차트 불러오는 중…
-    </div>
-  ),
+  loading: () => asyncFallback({ isLoading: true, skeleton: 'chart', fallbackClassName: 'h-[280px]' }),
 })
 
 interface Props {

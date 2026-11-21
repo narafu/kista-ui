@@ -87,7 +87,7 @@ describe('MarketChartCardInner', () => {
   it('distinguishes loading from an empty candle response', () => {
     useCandlesQueryMock.mockReturnValueOnce({ data: undefined, isPending: true })
     const { unmount } = render(<MarketChartCardInner category={category} />)
-    expect(screen.getByText('차트 불러오는 중…')).toBeInTheDocument()
+    expect(screen.getByRole('status', { name: '차트 불러오는 중' })).toBeInTheDocument()
     unmount()
 
     useCandlesQueryMock.mockReturnValueOnce({ data: [] })
