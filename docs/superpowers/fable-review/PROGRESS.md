@@ -404,10 +404,11 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - `6a3e0a14`(S1 코인 제거): 시드 의존 e2e 5건(`ledger-budget.spec.ts:9`, `strategy.spec.ts:8·15·32·51`)이 로컬 DB가 비어 단언까지 가지 못했다. 시드를 넣은 뒤 `npm run test:e2e`(worktree 절차)와 `npm run visual-diff -- 190caf90`(계좌 상세·전략 등록·`stock-dca-strategy`)을 돌린다.
   - 2026-11-20: 시드가 들어간 로컬 DB에서 `strategy.spec.ts` 4건 모두 통과했다(`f224bc5c` 기준). 32·51(투자금 추가·인출)은 시드 무한매수 전략이 사이클 대기 중(`cycleInProgress=false`)이라 버튼이 없어 실패했고, `f224bc5c`에서 진행 중 사이클 전략을 고르는 `seed.capital`로 고쳤다. 남은 것: visual-diff.
   - 2026-11-20(S2): `ledger-budget.spec.ts`를 포함한 chromium 15건과 setup이 통과했다(`--project=setup --project=chromium --no-deps`). 남은 것은 visual-diff(`npm run visual-diff -- 190caf90`)뿐이다.
-- `265247be`(S3)와 `01782862`("바로 주문" 제거, kista-api 요청, 2026-11-21): 로컬 api가 `KISTA_ROLE=web`이고 시드 사용자가 없어 e2e·a11y-check를 돌리지 못했다. api를 `KISTA_ROLE=all`로 띄우고 시드를 넣은 뒤 다음을 돌린다.
-  - `npx playwright test --project=setup --project=chromium --no-deps`(dev 서버가 없거나 worktree 절차로)
-  - `npm run a11y-check -- --url http://localhost:3000`(가계부 다이얼로그, 운영 설정, 전략 상세)
-  - 운영 설정 화면과 `CredentialsCard`의 전후 화면 확인
+- `265247be`(S3)와 `01782862`("바로 주문" 제거, kista-api 요청, 2026-11-21): **해소(2026-11-21)**. api 세션이 로컬 api를 main `38c44f09b`(local, `KISTA_ROLE=all`)로 다시 띄우고 시드를 넣은 뒤 돌렸다.
+  - 읽기 전용 e2e(`--project=setup --project=chromium --no-deps`) 16건 통과.
+  - `a11y-check` 위반 0건.
+  - 운영 설정과 API 키 재등록(`CredentialsCard`) 화면을 확인했다(후 스크린샷만).
+  - 함정: 셸 환경변수 `TRADING_API_BASE_URL=http://localhost:8081`이 `.env`를 덮어쓴다. 그래서 그냥 띄운 dev 서버의 `/api/accounts`가 ECONNREFUSED로 500이 됐고, 첫 a11y-check가 대시보드 h1 누락으로 위반 6건을 냈다. dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`로 띄운다. e2e는 `playwright.config.ts`가 주소를 주입해 영향이 없다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -489,7 +490,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - 전: 빈 값에서 버튼이 비활성이다.
   - 후: 버튼이 활성이고, 누르면 필드 오류가 보인다.
   - 운영 설정 화면은 로컬 api 상태 때문에 전후 모두 "불러오지 못했습니다"라 화면을 확인하지 못했다. `CredentialsCard`는 시드 계좌가 없어 찍지 못했다.
-- **돌리지 못한 것**: 읽기 전용 e2e, `a11y-check`. 로컬 api(8080)가 `KISTA_ROLE=web`이고, 시드 사용자가 없어 USER dev 토큰이 `/me` 401이다. api 세션에 전달했고, 시드와 재기동은 사용자 승인을 기다린다. 아래 "e2e 대기"에 적었다.
+- **e2e·a11y-check**: 처음에는 로컬 api 상태 때문에 돌리지 못했다. 사용자 승인 뒤 api 세션이 복구했고, 읽기 전용 e2e 16건 통과, a11y-check 위반 0건이다("e2e 대기" 참고).
 - 미검증(실기기 필요): 바뀐 다이얼로그 오류 표시의 모바일 키보드 겹침.
 
 ## 측정 산출물
