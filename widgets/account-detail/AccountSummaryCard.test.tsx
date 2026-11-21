@@ -58,7 +58,7 @@ describe('AccountSummaryCard', () => {
         account={{ ...account, broker: 'MOCK' }}
         deposit={1000}
         posEvalUsd={2000}
-        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: null }}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50 }}
       />,
     )
 
@@ -69,13 +69,13 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('모의계좌')).toBeInTheDocument()
   })
 
-  it('주식 계좌는 전략 합산을 먼저, 증권사 기준을 보조로 보여주고 미배정 예수금은 보여주지 않는다', () => {
+  it('주식 계좌는 전략 합산을 먼저, 증권사 기준을 보조로 보여준다', () => {
     render(
       <AccountSummaryCard
         account={account}
         deposit={1000}
         posEvalUsd={2000}
-        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50, unassignedCash: 7.5 }}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: 50 }}
       />,
     )
     expect(screen.getByText('전략 기준')).toBeInTheDocument()
@@ -83,8 +83,6 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('$160.00')).toBeInTheDocument()
     expect(screen.getAllByText('평가금')).toHaveLength(2)
     expect(screen.getByText('$50.00')).toBeInTheDocument()
-    expect(screen.queryByText('미배정 예수금')).not.toBeInTheDocument()
-    expect(screen.queryByText('$7.50')).not.toBeInTheDocument()
     expect(screen.getByText('증권사 기준')).toBeInTheDocument()
     expect(screen.getByText('$1,000.00')).toBeInTheDocument()
     expect(screen.getByText('$2,000.00')).toBeInTheDocument()
@@ -96,7 +94,7 @@ describe('AccountSummaryCard', () => {
         account={account}
         deposit={0}
         posEvalUsd={0}
-        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: null, unassignedCash: null }}
+        ledgerTotals={{ currency: 'USD', deposit: 160, evaluation: null }}
       />,
     )
     expect(screen.getAllByText('-')).toHaveLength(1)

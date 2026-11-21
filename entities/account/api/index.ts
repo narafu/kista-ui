@@ -5,12 +5,11 @@ import type { Account, AccountRequest, CredentialsRequest } from '../model/types
 
 export type PriceMap = Record<string, number>
 
-/** 계좌 원장 합산 — 금액은 모두 계좌 통화. evaluation·unassignedCash는 시세·잔고 조회 실패 시 null */
+/** 계좌 원장 합산 — 금액은 모두 계좌 통화. evaluation은 시세·잔고 조회 실패 시 null */
 export interface AccountLedgerTotals {
   currency: Currency
   deposit: number
   evaluation: number | null
-  unassignedCash: number | null
 }
 
 export async function listAccounts(token?: string): Promise<Account[]> {
@@ -52,7 +51,6 @@ interface AccountLedgerTotalsRaw {
   currency: Currency
   deposit: number | string
   evaluation: number | string | null
-  unassignedCash: number | string | null
 }
 
 export async function getAccountLedgerTotals(accountId: string, token?: string): Promise<AccountLedgerTotals> {
@@ -61,6 +59,5 @@ export async function getAccountLedgerTotals(accountId: string, token?: string):
     currency: raw.currency,
     deposit: toNum(raw.deposit),
     evaluation: raw.evaluation == null ? null : toNum(raw.evaluation),
-    unassignedCash: raw.unassignedCash == null ? null : toNum(raw.unassignedCash),
   }
 }

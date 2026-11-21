@@ -32,7 +32,7 @@ export function useStrategyMutations({
       queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
-      // 전략 합산 예수금·평가금·미배정 예수금이 바로 반영되도록 함께 무효화한다
+      // 전략 합산 예수금·평가금이 바로 반영되도록 함께 무효화한다
       invalidateLedgerTotals(queryClient, accountId),
     ])
     onSuccess?.()
