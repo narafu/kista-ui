@@ -324,9 +324,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** 매매 수동 실행 */
-        post: operations["executeManually"];
-        /** 수동 실행 주문 취소 (오늘 PLANNED + PLACED 주문 전체) */
+        post?: never;
+        /** 사이클 주문 전체 취소 (오늘 PLANNED + PLACED 주문 전체) */
         delete: operations["cancelExecute"];
         options?: never;
         head?: never;
@@ -3353,36 +3352,6 @@ export interface components {
             message?: components["schemas"]["Message"];
             callback_query?: components["schemas"]["CallbackQuery"];
         };
-        ExecuteOrdersResponse: {
-            /** @description 증권사에 접수된 주문 목록 */
-            orders: components["schemas"]["PlacedOrderItem"][];
-        };
-        PlacedOrderItem: {
-            /**
-             * Format: uuid
-             * @description 주문 고유 ID
-             */
-            id: string;
-            /**
-             * @description 거래 종목
-             * @example TQQQ
-             */
-            ticker: string;
-            /**
-             * @description 매수/매도 방향
-             * @example BUY
-             */
-            direction: string;
-            /**
-             * @description 주문 유형
-             * @example LOC
-             */
-            orderType: string;
-            /** @description 주문 수량 */
-            quantity: number;
-            /** @description 주문 가격 */
-            price: number;
-        };
         CapitalWithdrawalRequest: {
             /**
              * @description 인출할 예수금 (USD, 0보다 커야 함)
@@ -5868,28 +5837,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    executeManually: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExecuteOrdersResponse"];
-                };
             };
         };
     };
