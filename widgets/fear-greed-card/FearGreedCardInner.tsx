@@ -14,7 +14,12 @@ interface Props {
   days: number
   onDaysChange: (days: number) => void
   daysOptions: readonly number[]
+  // 전일·전주 증감 계산용 일별 이력 — 생략하면 data.history. 전체 기간은 주별로 축약돼 있어 일별 이력을 따로 받는다
+  deltaHistory?: FearGreedPoint[]
 }
+
+// days=0은 전체 기간(주 단위 축약)
+const ALL_DAYS = 0
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -45,20 +50,21 @@ function Delta({ label, value }: { label: string; value: number | null }) {
   )
 }
 
-export default function FearGreedCardInner({ title, data, loading, days, onDaysChange, daysOptions }: Props) {
+export default function FearGreedCardInner({ title, data, loading, days, onDaysChange, daysOptions, deltaHistory }: Props) {
   const current = data?.current
-  const { day, week } = deltas(data?.history ?? [])
+  const { day, week } = deltas(deltaHistory ?? data?.history ?? [])
+  const isAll = days === ALL_DAYS
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-y-1">
         <div className="flex items-center gap-1.5 whitespace-nowrap">
           <span className="text-sm font-semibold text-foreground">{title}</span>
-          <span className="text-xs text-muted-foreground">일봉</span>
+          <span className="text-xs text-muted-foreground">{isAll ? '주봉' : '일봉'}</span>
         </div>
         <SegmentedToggle
-          aria-label={`${title} 조회 기간(일)`}
-          options={daysOptions.map((n) => ({ value: n, label: String(n) }))}
+          aria-label={`${title} 조회 기간`}
+          options={daysOptions.map((n) => ({ value: n, label: n === ALL_DAYS ? 'ALL' : String(n) }))}
           value={days}
           onChange={onDaysChange}
           size="sm"
@@ -83,7 +89,7 @@ export default function FearGreedCardInner({ title, data, loading, days, onDaysC
               </div>
             }
           />
-          <FearGreedTrend history={data?.history ?? []} title={`${title} 추이`} />
+          <FearGreedTrend history={data?.history ?? []} title={`${title} 추이`} withYear={isAll} />
           </>
         )}
       </AsyncSection>

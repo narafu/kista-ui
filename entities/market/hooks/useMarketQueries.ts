@@ -42,10 +42,12 @@ export function useCandlesRangeQuery(ticker: string, range: { from: string; to: 
   })
 }
 
-export function useFearGreedQuery(days: number) {
+// days=0이면 전체 기간(서버가 KST 주별 마지막 값으로 축약)
+export function useFearGreedQuery(days: number, enabled = true) {
   return useQuery<FearGreed>({
     queryKey: marketKeys.fearGreed(days),
     queryFn: () => getFearGreedClient(days),
+    enabled,
     staleTime: 1000 * 60 * 10, // 10분 — 수집이 KST 07:00(확정값)·12:00(재수집)으로 간격이 고르지 않아 주기 기반으로 길게 잡지 않는다. 서버 max-age(10분)와 같은 값이지만 프록시는 Cache-Control을 전달하지 않아 이 staleTime이 유일한 클라이언트 캐시다
   })
 }

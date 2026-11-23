@@ -96,4 +96,40 @@ describe('FearGreedCardInner', () => {
     expect(screen.getByText('+5')).toHaveClass('text-foreground')
     expect(screen.getByText('-5')).toHaveClass('text-foreground')
   })
+
+  it('labels the full-period option ALL and marks the chart as weekly', () => {
+    render(
+      <FearGreedCardInner
+        title="크립토 공포탐욕지수"
+        data={undefined}
+        days={0}
+        onDaysChange={vi.fn()}
+        daysOptions={[0, 365, 180, 90, 30]}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'ALL', pressed: true })).toBeInTheDocument()
+    expect(screen.getByText('주봉')).toBeInTheDocument()
+  })
+
+  it('computes deltas from the daily deltaHistory instead of the weekly chart history', () => {
+    const current = { date: '2026-07-10T00:00:00Z', value: 60, rating: 'GREED' }
+    render(
+      <FearGreedCardInner
+        title="크립토 공포탐욕지수"
+        data={{ current, history: [{ date: '2026-07-03T00:00:00Z', value: 40, rating: 'FEAR' }, current] }}
+        deltaHistory={[
+          { date: '2026-07-03T00:00:00Z', value: 40, rating: 'FEAR' },
+          { date: '2026-07-09T00:00:00Z', value: 55, rating: 'NEUTRAL' },
+          current,
+        ]}
+        days={0}
+        onDaysChange={vi.fn()}
+        daysOptions={[0, 365, 180, 90, 30]}
+      />,
+    )
+
+    expect(screen.getByText('+5')).toBeInTheDocument()
+    expect(screen.getByText('+20')).toBeInTheDocument()
+  })
 })

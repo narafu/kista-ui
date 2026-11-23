@@ -11,8 +11,8 @@ interface Props {
 export function DashboardMarkets({ marketPanels }: Props) {
   return (
     <>
-      {/* 달력 | CNN 공탐 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+      {/* 달력 | CNN 공탐 | 크립토 공탐 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         {marketPanels}
       </div>
       {/* 시장 차트 3개 */}

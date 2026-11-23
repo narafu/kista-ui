@@ -315,23 +315,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/trading-cycles/{id}/execute": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** 사이클 주문 전체 취소 (오늘 PLANNED + PLACED 주문 전체) */
-        delete: operations["cancelExecute"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/trading-cycles/{id}/capital-withdrawal": {
         parameters: {
             query?: never;
@@ -1760,7 +1743,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** CNN 공포탐욕지수 조회 (현재값 + 추이) */
+        /** CNN·크립토 공포탐욕지수 조회 (현재값 + 추이) */
         get: operations["getFearGreed"];
         put?: never;
         post?: never;
@@ -2188,6 +2171,23 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trading-cycles/{id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** 사이클 주문 전체 취소 (오늘 PLANNED + PLACED 주문 전체) */
+        delete: operations["cancelExecute"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4404,6 +4404,8 @@ export interface components {
         FearGreedResponse: {
             /** @description CNN 공포탐욕지수 현재값 + 추이 이력 */
             cnn: components["schemas"]["SourceView"];
+            /** @description 크립토 공포탐욕지수 현재값 + 추이 이력 */
+            crypto: components["schemas"]["SourceView"];
         };
         Point: {
             /** @description 기록 시각 (ISO-8601) */
@@ -5837,28 +5839,6 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
-            };
-        };
-    };
-    cancelExecute: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["CancelOrdersResponse"];
-                };
             };
         };
     };
@@ -8170,7 +8150,7 @@ export interface operations {
         parameters: {
             query?: {
                 /**
-                 * @description 조회 기간(일)
+                 * @description 조회 기간(일, 1~365). 0=전체(주 단위 축약 — KST ISO 주별 마지막 값 1건)
                  * @example 200
                  */
                 days?: number;
@@ -8871,6 +8851,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                };
+            };
+        };
+    };
+    cancelExecute: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CancelOrdersResponse"];
                 };
             };
         };

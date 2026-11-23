@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { FearGreedSection } from './FearGreedSection'
 
-const useFearGreedQueryMock = vi.fn((_days: number): { data: unknown; isError?: boolean } => ({ data: undefined }))
+const useFearGreedQueryMock = vi.fn((_days: number, _enabled?: boolean): { data: unknown; error?: unknown } => ({ data: undefined }))
 
 vi.mock('@entities/market', () => ({
-  useFearGreedQuery: (days: number) => useFearGreedQueryMock(days),
+  useFearGreedQuery: (days: number, enabled?: boolean) => useFearGreedQueryMock(days, enabled),
 }))
 
 // FearGreedCard는 next/dynamic(ssr:false)으로 차트 내부 컴포넌트를 비동기 로드한다.
@@ -15,12 +15,14 @@ vi.mock('./FearGreedCard', () => ({
   FearGreedCard: ({
     title,
     data,
+    deltaHistory,
     error,
     onDaysChange,
     daysOptions,
   }: {
     title: string
     data?: { history: unknown[] }
+    deltaHistory?: unknown[]
     error?: unknown
     days: number
     onDaysChange: (days: number) => void
@@ -29,10 +31,11 @@ vi.mock('./FearGreedCard', () => ({
     <div>
       <span>{title}</span>
       <span>{`${title} 점 ${data?.history.length ?? 0}`}</span>
+      <span>{`${title} 증감 ${deltaHistory?.length ?? '기본'}`}</span>
       {!!error && !data && <span>{title} 데이터를 불러오지 못했습니다.</span>}
       {daysOptions.map((n) => (
         <button key={n} type="button" onClick={() => onDaysChange(n)}>
-          {n}
+          {`${title} ${n}`}
         </button>
       ))}
     </div>
@@ -45,41 +48,79 @@ const NOW = Date.parse('2026-10-20T03:00:00Z') // KST 정오
 const history = Array.from({ length: 365 }, (_, i) => ({ date: new Date(NOW - (364 - i) * DAY_MS).toISOString(), value: 50, rating: 'NEUTRAL' }))
 const view = { current: history.at(-1), history }
 
+// 전체 기간 응답 — 주별 축약이라 일별 응답과 건수가 다르다
+const weekly = { current: history.at(-1), history: history.filter((_, i) => i % 7 === 0) }
+
+function mockQueries() {
+  useFearGreedQueryMock.mockImplementation((days) =>
+    days === 0 ? { data: { cnn: weekly, crypto: weekly } } : { data: { cnn: view, crypto: view } },
+  )
+}
+
 describe('FearGreedSection', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(NOW)
     useFearGreedQueryMock.mockReset()
-    useFearGreedQueryMock.mockImplementation(() => ({ data: { cnn: view } }))
+    mockQueries()
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('queries the 365-day window once and shows the last 30 days by default', () => {
+  it('queries only the 365-day window up front and shows the last 30 days on both cards', () => {
     render(<FearGreedSection />)
 
-    expect(useFearGreedQueryMock.mock.calls.map((call) => call[0])).toEqual([365])
+    expect(useFearGreedQueryMock).toHaveBeenCalledWith(365, undefined)
+    expect(useFearGreedQueryMock).toHaveBeenCalledWith(0, false)
+    expect(useFearGreedQueryMock).not.toHaveBeenCalledWith(0, true)
     // KST 오늘 - 30일부터 오늘까지 31건 (kista-api since 기준과 동일)
     expect(screen.getByText('CNN 공포탐욕지수 점 31')).toBeInTheDocument()
+    expect(screen.getByText('크립토 공포탐욕지수 점 31')).toBeInTheDocument()
   })
 
-  it('slices the card when its day button is clicked, without re-querying', async () => {
+  it('slices only the clicked card without re-querying', async () => {
     const user = userEvent.setup()
     render(<FearGreedSection />)
 
     useFearGreedQueryMock.mockClear()
-    await user.click(screen.getByRole('button', { name: '90' }))
+    await user.click(screen.getByRole('button', { name: 'CNN 공포탐욕지수 90' }))
 
-    expect(useFearGreedQueryMock.mock.calls.every((call) => call[0] === 365)).toBe(true)
+    expect(useFearGreedQueryMock).not.toHaveBeenCalledWith(0, true)
     expect(screen.getByText('CNN 공포탐욕지수 점 91')).toBeInTheDocument()
+    expect(screen.getByText('크립토 공포탐욕지수 점 31')).toBeInTheDocument()
   })
 
-  it('shows the error fallback when the query fails without data', () => {
-    useFearGreedQueryMock.mockImplementation(() => ({ data: undefined, isError: true, error: new Error('fail') }))
+  it('fetches the full-period response only after ALL is chosen and uses it for that card', async () => {
+    const user = userEvent.setup()
+    render(<FearGreedSection />)
+
+    await user.click(screen.getByRole('button', { name: '크립토 공포탐욕지수 0' }))
+
+    expect(useFearGreedQueryMock).toHaveBeenLastCalledWith(0, true)
+    expect(screen.getByText(`크립토 공포탐욕지수 점 ${weekly.history.length}`)).toBeInTheDocument()
+    // 증감은 주별이 아닌 일별 1년치로 계산한다
+    expect(screen.getByText('크립토 공포탐욕지수 증감 365')).toBeInTheDocument()
+    expect(screen.getByText('CNN 공포탐욕지수 증감 기본')).toBeInTheDocument()
+    expect(screen.getByText('CNN 공포탐욕지수 점 31')).toBeInTheDocument()
+  })
+
+  it('hides deltas in ALL mode until the daily history arrives', async () => {
+    useFearGreedQueryMock.mockImplementation((days) => (days === 0 ? { data: { cnn: weekly, crypto: weekly } } : { data: undefined }))
+    const user = userEvent.setup()
+    render(<FearGreedSection />)
+
+    await user.click(screen.getByRole('button', { name: 'CNN 공포탐욕지수 0' }))
+
+    expect(screen.getByText('CNN 공포탐욕지수 증감 0')).toBeInTheDocument()
+  })
+
+  it('shows the error fallback on both cards when the query fails without data', () => {
+    useFearGreedQueryMock.mockImplementation(() => ({ data: undefined, error: new Error('fail') }))
     render(<FearGreedSection />)
 
     expect(screen.getByText('CNN 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByText('크립토 공포탐욕지수 데이터를 불러오지 못했습니다.')).toBeInTheDocument()
   })
 })

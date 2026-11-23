@@ -4,13 +4,15 @@ import { useId } from 'react'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 import type { FearGreedPoint } from '@entities/market'
 import { zoneOf } from './fearGreedZones'
-import { fmtMonthDay } from '@shared/lib/format'
+import { fmtMonthDay, toKstDateString } from '@shared/lib/format'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
 interface Props {
   history: FearGreedPoint[]
   title: string
+  // 여러 해에 걸친 전체 기간 — 축은 연.월, 툴팁은 연.월.일로 표기한다
+  withYear?: boolean
 }
 
 function buildLineStops(values: number[]) {
@@ -36,10 +38,10 @@ function buildLineStops(values: number[]) {
   })
 }
 
-export function FearGreedTrend({ history, title }: Props) {
+export function FearGreedTrend({ history, title, withYear = false }: Props) {
   const gradientId = useId().replace(/:/g, '')
   const data = history.map((p) => ({
-    date: fmtMonthDay(p.date),
+    date: withYear ? toKstDateString(p.date).replace(/-/g, '.') : fmtMonthDay(p.date),
     value: p.value,
   }))
   const lineStops = buildLineStops(history.map((point) => point.value))
@@ -60,7 +62,7 @@ export function FearGreedTrend({ history, title }: Props) {
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-        <XAxis dataKey="date" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} />
+        <XAxis dataKey="date" tick={AXIS_TICK} tickLine={false} axisLine={false} minTickGap={24} tickFormatter={withYear ? (v: string) => v.slice(0, 7) : undefined} />
         <YAxis domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} tick={AXIS_TICK} tickLine={false} axisLine={false} width={28} />
         <Tooltip
           formatter={(v) => [String(v), '지수']}
