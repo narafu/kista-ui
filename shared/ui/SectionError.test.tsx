@@ -17,7 +17,9 @@ describe('SectionError', () => {
   it.each([
     ['503', new ApiError(503, { error: 'Failed' }), SERVER_RESTART_MESSAGE],
     ['502', new ApiError(502, null), SERVER_RESTART_MESSAGE],
+    ['message만 있는 503', new ApiError(503, { message: 'Connection pool exhausted' }), SERVER_RESTART_MESSAGE],
     ['서버 문구가 있는 503', new ApiError(503, { code: 'BROKER_UNAVAILABLE', detail: '증권사 장애' }), '불러오지 못했습니다.'],
+    ['엔진 재시작 503', new ApiError(503, { code: 'ENGINE_RESTARTING', detail: '매매 서버를 재시작하는 중입니다.' }), '매매 서버를 재시작하는 중입니다.'],
     ['500', new ApiError(500, null), '불러오지 못했습니다.'],
   ])('%s 실패의 문구', (_name, error, expected) => {
     render(<SectionError message="불러오지 못했습니다." error={error} />)

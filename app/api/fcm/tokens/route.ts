@@ -18,6 +18,6 @@ export async function POST(request: NextRequest) {
     cache: 'no-store',
   }, 'fcm/tokens POST')
 
-  if (!res.ok) return relayUpstreamError(res, 'fcm/tokens POST')
+  if (!res.ok) return relayUpstreamError(res, 'fcm/tokens POST', 'POST')
   return noContent()
 }

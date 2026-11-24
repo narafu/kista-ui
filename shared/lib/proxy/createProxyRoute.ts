@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getApiBaseUrl, getTradingApiBaseUrl } from '@shared/lib/env'
-import { fetchUpstream, noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
+import { fetchUpstream, type HttpMethod, noContent, relayUpstreamError, unauthorizedJson } from '@shared/lib/proxy/routeHelpers'
 
 type Params = { params?: Promise<{ path?: string[] }> }
 type Handler = (req: NextRequest, ctx?: Params) => Promise<NextResponse>
@@ -52,7 +52,7 @@ export function createProxyRoute(opts: CreateProxyRouteOptions): {
       cache: 'no-store',
     }, `${label}${subPath} ${request.method}`)
 
-    if (!res.ok) return relayUpstreamError(res, `${label}${subPath} ${request.method}`)
+    if (!res.ok) return relayUpstreamError(res, `${label}${subPath} ${request.method}`, request.method as HttpMethod)
 
     if (res.status === 204) return noContent()
     return NextResponse.json(await res.json(), { status: res.status })

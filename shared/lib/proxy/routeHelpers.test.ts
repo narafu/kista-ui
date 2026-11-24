@@ -5,6 +5,7 @@ import {
   relayUpstreamError,
   sseAuthErrorResponse,
   unauthorizedJson,
+  type HttpMethod,
 } from './routeHelpers'
 
 describe('unauthorizedJson', () => {
@@ -24,7 +25,7 @@ describe('relayUpstreamError', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const upstream = new Response('internal boom', { status: 502 })
 
-    const res = await relayUpstreamError(upstream, 'test-label')
+    const res = await relayUpstreamError(upstream, 'test-label', 'GET')
 
     expect(res.status).toBe(502)
     expect(await res.json()).toEqual({ error: 'Failed' })
@@ -46,7 +47,7 @@ describe('relayUpstreamError', () => {
       debug: 'internal',
     }), { status: 503 })
 
-    const res = await relayUpstreamError(upstream, 'test-label')
+    const res = await relayUpstreamError(upstream, 'test-label', 'GET')
 
     expect(res.status).toBe(503)
     expect(await res.json()).toEqual({
@@ -57,14 +58,45 @@ describe('relayUpstreamError', () => {
     })
   })
 
-  it.each([
-    ['다른 code의 JSON 503', 503, JSON.stringify({ title: 'Trading Core Unavailable', detail: 'I/O error on GET http://internal:8081', code: 'TRADING_CORE_UNAVAILABLE' })],
-    ['code 없는 증권사 title 503', 503, JSON.stringify({ title: 'Toss API Error', detail: 'x' })],
-    ['비JSON 503(게이트웨이 등)', 503, '<html>Service Unavailable</html>'],
-    ['증권사 장애 code여도 502', 502, JSON.stringify({ title: 'Toss API Error', detail: 'x', code: 'BROKER_UNAVAILABLE' })],
-  ])('%s는 { error: "Failed" }로 숨긴다', async (_name, status, body) => {
+  it('증권사 장애 503은 POST여도 relay한다', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    const res = await relayUpstreamError(new Response(body, { status }), 'test-label')
+    const upstream = new Response(JSON.stringify({
+      title: 'Toss API Error',
+      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      status: 503,
+      code: 'BROKER_UNAVAILABLE',
+    }), { status: 503 })
+
+    const res = await relayUpstreamError(upstream, 'test-label', 'POST')
+
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({
+      title: 'Toss API Error',
+      detail: '증권사 API 조회에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      status: 503,
+      code: 'BROKER_UNAVAILABLE',
+    })
+  })
+
+  const engineRestarting = { type: 'about:blank', title: 'Engine Restarting', status: 503, detail: '매매 서버를 재시작하는 중입니다. 잠시 후 다시 시도해 주세요.', code: 'ENGINE_RESTARTING' }
+
+  it('엔진 재시작 503은 GET이면 title/detail/status/code만 골라 relay한다', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await relayUpstreamError(new Response(JSON.stringify(engineRestarting), { status: 503 }), 'test-label', 'GET')
+
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ title: 'Engine Restarting', detail: engineRestarting.detail, status: 503, code: 'ENGINE_RESTARTING' })
+  })
+
+  it.each([
+    ['다른 code의 JSON 503', 503, JSON.stringify({ title: 'Trading Core Unavailable', detail: 'I/O error on GET http://internal:8081', code: 'TRADING_CORE_UNAVAILABLE' }), 'GET'],
+    ['code 없는 증권사 title 503', 503, JSON.stringify({ title: 'Toss API Error', detail: 'x' }), 'GET'],
+    ['비JSON 503(게이트웨이 등)', 503, '<html>Service Unavailable</html>', 'GET'],
+    ['증권사 장애 code여도 502', 502, JSON.stringify({ title: 'Toss API Error', detail: 'x', code: 'BROKER_UNAVAILABLE' }), 'GET'],
+    ['POST의 엔진 재시작 503', 503, JSON.stringify(engineRestarting), 'POST'],
+  ])('%s는 { error: "Failed" }로 숨긴다', async (_name, status, body, method) => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await relayUpstreamError(new Response(body, { status }), 'test-label', method as HttpMethod)
 
     expect(res.status).toBe(status)
     expect(await res.json()).toEqual({ error: 'Failed' })
@@ -76,7 +108,7 @@ describe('relayUpstreamError', () => {
       headers: { 'Content-Type': 'application/json' },
     })
 
-    const res = await relayUpstreamError(upstream, 'test-label')
+    const res = await relayUpstreamError(upstream, 'test-label', 'GET')
 
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ detail: 'bad request' })
@@ -85,7 +117,7 @@ describe('relayUpstreamError', () => {
   it('4xx + 비JSON body는 { error: "Failed" }로 대체한다', async () => {
     const upstream = new Response('not json', { status: 404 })
 
-    const res = await relayUpstreamError(upstream, 'test-label')
+    const res = await relayUpstreamError(upstream, 'test-label', 'GET')
 
     expect(res.status).toBe(404)
     expect(await res.json()).toEqual({ error: 'Failed' })

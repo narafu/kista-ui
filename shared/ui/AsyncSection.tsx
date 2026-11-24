@@ -9,7 +9,7 @@ interface FallbackOptions {
   isLoading?: boolean
   /** 보여 줄 데이터가 없는 실패만 넘긴다(`isError && !data`) */
   isError?: boolean
-  /** 이 구역의 조회 오류. 502·503이면 서버 재시작 안내를 보인다 */
+  /** 이 구역의 조회 오류. 502·503이면 서버 재시작 안내(엔진 재시작이면 서버 detail)를 보인다 */
   error?: unknown
   /** 생략하면 `SectionError` 기본 문구 */
   errorMessage?: string

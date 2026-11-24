@@ -50,7 +50,7 @@ interface Props<T> {
   isLoading?: boolean
   /** 데이터가 없는 실패만 넘긴다(`isError && !data`는 호출부나 훅이 계산) */
   isError?: boolean
-  /** 이 목록의 조회 오류. 502·503이면 서버 재시작 안내를 보인다 */
+  /** 이 목록의 조회 오류. 502·503이면 서버 재시작 안내(엔진 재시작이면 서버 detail)를 보인다 */
   error?: unknown
   /** 생략하면 `SectionError` 기본 문구 */
   errorMessage?: string

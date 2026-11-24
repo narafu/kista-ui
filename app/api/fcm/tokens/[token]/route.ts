@@ -17,6 +17,6 @@ export async function DELETE(
     cache: 'no-store',
   }, 'fcm/tokens DELETE')
 
-  if (!res.ok) return relayUpstreamError(res, 'fcm/tokens DELETE')
+  if (!res.ok) return relayUpstreamError(res, 'fcm/tokens DELETE', 'DELETE')
   return noContent()
 }

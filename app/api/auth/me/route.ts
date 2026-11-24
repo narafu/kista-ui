@@ -19,7 +19,7 @@ export async function GET() {
     cache: 'no-store',
   }, 'auth/me GET')
 
-  if (!res.ok) return relayUpstreamError(res, 'auth/me GET')
+  if (!res.ok) return relayUpstreamError(res, 'auth/me GET', 'GET')
   return NextResponse.json(await res.json())
 }
 
@@ -33,7 +33,7 @@ export async function DELETE() {
     cache: 'no-store',
   }, 'auth/me DELETE')
 
-  if (!res.ok) return relayUpstreamError(res, 'auth/me DELETE')
+  if (!res.ok) return relayUpstreamError(res, 'auth/me DELETE', 'DELETE')
 
   // 탈퇴 성공 — 3개 인증 쿠키 삭제
   const response = noContent()

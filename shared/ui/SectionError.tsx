@@ -4,7 +4,7 @@ import { useContext, useState, useTransition } from 'react'
 import { QueryClientContext } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { isServerRestarting, SERVER_RESTART_MESSAGE } from '@shared/lib/api-client'
+import { apiErrorCode, apiMsg, isServerRestarting, SERVER_RESTART_MESSAGE } from '@shared/lib/api-client'
 
 interface Props {
   message?: string
@@ -12,7 +12,7 @@ interface Props {
   serverRetry?: boolean
   /** 이미 카드 안에 있을 때 자체 테두리·패딩을 뺀다 */
   bare?: boolean
-  /** 이 구역의 조회 오류. 502·503이면 `message` 대신 서버 재시작 안내를 보인다 */
+  /** 이 구역의 조회 오류. 502·503이면 `message` 대신 서버 재시작 안내(엔진 재시작이면 서버 detail)를 보인다 */
   error?: unknown
 }
 
@@ -25,7 +25,7 @@ interface Props {
  * QueryClientProvider 밖(단위 테스트 등)에서는 버튼을 숨긴다.
  */
 export function SectionError({ message: fallbackMessage = '통계를 불러오지 못했습니다.', serverRetry = false, bare = false, error }: Props) {
-  const message = isServerRestarting(error) ? SERVER_RESTART_MESSAGE : fallbackMessage
+  const message = !isServerRestarting(error) ? fallbackMessage : apiErrorCode(error) === 'ENGINE_RESTARTING' ? apiMsg(error, SERVER_RESTART_MESSAGE) : SERVER_RESTART_MESSAGE
   if (serverRetry) return <ServerSectionError message={message} bare={bare} />
   return <QuerySectionError message={message} bare={bare} />
 }
