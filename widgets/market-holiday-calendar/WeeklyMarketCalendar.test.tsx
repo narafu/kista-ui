@@ -97,7 +97,7 @@ describe('WeeklyMarketCalendar', () => {
     expect(screen.getByText('거래 내역을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
-  it('stacks label and compact amount so the badge fits a narrow day cell', () => {
+  it('stacks label and amount on narrow cells and keeps one line from sm up', () => {
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
     useDailyTradesRangeQueryMock.mockReturnValue({
       data: new Map([['2026-06-30', { tradeCount: 1, byCurrency: [{ currency: 'USD', buyAmount: 12345, sellAmount: 0, buyCount: 1, sellCount: 0 }] }]]),
@@ -107,10 +107,12 @@ describe('WeeklyMarketCalendar', () => {
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     const badge = screen.getByTitle('매수 $12,345.00')
-    expect(badge).toHaveTextContent('매수$12K')
+    expect(badge).toHaveTextContent('매수 $12K')
+    expect(badge).toHaveClass('sm:whitespace-nowrap')
+    expect(badge.querySelector('br')).toHaveClass('sm:hidden')
   })
 
-  it('앞뒤 주 칸도 라벨·금액을 2줄 배지로 쌓는다', () => {
+  it('앞뒤 주 칸도 라벨·금액 배지를 같은 규칙으로 그린다', () => {
     useAccountsQueryMock.mockReturnValue({ data: [{ id: 'a1' }] })
     useDailyTradesRangeQueryMock.mockReturnValue({
       data: new Map([['2026-06-23', { tradeCount: 1, byCurrency: [{ currency: 'USD', buyAmount: 0, sellAmount: 2700, buyCount: 0, sellCount: 1 }] }]]),
@@ -120,8 +122,7 @@ describe('WeeklyMarketCalendar', () => {
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
     const badge = screen.getByTitle('매도 $2,700.00')
-    expect(badge).toHaveTextContent('매도$2.7K')
-    expect(badge.querySelector('br')).not.toBeNull()
+    expect(badge).toHaveTextContent('매도 $2.7K')
   })
 
   it('주말·휴장일 칸에도 체결 배지를 통화별로 따로 그린다', () => {
@@ -143,8 +144,8 @@ describe('WeeklyMarketCalendar', () => {
     })
     render(<WeeklyMarketCalendar initialWeekStartDate="2026-06-28" isAuthenticated />)
 
-    expect(screen.getByTitle('매수 123,456원')).toHaveTextContent('매수12만원')
-    expect(screen.getByTitle('매수 50,000원')).toHaveTextContent('매수5만원')
-    expect(screen.getByTitle('매도 5,000원')).toHaveTextContent('매도5천원')
+    expect(screen.getByTitle('매수 123,456원')).toHaveTextContent('매수 12만원')
+    expect(screen.getByTitle('매수 50,000원')).toHaveTextContent('매수 5만원')
+    expect(screen.getByTitle('매도 5,000원')).toHaveTextContent('매도 5천원')
   })
 })
