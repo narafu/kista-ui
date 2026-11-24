@@ -52,7 +52,7 @@ interface CompactRowProps {
 
 const BADGE_LABEL = { BUY: '매수', SELL: '매도' } as const
 
-// 통화·방향별 2줄 배지(라벨/금액) — 한 줄이면 이웃 칸 금액과 붙어 보인다. 금액은 7열 칸(모바일 약 33px)에 들어가도록
+// 통화·방향별 배지(라벨 + 금액) — 좁은 칸(모바일 약 33px)은 2줄로 쌓고 sm 이상에서만 한 줄로 쓴다. 금액은
 // 유효숫자 2자리로 축약하고, 정확한 금액은 title로 노출한다. 통화가 다른 금액은 합치지 않고 배지를 따로 둔다
 function TradeBadges({ summary, badgeClassName }: { summary: DayTradeSummary; badgeClassName: string }) {
   return (
@@ -63,8 +63,8 @@ function TradeBadges({ summary, badgeClassName }: { summary: DayTradeSummary; ba
           .map((dir) => {
             const amount = dir === 'BUY' ? c.buyAmount : c.sellAmount
             return (
-              <span key={`${c.currency}-${dir}`} className={cn(badgeClassName, directionBadgeClass(dir))} title={`${BADGE_LABEL[dir]} ${fmtMoney(amount, c.currency)}`}>
-                {BADGE_LABEL[dir]}<br /><span className="whitespace-nowrap">{fmtCompactMoneyNarrow(amount, c.currency)}</span>
+              <span key={`${c.currency}-${dir}`} className={cn(badgeClassName, directionBadgeClass(dir), 'sm:whitespace-nowrap')} title={`${BADGE_LABEL[dir]} ${fmtMoney(amount, c.currency)}`}>
+                {BADGE_LABEL[dir]} <br className="sm:hidden" /><span className="whitespace-nowrap">{fmtCompactMoneyNarrow(amount, c.currency)}</span>
               </span>
             )
           }),
@@ -104,7 +104,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
   })
 }
 
-// 라벨·금액 2줄로 쌓아 칸 너비를 넘지 않게 한다(좌우 패딩 없음)
+// 좁은 칸에선 라벨·금액 2줄로 쌓아 칸 너비를 넘지 않게 한다(좌우 패딩 없음)
 const DAY_BADGE_CLASS = 'block rounded py-px text-[11px] font-semibold leading-tight'
 
 interface CurrentRowProps {
