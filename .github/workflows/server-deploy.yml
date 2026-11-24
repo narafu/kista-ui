@@ -112,7 +112,7 @@ jobs:
   # 서버 적용은 kista-infra Reconcile App이 한다(검증·신선도 병합·reconcile.sh 헬스 게이트·롤백·state 커밋).
   # 여기선 요청만 보내고 끝난다 — 결과는 infra가 이 커밋에 commit status `deploy/production`으로 되돌려 쓴다
   # (pending → success/failure, target_url은 infra run). 커밋의 초록불 = 서버 적용·헬스 게이트 통과
-  # 설계: kista-infra/docs/superpowers/specs/2026-10-02-deploy-reconcile-design.md
+  # 설계: kista-infra/docs/design.md
   deploy:
     name: Deploy (kista-infra reconcile)
     runs-on: ubuntu-24.04
