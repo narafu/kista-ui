@@ -97,10 +97,10 @@ describe('SeedAmountInput', () => {
     expect(screen.getByText('최소 투자금 미달')).toBeInTheDocument()
   })
 
-  it('입력 시드가 예수금을 넘으면 경고성 안내만 보이고 입력은 막지 않는다', () => {
+  it('입력 시드가 예수금을 넘어도 입력은 막지 않고, 초과 안내는 서버 경고에 맡긴다', () => {
     render(<SeedAmountInput value={1500} onChange={vi.fn()} deposit={1000} minSeed={100} belowMinSeed={false} />)
 
-    expect(screen.getByText('추가 입금 필요')).toBeInTheDocument()
+    expect(screen.queryByText('예수금으로 즉시 시작 가능')).not.toBeInTheDocument()
     expect(screen.getByLabelText('예수금 (USD)')).toBeEnabled()
   })
 })

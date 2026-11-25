@@ -1,6 +1,4 @@
-// 앱 소비처는 meta로 옮겼다(S7·T10) — 남은 소비처는 관리자 설정 편집 타입. 쿼리·/api/runtime-config 라우트는 삭제 대상
-/** @public */
-export { runtimeConfigKeys, useRuntimeConfigQuery } from './hooks/useRuntimeConfigQuery'
+// 앱 화면은 meta를 쓴다(S7·T10) — 남은 소비처는 관리자 운영 설정 편집 타입뿐이다
 export type {
   RuntimeConfig,
   RuntimeFieldSettings,

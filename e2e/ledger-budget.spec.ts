@@ -14,7 +14,11 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
 
     // 로컬 등록 검증은 availableCash가 항상 null이고 TOSS 시드 계좌는 가짜 자격증명이라 503일 수 있다 — 응답 전체를 고정한다
     await page.route('**/api/accounts/*/trading-cycle-validations', (route) =>
-      route.fulfill({ json: { fieldErrors: [], warnings: [], derived: { basePrice: 80, minSeed: 3000, skipReason: null, availableCash: 5000 } } }))
+      route.fulfill({ json: {
+        fieldErrors: [],
+        warnings: [{ code: 'AVAILABLE_CASH_EXCEEDED', detail: '입력 예수금이 가용 예수금 $5,000.00보다 큽니다.' }],
+        derived: { basePrice: 80, minSeed: 3000, skipReason: null, availableCash: 5000 },
+      } }))
     let createBody: Record<string, unknown> | null = null
     await page.route('**/api/accounts/*/trading-cycles', async (route) => {
       if (route.request().method() !== 'POST') return route.fallback()
@@ -27,7 +31,7 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
 
     const seed = page.getByLabel('예수금 (USD)')
     await seed.fill('8000')
-    await expect(page.getByText('추가 입금 필요')).toBeVisible()
+    await expect(page.getByText('입력 예수금이 가용 예수금 $5,000.00보다 큽니다.')).toBeVisible()
 
     const submit = page.getByRole('button', { name: '등록', exact: true })
     await expect(submit).toBeEnabled()

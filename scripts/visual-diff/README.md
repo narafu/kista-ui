@@ -51,7 +51,7 @@ node scripts/visual-diff/sheet.mjs <out-dir> --only '^m-inf-.*-pc$' --crop 300,5
 - `fixtures/trading.mjs`: preview·previews의 인위적 분기를 모드별로 응답한다(`deficit`=원장 부족/`trimmed`=원장 축소/`executed`/`skip`/`empty`). 시나리오의 `mode`로 고르고, 기본값 `real`은 실데이터를 그대로 통과시킨다.
   - `dca`: 시드 무한매수 계좌(MOCK)에 합성 주식 DCA 전략 1건을 덧붙인다(실행 이력 2건: 현재 규칙·삭제된 규칙). 시나리오 `stock-dca-*`가 쓴다. 런타임 설정의 DCA 활성화는 `fixtures/api.mjs`가 같은 모드에서 보강한다(`run.mjs`가 `setMode`를 두 fixture에 함께 넘긴다 — 두 모듈은 모드 상태를 따로 가진다).
 - `fixtures/api.mjs`: kista-api(8080) 응답 중 로컬 DB에 없는 것만 덮는다. 지금은 P 매매표(`/api/admin/privacy-trade-bases`, 로컬 DB 0건) 3건, 오류 로그(`/api/admin/logs/errors`, 로컬 로그는 최근 며칠 치만 남아 날마다 바뀜) 3건, 운영 설정(`/api/admin/settings`)의 VR 정기 입출금 방식 고정(실응답을 받아 그 필드만 사용자 변경 허용·일부 허용으로 덮음 — `admin-settings`가 허용 체크박스·기본값 라디오를 찍게)이고, 나머지는 실데이터를 그대로 통과시킨다. 서버 컴포넌트 prefetch(`apiFetch`)는 브라우저를 거치지 않아 `page.route`로 못 바꾸므로 이쪽에 둔다.
-- 브라우저에서만 부르는 응답은 시나리오의 `setup`에서 `page.route`로 덮는다. 전역 fixture와 달리 그 시나리오에만 적용된다(예: 로컬 시드 미리보기의 `availableCash`가 null이라 `create-strategy-seed-*`가 가용 예수금을 채운다).
+- 브라우저에서만 부르는 응답은 시나리오의 `setup`에서 `page.route`로 덮는다. 전역 fixture와 달리 그 시나리오에만 적용된다(예: 로컬 등록 검증의 `derived.availableCash`가 null이라 `create-strategy-seed-*`가 가용 예수금을 채운다).
 - PRIVACY 전략은 로컬 DB에 없어 PRIVACY 전략 상세 시나리오가 없다(예전 `detail-privacy`는 없는 ID를 열고 있어 삭제했다).
 - kista-api 실데이터 중 `etf-series`는 09:00 KST cron에서만 수집되므로, 수집 전이면 ETF 벤치마크 탭이 "데이터 부족" 상태로만 비교된다.
 - 프록시는 실행 동안 upstream의 성공 응답(SSE 제외)을 메모이즈한다(URL·인증 헤더 기준). 진행 중인 요청도 공유하므로, head와 base가 병렬로 같은 데이터를 요청해도 실시간 가격이나 preview가 달라져 가짜 diff가 생기지 않는다.

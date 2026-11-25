@@ -25,7 +25,6 @@ interface StatusProps {
 
 function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   const amount = value !== null && value > 0 ? value : null
-  const shortage = deposit !== null && amount !== null && deposit < amount ? amount - deposit : null
   const sufficient = deposit !== null && amount !== null && deposit >= amount
 
   if (belowMinSeed && minSeed !== null) {
@@ -38,19 +37,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
       </div>
     )
   }
-  if (shortage !== null && deposit !== null) {
-    return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-muted border border-border">
-        <span className="text-sm text-muted-foreground font-medium">추가 입금 필요</span>
-        <span className="text-sm font-semibold text-foreground tabular-nums">
-          {fmtMoney(shortage, 'USD')}
-          <span className="text-sm font-normal opacity-60 ml-1.5">
-            보유 {fmtMoney(deposit, 'USD')}
-          </span>
-        </span>
-      </div>
-    )
-  }
+  // 가용 예수금 초과는 서버 검증 경고(AVAILABLE_CASH_EXCEEDED)가 폼 하단에 알린다 — 여기서 다시 말하지 않는다
   if (sufficient) {
     return (
       <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-brand-soft border border-rose-200">

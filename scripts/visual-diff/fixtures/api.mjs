@@ -36,13 +36,13 @@ const fetchSettings = async (url, req, upstream) => {
   return up.ok ? { body: pinRecurringMode(await up.json()) } : { status: up.status, body: await up.json().catch(() => ({})) }
 }
 
-// 모드 상태는 trading.mjs와 따로다 — run.mjs가 setMode를 두 모듈에 같이 넘긴다. dca만 runtime-config의 DCA를 켠다
+// 모드 상태는 trading.mjs와 따로다 — run.mjs가 setMode를 두 모듈에 같이 넘긴다. dca만 메타(전략 유형 enabled)의 DCA를 켠다
 let dca = false
 export const setMode = (m) => { dca = m === 'dca' }
 
-const patchRuntime = (c) => {
-  c.strategies.DCA.enabled = true
-  return c
+const patchMeta = (m) => {
+  for (const t of m.strategyTypes ?? []) if (t.code === 'DCA') t.enabled = true
+  return m
 }
 // 업스트림 오류(토큰 만료·API 다운)는 보강하지 않고 그대로 넘긴다 — patch가 TypeError로 502를 내면 원인이 가려진다
 const fetchPatched = async (url, req, upstream, patch) => {
@@ -51,7 +51,7 @@ const fetchPatched = async (url, req, upstream, patch) => {
 }
 
 export async function route(url, req, { upstream }) {
-  if (dca && url.pathname === '/api/runtime-config') return fetchPatched(url, req, upstream, patchRuntime)
+  if (dca && url.pathname === '/api/meta') return fetchPatched(url, req, upstream, patchMeta)
   if (url.pathname === '/api/admin/privacy-trade-bases') return { body: privacyBases }
   if (url.pathname === '/api/admin/logs/errors') return { body: errorLogs }
   if (url.pathname === '/api/admin/settings') {

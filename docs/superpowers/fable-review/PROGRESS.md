@@ -422,7 +422,11 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - e2e(worktree 절차): `--project=setup --no-deps` 다음 `--project=chromium --no-deps`.
 - S4 3차 후속(카드·제목 통일, 2026-11-25): 로컬 api 무응답으로 못 돌렸다. 응답하면 `npm run visual-diff -- 65c9102e`를 새 커밋에서(백그라운드, `diff !== 0`으로 센다. 의도분은 아래 후속 기록의 "화면에 보이는 차이"만) + 위 S4 3차 항목과 같은 실행으로 a11y-check·e2e를 돌린다. 해시는 후속 커밋(`git log --oneline -1`)으로 채운다.
 - `6b861b66`(S7 후속 A): 읽기 전용 e2e를 s7 api(:8081, `role=web`)에 돌렸으나 setup이 `trading 경로 확인 실패(503)`로 막혀 나머지도 실패했다(환경 문제, 화면 회귀 아님). `KISTA_ROLE=all`로 s7(`b52c5b807`)을 띄운 뒤 `E2E_API_BASE=http://localhost:<포트> E2E_TRADING_API_BASE=<같은 포트> npx playwright test --project=setup --project=chromium --no-deps`(worktree 절차)로 다시 돌린다. 볼 것: 로그인 승인 안내, 계좌 등록 브로커 단계, 계좌 상세·수정(단건 조회), 대시보드 차트(서버 sma·rsi), 만료일 입력.
-- `72ff7d9d`(S7 후속 C, T10): 로컬 api에 붙여 보지 못했다(사용자 기동 알림 전이라 띄우지 않음). s7은 api main(`7b8463ba0`, `b52c5b807` 포함)에 머지돼 worktree `kista-api-s7`이 없다 — api main을 `KISTA_ROLE=all`로 띄운 뒤 돌린다. dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`. 볼 것(검증 엔드포인트는 읽기성이라 실서버 호출 가능, 등록·수정·재설정 제출은 하지 않는다): 전략 등록 INFINITE·PRIVACY·VR(입력 후 약 0.4초 뒤 검증 POST 1건, 최소 시드·가용 예수금 표시, 시드 자동 채움 1회), PRIVACY 기준표 없음·검증 실패 시 사유와 "다시 시도", 서버 거절 문구 위치(보유·시작예정일·적립금 칸 또는 하단), `AVAILABLE_CASH_EXCEEDED` 경고, 수정 화면(시드 수정 가능 INFINITE의 최소 시드), VR 재설정의 검증 POST와 거절 시 다이얼로그 미표시, DCA 등록의 가용 예수금. 그다음 e2e(worktree 절차, `--project=setup --no-deps` 다음 `--project=chromium --no-deps`)와 `npm run a11y-check -- --url http://localhost:3000`.
+- `72ff7d9d`·`90432a39`(S7 후속 C, T10): **해소(2026-11-25)**. 사용자가 api main(`c072319e7`, `KISTA_ROLE=all`, :8080)을 띄운 뒤 돌렸다.
+  - 실화면(읽기 전용 컨텍스트 — 검증 POST 외 쓰기 abort, 실제로 나간 쓰기 0건): 등록 INFINITE(입력 멈춘 뒤 검증 1회, 최소 시드 도착 시 시드 1회 채움, 중복 종목 서버 거절이 하단에), 종목 변경(TQQQ — 거절 없음, 버튼 활성), VR(로컬 사유 "거치식/인출식은 수량 또는 예수금…"이 서버 거절보다 먼저, 인출식 최소 자산 $20,000.00), PRIVACY(MOCK, "P 매매표가 없어 등록할 수 없습니다."), 막힌 제출의 포커스 이동(`data-submit-reason`), 수정(시드 수정 가능 INFINITE — 서버 "종료된 사이클은 예수금을 수정할 수 없습니다…" 하단, 최소 $1,304.00), VR 재설정(무변경 바디 통과, 인출 주식 수 초과 거절 문장). 404는 curl로 ProblemDetail 확인.
+  - e2e(`--project=setup --no-deps` → `--project=chromium --no-deps`): setup 1건 + 15건 통과. 같은 api라 A(`6b861b66`)·B(`ff00efd2`) 변경도 이 실행에 포함된다.
+  - a11y-check: 첫 실행 위반 1건(출력을 필터해 내용 미기록), 재실행 위반 0건.
+  - 남은 것: visual-diff(검증 POST 허용 프록시로 등록 화면 재촬영).
 
 ### S4 3차 후속 — 카드·제목 통일 (2026-11-25, 기준 `65c9102e`)
 
@@ -460,7 +464,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 리뷰(`/code-review high`) 7건 모두 고침: PRIVACY 거절이 "확인 실패"로 가려짐, DCA 빈 규칙 거절이 손대기 전부터 뜸(규칙 없을 땐 숨김 — 가용 예수금 때문에 검증은 계속 부름), 재조회 실패 시 거절이 풀림, 수정에서 안 보이는 칸에 사유가 붙음, DCA·VR 막힌 제출 포커스, 400 `fieldErrors` 파싱 죽은 코드, 경고 key 중복.
 - 후속(같은 날, 다음 커밋): ① 승인안의 "404는 안내"가 빠져 있어 검증 실패 시 "입력값 사전 확인을 불러오지 못했습니다. 제출하면 서버가 다시 확인합니다."를 세 폼에 더했다(막지 않음). ② a11y-check(브라우저 POST abort)·visual-diff 프록시(GET 전용)가 검증 POST를 막아 등록 화면이 달라지던 것을 `READ_ONLY_POST`(`scripts/shared/browser.mjs`, 검증 3경로만 — 저장 없는 POST) 허용으로 고쳤다. `stubSeedCash`·`e2e/ledger-budget.spec.ts`의 seed-preview stub은 등록 검증 응답 stub으로 옮겼다. ③ DCA·VR 재설정 서버 거절 문장은 `role="alert"` 대신 상시 `aria-live="polite"` 영역(디바운스마다 재낭독 방지). ④ 재검토(Sonnet) 지적으로 `staleTime: Infinity`를 빼 기본 30초로 둔다(서버 상태가 바뀐 뒤에도 같은 입력의 거절이 고정되지 않게). 수정·VR 재설정은 마운트 직후 무변경 바디로 검증하는데, 서버 `StrategyUpdateWriter`·`VrReconfigureService.plan`에 "변경 없음" 거절은 없다(보관·사이클 종료·현재가 조회 실패 거절은 제출도 같은 이유로 실패하므로 그대로 보인다).
 - 검증: typecheck·lint·knip 통과, vitest 261파일 1868건 통과(기존 expected fail 1 포함). 실서버·e2e·a11y-check는 못 돌렸다(위 "e2e 대기").
-- 남긴 것(제안): `entities/runtime-config`의 `useRuntimeConfigQuery`·`/api/runtime-config` 라우트는 소비처가 없다(visual-diff fixture의 DCA 패치만 이 경로를 본다). `RAMP_DEFAULTS_BY_MODE`는 zod 스키마 교차 검증과 메타 없을 때 대체값으로 남았다. 등록 폼의 `useAppForm`·`FormField` 전환(04-6)은 별도 세션(사용자 결정).
+- 후속 2(사용자 확인 뒤): 가용 예수금 초과 중복 표시를 서버 경고 하나로 줄였다(`SeedAmountInput`의 "추가 입금 필요" 삭제 — 화면의 가용 예수금도 같은 서버 `derived.availableCash`라 서버가 모르면 둘 다 안 뜬다). `useRuntimeConfigQuery`·`getRuntimeConfig`·`/api/runtime-config` 라우트를 지웠다(타입은 관리자 설정이 계속 씀). visual-diff DCA 모드는 `/api/meta`의 DCA `enabled`를 켠다. api 후속 요청(수정 검증 derived 보강·금액 통화 기호·`/api/runtime-config` 삭제·T7 fieldErrors 일정)은 프롬프트로 전달. `RAMP_DEFAULTS_BY_MODE`는 zod 스키마 교차 검증과 메타 없을 때 대체값으로 남았다. 등록 폼의 `useAppForm`·`FormField` 전환(04-6)은 별도 세션(사용자 결정).
 
 ## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)
 

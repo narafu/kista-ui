@@ -110,7 +110,7 @@ export const scenarios = [
   ...modes('m-vr', VR, ['executed']),
   ...modes('m-list', at('/strategies'), ['deficit', 'executed']),
   ...modes('m-acct', ACCT, ['executed']),
-  // dca 모드: 시드 무한매수 계좌에 합성 주식 DCA 전략 1건 — 상세(실행 이력 2건: 현재 규칙·삭제된 규칙)와 목록 규칙 요약 확인용. 런타임 설정의 DCA는 fixtures/api.mjs가 보강
+  // dca 모드: 시드 무한매수 계좌에 합성 주식 DCA 전략 1건 — 상세(실행 이력 2건: 현재 규칙·삭제된 규칙)와 목록 규칙 요약 확인용. 메타의 DCA enabled는 fixtures/api.mjs가 보강
   { name: 'stock-dca-strategy', path: at(STRATEGY, 'infinite', { sid: '00000000-0000-4000-8000-0000000c0172' }), mode: 'dca' },
   { name: 'stock-dca-strategies', path: at('/strategies'), mode: 'dca' },
   ...modes('w-inf', INF, ['real', 'deficit', 'trimmed', 'executed'], { clock: true }),
