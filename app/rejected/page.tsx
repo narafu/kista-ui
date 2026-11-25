@@ -1,10 +1,16 @@
 import Image from 'next/image'
 import { XCircle } from 'lucide-react'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { getMe } from '@entities/user'
 import { GlassCard, BrandWordmark } from '@widgets/glass-card'
 import { LogoutButton } from '@features/auth/logout'
 import { RejectedReapplyButton } from '@features/auth/reapply'
 
-export default function RejectedPage() {
+export default async function RejectedPage() {
+  // 반려 토큰은 /me가 401일 수 있어 서버에서 읽고, 실패하면 버튼이 서버 거절에 맡긴다
+  const token = await getAuthToken()
+  const me = token ? await getMe(token).catch(() => undefined) : undefined
+
   return (
     <GlassCard maxWidth="480px" topBar={<><BrandWordmark /><LogoutButton /></>}>
         {/* 헤더 섹션 */}
@@ -35,7 +41,7 @@ export default function RejectedPage() {
           </div>
         </div>
 
-        <RejectedReapplyButton />
+        <RejectedReapplyButton reapplyAvailableAt={me?.reapplyAvailableAt} />
     </GlassCard>
   )
 }

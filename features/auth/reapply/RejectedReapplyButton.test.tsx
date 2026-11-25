@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { RejectedReapplyButton } from './RejectedReapplyButton'
 
 const reapplyMock = vi.fn()
-const meMock = vi.fn()
 const routerPushMock = vi.fn()
 
 vi.mock('next/navigation', () => ({
@@ -15,7 +14,6 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@entities/user', () => ({
   reapply: () => reapplyMock(),
-  useMeQuery: () => ({ data: meMock() }),
   userKeys: { me: () => ['me'] },
 }))
 
@@ -25,7 +23,6 @@ function wrapper({ children }: { children: ReactNode }) {
 
 describe('RejectedReapplyButton', () => {
   beforeEach(() => {
-    meMock.mockReset()
     reapplyMock.mockReset()
     routerPushMock.mockReset()
   })
@@ -52,9 +49,15 @@ describe('RejectedReapplyButton', () => {
     expect(routerPushMock).not.toHaveBeenCalled()
   })
 
+  it('is enabled when reapplyAvailableAt is null', () => {
+    render(<RejectedReapplyButton reapplyAvailableAt={null} />, { wrapper })
+
+    expect(screen.getByRole('button', { name: '승인 재신청' })).toBeEnabled()
+  })
+
   it('disables the button and blocks the request while reapplyAvailableAt is in the future', () => {
-    meMock.mockReturnValue({ reapplyAvailableAt: new Date(Date.now() + 90 * 60000).toISOString() })
-    render(<RejectedReapplyButton />, { wrapper })
+    const future = new Date(Date.now() + 90 * 60000).toISOString()
+    render(<RejectedReapplyButton reapplyAvailableAt={future} />, { wrapper })
 
     expect(screen.getByRole('button', { name: /후 재신청 가능/ })).toBeDisabled()
     expect(screen.getByText('1시간 30분 후 재신청 가능')).toBeInTheDocument()

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useQueryClient } from '@tanstack/react-query'
-import { reapply, useMeQuery, userKeys } from '@entities/user'
+import { reapply, userKeys } from '@entities/user'
 import { apiMsg } from '@shared/lib/api-client'
 import { Spinner } from '@shared/ui/Spinner'
 import { remainingCooldownMinutes } from './cooldown'
@@ -18,13 +18,12 @@ function formatCooldown(minutes: number): string {
   return `${minutes}분 후 재신청 가능`
 }
 
-export function RejectedReapplyButton() {
+export function RejectedReapplyButton({ reapplyAvailableAt }: { reapplyAvailableAt?: string | null }) {
   const router = useRouter()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const queryClient = useQueryClient()
-  const { data: me } = useMeQuery()
-  const cooldownMinutes = remainingCooldownMinutes(me?.reapplyAvailableAt)
+  const cooldownMinutes = remainingCooldownMinutes(reapplyAvailableAt)
 
   async function handleReapply() {
     if (cooldownMinutes > 0 || isLoading) return

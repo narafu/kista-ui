@@ -26,10 +26,12 @@ export default async function PendingPage() {
   const token = await getAuthToken()
 
   let hasTelegram = false
+  let reapplyAvailableAt: string | null | undefined
   let currentChannel: import('@entities/user').NotificationChannel = 'NONE'
   if (token) {
     const user = await getMe(token).catch(() => null)
     hasTelegram = user?.hasTelegram ?? false
+    reapplyAvailableAt = user?.reapplyAvailableAt
     currentChannel = user?.notificationChannel ?? (hasTelegram ? 'TELEGRAM' : 'NONE')
   }
 
@@ -56,7 +58,7 @@ export default async function PendingPage() {
         {/* 버튼 영역 */}
         <div className="mt-6 pt-6 border-t border-border flex flex-col gap-2.5">
           <PendingStatusWatcher />
-          <ReapplyButton />
+          <ReapplyButton reapplyAvailableAt={reapplyAvailableAt} />
           <PendingTelegramConnect hasTelegram={hasTelegram} currentChannel={currentChannel} />
         </div>
     </GlassCard>
