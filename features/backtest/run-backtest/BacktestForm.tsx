@@ -2,7 +2,7 @@
 
 import { Zap, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -24,8 +24,8 @@ const FIELD_LABEL_CLASS = 'mb-2 block text-sm font-bold'
 export function BacktestForm({ form }: Props) {
   const { labelOf } = useMeta()
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-5 pt-6">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="flex flex-col gap-5 px-4 pt-6">
         <div>
           <Label id="backtestTypeLabel" className={FIELD_LABEL_CLASS}>매매 전략</Label>
           <div role="group" aria-labelledby="backtestTypeLabel" className="grid grid-cols-2 gap-2.5">
@@ -250,7 +250,7 @@ export function BacktestForm({ form }: Props) {
             ) : '실행'}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

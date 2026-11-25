@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { cn } from '@shared/lib/utils'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { EquityLineChart } from '@shared/ui/EquityLineChart'
@@ -38,10 +39,10 @@ export function EquityCurveChart({
   onStrategyTypeFilterChange,
 }: Props) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">누적 자산 추이</CardTitle>
+          <SectionTitle>누적 자산 추이</SectionTitle>
           <StrategyTypeFilterToggle
             strategyTypes={strategyTypes}
             strategyTypeFilter={strategyTypeFilter}
@@ -55,13 +56,13 @@ export function EquityCurveChart({
           onChange={onRangeChange}
           className="grid w-full grid-cols-5 sm:w-auto sm:max-w-sm"
         />
-      </CardHeader>
-      <CardContent aria-busy={stale} className={cn('px-2 pb-4 transition-opacity sm:px-6 sm:pb-6', stale && 'opacity-60')}>
+      </div>
+      <div aria-busy={stale} className={cn('px-2 pb-4 transition-opacity sm:px-6 sm:pb-6', stale && 'opacity-60')}>
         <EquityLineChart rows={rows} title="누적 자산 추이" />
         <p className="mt-2 text-xs text-muted-foreground">
           전략에 배정된 예수금 기준 근사치입니다. 수수료는 반영되지 않습니다. 끝난 전략은 자산에서 빠지고, 그 손익은 투입 원금에서 계속 뺍니다.
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

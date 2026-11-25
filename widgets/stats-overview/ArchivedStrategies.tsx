@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useMeta } from '@entities/meta'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
@@ -55,11 +56,9 @@ export function ArchivedStrategies({ strategies, accountsById }: Props) {
   const { remove, isDeleting } = useManageStrategyMutations({ onDeleted: () => setOpenId(null) })
   if (strategies.length === 0) return null
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">보관된 전략</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <SectionTitle className="px-4 pb-3">보관된 전략</SectionTitle>
+      <div>
         <ul className="divide-y border-t">
           {strategies.map((strategy) => (
             <ArchivedRow
@@ -73,7 +72,7 @@ export function ArchivedStrategies({ strategies, accountsById }: Props) {
             />
           ))}
         </ul>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

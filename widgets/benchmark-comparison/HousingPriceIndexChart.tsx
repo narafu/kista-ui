@@ -4,7 +4,8 @@ import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 import { useMemo } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useHousingPriceIndexSeriesQuery } from '@entities/stats'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -44,19 +45,19 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
   const cagr = useMemo(() => calculateSeriesCagr(points, 'baseDate', 'indexValue'), [points])
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
+        <SectionTitle className="flex flex-wrap items-center gap-1.5">
           {regionLabel} 아파트 매매가격지수
           <span className={cn('text-xs', cagr == null ? 'text-muted-foreground' : pnlTextClass(cagr))}>
             {formatCagr(cagr)}
           </span>
-        </CardTitle>
+        </SectionTitle>
         <p className="mt-1 text-xs text-muted-foreground">
           KB Land 주간 조사일 기준 · 투자 기록과 비교하지 않는 원본 지수입니다. 배지는 조회 기간 연평균 상승률입니다.
         </p>
-      </CardHeader>
-      <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
+      </div>
+      <div className="px-2 pb-4 sm:px-6 sm:pb-6">
         {query.isLoading ? (
           <IndexChartLoading />
         ) : query.isError && !data ? (
@@ -111,7 +112,7 @@ export function HousingPriceIndexChart({ enabled, from, to, regionCode, regionLa
             </p>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

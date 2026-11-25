@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BacktestForm, useBacktestForm } from '@features/backtest/run-backtest'
 import { fmtDate, fmtUsd } from '@shared/lib/format'
+import { Surface } from '@shared/ui/Surface'
 import { EquityLineChart } from '@shared/ui/EquityLineChart'
 import { BacktestSummaryCards } from './BacktestSummaryCards'
 import { BacktestWarnings } from './BacktestWarnings'
@@ -40,7 +41,7 @@ export function BacktestPageContent() {
             summary={result.summary}
             excludesRecurringFlows={form.resultParams?.type === 'VR' && !!form.resultParams.vrRecurringAmount}
           />
-          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+          <Surface>
             <EquityLineChart
               title="백테스트 자산 추이"
               rows={result.points.map((p) => ({ date: p.date, asset: p.totalAsset, principal: p.principal }))}
@@ -53,7 +54,7 @@ export function BacktestPageContent() {
               markerDates={result.cycleStartDates}
               markerLabel="사이클 시작"
             />
-          </div>
+          </Surface>
           <BacktestWarnings warnings={result.warnings} />
         </div>
       ) : (

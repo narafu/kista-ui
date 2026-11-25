@@ -1,4 +1,4 @@
-import { Card, CardContent } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
 import type { Currency } from '@shared/lib/api-schema'
 import { cn } from '@shared/lib/utils'
 import { pnlTextClass, fmtSignedPercent, fmtSignedPercentPoint } from '@shared/lib/format'
@@ -40,7 +40,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, investmentCu
   const annualizedUnavailable = summary.investmentAnnualizedReturn == null || summary.benchmarkAnnualizedReturn == null
 
   return (
-    <Card role="region" className="gap-0 overflow-hidden py-0" aria-label="장기 초과 성과 요약">
+    <Surface size="flush" role="region" className="flex flex-col overflow-hidden text-sm" aria-label="장기 초과 성과 요약">
       <div className="grid grid-cols-2 sm:grid-cols-3">
         <div className="col-span-2 border-b border-border p-4 sm:col-span-1 sm:border-b-0 sm:border-r sm:p-5">
           <p className="text-xs font-medium text-muted-foreground">초과 성과</p>
@@ -78,7 +78,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, investmentCu
         </div>
       </div>
 
-      <CardContent className="border-t border-border p-0">
+      <div className="border-t border-border">
         <div className="px-3 pb-1 pt-4 sm:px-5">
           <h2 className="text-sm font-medium text-foreground">장기 성과 지표</h2>
           {annualizedUnavailable ? (
@@ -119,7 +119,7 @@ export function HousingBenchmarkSummary({ summary, investmentLabel, investmentCu
             })}
           </tbody>
         </table>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

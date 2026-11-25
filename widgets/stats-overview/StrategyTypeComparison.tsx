@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
 import { DataList, useDataListSort, type DataListColumn } from '@shared/ui/data-list/DataList'
 import { Badge } from '@shared/ui/Badge'
@@ -66,15 +67,15 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
   const sort = useDataListSort(byType, columns)
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         {/* 모바일 정렬 컨트롤은 제목 오른쪽에 둔다 — 목록 위에 따로 두면 제목과 사이가 떠 보인다 */}
         <div className="flex items-center justify-between gap-2">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 유형 비교</CardTitle>
+          <SectionTitle>전략 유형 비교</SectionTitle>
           {byType.length > 0 && <MobileSortControl {...sort.control} className="p-0" />}
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
+      </div>
+      <div>
         {/* 2xl에서는 사이클 성과 옆 반쪽 폭이라 셀 좌우 여백을 줄여 6열을 넣는다 */}
         <DataList
           label="전략 유형 비교"
@@ -91,7 +92,7 @@ export function StrategyTypeComparison({ byType, currency }: Props) {
             수익률은 종료 사이클별 수익률의 단순평균입니다(진행 중 매도분 제외). 사이클 중 추가·인출이 분모에 들어가 추가금은 수익률을 희석하고, VR은 롤오버 주기 구간을 사이클 하나로 셉니다.
           </p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

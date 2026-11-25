@@ -4,7 +4,8 @@ import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 import { useMemo, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -88,11 +89,11 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
   )
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="flex flex-col gap-3">
           <div>
-            <CardTitle role="heading" aria-level={2} className="flex flex-wrap items-center gap-1.5 text-base lg:text-lg">
+            <SectionTitle className="flex flex-wrap items-center gap-1.5">
               <Select
                 items={regionItems}
                 value={toSelectValue(regionItems, regionCode)}
@@ -114,7 +115,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
                 </SelectContent>
               </Select>
               아파트 5분위 가격 추이
-            </CardTitle>
+            </SectionTitle>
             <p className="mt-1 text-xs text-muted-foreground">월별 매매평균가격 (억원) · 상단 벤치마크 지역과 별도로 선택 · 배지는 조회 기간 연평균 상승률</p>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -135,8 +136,8 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
             })}
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
+      </div>
+      <div className="px-2 pb-4 sm:px-6 sm:pb-6">
         {query.isLoading ? (
           <TrendLoading />
         ) : query.isError && !data ? (
@@ -193,7 +194,7 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
             </p>
           </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

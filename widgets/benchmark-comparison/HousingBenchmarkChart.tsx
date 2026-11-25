@@ -4,7 +4,8 @@ import type { Currency } from '@shared/lib/api-schema'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import type { HousingBenchmark, HousingBenchmarkPoint } from '@entities/stats'
 import {
   formatHousingBenchmarkAxisDate,
@@ -34,11 +35,11 @@ export function HousingBenchmarkChart({ points, investmentLabel, investmentCurre
   const formatTooltipLabel = formatHousingBenchmarkDate
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{isDaily ? '일별 누적지수' : '주별 누적지수'}</CardTitle>
+            <SectionTitle>{isDaily ? '일별 누적지수' : '주별 누적지수'}</SectionTitle>
             <p className="mt-1 text-xs text-muted-foreground">
               {isDaily ? '첫 공통 거래일 100 기준' : '첫 공통 조사일 100 기준'}
             </p>
@@ -54,8 +55,8 @@ export function HousingBenchmarkChart({ points, investmentLabel, investmentCurre
             </span>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">
+      </div>
+      <div className="px-2 pb-4 sm:px-6 sm:pb-6">
         <figure
           className="h-[240px] min-h-[240px] w-full sm:h-[320px]"
           aria-label={`투자와 ${benchmarkLabel} ${isDaily ? '일별' : '주별'} 누적 성과 선 차트`}
@@ -118,7 +119,7 @@ export function HousingBenchmarkChart({ points, investmentLabel, investmentCurre
           {housingBenchmarkChartNotice(isDaily)}
           {points[0]?.baseDate ? ` 비교 시작일은 ${formatTooltipLabel(points[0].baseDate)}입니다.` : ''}
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

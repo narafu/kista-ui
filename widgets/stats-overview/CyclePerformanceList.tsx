@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useMeta } from '@entities/meta'
 import { useStatsCyclesQuery, type CycleStatusFilter } from '@entities/stats'
 import { useAccountsQuery } from '@entities/account'
@@ -76,10 +77,10 @@ export function CyclePerformanceList({ typeFilter }: Props) {
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden">
-        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 pb-3">
+      <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+        <div className="flex flex-row flex-wrap items-center justify-between gap-2 px-4 pb-3">
           <div className="flex items-center gap-2">
-            <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">사이클 성과</CardTitle>
+            <SectionTitle>사이클 성과</SectionTitle>
             {/* 전략 타입 필터는 자산 추이 카드 헤더에 있지만 이 목록에도 걸린다 — 적용 중임을 여기서도 보여준다 */}
             {typeFilter && <Badge tone="brand" size="sm">{labelOf('strategyTypes', typeFilter)}</Badge>}
           </div>
@@ -89,8 +90,8 @@ export function CyclePerformanceList({ typeFilter }: Props) {
             <FilterSelect items={tickerOptions} value={ticker} onChange={withPageReset(setTicker)} ariaLabel="종목" triggerClassName="w-28" />
             <PageSizeSelector value={size} onChange={withPageReset(setSize)} />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        <div>
           <CycleListBody
             isLoading={isLoading}
             isError={isError && !data}
@@ -107,8 +108,8 @@ export function CyclePerformanceList({ typeFilter }: Props) {
           <p className="border-t px-4 py-3 text-xs text-muted-foreground">
             모의계좌 사이클도 포함합니다. 요약·추이·전략 유형 비교는 모의계좌를 제외합니다.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
       <ArchivedStrategies strategies={archivedStrategies} accountsById={accountsById} />
     </div>
   )
