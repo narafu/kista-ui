@@ -1,11 +1,11 @@
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 import { meQueryOptions } from '@entities/user'
 import { AssetSettingsPanel } from '@widgets/asset-settings/AssetSettingsPanel'
 
-// StrategySuggestionManager가 useMeQuery()로 분기한다 — 서버에 me가 없으면 로딩 행을 그리는데, 레이아웃(FcmBridge)의
-// 같은 쿼리가 이 세그먼트 hydration 전에 끝나면 클라이언트는 편집기를 그려 hydration 불일치가 난다(/settings와 같은 처리)
+// StrategySuggestionManager가 useMeQuery()로 분기한다 — 서버에 me가 없으면 로딩 행을 그린다. 레이아웃(FcmBridge)이 같은 쿼리를
+// 먼저 만들어도 @shared/lib/query의 HydrationBoundary가 첫 렌더에 채워 서버와 같은 편집기를 그린다(/settings와 같은 처리)
 export default async function FinanceSettingsPage() {
   const token = await getAuthToken()
   const queryClient = createQueryClient()

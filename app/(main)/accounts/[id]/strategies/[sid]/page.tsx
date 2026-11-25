@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 import { StrategyDetailContent } from '@widgets/strategy-detail'
 import { requirePageToken } from '@shared/lib/auth/token'
 import { accountDetailQueryOptions } from '@entities/account'
 import { strategyDetailQueryOptions } from '@entities/strategy'
 import { orderPreviewQueryOptions } from '@entities/order'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 interface Props {
   params: Promise<{ id: string; sid: string }>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminErrorLogsQueryOptions, listAdminAuditLogs, getAdminAnomalies } from '@entities/admin'
 import type { AdminAuditLog } from '@entities/admin'
@@ -8,7 +8,7 @@ import { LogsFilterChips } from '@features/admin/logs'
 import { AnomaliesSection, ErrorLogsSectionContent, AuditLogsSection } from '@widgets/admin-log-list'
 import { PageHeader } from '@widgets/page-header'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 const LOG_TYPES = ['all', 'audit', 'error', 'anomaly'] as const
 type LogType = (typeof LOG_TYPES)[number]

@@ -64,7 +64,8 @@ export default tseslint.config(
     rules: {
       ...restrict(...tokenSelectors, ...formatSelectors, ...cacheSelectors),
       'no-restricted-imports': ['error', {
-        paths: [{ name: 'next/cache', importNames: ['unstable_cache', 'cacheTag'], message: '가변 인증 데이터에 persistent cache를 쓰지 않는다(docs/agents/shared.md "cache").' }],
+        paths: [{ name: 'next/cache', importNames: ['unstable_cache', 'cacheTag'], message: '가변 인증 데이터에 persistent cache를 쓰지 않는다(docs/agents/shared.md "cache").' },
+          { name: '@tanstack/react-query', importNames: ['HydrationBoundary'], message: '@shared/lib/query의 HydrationBoundary를 쓴다(레이아웃이 먼저 만든 쿼리의 hydration 불일치 방지).' }],
       }],
     },
   },

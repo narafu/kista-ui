@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { PageHeader } from '@widgets/page-header'
 import { BudgetManager } from '@features/finance/manage-budgets'
 import { FLOW_TYPE_LABEL, budgetListQueryOptions, financeCategoryListQueryOptions, flowTypeFromSlug } from '@entities/finance'
 import { requirePageToken } from '@shared/lib/auth/token'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 interface Props {
   params: Promise<{ type: string }>

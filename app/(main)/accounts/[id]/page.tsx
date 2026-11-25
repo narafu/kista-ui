@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 import { AccountDetailContent } from '@widgets/account-detail'
 import { requirePageToken } from '@shared/lib/auth/token'
@@ -8,7 +8,7 @@ import { accountDetailQueryOptions } from '@entities/account'
 import { accountPortfolioQueryOptions } from '@entities/trade'
 import { strategyListByAccountQueryOptions } from '@entities/strategy'
 import { getAccountOrderPreviews, seedOrderPreviews } from '@entities/order'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 interface Props {
   params: Promise<{ id: string }>

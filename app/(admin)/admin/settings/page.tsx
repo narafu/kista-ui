@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminSettingsQueryOptions } from '@entities/admin-settings'
 import { AdminSettingsForm } from '@features/admin/settings'
 import { SystemCategoryManager } from '@features/finance/manage-categories'
 import { PageHeader } from '@widgets/page-header'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 import { SectionTitle } from '@shared/ui/SectionTitle'
 
 export const metadata: Metadata = {

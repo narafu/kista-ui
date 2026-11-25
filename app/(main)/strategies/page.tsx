@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountListQueryOptions } from '@entities/account'
 import { strategyKeys, strategyListAllQueryOptions } from '@entities/strategy'
@@ -8,7 +8,7 @@ import { AllStrategiesList } from '@widgets/all-strategies'
 import { PageHeader } from '@widgets/page-header'
 import { AddStrategyButton } from '@features/strategy/create-strategy'
 import type { Strategy } from '@entities/strategy'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '전략 목록',

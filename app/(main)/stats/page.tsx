@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { equityCurveQueryOptions, statsSummaryQueryOptions } from '@entities/stats'
 import { StatsOverview } from '@widgets/stats-overview'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 import { todayKst } from '@shared/lib/format'
 import { kstDateMinusDays } from '@shared/lib/date-range'
 

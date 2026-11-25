@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { adminTradesQueryOptions } from '@entities/admin'
 import type { AdminTrade } from '@entities/admin'
@@ -7,7 +7,7 @@ import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { PageHeader } from '@widgets/page-header'
 import { AdminTradesWorkbench } from '@widgets/admin-trade-list'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '거래 내역',

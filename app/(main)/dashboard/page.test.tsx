@@ -9,7 +9,6 @@ const { getAuthTokenMock, monthlyHolidaysQueryOptionsMock, prefetchQueryMock } =
 }))
 
 vi.mock('@tanstack/react-query', () => ({
-  HydrationBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   dehydrate: vi.fn(() => ({})),
 }))
 
@@ -26,6 +25,7 @@ vi.mock('@entities/account', () => ({
 }))
 
 vi.mock('@shared/lib/query', () => ({
+  HydrationBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   createQueryClient: () => ({ prefetchQuery: prefetchQueryMock }),
 }))
 

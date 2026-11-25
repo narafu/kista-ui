@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { getMetaBundle } from '@entities/meta'
 import { adminPrivacyBasesQueryOptions } from '@entities/privacy'
@@ -8,7 +8,7 @@ import { PageHeader } from '@widgets/page-header'
 import { UrlRangeFilterBar } from '@shared/ui/UrlRangeFilterBar'
 import { parsePage, parseRangePreset, parseSize, resolveRange } from '@shared/lib/date-range'
 import type { RangePreset } from '@shared/lib/date-range'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 // 매매표는 장기 추이를 보는 화면이라 7·30일 대신 올해·90·180일 프리셋을 노출한다
 const PRESETS: RangePreset[] = ['ytd', '90d', '180d', 'all', 'custom']

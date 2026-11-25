@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 import { BenchmarkPageContent } from './BenchmarkPageContent'
 import { getAuthToken } from '@shared/lib/auth/token'
 import { accountListQueryOptions } from '@entities/account'
 import { strategyListAllQueryOptions } from '@entities/strategy'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 import { todayKst } from '@shared/lib/format'
 
 export const metadata: Metadata = {

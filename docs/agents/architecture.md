@@ -28,7 +28,7 @@
 - `shared/lib/api-client/`: `apiFetch` (Server Component 전용, token 필요) / `clientFetch` (Client Component, Route Handler 경유) / `ApiError`
 - `entities/{domain}/api/`: 도메인별 API 함수
 - **Server Component**: `getAuthToken()` → token 취득 후 `apiFetch` 호출
-- **Server Component → Client Component 캐시 이관**: 목록성 서버 상태는 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 주입하고, 이후 빈 상태/목록 전환은 Client Component가 React Query 캐시를 SSOT로 소비한다
+- **Server Component → Client Component 캐시 이관**: 목록성 서버 상태는 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`(`@shared/lib/query` 래퍼 — `@tanstack/react-query` 직접 import는 lint가 막는다)로 주입하고, 이후 빈 상태/목록 전환은 Client Component가 React Query 캐시를 SSOT로 소비한다
 - **Client Component**: token 없이 `entities/{domain}/api` 함수 → Route Handler 자동 경유
 - **Client Component에서 직접 kista-api 호출 전면 금지** (CORS + 쿠키 문제)
 

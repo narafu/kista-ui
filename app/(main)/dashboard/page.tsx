@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query'
+import { dehydrate } from '@tanstack/react-query'
 
 import { getAuthToken } from '@shared/lib/auth/token'
 import { hasValidToken } from '@shared/lib/auth/jwt'
@@ -11,7 +11,7 @@ import { DashboardContent } from '@widgets/dashboard/DashboardContent'
 import { WeeklyMarketCalendar } from '@widgets/market-holiday-calendar'
 import { FearGreedSection } from '@widgets/fear-greed-card'
 import { DashboardLogoutErrorToast } from '@features/auth/logout'
-import { createQueryClient } from '@shared/lib/query'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 
 export const metadata: Metadata = {
   title: '대시보드',

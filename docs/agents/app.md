@@ -43,6 +43,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 ## 캐싱 (Server Component)
 
 - **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache 없이 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다. 서버용 query options factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
+- **`HydrationBoundary`는 `@shared/lib/query` 래퍼를 쓴다**: TanStack 원본은 캐시에 이미 있는 쿼리를 useEffect에서야 채운다. 레이아웃의 `FcmBridge`가 `useMeQuery()`로 `me`를 먼저 만들면(레이아웃은 페이지 Suspense 구간보다 먼저 hydrate된다) 브라우저 첫 렌더에 데이터가 없어 hydration 불일치가 났다(`/settings`·`/finance/settings`, 2026-11). 래퍼는 이미 있지만 데이터가 없는 쿼리만 렌더 중에 채운다
 - **Next.js persistent cache**: 쓰지 않는다 — meta(`getMetaBundle`)도 관리자 운영 설정이 실려 `cache: 'no-store'`다. market holidays는 React Query 소유다. 세부 기준은 `docs/agents/entities.md`·`docs/agents/shared.md`
 
 ## Toaster · UI 전역

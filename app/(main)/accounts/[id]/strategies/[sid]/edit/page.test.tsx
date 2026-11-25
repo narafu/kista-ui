@@ -1,4 +1,4 @@
-import { HydrationBoundary } from '@tanstack/react-query'
+import { HydrationBoundary } from '@shared/lib/query'
 import { isValidElement, type ReactElement, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
