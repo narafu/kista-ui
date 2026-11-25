@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { KpiCard } from '@widgets/kpi-card'
 import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
@@ -21,15 +22,15 @@ interface Props {
   isPreviewError: boolean
 }
 
-// 계좌 상세의 "계좌 요약"과 같은 틀 — 제목 있는 카드 안에 타일 그리드를 둔다. 상태 배지는 제목 오른쪽(CardAction)
+// 계좌 상세의 "계좌 요약"과 같은 틀 — 제목 있는 카드 안에 타일 그리드를 둔다. 상태 배지는 제목 오른쪽(상태 그룹)
 export function StrategyInfoCard({ strategy, children }: { strategy: Strategy; children: React.ReactNode }) {
   const { labelOf } = useMeta()
   const scheduledStart = isScheduledStart(strategy) // startDate가 오늘 이후면 아직 매매 시작 전
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략 정보</CardTitle>
-        <CardAction data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="flex items-start justify-between gap-1 px-4 pb-3">
+        <SectionTitle>전략 정보</SectionTitle>
+        <div data-testid="strategy-status-group" className="flex flex-wrap items-center justify-end gap-2">
           {scheduledStart && (
             <Badge tone="none" size="md" className="bg-info-bg text-info">
               {scheduledStartBadgeLabel(strategy.startDate!)}
@@ -43,10 +44,10 @@ export function StrategyInfoCard({ strategy, children }: { strategy: Strategy; c
               {labelOf('strategyStatuses', strategy.status)}
             </Badge>
           )}
-        </CardAction>
-      </CardHeader>
-      <CardContent className="space-y-3 px-6 pb-6">{children}</CardContent>
-    </Card>
+        </div>
+      </div>
+      <div className="space-y-3 px-6 pb-6">{children}</div>
+    </Surface>
   )
 }
 

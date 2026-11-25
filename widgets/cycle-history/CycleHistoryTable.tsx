@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { fmtUsd, fmtDate, fmtShares } from '@shared/lib/format'
 import type { CycleHistoryItem } from '@entities/trade'
 import type { DateParams } from '@entities/trade/hooks/useCycleHistory'
@@ -67,22 +68,18 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
 
   if (!id && emptyIdMessage) {
     return (
-      <Card className="overflow-hidden">
-        <CardHeader className="pb-3">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EmptyState variant="text" message={emptyIdMessage} />
-        </CardContent>
-      </Card>
+      <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+        <SectionTitle className="pb-3">{title}</SectionTitle>
+        <EmptyState variant="text" message={emptyIdMessage} />
+      </Surface>
     )
   }
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="space-y-2">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{title}</CardTitle>
+          <SectionTitle>{title}</SectionTitle>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}
@@ -94,9 +91,9 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
             onCustomToChange={setCustomTo}
           />
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="p-0">
+      <div>
         {/* 날짜(fmtDate 결과)별 그룹 — 입력 순서(최신순) 유지 */}
         <DataList
           label={title}
@@ -111,7 +108,7 @@ export function CycleHistoryTable({ title, id, useHistoryQuery, emptyIdMessage }
           loadMore={{ hasMore: hasNextPage, isFetching: isFetchingNextPage, isError: isFetchNextPageError, onLoadMore: fetchNextPage }}
           tableClassName="xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal"
         />
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

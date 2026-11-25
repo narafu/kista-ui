@@ -85,7 +85,7 @@ describe('DcaStrategyDetail', () => {
   })
   it('규칙 카드: 요약·조건·부족 정책·다음 판정, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
-    const card = screen.getByRole('heading', { name: '규칙' }).closest('[data-slot="card"]') as HTMLElement
+    const card = screen.getByRole('heading', { name: '규칙' }).parentElement as HTMLElement
     expect(within(card).getByText('$300.00')).toBeInTheDocument() // 금액은 오른쪽 열
     // 주기·주문 방식은 배지 옆 요약 한 줄, 금액·조건은 라벨 행이다
     expect(ruleSummary()).toHaveTextContent('매월 말일 · MOC')

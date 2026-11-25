@@ -3,7 +3,8 @@
 import { useRef } from 'react'
 import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
 import { asyncFallback } from '@shared/ui/AsyncSection'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -136,7 +137,7 @@ export function NextOrderCard({
 }: Props) {
   const { labelOf } = useMeta()
   const listRef = useRef<HTMLDivElement>(null)
-  // PC 2단(xl)에서만 CardContent가 스크롤 컨테이너다 — 그때만 키보드 스크롤 영역(region)으로 노출한다
+  // PC 2단(xl)에서만 목록 영역이 스크롤 컨테이너다 — 그때만 키보드 스크롤 영역(region)으로 노출한다
   // (넘침 여부로 tabIndex를 토글하면 포커스 중 body로 빠진다)
   const isXl = useMediaQuery('(min-width: 1280px)')
   const atEnd = useScrolledToEnd(listRef)
@@ -160,20 +161,20 @@ export function NextOrderCard({
           <span className="whitespace-pre-line">{bannerText}</span>
         </div>
       )}
-      <Card className="xl:min-h-0 xl:flex-1">
-        <CardHeader className="pb-3">
+      <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm xl:min-h-0 xl:flex-1">
+        <div className="px-4 pb-3">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">다음 주문</CardTitle>
+              <SectionTitle>다음 주문</SectionTitle>
               <p className="text-base text-muted-foreground mt-0.5">
                 {canExecute ? '매 거래일 개장 시 자동실행' : '일시중지 중, 자동실행 되지 않음'}
               </p>
             </div>
           </div>
-        </CardHeader>
-        <CardContent
+        </div>
+        <div
           ref={listRef}
-          className="p-0 xl:min-h-0 xl:overflow-y-auto"
+          className="xl:min-h-0 xl:overflow-y-auto"
           {...(isXl && { role: 'region', 'aria-label': '다음 주문 목록', tabIndex: 0 })}
         >
           {mode === 'executed' ? (
@@ -214,8 +215,8 @@ export function NextOrderCard({
           {isXl && !atEnd && (
             <div aria-hidden className="pointer-events-none sticky bottom-0 -mt-12 h-12 bg-gradient-to-t from-card to-transparent" />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
       {readiness.ledgerTrimmed && (
         <p className="text-base text-muted-foreground">전략 원장에 맞춰 매수 주문을 줄여 접수합니다.</p>
       )}

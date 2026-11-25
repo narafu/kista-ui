@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { StrategyCard } from '@widgets/strategy-card'
 import { NewStrategyButton } from '@features/strategy/create-strategy'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -15,14 +16,14 @@ interface Props {
 
 export function StrategyList({ accountId, strategies, isError = false }: Props) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">전략</CardTitle>
+          <SectionTitle>전략</SectionTitle>
           <NewStrategyButton accountId={accountId} />
         </div>
-      </CardHeader>
-      <CardContent className="px-6 pb-6">
+      </div>
+      <div className="px-6 pb-6">
         {!strategies && isError ? (
           <SectionError message="전략 목록을 불러오지 못했습니다." />
         ) : !strategies ? (
@@ -36,7 +37,7 @@ export function StrategyList({ accountId, strategies, isError = false }: Props) 
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

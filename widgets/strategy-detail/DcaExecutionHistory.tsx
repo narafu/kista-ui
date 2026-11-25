@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
@@ -83,10 +84,10 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
   const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="space-y-2">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">회차별 실행 이력</CardTitle>
+          <SectionTitle>회차별 실행 이력</SectionTitle>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}
@@ -102,8 +103,8 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
             <DcaExecutionFilters rules={rules} direction={direction} ruleKey={ruleKey} onDirectionChange={setDirection} onRuleKeyChange={setRuleKey} />
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
+      </div>
+      <div>
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (
@@ -193,7 +194,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
             <PaginationBar page={page} totalPages={totalPages} onPageChange={setPage} />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useStrategyOrderPreviewQuery, computeOrderReadiness } from '@entities/order'
@@ -96,8 +96,8 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
+      <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+        <div className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
           <StrategyToggleButton active={strategy.status === 'ACTIVE'} loading={loading} label={toggleLabel} onClick={handleToggle} />
 
           <CloseStrategyDialog
@@ -112,8 +112,8 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
             isArchiving={isArchiving}
             isDeleting={isDeleting}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
     </div>
   )
 }

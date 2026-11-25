@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
@@ -75,7 +76,7 @@ export function EditAccountForm({ account }: Props) {
   return (
     <div className="max-w-xl space-y-4">
       <form onSubmit={form.submit} className={cn(CARD_CLASS, 'space-y-4')}>
-        <h2 className="text-sm font-semibold mb-1">계좌 정보 수정</h2>
+        <SectionTitle className="mb-1">계좌 정보 수정</SectionTitle>
 
         <FormField control={form.control} name="nickname" label="계좌 별칭" required>
           {(f) => <Input {...f} className="h-12" disabled={form.isPending} maxLength={100} />}

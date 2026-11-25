@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useStrategyOrdersQuery, orderStatusBadgeClass, type StrategyOrder } from '@entities/order'
 import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
@@ -61,10 +62,10 @@ export function StrategyOrderHistory({ strategyId }: Props) {
   const groups = groupConsecutiveBy(pageOrders, (o) => fmtDate(o.tradeDate))
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="space-y-2">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">주문 내역</CardTitle>
+          <SectionTitle>주문 내역</SectionTitle>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}
@@ -96,8 +97,8 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             />
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
+      </div>
+      <div>
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (
@@ -198,7 +199,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

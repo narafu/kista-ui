@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
@@ -100,11 +101,9 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
       {/* PC: 규칙 / 회차별 실행 이력 2단 — 주식 전략 상세의 잔고 이력·주문 내역과 같은 배치. 규칙이 없으면 이력이 전체 폭 */}
       <div className={cn('space-y-4', dca && 'xl:grid xl:grid-cols-2 xl:items-start xl:gap-4 xl:space-y-0')}>
         {dca && (
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">규칙</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
+          <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+            <SectionTitle className="pb-3">규칙</SectionTitle>
+            <div>
               <ul className="space-y-3">
                 {dca.rules.map((r) => (
                   <li key={r.ruleKey} className="rounded-lg border border-border px-3 py-2.5">
@@ -136,15 +135,15 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                   </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
+            </div>
+          </Surface>
         )}
 
         <DcaExecutionHistory strategyId={strategy.id} rules={dca?.rules ?? []} />
       </div>
 
-      <Card>
-        <CardContent className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
+      <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+        <div className="p-5 grid grid-cols-2 items-start gap-x-3 gap-y-1">
           <StrategyToggleButton active={strategy.status === 'ACTIVE'} loading={loading} label={toggleLabel}
             onClick={() => (strategy.status === 'ACTIVE' ? pause(strategy) : resume(strategy))} />
           <CloseStrategyDialog
@@ -159,8 +158,8 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
             isArchiving={isArchiving}
             isDeleting={isDeleting}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
     </div>
   )
 }

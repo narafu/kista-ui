@@ -1,5 +1,6 @@
 'use client'
 
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { z } from 'zod'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
@@ -38,7 +39,7 @@ export function CredentialsCard({ account }: Props) {
   return (
     <form onSubmit={form.submit} className={cn(CARD_CLASS, 'space-y-4')}>
       <div>
-        <h2 className="text-sm font-semibold mb-1">API 키 재등록</h2>
+        <SectionTitle className="mb-1">API 키 재등록</SectionTitle>
         <p className="text-sm text-muted-foreground">새 키로 연결 테스트를 통과하면 교체합니다.</p>
       </div>
       <FormField control={form.control} name="appKey" id="credential-key" label={keyLabel} required>

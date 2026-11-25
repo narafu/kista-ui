@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { KpiCard } from '@widgets/kpi-card'
 import { fmtMoneyOrDash, fmtUsd } from '@shared/lib/format'
 import { isMockBroker } from '@shared/lib/api-schema'
@@ -35,14 +36,14 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
   const ledgerEval = ledgerMoney(ledgerTotals?.evaluation)
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="flex items-center gap-2 text-base lg:text-lg">
+    <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
+      <div className="px-4 pb-3">
+        <SectionTitle className="flex items-center gap-2">
           계좌 요약
           {expiry && <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-6 sm:px-6">
+        </SectionTitle>
+      </div>
+      <div className="px-4 pb-6 sm:px-6">
         <div className="grid grid-cols-2 gap-3 [&>div]:p-3 sm:[&>div]:p-5">
           {account.accountNoMasked != null && (
             <KpiCard
@@ -72,7 +73,7 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
             </>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }
