@@ -422,6 +422,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - e2e(worktree 절차): `--project=setup --no-deps` 다음 `--project=chromium --no-deps`.
 - S4 3차 후속(카드·제목 통일, 2026-11-25): 로컬 api 무응답으로 못 돌렸다. 응답하면 `npm run visual-diff -- 65c9102e`를 새 커밋에서(백그라운드, `diff !== 0`으로 센다. 의도분은 아래 후속 기록의 "화면에 보이는 차이"만) + 위 S4 3차 항목과 같은 실행으로 a11y-check·e2e를 돌린다. 해시는 후속 커밋(`git log --oneline -1`)으로 채운다.
 - `6b861b66`(S7 후속 A): 읽기 전용 e2e를 s7 api(:8081, `role=web`)에 돌렸으나 setup이 `trading 경로 확인 실패(503)`로 막혀 나머지도 실패했다(환경 문제, 화면 회귀 아님). `KISTA_ROLE=all`로 s7(`b52c5b807`)을 띄운 뒤 `E2E_API_BASE=http://localhost:<포트> E2E_TRADING_API_BASE=<같은 포트> npx playwright test --project=setup --project=chromium --no-deps`(worktree 절차)로 다시 돌린다. 볼 것: 로그인 승인 안내, 계좌 등록 브로커 단계, 계좌 상세·수정(단건 조회), 대시보드 차트(서버 sma·rsi), 만료일 입력.
+- `72ff7d9d`(S7 후속 C, T10): 로컬 api에 붙여 보지 못했다(사용자 기동 알림 전이라 띄우지 않음). s7은 api main(`7b8463ba0`, `b52c5b807` 포함)에 머지돼 worktree `kista-api-s7`이 없다 — api main을 `KISTA_ROLE=all`로 띄운 뒤 돌린다. dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`. 볼 것(검증 엔드포인트는 읽기성이라 실서버 호출 가능, 등록·수정·재설정 제출은 하지 않는다): 전략 등록 INFINITE·PRIVACY·VR(입력 후 약 0.4초 뒤 검증 POST 1건, 최소 시드·가용 예수금 표시, 시드 자동 채움 1회), PRIVACY 기준표 없음·검증 실패 시 사유와 "다시 시도", 서버 거절 문구 위치(보유·시작예정일·적립금 칸 또는 하단), `AVAILABLE_CASH_EXCEEDED` 경고, 수정 화면(시드 수정 가능 INFINITE의 최소 시드), VR 재설정의 검증 POST와 거절 시 다이얼로그 미표시, DCA 등록의 가용 예수금. 그다음 e2e(worktree 절차, `--project=setup --no-deps` 다음 `--project=chromium --no-deps`)와 `npm run a11y-check -- --url http://localhost:3000`.
 
 ### S4 3차 후속 — 카드·제목 통일 (2026-11-25, 기준 `65c9102e`)
 
@@ -443,6 +444,22 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 검증: typecheck·lint·knip 통과, vitest 260파일 1847건 통과. e2e는 위 "e2e 대기".
 - 리뷰(`/code-review medium`) 6건, 코드는 고치지 않았다. 관리자 설정 변경이 열린 화면에 반영되지 않는 것(이전 runtime-config는 포커스 때 다시 받았다. 지금은 새로고침·이동 때 반영, 서버가 400으로 막는다), `getMetaBundle`에 시간 제한이 없어 로그인 페이지가 api 지연에 묶이는 것, 요청마다 `no-store` 호출 비용, ETF 허용 목록이 비었을 때의 폴백 부재, `/me` 로딩 중 재신청 버튼 활성, 램프 기본값이 없을 때 안내 부재. 사용자 판단이 필요하면 후속으로 다룬다.
 - 다음: 세션 B(T6 서버 판정 전환, T10 검증 엔드포인트). 그 뒤에 `entities/runtime-config`와 `RAMP_DEFAULTS_BY_MODE`를 지운다.
+
+## S7 후속 C 실행 기록 — T10 서버 검증 연결 (2026-11-25, 커밋 `72ff7d9d`)
+
+- 기준 api: s7은 api main `7b8463ba0`에 머지됐다(`b52c5b807` 포함, worktree 없음). 미배포 — api 먼저 배포한다. 그 전 api에 붙으면 검증 엔드포인트가 404라 검증 결과 없이 제출되고(서버가 제출에서 거른다), PRIVACY 등록은 최소 시드를 판정하지 못해 "확인하지 못했습니다"로 막힌다.
+- 연결: 등록·수정·VR 재설정 폼이 `useStrategyValidationQuery`(entities/strategy)로 400ms 디바운스해 부른다. Route Handler는 추가하지 않았다(기존 `app/api/accounts`·`app/api/trading-cycles` catch-all 프록시). 바디 = 제출 바디(`buildStrategyPayload`·`buildDcaCreatePayload`·`toReconfigureVrRequest`). 쿼리 키가 바디라 늦게 온 이전 입력의 응답은 최신 결과가 되지 못한다. `staleTime: Infinity`(같은 입력 재호출 없음).
+- 실패 처리(사용자 결정): 검증 대기·실패(404·429/503·네트워크)는 제출을 막지 않는다. 429·503만 1회 재시도. 예외로 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록)는 `derived`가 없으면 "최소 투자금을 확인하는 중입니다."·"…확인하지 못했습니다. 다시 시도해주세요." + 다시 시도 버튼으로 막는다. 서버가 거절해 `derived`가 빈 응답은 서버 사유를 보인다. 등록·VR 검증의 Bean Validation 400은 `detail`만 와서 필드 없는 거절로 받는다.
+- 우선순위: 로컬 guard → 지금 입력의 서버 `fieldErrors`(→ 보유·시작예정일·적립금 칸, 수정이거나 그 밖의 필드는 하단). 경고는 서버 문장 그대로(`StrategyValidationWarnings`), 막지 않는다.
+- 제출 버튼: 진행 중·등록 가능 유형 없음일 때만 비활성(a11y.md). 전에는 guard 위반이면 `locked`였다. 막힌 제출은 사유로 포커스(등록·수정 폼은 `aria-invalid` 칸 또는 하단 사유, DCA·VR 재설정은 서버 거절 문장).
+- 삭제와 대체: `vrDerived`(램프 "자동" 값 → 메타 `vrRampDefaults[적립 방향]`, 없으면 같은 값의 `RAMP_DEFAULTS_BY_MODE` — 서버 `VrRampInput.withDefaults` 표와 대조해 같음. 부호 정규화 → `signedRecurringAmount`. 자산 계산 → guard의 `computeVrAssets`, 서버와 겹치는 규칙을 남기기로 해서 그대로 옮김), `useTypeDefaults`(유형 기본값 → 메타 `fields`로 폼 초기값과 `setType`에서 채움, eslint-disable effect 제거), `useStrategySeedPreviewQuery`·`getStrategySeedPreview`·`StrategySeedPreview`·`strategyKeys.seedPreview`(→ 검증 `derived`). 사용처는 각각 useStrategyForm·guards·payload·helpers / useStrategyForm / useStrategyForm·DcaStrategyForm이 전부였다. `useSeedModel`의 최소 시드 판정은 순수 함수 `isBelowMinSeed`로 뺐다(시드가 검증 바디에 들어가 순환).
+- 시드 자동 채움: 전에는 최소 시드 값이 바뀔 때마다 채웠다. 이제 범위(유형·종목·분할 수)마다 지금 입력의 응답이 처음 올 때 한 번 — 시드가 바디라 입력마다 재검증되며, 시세 변동으로 최소 시드가 바뀌어도 사용자가 고친 시드를 덮지 않는다.
+- 같은 화면 상태가 아닌 것: ① 수정 화면은 `update-validations`가 INFINITE `minSeed`만 줘서 가용 예수금·비율 버튼·기준가 표시와 PRIVACY 최소 시드·기준표 판정이 없다(사용자 결정 — api에 수정 derived 보강 요청 후보). ② INFINITE 등록은 기준가가 없어도 "기준 가격을 불러오는 중입니다."로 막지 않는다(서버가 INFINITE 최소 시드를 검증). ③ 가용 예수금 초과는 기존 "추가 입금 필요"와 서버 경고 문장이 함께 보인다.
+- `strategyFormGuards`의 서버 중복 규칙(사용자 결정으로 유지): 보유 평단가·수량 5건, 시작예정일, VR 주기·밴드·적립금 정수, VR 거치·인출 자산>0·인출식 최소 자산, 램프 교차 3건, `isRuntimeValueInvalid`. UI 전용 4건(비VR 예수금>0·PRIVACY 최소 시드·NO_PRIVACY_BASE·VR 금액 0)도 유지.
+- 테스트: 기존 제출 바디 단언 기대값 변경 0건(`git diff`로 확인 — 바뀐 단언은 seed-preview API·`isBelowMinSeed` 반환값·제출 버튼 비활성 기대뿐). 새로 고정: 검증 바디 = 제출 바디(등록 INFINITE·VR, 수정, VR 재설정), 디바운스·늦은 응답·범위 밖 이전 결과 숨김·재조회 실패 시 결과 유지·429/503 재시도·404 무재시도(훅), 서버 거절 차단·로컬 우선·검증 중/실패 시 제출·PRIVACY 대기/실패/거절·시드 채움 1회·메타 램프값·수정 하단 배치(폼). 변이 확인 19건 모두 실패로 잡힘(처음 놓친 VR 재설정 1건은 비동기 판정을 기다리게 고쳐 잡음, 훅의 범위 밖 결과 노출은 테스트가 실제 결함을 잡아 고침).
+- 리뷰(`/code-review high`) 7건 모두 고침: PRIVACY 거절이 "확인 실패"로 가려짐, DCA 빈 규칙 거절이 손대기 전부터 뜸(규칙 없을 땐 숨김 — 가용 예수금 때문에 검증은 계속 부름), 재조회 실패 시 거절이 풀림, 수정에서 안 보이는 칸에 사유가 붙음, DCA·VR 막힌 제출 포커스, 400 `fieldErrors` 파싱 죽은 코드, 경고 key 중복.
+- 검증: typecheck·lint·knip 통과, vitest 261파일 1867건 통과(+기존 expected fail 1). 실서버·e2e·a11y-check는 못 돌렸다(위 "e2e 대기").
+- 남긴 것(제안): `entities/runtime-config`의 `useRuntimeConfigQuery`·`/api/runtime-config` 라우트는 소비처가 없다(visual-diff fixture의 DCA 패치만 이 경로를 본다). `RAMP_DEFAULTS_BY_MODE`는 zod 스키마 교차 검증과 메타 없을 때 대체값으로 남았다. 등록 폼의 `useAppForm`·`FormField` 전환(04-6)은 별도 세션(사용자 결정).
 
 ## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)
 
