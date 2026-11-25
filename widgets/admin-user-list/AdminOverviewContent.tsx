@@ -8,6 +8,7 @@ import { ADMIN_USER_STATUS_LABEL } from '@entities/user'
 import { Badge } from '@shared/ui/Badge'
 import { SectionError } from '@shared/ui/SectionError'
 import { AdminPendingList } from './AdminPendingList'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 
 export function AdminOverviewContent() {
   const { data: stats, isError } = useAdminStatsQuery()
@@ -28,10 +29,10 @@ export function AdminOverviewContent() {
       )}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold">
+          <SectionTitle>
             승인 대기
             {stats?.pendingCount ? <Badge tone="warn" size="sm" className="ml-2">{stats.pendingCount}명</Badge> : null}
-          </h2>
+          </SectionTitle>
           <Link href="/admin/pending" className="inline-block py-2 -my-2 text-xs text-muted-foreground hover:text-foreground hover:underline transition-colors">전체 보기 →</Link>
         </div>
         <AdminPendingList max={5} />

@@ -16,7 +16,7 @@ interface Props {
 
 export function MarketChartCard({ category }: Props) {
   return (
-    <Surface className="p-5 flex flex-col gap-2">
+    <Surface size="compact" className="flex flex-col gap-2">
       <MarketChartCardInner category={category} />
     </Surface>
   )

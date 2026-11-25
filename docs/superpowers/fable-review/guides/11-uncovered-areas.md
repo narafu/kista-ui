@@ -485,3 +485,13 @@ landingPath({ status, role }, pathname): string | null                 // 가야
 배포: 태스크 2·3은 인증 경로라 `/code-review high`. 태스크 3은 api U1 배포 뒤, 태스크 4는 ui 먼저(api가 `status-stream`을 뒤에 지운다), 태스크 9는 05의 5와 같은 날이다(로드맵 4-4). 보안 헤더(E5)는 infra가 하고 ui는 `kista-ui.caddy`에 import 한 줄이다(10의 10과 같은 조건).
 
 - **S2 실행 반영(2026-11-20)**: 태스크 12의 판정은 `git grep -n -i "react-doctor\|doctor" -- . ':!docs/superpowers' ':!package-lock.json'` 0건이고, `reportUnusedDisableDirectives`는 `'error'`로 명시했다. 태스크 1의 판정은 `git grep … -- 'scripts/**/*.mjs' 'e2e/**/*.ts' 'tests/**/*.ts'` 1줄이다. 경로 표는 `scripts/shared/routes.mjs`이고 `npm run lint`가 `check-routes.mjs`로 앱과 대조한다. 자체 결정 세 가지: ① vitest 단위 테스트 `tests/account-cache-fixture.test.ts`는 `e2e/` exclude를 피해 `tests/`에 남겼다. ② 쓰기 e2e(`account-cache`)는 로컬 DB 쓰기 금지 제약 때문에 실행하지 않았다. ③ visual-diff의 쓰기 차단은 `proxy.mjs` 방식을 유지했다.
+
+- **S4 3차 실행 보정(2026-11-25, 태스크 11 — 06의 태스크 6과 같은 묶음)**:
+  - 착수 전 재측정(`252cc6ae`): `-[var(--` 216줄(282 아님), `style={{` 58줄. 실행 뒤 `-[var(--` 0줄, `style={{` 42줄(남은 것은 계산값·런타임 색과 아래 `global-error`), `app/globals.css` 588 → 552줄.
+  - 모서리는 `--radius-*` 하나다: `--r-sm`(8px) → `rounded-sm`, `--r-md`(12px) → `rounded-lg`, `--r-lg`(16px) → `rounded-xl`, `--r-xl`(22px) → `rounded-2xl`. `--radius-sm`·`xl`·`2xl`을 고정 픽셀(8·16·22)로 바꿔 `components/ui`의 같은 이름도 함께 움직인다(7.2 → 8, 16.8 → 16, 21.6 → 22px). `--radius-md`·`lg`는 그대로다.
+  - lint는 `tokenSelectors`(`-[var(--`·`-(--` 문자열)이고 기존 `restrict(...)` 호출마다 합쳤다. `shared/**`에도 건다. 위반 0에서 켜고 고의 위반으로 잡히는 것을 확인한 뒤 되돌렸다.
+  - `bg-brand-soft`는 유틸리티로 만들었다. 기존 `bg-[var(--brand-soft)]`는 그라데이션 값이 `background-color`로 컴파일돼 투명했다(기존 버그).
+  - 조회 실패 문구(`SectionError`)는 `text-status-error`다. 대비는 라이트 5.24, 다크 6.16.
+  - `app/global-error.tsx`의 토큰 리터럴 인라인 `style` 2곳(`var(--primary)`, `var(--pos)` 배지)은 남겼다. 루트 레이아웃 밖에서 렌더돼 전역 CSS가 붙는다는 보장이 없다. 태스크 7이 이 파일을 정리할 때 다시 본다.
+  - Pretendard는 npm `pretendard@1.3.9`의 `pretendardvariable-dynamic-subset.css`를 `globals.css`에서 import한다(자체 호스팅). jsdelivr 외부 요청이 없어졌다.
+  - visual-diff는 라이트만 돌렸다. 도구에 다크 옵션이 없다.

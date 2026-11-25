@@ -235,7 +235,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
     : null
 
   return (
-    <Surface className="p-5 flex flex-col gap-1">
+    <Surface size="compact" className="flex flex-col gap-1">
       <span className="text-sm font-semibold tracking-widest uppercase text-brand-fg-soft">
         미국 휴장일 · 주간 거래
       </span>

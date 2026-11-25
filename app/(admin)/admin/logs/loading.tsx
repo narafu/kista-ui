@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
+import { Surface } from '@shared/ui/Surface'
 
 export default function AdminLogsLoading() {
   return (
@@ -11,7 +12,7 @@ export default function AdminLogsLoading() {
       </div>
       <div className="space-y-8">
         {Array.from({ length: 3 }).map((_, section) => (
-          <div key={section} className="rounded-xl border border-border bg-card p-4 lg:p-5">
+          <Surface key={section} size="compact">
             <Skeleton className="h-6 w-32 mb-4" />
             {Array.from({ length: 3 }).map((_, row) => (
               <div key={row} className="h-14 border-b border-border last:border-0 flex items-center gap-4">
@@ -20,7 +21,7 @@ export default function AdminLogsLoading() {
                 <Skeleton className="h-4 w-24 ml-auto" />
               </div>
             ))}
-          </div>
+          </Surface>
         ))}
       </div>
     </div>

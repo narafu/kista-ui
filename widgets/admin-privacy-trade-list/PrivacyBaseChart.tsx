@@ -4,13 +4,14 @@ import { useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useAdminPrivacyBasesQuery } from '@entities/privacy'
 import { useCandlesRangeQuery } from '@entities/market'
 import { EmptyState } from '@shared/ui/EmptyState'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { buildPrivacyChartSeries, candleRangeFor, latestYearlyResetByTicker, sliceSeriesByRange } from './model/privacyChartSeries'
 import { ChartSkeleton, COMMON_LEGEND, LegendItems, useIsNarrow } from './privacyChartParts'
 
@@ -115,12 +116,12 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     )
   }
 
-  // Card 기본 overflow-hidden은 스크롤 컨테이너를 만들어 모바일 정보 줄의 sticky를 막는다 — clip은 잘라내기만 한다
+  // overflow-hidden은 스크롤 컨테이너를 만들어 모바일 정보 줄의 sticky를 막는다 — clip은 잘라내기만 한다
   return (
-    <Card className="mb-6 overflow-clip">
-      <CardHeader className="pb-3">
+    <Surface size="flush" className="mb-6 flex flex-col gap-4 overflow-clip py-4 text-sm">
+      <div className="px-4 pb-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">P 매매표 추이</CardTitle>
+          <SectionTitle>P 매매표 추이</SectionTitle>
           {/* 현재 PRIVACY는 SOXL 한 종목뿐이라 고를 게 있을 때만 보인다 — 종목명은 가격 패널 제목에 나온다 */}
           {tickers.length > 1 && (
             <Select value={ticker} onValueChange={pickTicker}>
@@ -131,8 +132,8 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
             </Select>
           )}
         </div>
-      </CardHeader>
-      <CardContent className="px-2 pb-4 sm:px-6 sm:pb-6">{renderBody()}</CardContent>
-    </Card>
+      </div>
+      <div className="px-2 pb-4 sm:px-6 sm:pb-6">{renderBody()}</div>
+    </Surface>
   )
 }

@@ -11,6 +11,7 @@ import { TradingAlertToggle } from '@features/settings/notification-prefs'
 import { NicknameEditor } from '@features/settings/edit-nickname'
 import { SectionError } from '@shared/ui/SectionError'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 
 export function SettingsPageContent() {
   const { data: user, isError } = useMeQuery()
@@ -20,8 +21,8 @@ export function SettingsPageContent() {
 
   return (
     <div className="flex flex-col gap-[18px] reveal-stagger">
-      <Surface as="section" id="profile" className="p-6">
-        <h2 className="text-sm font-bold mb-0.5">프로필</h2>
+      <Surface as="section" id="profile">
+        <SectionTitle className="mb-0.5">프로필</SectionTitle>
         <div className="text-sm text-muted-foreground mb-[18px]">카카오 계정 정보를 관리합니다.</div>
         <div className="flex items-center gap-4 mb-[18px]">
           <span className="size-[60px] rounded-full bg-[#FEE500] grid place-items-center shrink-0">
@@ -40,8 +41,8 @@ export function SettingsPageContent() {
         </div>
       </Surface>
 
-      <Surface as="section" id="notifications" className="p-6">
-        <h2 className="text-sm font-bold mb-0.5">알림</h2>
+      <Surface as="section" id="notifications">
+        <SectionTitle className="mb-0.5">알림</SectionTitle>
         <div className="text-sm text-muted-foreground mb-[18px]">알림 수단과 텔레그램 연결을 설정합니다.</div>
         <TelegramSection hasTelegram={user?.hasTelegram ?? false} telegramBotUsername={user?.telegramBotUsername} currentChannel={notificationChannel} />
         <NotificationSettings currentChannel={notificationChannel} hasTelegram={user?.hasTelegram ?? false} />
@@ -59,8 +60,8 @@ export function SettingsPageContent() {
         </div>
       </Surface>
 
-      <Surface as="section" id="preferences" className="p-6">
-        <h2 className="text-sm font-bold mb-0.5">환경설정</h2>
+      <Surface as="section" id="preferences">
+        <SectionTitle className="mb-0.5">환경설정</SectionTitle>
         <div className="text-sm text-muted-foreground mb-[18px]">테마를 설정합니다.</div>
         <div className="text-sm font-semibold text-muted-foreground mb-2">테마</div>
         <ThemeCards />

@@ -10,6 +10,7 @@ import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { SectionError } from '@shared/ui/SectionError'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
 
 const ERROR_LOG_LIMIT = 500
@@ -30,16 +31,16 @@ export function ErrorLogsSectionContent({ page, size, range, from, to }: Props) 
   const logs = allLogs.slice((currentPage - 1) * size, currentPage * size)
 
   return (
-    <Surface as="section" className="p-4 lg:p-5">
+    <Surface as="section" size="compact">
       <div className="mb-4 lg:flex lg:items-center lg:gap-3">
-        <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
+        <SectionTitle className="shrink-0 mb-2 lg:mb-0">
           오류 로그
           {data && (
             <span className="ml-2 text-sm font-normal text-muted-foreground">
               {allLogs.length >= ERROR_LOG_LIMIT ? `최근 ${ERROR_LOG_LIMIT}건` : `총 ${allLogs.length}건`}
             </span>
           )}
-        </h2>
+        </SectionTitle>
         <div className="flex items-center gap-2 lg:flex-1">
           <Suspense fallback={null}>
             <UrlRangeFilterBar current={range} from={from} to={to} paramPrefix="err" pageParamKeys={['ep']} />

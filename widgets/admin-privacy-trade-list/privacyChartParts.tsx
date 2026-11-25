@@ -3,6 +3,7 @@
 import { useMediaQuery } from '@shared/lib/hooks/use-media-query'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AdminTableBlock } from '@shared/ui/skeletons'
+import { Surface } from '@shared/ui/Surface'
 import { cn } from '@shared/lib/utils'
 
 // 현금비중 경고 기준 — 이 아래 구간은 배경 음영으로 구분한다
@@ -95,9 +96,9 @@ export function PrivacyTradesPageSkeleton() {
   return (
     <div className="animate-pulse">
       <Skeleton className="h-8 w-40 mb-6" />
-      <div className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-6">
+      <Surface className="mb-6">
         <ChartSkeleton />
-      </div>
+      </Surface>
       <AdminTableBlock rows={4} />
     </div>
   )

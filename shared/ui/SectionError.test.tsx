@@ -26,6 +26,16 @@ describe('SectionError', () => {
     expect(screen.getByText(expected)).toBeInTheDocument()
   })
 
+  it('조회 실패 문구는 상태 오류 색이다', () => {
+    render(<SectionError message="불러오지 못했습니다." />)
+    expect(screen.getByText('불러오지 못했습니다.')).toHaveClass('text-status-error')
+  })
+
+  it('재시작 안내는 실패 색이 아니다', () => {
+    render(<SectionError message="불러오지 못했습니다." error={new ApiError(503, null)} />)
+    expect(screen.getByText(SERVER_RESTART_MESSAGE)).not.toHaveClass('text-status-error')
+  })
+
   it('refetches failed active queries when retry is clicked', async () => {
     const queryFn = vi.fn().mockRejectedValueOnce(new Error('fail')).mockResolvedValue('ok')
     render(

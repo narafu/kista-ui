@@ -20,7 +20,8 @@
 ### 스타일링
 
 - 인라인 `style={{ ... }}`는 원칙적으로 금지한다
-- 예외는 CSS 토큰 값이나 픽셀 계산처럼 Tailwind로 대체하기 어려운 경우다
+- 예외는 픽셀 계산·런타임 색처럼 Tailwind로 대체하기 어려운 경우다
+- 디자인 토큰은 이름 유틸리티로 쓴다(`text-status-error`, `rounded-xl`). `-[var(--…)]` 임의값은 lint가 막는다 — 없으면 `app/globals.css` `@theme`에 별칭을 더한다
 - 동적 클래스는 `cn()`을 우선 사용하고, 복잡한 변형은 `cva`로 정의한다
 
 카피는 `copy.md`, 접근성은 `a11y.md`, React Query·TypeScript는 `react-query.md` — 각 레이어 CLAUDE.md가 import한다.

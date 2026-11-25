@@ -35,7 +35,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
             </p>
             <NewAccountButton className="self-start">계좌 등록하기</NewAccountButton>
           </div>
-          <Surface className="p-5 flex flex-col">
+          <Surface size="compact" className="flex flex-col">
             <p className="text-sm font-bold tracking-[0.12em] uppercase text-muted-foreground mb-2">다음 단계</p>
             <p className="text-sm font-bold mb-1.5">{NOTIFICATION_CARD.title}</p>
             <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{NOTIFICATION_CARD.desc}</p>

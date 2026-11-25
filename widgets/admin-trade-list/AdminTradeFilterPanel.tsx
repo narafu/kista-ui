@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toSelectValue } from '@shared/lib/utils'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 
 interface UserOption {
   id: string
@@ -68,7 +69,7 @@ export function AdminTradeFilterPanel({
 
   return (
     <section className="rounded-xl border border-border bg-background p-4" aria-label="거래 내역 필터">
-      <h2 className="text-base font-semibold">거래 내역 필터</h2>
+      <SectionTitle>거래 내역 필터</SectionTitle>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <div className="grid min-w-0 gap-2 text-sm">

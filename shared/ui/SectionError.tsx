@@ -4,6 +4,7 @@ import { useContext, useState, useTransition } from 'react'
 import { QueryClientContext } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Surface } from '@shared/ui/Surface'
 import { apiErrorCode, apiMsg, isServerRestarting, SERVER_RESTART_MESSAGE } from '@shared/lib/api-client'
 
 interface Props {
@@ -25,18 +26,23 @@ interface Props {
  * QueryClientProvider 밖(단위 테스트 등)에서는 버튼을 숨긴다.
  */
 export function SectionError({ message: fallbackMessage = '통계를 불러오지 못했습니다.', serverRetry = false, bare = false, error }: Props) {
-  const message = !isServerRestarting(error) ? fallbackMessage : apiErrorCode(error) === 'ENGINE_RESTARTING' ? apiMsg(error, SERVER_RESTART_MESSAGE) : SERVER_RESTART_MESSAGE
-  if (serverRetry) return <ServerSectionError message={message} bare={bare} />
-  return <QuerySectionError message={message} bare={bare} />
+  const restarting = isServerRestarting(error)
+  const message = !restarting ? fallbackMessage : apiErrorCode(error) === 'ENGINE_RESTARTING' ? apiMsg(error, SERVER_RESTART_MESSAGE) : SERVER_RESTART_MESSAGE
+  if (serverRetry) return <ServerSectionError message={message} bare={bare} restarting={restarting} />
+  return <QuerySectionError message={message} bare={bare} restarting={restarting} />
 }
 
-function ErrorCard({ message, bare, children }: { message: string; bare: boolean; children?: React.ReactNode }) {
-  return (
-    <div className={bare ? 'text-center' : 'rounded-xl bg-card border border-border p-10 text-center'}>
-      <p className="text-sm text-status-error">{message}</p>
+type CardProps = { message: string; bare: boolean; restarting: boolean }
+
+// 재시작 안내는 곧 풀리는 상태라 실패 색을 쓰지 않는다
+function ErrorCard({ message, bare, restarting, children }: CardProps & { children?: React.ReactNode }) {
+  const body = (
+    <>
+      <p className={restarting ? 'text-sm text-muted-foreground' : 'text-sm text-status-error'}>{message}</p>
       {children}
-    </div>
+    </>
   )
+  return bare ? <div className="text-center">{body}</div> : <Surface size="flush" className="p-10 text-center">{body}</Surface>
 }
 
 function RetryButton({ pending, onClick }: { pending: boolean; onClick: () => void }) {
@@ -47,18 +53,18 @@ function RetryButton({ pending, onClick }: { pending: boolean; onClick: () => vo
   )
 }
 
-function ServerSectionError({ message, bare }: { message: string; bare: boolean }) {
+function ServerSectionError(props: CardProps) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
   return (
-    <ErrorCard message={message} bare={bare}>
+    <ErrorCard {...props}>
       <RetryButton pending={pending} onClick={() => { if (!pending) startTransition(() => router.refresh()) }} />
     </ErrorCard>
   )
 }
 
-function QuerySectionError({ message, bare }: { message: string; bare: boolean }) {
+function QuerySectionError(props: CardProps) {
   const queryClient = useContext(QueryClientContext)
   const [retrying, setRetrying] = useState(false)
 
@@ -71,7 +77,7 @@ function QuerySectionError({ message, bare }: { message: string; bare: boolean }
   }
 
   return (
-    <ErrorCard message={message} bare={bare}>
+    <ErrorCard {...props}>
       {queryClient && <RetryButton pending={retrying} onClick={handleRetry} />}
     </ErrorCard>
   )

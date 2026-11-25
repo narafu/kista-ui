@@ -18,6 +18,7 @@ import { LoadingRow } from '@shared/ui/LoadingRow'
 import { AdminTradeFilterPanel } from './AdminTradeFilterPanel'
 import { AdminTradesFeedback } from './AdminTradesFeedback'
 import { AdminTradesTable, useTradeSort } from './AdminTradesTable'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 
 interface Props {
   from?: string
@@ -153,10 +154,10 @@ export function AdminTradesWorkbench({ from, to, initialPage, initialSize }: Pro
       <AdminTradesFeedback actionError={actionError} />
 
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h2 className="text-base font-semibold">
+        <SectionTitle>
           거래 내역
           <span className="ml-2 text-sm font-normal text-muted-foreground">{filteredTrades.length}건</span>
-        </h2>
+        </SectionTitle>
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 

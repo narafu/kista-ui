@@ -254,3 +254,12 @@ S4 2차 실행 보정 (2026-11-21, 태스크 3·7):
 - `${n}%`는 lint에 넣지 않았다. 16줄 중 CSS 계산값(`width`, 그라데이션 `offset`)이 섞여 있다. 위젯 로컬 `fmt*`는 공용과 겹치는 `fmtPercent`만 옮겼고 나머지 5개는 그 화면 고유 표기라 그대로 뒀다.
 - 돈 계산의 `toFixed(6)`(`floorToCents`, `SeedInputSection`)은 식을 바꾸지 않고 `roundDecimal`로 옮겼다. 요청 바디 단언의 기대값은 고치지 않았다.
 - 성공 토스트는 "~했습니다"에 마침표 없음이다. 실패 토스트의 레이어별 마침표 규칙은 실패 문구를 서버 `detail`로 옮기는 02까지 그대로 둔다.
+
+S4 3차 실행 보정 (2026-11-25, 태스크 6 — 11의 태스크 11과 같은 묶음):
+
+- 착수 전 재측정(`252cc6ae`): `components/ui/card` import 28파일, `CardTitle role="heading"` 25줄(26 아님). 실행 뒤 `git grep -n "components/ui/card" -- '*.ts' '*.tsx'` 0건, `card.tsx` 삭제, `<Surface` 42파일, `<SectionTitle` 37파일.
+- `Surface`의 `size`는 셋이다: `default` `p-4 sm:p-6`(설정·폼), `compact` `p-4`(목록·차트·요약), `flush` 여백 없음(표·차트를 가장자리까지 붙이는 곳. 안쪽 여백은 자식이 정한다). 본문의 "기본 / compact 둘"로는 `CardContent className="p-0"`류를 옮길 수 없어 `flush`를 더했다. Card를 옮길 때는 Card가 주던 `flex flex-col gap-4 overflow-hidden text-sm`을 className으로 남겨 간격 픽셀을 지켰다. 바뀌는 것은 모서리·테두리(`ring-1` → `border`)·그림자다.
+- `SectionTitle`은 `text-base font-medium leading-snug lg:text-lg`의 `h2`다. className에는 배치만 넣는다. 본문의 `AsyncSection` `title` prop은 쓰는 곳이 없어 넣지 않았다.
+- 화면에 보이는 차이(의도, 사용자 확인 대기): 설정·가계부 설정 카드의 모바일 여백이 24px에서 16px로 준다(`default`). `BulkRegisterForm`의 `px-6 py-4` 박스는 `compact`로 옮겼다. 계좌 수정 폼 제목 둘의 글자가 커진다. 관리자 개요·관리자 설정·`AdminTradesWorkbench`의 `h2`가 bold·semibold에서 medium으로 바뀐다. `StrategyMetaSection`의 `CardAction`은 `flex items-start justify-between`으로 옮겼고 원래 배치와 같은지는 visual-diff로 본다.
+- 판정 제외(그대로 둔 제목·셸): `AdminSettingsForm`의 하위 구역 `h2` 4개, 설정·계좌 수정의 "위험 구역"(상태색 제목), `AdminTradeFilterPanel` 셸, 마법사 단계 제목, `features/finance`의 폼 안 `h2`.
+- `.claude/agents/ui-markup-specialist.md`의 Card 예시 코드는 에이전트 프롬프트라 이번에 고치지 않았다.

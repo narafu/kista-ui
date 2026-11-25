@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { UrlRangeFilterBar, type RangePreset } from '@shared/ui/UrlRangeFilterBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { Badge } from '@shared/ui/Badge'
 import { SectionError } from '@shared/ui/SectionError'
 import type { AdminAnomalies } from '@entities/admin'
@@ -18,12 +19,12 @@ export function AnomaliesSection({
 }) {
   const total = anomalies ? anomalies.pausedAccounts.length + anomalies.inactiveAccounts.length : 0
   return (
-    <Surface as="section" className="p-4 lg:p-5">
+    <Surface as="section" size="compact">
       <div className="mb-4 lg:flex lg:items-center lg:gap-3">
-        <h2 className="text-base font-bold shrink-0 mb-2 lg:mb-0">
+        <SectionTitle className="shrink-0 mb-2 lg:mb-0">
           이상 징후
           {total > 0 && <Badge tone="warn" size="sm" className="ml-2">{total}</Badge>}
-        </h2>
+        </SectionTitle>
         <div className="flex items-center gap-2">
           <Suspense fallback={null}>
             <UrlRangeFilterBar current={range} from={from} to={to} paramPrefix="ano" pageParamKeys={[]} />

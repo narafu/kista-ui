@@ -23,7 +23,7 @@ interface Props {
 
 export function FearGreedCard({ title, data, error, loading, days, onDaysChange, daysOptions, deltaHistory }: Props) {
   return (
-    <Surface className="p-5 flex flex-col gap-2">
+    <Surface size="compact" className="flex flex-col gap-2">
       {asyncFallback({ isError: !!error && !data, error, errorMessage: '공포탐욕지수를 불러오지 못했습니다.', fallbackClassName: 'h-[250px]' }) ?? (
         <FearGreedCardInner title={title} data={data} loading={loading} days={days} onDaysChange={onDaysChange} daysOptions={daysOptions} deltaHistory={deltaHistory} />
       )}

@@ -7,6 +7,7 @@ import { AdminSettingsForm } from '@features/admin/settings'
 import { SystemCategoryManager } from '@features/finance/manage-categories'
 import { PageHeader } from '@widgets/page-header'
 import { createQueryClient } from '@shared/lib/query'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 
 export const metadata: Metadata = {
   title: '운영 설정',
@@ -24,7 +25,7 @@ export default async function AdminSettingsPage() {
       <HydrationBoundary state={dehydrate(queryClient)}><AdminSettingsForm /></HydrationBoundary>
 
       <div className="mt-10 mb-6">
-        <h2 className="text-base font-bold">가계부 공통 카테고리</h2>
+        <SectionTitle>가계부 공통 카테고리</SectionTitle>
         <p className="mt-1 text-sm text-muted-foreground">모든 그룹에 공통으로 노출되는 카테고리를 관리합니다.</p>
       </div>
       <SystemCategoryManager />
