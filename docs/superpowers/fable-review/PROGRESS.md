@@ -421,6 +421,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - `npm run a11y-check -- --url http://localhost:3000`(dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`).
   - e2e(worktree 절차): `--project=setup --no-deps` 다음 `--project=chromium --no-deps`.
 - S4 3차 후속(카드·제목 통일, 2026-11-25): 로컬 api 무응답으로 못 돌렸다. 응답하면 `npm run visual-diff -- 65c9102e`를 새 커밋에서(백그라운드, `diff !== 0`으로 센다. 의도분은 아래 후속 기록의 "화면에 보이는 차이"만) + 위 S4 3차 항목과 같은 실행으로 a11y-check·e2e를 돌린다. 해시는 후속 커밋(`git log --oneline -1`)으로 채운다.
+- `6b861b66`(S7 후속 A): 읽기 전용 e2e를 s7 api(:8081, `role=web`)에 돌렸으나 setup이 `trading 경로 확인 실패(503)`로 막혀 나머지도 실패했다(환경 문제, 화면 회귀 아님). `KISTA_ROLE=all`로 s7(`b52c5b807`)을 띄운 뒤 `E2E_API_BASE=http://localhost:<포트> E2E_TRADING_API_BASE=<같은 포트> npx playwright test --project=setup --project=chromium --no-deps`(worktree 절차)로 다시 돌린다. 볼 것: 로그인 승인 안내, 계좌 등록 브로커 단계, 계좌 상세·수정(단건 조회), 대시보드 차트(서버 sma·rsi), 만료일 입력.
 
 ### S4 3차 후속 — 카드·제목 통일 (2026-11-25, 기준 `65c9102e`)
 
@@ -429,6 +430,19 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 그대로 둔 것(shared.md에 한 줄 기록): 상태색 "위험 구역", 계좌 등록 `steps/*` h2 4개(전부 마법사 단계 제목), sr-only, id·ref 제목(`HousingBenchmarkInfo`, `DcaRuleEditor`). `ReconfigureVrSections`의 `rounded-sm` 외곽선 section 2개와 `AdminSettingsForm`의 `rounded-lg` 셸은 20px 셸이 아니라 범위 밖이다. `HousingBenchmarkSummary`의 `text-sm font-medium` h2는 표 카드 안 소제목이라 두었다(통일하려면 별도 결정).
 - 화면에 보이는 차이(의도): 카드 모서리 20→16px, 여백 `py-7 px-6`(28·24px) → `p-4 sm:p-6`(모바일 16px, sm 이상 24px — 세로는 28→24), 제목 14px bold → 16px(lg 18px) medium, 가계부 설정 탭은 `Surface`로 그림자·테두리 체계가 `SectionTitle` 구역과 같아진다. `DashboardEmpty` 모바일 알림 카드는 여백 14→16px에 그림자가 붙는다. `AllStrategiesList` 계좌 별명은 14px semibold → 16px medium(`truncate` 없음, 긴 별명은 줄바꿈 가능).
 - visual-diff·a11y·e2e는 못 돌렸다(위 "e2e 대기").
+
+## S7 후속 A 실행 기록 — T5·T11·T12·만료일 (2026-11-25, 커밋 `6b861b66`)
+
+- 기준 api는 `s7-ui-contract`(`b52c5b807`, 미배포·미merge)다. 스펙은 사용자 요청으로 api 세션이 :8081에 `role=web`으로 띄운 서버에서 받았다. web role은 `admin/scheduler` 경로 6개를 빼서 기존 `openapi.json`에서 그 6개만 보존해 합쳤다(ui가 쓰지 않는 경로). 다음에 `role=all`로 받으면 이 합침은 필요 없다.
+- T5: `/api/meta` 소비로 전환(승인 필요 여부·브로커·전략 `enabled`/`fields`·벤치마크 ETF·VR 램프 기본값). 백테스트의 램프 사본은 걷었다. 메타 fetch는 `no-store`다. Next 16.2.6 `patch-fetch.js`가 응답의 `Cache-Control`을 보지 않고 fetch 옵션만 봐서, `revalidate: 3600`을 두면 관리자 설정이 최대 1시간 늦는다. 로그인 페이지는 서버에서 `approvalRequired`를 받는다.
+- 남긴 것(T10 세션 몫): `entities/runtime-config`·`/api/runtime-config` 라우트, `RAMP_DEFAULTS_BY_MODE`(`vrDerived`·`strategyFormSchema`가 쓴다), `useTypeDefaults`·`strategyFormGuards`, 관리자 설정 편집 타입(`RuntimeConfig`). 저장 뒤 `router.refresh()`로 메타를 갱신한다.
+- 라벨: s7이 메타에 enum 목록 17개를 더했다. 교체한 것은 `USER_ROLE_LABEL`뿐이다. `userStatuses`는 copy.md의 의도적 분리라 그대로 뒀고, `recurringModes`·`notificationChannels`·`benchmarkAssetTypes`·`etfBenchmarkSymbols`·`nextOrdersSkipReasons`는 문구·용도가 달라 뒀다. `strategyActions` 등 5개는 T6·T10 몫이다.
+- T11: `accountDetailQueryOptions`가 `GET /api/accounts/{id}`(`getAccount`, 404는 null)를 쓴다. queryKey와 `setQueryData`·`removeQueries` 호출부는 그대로다. `detailFromList`는 지웠다.
+- T12: `indicators.ts` 삭제, 캔들 `sma20·50·120·200`·`rsi14`를 쓴다. **차트 표시 전용**이다(`MarketChartCardInner`만 사용, DCA 판정에는 안 쓰인다). 서버 값은 원 종가 기준·RSI는 최근 250개 창이라 클라이언트 계산·수정주가 기반 DCA 판정과 분할·배당 뒤에 다를 수 있다. 재신청 쿨다운은 localStorage 대신 `reapplyAvailableAt`(`useMeQuery`)이다.
+- 만료일: 입력 `min`과 등록 다음 버튼을 KST 내일로 맞췄다(`kstTomorrow`).
+- 검증: typecheck·lint·knip 통과, vitest 260파일 1847건 통과. e2e는 위 "e2e 대기".
+- 리뷰(`/code-review medium`) 6건, 코드는 고치지 않았다. 관리자 설정 변경이 열린 화면에 반영되지 않는 것(이전 runtime-config는 포커스 때 다시 받았다. 지금은 새로고침·이동 때 반영, 서버가 400으로 막는다), `getMetaBundle`에 시간 제한이 없어 로그인 페이지가 api 지연에 묶이는 것, 요청마다 `no-store` 호출 비용, ETF 허용 목록이 비었을 때의 폴백 부재, `/me` 로딩 중 재신청 버튼 활성, 램프 기본값이 없을 때 안내 부재. 사용자 판단이 필요하면 후속으로 다룬다.
+- 다음: 세션 B(T6 서버 판정 전환, T10 검증 엔드포인트). 그 뒤에 `entities/runtime-config`와 `RAMP_DEFAULTS_BY_MODE`를 지운다.
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
