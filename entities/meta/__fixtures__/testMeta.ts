@@ -125,7 +125,7 @@ export const testMeta = {
   ],
   apiKeyExpirySources: [
     { code: 'NONE', label: '만료 없음' },
-    { code: 'ESTIMATED', label: '추정 만료일' },
+    { code: 'ESTIMATED', label: '발급 후 1년' },
   ],
   notificationChannels: [
     { code: 'NONE', label: '알림 없음' },
