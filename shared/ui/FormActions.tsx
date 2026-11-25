@@ -3,6 +3,7 @@ import { cn } from '@shared/lib/utils'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { Spinner } from './Spinner'
+import { FormServerError, type WithServerError } from './form/FormServerError'
 
 interface Props {
   // 취소를 onClick 콜백(다이얼로그 닫기 등)으로 처리하면 onCancel, 다른 페이지로 이동(Link)해야
@@ -11,8 +12,8 @@ interface Props {
   cancelHref?: string
   // 하위 화면에서 상위로 돌아가는 버튼이면 '이전' — 동작은 취소와 같다
   cancelLabel?: string
-  // useAppForm 폼은 form만 넘긴다(진행 상태를 거기서 읽는다). 전략 폼(04-6 전)은 isPending을 직접 넘긴다
-  form?: { isPending: boolean }
+  // useAppForm 폼은 form만 넘긴다(진행 상태와 이름이 맞지 않는 서버 필드 오류를 거기서 읽는다). 전략 폼(04-6 전)은 isPending을 직접 넘긴다
+  form?: { isPending: boolean } & WithServerError
   isPending?: boolean
   // 잠금: 지금 무엇을 입력해도 제출할 수 없는 서버 상태(월 마감 등)일 때만 준다. 빈 값·형식 오류로는
   // 잠그지 않는다 — 제출하면 zod가 필드에 오류를 붙인다
@@ -30,6 +31,8 @@ export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form
   const isPending = form?.isPending ?? pendingProp ?? false
   const cancelClassName = cn(buttonVariants({ variant: 'outline', size: 'form' }), 'flex-1')
   return (
+    <>
+    <FormServerError form={form} />
     <div className={cn('flex gap-3', className)}>
       {cancelHref ? (
         <Link href={cancelHref} className={cancelClassName}>{cancelLabel}</Link>
@@ -47,5 +50,6 @@ export function FormActions({ onCancel, cancelHref, cancelLabel = '취소', form
         ) : label}
       </Button>
     </div>
+    </>
   )
 }

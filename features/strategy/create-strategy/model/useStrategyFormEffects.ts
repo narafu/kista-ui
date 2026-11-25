@@ -9,6 +9,7 @@ import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
+import { apiFieldMsg } from '@shared/lib/api-client'
 import type { useSeedModel } from './useSeedModel'
 
 export function useStrategyMutations({
@@ -48,7 +49,10 @@ export function useStrategyMutations({
     }
   }
 
-  return { submit, loading: createMutation.isPending || updateMutation.isPending }
+  // 검증 POST가 실패·대기인 채 제출해 서버가 필드 거절(400 fieldErrors)하면 토스트는 요약만 띄우므로 필드 문장을 폼 하단에 보인다.
+  // 표시 전용 — 제출 차단에는 넣지 않는다(고친 뒤에도 막히지 않게). 다음 제출(mutate)이 지우고, useStrategyForm은 지금 입력의 검증 결과가 오면 숨긴다
+  const submitError = apiFieldMsg((initial ? updateMutation : createMutation).error)
+  return { submit, loading: createMutation.isPending || updateMutation.isPending, submitError }
 }
 
 // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지

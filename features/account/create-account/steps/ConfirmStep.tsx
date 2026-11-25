@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 
 import { BROKER_CREDENTIAL, brokerErrorMessage, isEstimatedExpiry, useCreateAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
-import { apiMsg } from '@shared/lib/api-client'
+import { apiInlineMsg } from '@shared/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@shared/ui/Spinner'
 import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
@@ -46,7 +46,7 @@ export function ConfirmStep({ data, onBack }: Props) {
 
   // 자격증명 오류만 증권사별 입력 항목을 짚어주고, 나머지(중복 계좌·호출 한도 등)는 서버 detail을 그대로 노출한다
   const errorMessage = isMock
-    ? apiMsg(error, '계좌 연결에 실패했습니다')
+    ? apiInlineMsg(error, '계좌 연결에 실패했습니다')
     : brokerErrorMessage(error, BROKER_CREDENTIAL[broker as CredentialBroker].invalidMessage, '계좌 연결에 실패했습니다')
 
   return (

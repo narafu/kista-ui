@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { useUpdateNicknameMutation } from '@entities/user'
 import { Input } from '@/components/ui/input'
 import { IconButton } from '@shared/ui/IconButton'
+import { FormServerError } from '@shared/ui/form/FormServerError'
 import { useAppForm } from '@shared/ui/form/useAppForm'
 
 // 길이·문자 제한은 trim한 값 기준이다
@@ -82,6 +83,7 @@ export function NicknameEditor({ initialNickname }: Props) {
         </IconButton>
       </div>
       {error && <p role="alert" className="text-sm text-status-error">{error}</p>}
+      <FormServerError form={form} />
     </form>
   )
 }

@@ -1,4 +1,4 @@
-import { ApiError, apiMsg, fetchEither, jsonBody } from '@shared/lib/api-client'
+import { ApiError, apiFieldErrors, apiMsg, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
@@ -206,14 +206,16 @@ function validationPath(target: StrategyValidationTarget): string {
 
 const optMoney = (v: unknown) => (v != null ? toNum(v) : null)
 
-// 저장 없는 검증 — 통과·거절 모두 200. 등록·VR 재설정 검증은 @Valid라 Bean Validation 위반만 400 ProblemDetail(detail만, 필드 없음)로 와서 필드 없는 거절로 받는다
+// 저장 없는 검증 — 통과·거절 모두 200. 등록·VR 재설정 검증은 @Valid라 Bean Validation 위반만 400 ProblemDetail로 온다.
+// 그 fieldErrors(api T7, 200과 같은 {field, detail}·같은 field 이름)를 그대로 쓰고, 없으면(DCA 규칙 누락 등) detail을 필드 없는 거절로 받는다
 export async function validateStrategy(target: StrategyValidationTarget, body: unknown): Promise<StrategyValidation> {
   let raw: { fieldErrors?: StrategyValidation['fieldErrors']; warnings?: StrategyValidation['warnings']; derived?: Record<string, unknown> | null }
   try {
     raw = await fetchEither(validationPath(target), jsonBody('POST', body))
   } catch (err) {
     if (!(err instanceof ApiError) || err.status !== 400) throw err
-    return { fieldErrors: [{ field: null, detail: apiMsg(err, '입력값을 확인해 주세요.') }], warnings: [], derived: null }
+    const fieldErrors = apiFieldErrors(err)
+    return { fieldErrors: fieldErrors.length > 0 ? fieldErrors : [{ field: null, detail: apiMsg(err, '입력값을 확인해 주세요.') }], warnings: [], derived: null }
   }
   const d = raw.derived
   return {

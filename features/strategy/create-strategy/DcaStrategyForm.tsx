@@ -7,6 +7,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useSubviewHistory } from '@shared/lib/subviewHistory'
 import { FormActions } from '@shared/ui/FormActions'
+import { apiFieldMsg } from '@shared/lib/api-client'
 import { invalidateLedgerTotals } from '@entities/account'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
@@ -101,6 +102,8 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const availableCash = cash == null ? null : Math.max(0, cash)
   // 서버 거절은 지금 입력의 결과만 — 검증 중·실패면 막지 않고 제출에서 서버가 다시 거른다
   // 규칙이 없으면 서버 거절을 보이지 않는다 — 서버가 빈 규칙을 거절해 손대기 전부터 오류가 뜬다(빈 목록은 로컬 검증이 제출 때 안내). 가용 예수금은 그대로 쓴다
+  // 제출 400의 필드 문장 — 표시 전용(제출 차단에 넣지 않는다), 지금 입력의 검증 결과가 오면 숨기고 지금 입력의 검증 결과가 오면 숨기고 다음 제출이 지운다
+  const submitError = validation.current ? null : apiFieldMsg((initial ? reconfigure : create).error)
   const serverError = formValues.rules.length > 0 ? validation.current?.fieldErrors[0] : undefined
   const serverErrorRef = useRef<HTMLParagraphElement>(null)
   const needsHoldingsHint = form.watch('rules').some((r) => r.direction === 'SELL' || r.conditions.some((c) => c.indicator === 'AVG_PRICE'))
@@ -212,6 +215,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
         </div>
         <div aria-live="polite">{serverError && <p ref={serverErrorRef} tabIndex={-1} className="text-sm font-semibold text-warn pt-3">{serverError.detail}</p>}</div>
         <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} unavailable={validation.isError} />
+        {submitError && <p role="alert" className="text-sm font-semibold text-status-error">{submitError}</p>}
         <FormActions onCancel={onCancel} isPending={pending} label={initial ? '수정' : '등록'} className="py-6" />
       </form>
     </>

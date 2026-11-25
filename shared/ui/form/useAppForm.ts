@@ -1,22 +1,15 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
 import { useForm, type DefaultValues, type FieldValues, type Path, type UseFormProps, type UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 import type { z } from 'zod'
-import { ApiError } from '@shared/lib/api-client'
+import { apiFieldErrors } from '@shared/lib/api-client'
 
-// ponytail: api T7(fieldErrors) 전이라 꺼 둔다. 그동안 실패는 mutation hook의 onError 토스트가 서버 detail로 알린다.
-// 켤 때는 필드에 붙인 오류를 hook 토스트가 또 띄우지 않게 hook의 onError도 함께 고친다(이중 알림).
-export const MAP_SERVER_FIELD_ERRORS = false
-
-/** 서버 ProblemDetail의 `fieldErrors[{field, detail}]`를 필드 오류 목록으로 바꾼다. 형태가 다르면 빈 배열 */
-export function serverFieldErrors(err: unknown): { field: string; message: string }[] {
-  if (!(err instanceof ApiError)) return []
-  const list = (err.body as { fieldErrors?: unknown } | null)?.fieldErrors
-  if (!Array.isArray(list)) return []
-  return list.flatMap((e: { field?: unknown; detail?: unknown }) =>
-    typeof e?.field === 'string' && typeof e.detail === 'string' ? [{ field: e.field, message: e.detail }] : [])
+/** 서버 ProblemDetail의 `fieldErrors[{field, detail}]`(api T7)를 RHF 이름으로 바꾼다 — 배열 경로 `rules[0].amount` → `rules.0.amount`. field null은 그대로 */
+export function serverFieldErrors(err: unknown): { field: string | null; message: string }[] {
+  return apiFieldErrors(err).map((e) => ({ field: e.field?.replace(/\[(\d+)\]/g, '.$1') ?? null, message: e.detail }))
 }
 
 // 기존 entities mutation hook(useMutation 결과)을 그대로 받는다 — 02의 $api.useMutation도 같은 모양이다
@@ -49,15 +42,34 @@ export function useAppForm<TInput extends FieldValues, TOutput = TInput, TPayloa
   schema, mutation, toPayload, successMessage, onDone, ...formProps
 }: Options<TInput, TOutput, TPayload>): AppForm<TInput, TOutput> {
   const form = useForm<TInput, unknown, TOutput>({ ...formProps, resolver: zodResolver(schema as never) })
+  // 서버 거절 칸 포커스는 진행이 끝난 뒤에 준다 — onError 시점엔 disabled={isPending} 입력이 아직 잠겨 focus()가 먹지 않는다
+  // 상태로 둔다 — 응답이 빨라 진행 중 렌더가 건너뛰어져도 이 값의 변경이 렌더·effect를 부른다
+  const [focusField, setFocusField] = useState<Path<TInput> | null>(null)
+  useEffect(() => {
+    if (mutation.isPending || !focusField) return
+    form.setFocus(focusField)
+    setFocusField(null)
+  }, [mutation.isPending, focusField, form])
   const submit = form.handleSubmit((values) => {
     mutation.mutate(toPayload ? toPayload(values) : (values as unknown as TPayload), {
       onSuccess: () => {
         if (successMessage) toast.success(successMessage)
         onDone?.()
       },
+      // 실패 토스트(detail 요약)는 hook onError가 띄운다. 여기는 필드 문장을 붙인다 — 이름이 등록된 필드면 그 칸에(첫 칸 포커스),
+      // 아니면(field null, 요청 바디에만 있는 이름) root.server로 모아 FormActions가 버튼 위 한 줄로 그린다. 폼마다 이름 대응표를 두지 않는다
       onError: (err) => {
-        if (!MAP_SERVER_FIELD_ERRORS) return
-        for (const { field, message } of serverFieldErrors(err)) form.setError(field as Path<TInput>, { type: 'server', message })
+        const unmatched: string[] = []
+        let first: Path<TInput> | null = null
+        for (const { field, message } of serverFieldErrors(err)) {
+          // ponytail: RHF 내부 `_names.mount`(지금 마운트된 필드 이름)로 판정한다 — 공개 API에 없음. RHF 올릴 때 이 테스트가 깨지면 확인
+          if (field && form.control._names.mount.has(field)) {
+            form.setError(field as Path<TInput>, { type: 'server', message })
+            first ??= field as Path<TInput>
+          } else unmatched.push(message)
+        }
+        if (first) setFocusField(first)
+        if (unmatched.length > 0) form.setError('root.server', { type: 'server', message: unmatched.join(' ') })
       },
     })
   })

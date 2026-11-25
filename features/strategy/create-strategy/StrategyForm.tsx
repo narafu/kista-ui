@@ -181,6 +181,8 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         </div>
       )}
 
+      {form.submitError && <p role="alert" className="text-sm font-semibold text-status-error py-3">{form.submitError}</p>}
+
       <StrategyValidationWarnings warnings={form.warnings} unavailable={form.validationUnavailable} />
 
       <FormActions

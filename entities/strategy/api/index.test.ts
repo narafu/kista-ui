@@ -310,3 +310,22 @@ describe('strategy api archive', () => {
     expect(fetchEitherMock).toHaveBeenCalledWith('/api/trading-cycles/s1/archive', { method: 'PATCH' }, undefined)
   })
 })
+
+describe('validateStrategy 400', () => {
+  it('fieldErrors가 있으면 그대로, 없으면 detail을 필드 없는 거절로 받는다', async () => {
+    const { validateStrategy } = await import('./index')
+    const { ApiError } = await import('@shared/lib/api-client')
+    const target = { kind: 'create', accountId: 'a1' } as const
+
+    fetchEitherMock.mockRejectedValueOnce(new ApiError(400, {
+      detail: '입력값을 확인해 주세요.',
+      fieldErrors: [{ field: 'dca.rules[0].amount', detail: '금액은 0보다 커야 합니다.' }],
+    }))
+    expect(await validateStrategy(target, {})).toEqual({
+      fieldErrors: [{ field: 'dca.rules[0].amount', detail: '금액은 0보다 커야 합니다.' }], warnings: [], derived: null,
+    })
+
+    fetchEitherMock.mockRejectedValueOnce(new ApiError(400, { detail: 'DCA 규칙은 필수입니다.' }))
+    expect((await validateStrategy(target, {})).fieldErrors).toEqual([{ field: null, detail: 'DCA 규칙은 필수입니다.' }])
+  })
+})

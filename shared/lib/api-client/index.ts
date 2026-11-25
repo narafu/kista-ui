@@ -44,6 +44,30 @@ export function apiMsg(err: unknown, fallback: string): string {
   return fallback
 }
 
+// kista-api ProblemDetail 확장 속성 fieldErrors(api T7). OpenAPI에 오류 응답 스키마가 없어 수기로 둔다.
+// 필드 거절 400(Bean Validation·FieldRejectedException)은 detail이 요약 문장("입력값을 확인해 주세요.")이고 필드 문장은 여기에만 있다.
+// field는 Spring 경로 표기(`dca.rules[0].amount`), 클래스 수준 제약은 null
+export interface ApiFieldError { field: string | null; detail: string }
+
+export function apiFieldErrors(err: unknown): ApiFieldError[] {
+  if (!(err instanceof ApiError)) return []
+  const list = (err.body as { fieldErrors?: unknown } | null)?.fieldErrors
+  if (!Array.isArray(list)) return []
+  return list.flatMap((e: { field?: unknown; detail?: unknown }) =>
+    typeof e?.detail === 'string' ? [{ field: typeof e.field === 'string' ? e.field : null, detail: e.detail }] : [])
+}
+
+// 필드 문장을 한 줄로 — fieldErrors가 없으면 null. useAppForm 밖 폼이 제출 실패를 폼 안에 보일 때 쓴다
+export function apiFieldMsg(err: unknown): string | null {
+  const fieldErrors = apiFieldErrors(err)
+  return fieldErrors.length > 0 ? fieldErrors.map((e) => e.detail).join(' ') : null
+}
+
+// 폼 안 인라인 오류 문구 — 필드 문장이 있으면 그것을, 없으면 detail. 토스트에는 쓰지 않는다(토스트는 detail 요약 그대로)
+export function apiInlineMsg(err: unknown, fallback: string): string {
+  return apiFieldMsg(err) ?? apiMsg(err, fallback)
+}
+
 // kista-api ProblemDetail의 기계 판독 에러 코드(카탈로그 대상 예외에만 존재). 화면별 문구 분기는 status 대신 이 값을 쓴다
 export function apiErrorCode(err: unknown): ErrorCode | undefined {
   if (!(err instanceof ApiError)) return undefined

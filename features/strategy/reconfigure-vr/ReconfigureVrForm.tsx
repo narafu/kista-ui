@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle } from 'lucide-react'
 import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { FormActions } from '@shared/ui/FormActions'
+import { apiFieldMsg } from '@shared/lib/api-client'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
@@ -112,6 +113,8 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
     toReconfigureVrRequest(form.watch()),
     { enabled: true },
   )
+  // 제출 400의 필드 문장 — 표시 전용(제출 차단에 넣지 않는다), 지금 입력의 검증 결과가 오면 숨기고 지금 입력의 검증 결과가 오면 숨기고 다음 제출이 지운다
+  const submitError = validation.current ? null : apiFieldMsg(mutation.error)
   const serverError = validation.current?.fieldErrors[0]
   const serverErrorRef = useRef<HTMLParagraphElement>(null)
 
@@ -149,6 +152,7 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
       <div aria-live="polite">{serverError && <p ref={serverErrorRef} tabIndex={-1} className="text-sm font-semibold text-warn">{serverError.detail}</p>}</div>
       <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} unavailable={validation.isError} />
 
+      {submitError && <p role="alert" className="text-sm font-semibold text-status-error">{submitError}</p>}
       <FormActions
         onCancel={handleDone}
         isPending={disabled}

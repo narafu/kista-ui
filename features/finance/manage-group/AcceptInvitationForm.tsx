@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { FormServerError } from '@shared/ui/form/FormServerError'
 import { Input } from '@/components/ui/input'
 import { FormField } from '@shared/ui/form/FormField'
 import { useAppForm } from '@shared/ui/form/useAppForm'
@@ -31,6 +32,7 @@ export function AcceptInvitationForm() {
           </div>
         )}
       </FormField>
+      <FormServerError form={form} />
     </form>
   )
 }

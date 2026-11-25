@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { AlertTriangle, ChevronDown, RotateCcw, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { FormServerError } from '@shared/ui/form/FormServerError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { cn } from '@shared/lib/utils'
 import { SectionError } from '@shared/ui/SectionError'
@@ -315,6 +316,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
       </div>
 
+      <FormServerError form={form} />
       <div className="sticky bottom-3 flex justify-end gap-2 rounded-lg border border-border bg-background/95 p-3 shadow-sm backdrop-blur">
         {(!dca || !isDirty) && (
           <p className="mr-auto self-center text-xs text-muted-foreground">

@@ -119,6 +119,8 @@ export interface UseStrategyFormReturn {
   initializing: boolean
   cannotSubmit: boolean
   submitDisabledReason: string | null
+  // 제출 400의 필드 문장(표시 전용)
+  submitError: string | null
   submitDisabledField: SubmitReasonField | null
   // PRIVACY 최소 시드 확인용 검증이 실패했을 때 다시 부른다
   seedCheck: SeedCheck
@@ -146,7 +148,7 @@ export function useStrategyForm({
   const settingsOf = (code: string) => meta.strategyTypes.find((t) => t.code === code)
   const defaultType = enabledStrategyTypes[0] ?? ''
 
-  const { submit, loading } = useStrategyMutations({ queryClient, accountId, initial, onSuccess })
+  const { submit, loading, submitError } = useStrategyMutations({ queryClient, accountId, initial, onSuccess })
 
   // react-hook-form — type/ticker/autoStart/seedMode/divisionCount + VR 필드 관리
   const form = useForm<StrategyFormValues>({
@@ -309,6 +311,8 @@ export function useStrategyForm({
     initializing,
     cannotSubmit,
     submitDisabledReason,
+    // 지금 입력의 검증 결과가 오면 그것이 기준이다(같은 거절이 두 번 보이거나, 고친 뒤에도 남지 않게)
+    submitError: validation.current ? null : submitError,
     submitDisabledField,
     seedCheck,
     retryValidation: () => { void validation.refetch() },

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { apiMsg } from '@shared/lib/api-client'
+import { apiInlineMsg } from '@shared/lib/api-client'
 import { useMeta } from '@entities/meta'
 import { useBacktestMutation } from '@entities/backtest'
 import type { BacktestParams, BacktestType } from '@entities/backtest'
@@ -194,7 +194,7 @@ export function useBacktestForm() {
     resultParams: mutation.variables,
     isResultStale,
     isLoading: mutation.isPending,
-    errorMessage: mutation.error ? apiMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요.') : null,
+    errorMessage: mutation.error ? apiInlineMsg(mutation.error, '백테스트 실행에 실패했습니다. 잠시 후 다시 시도해주세요.') : null,
   }
 }
 

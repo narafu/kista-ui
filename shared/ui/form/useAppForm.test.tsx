@@ -30,7 +30,7 @@ function CategoryForm({ onDone }: { onDone: () => void }) {
   return (
     <form onSubmit={form.submit}>
       <FormField control={form.control} name="name" label="이름" required hint="50자까지">
-        {(field) => <Input {...field} />}
+        {(field) => <Input {...field} disabled={form.isPending} />}
       </FormField>
       <FormActions form={form} label="추가" />
     </form>
@@ -78,18 +78,35 @@ describe('useAppForm', () => {
     expect(requests).toHaveLength(0)
   })
 
-  it('서버 실패면 onDone·성공 토스트 없이 폼을 남긴다(fieldErrors 매핑은 api T7 전까지 꺼짐)', async () => {
-    mockApi({ 'POST /api/finance/categories': apiError(400, { detail: '중복', fieldErrors: [{ field: 'name', detail: '이미 있는 이름입니다.' }] }) })
+  it('서버 fieldErrors는 이름이 같은 필드에 붙이고 포커스한다. 성공 처리는 하지 않는다', async () => {
+    mockApi({ 'POST /api/finance/categories': apiError(400, { detail: '입력값을 확인해 주세요.', fieldErrors: [{ field: 'name', detail: '이미 있는 이름입니다.' }] }) })
     const onDone = vi.fn()
     renderApp(<CategoryForm onDone={onDone} />)
 
-    await userEvent.type(screen.getByLabelText('이름'), '식비')
+    const input = screen.getByLabelText('이름')
+    await userEvent.type(input, '식비')
     await userEvent.click(screen.getByRole('button', { name: '추가' }))
 
-    expect(await screen.findByRole('button', { name: '추가' })).toBeEnabled()
+    expect(await screen.findByRole('alert')).toHaveTextContent('이미 있는 이름입니다.')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    await waitFor(() => expect(input).toHaveFocus())
     expect(onDone).not.toHaveBeenCalled()
     expect(toast.success).not.toHaveBeenCalled()
-    expect(screen.queryByText('이미 있는 이름입니다.')).not.toBeInTheDocument()
+  })
+
+  it('폼에 없는 이름·field null은 버튼 위 한 줄로 모으고, 다음 제출 때 지운다', async () => {
+    const fail = apiError(400, { detail: '입력값을 확인해 주세요.', fieldErrors: [{ field: 'sortOrder', detail: '순서가 너무 큽니다.' }, { field: null, detail: '조합이 맞지 않습니다.' }] })
+    let calls = 0
+    mockApi({ 'POST /api/finance/categories': () => (++calls === 1 ? fail : ({ id: 'c1' } as never)) })
+    renderApp(<CategoryForm onDone={() => {}} />)
+
+    await userEvent.type(screen.getByLabelText('이름'), '식비')
+    await userEvent.click(screen.getByRole('button', { name: '추가' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('순서가 너무 큽니다. 조합이 맞지 않습니다.')
+    expect(screen.getByLabelText('이름')).not.toHaveAttribute('aria-invalid', 'true')
+
+    await userEvent.click(screen.getByRole('button', { name: '추가' }))
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
   })
 })
 
@@ -122,9 +139,16 @@ describe('useAppForm 옵션 통과', () => {
 })
 
 describe('serverFieldErrors', () => {
-  it('ProblemDetail의 fieldErrors를 필드 오류로 바꾼다', () => {
-    const err = new ApiError(400, { fieldErrors: [{ field: 'name', detail: '이미 있는 이름입니다.' }, { field: 1, detail: 'x' }] })
-    expect(serverFieldErrors(err)).toEqual([{ field: 'name', message: '이미 있는 이름입니다.' }])
+  it('fieldErrors의 배열 경로를 RHF 이름으로 바꾸고 field null은 남긴다', () => {
+    const err = new ApiError(400, { fieldErrors: [
+      { field: 'dca.rules[0].amount', detail: '금액은 0보다 커야 합니다.' },
+      { field: null, detail: '조합이 맞지 않습니다.' },
+      { field: 'x', detail: 1 },
+    ] })
+    expect(serverFieldErrors(err)).toEqual([
+      { field: 'dca.rules.0.amount', message: '금액은 0보다 커야 합니다.' },
+      { field: null, message: '조합이 맞지 않습니다.' },
+    ])
   })
 
   it('ApiError가 아니거나 fieldErrors가 없으면 빈 배열', () => {

@@ -8,6 +8,7 @@ import { useAppForm, type AppForm } from '@shared/ui/form/useAppForm'
 import { Input } from '@/components/ui/input'
 import { useMeta } from '@entities/meta'
 import { Surface } from '@shared/ui/Surface'
+import { apiFieldErrors } from '@shared/lib/api-client'
 import { isEstimatedExpiry, kstTomorrow, useUpdateCredentialsMutation, BROKER_CREDENTIAL, brokerErrorMessage } from '@entities/account'
 import type { Account, CredentialBroker } from '@entities/account'
 
@@ -52,7 +53,8 @@ export function CredentialsCard({ account }: Props) {
             {(f) => <Input {...f} type="date" min={kstTomorrow()} className="h-12" disabled={form.isPending} />}
           </FormField>
         )}
-        {mutation.isError && (
+        {/* 필드 거절(fieldErrors)은 useAppForm이 입력칸·버튼 위에 붙이므로 여기서 다시 보이지 않는다 */}
+        {mutation.isError && apiFieldErrors(mutation.error).length === 0 && (
           <p className="text-sm text-status-error">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>
         )}
         <FormActions form={form} label="API 키 재등록" pendingLabel="연결 확인 중…" />
