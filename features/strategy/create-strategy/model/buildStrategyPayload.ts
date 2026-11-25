@@ -1,8 +1,8 @@
-import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
+import type { CycleSeedType, Strategy, StrategyRequest, VrRecurringMode } from '@entities/strategy'
 import type { StrategyFieldSettings, StrategyTypeMeta } from '@entities/meta'
 import type { DivisionCount } from './strategyFormSchema'
-import type { VrDerived } from './vrDerived'
-import type { VrFields } from './useStrategyForm'
+import type { VrFields, VrRampDefaults } from './useStrategyForm'
+import { signedRecurringAmount } from './strategyFormHelpers'
 
 type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
 
@@ -19,7 +19,9 @@ export interface BuildStrategyPayloadInput {
   divisionCountSettings?: StrategyFieldSettings<number>
   runtimeStrategy?: RuntimeStrategySettings
   vrFields: VrFields
-  vrDerived: VrDerived
+  recurringMode: VrRecurringMode
+  // 램프 4필드 "자동"의 실제값 — 메타 vrRampDefaults[적립 방향]
+  rampDefaults: VrRampDefaults
   scheduledStartDate: string | null
 }
 
@@ -27,13 +29,12 @@ export interface BuildStrategyPayloadInput {
 export function buildStrategyPayload(input: BuildStrategyPayloadInput): StrategyRequest {
   const {
     initial, type, ticker, cycleSeedType, seedUsd, canEditSeed, isVr, usesDivisionCount,
-    divisionCount, divisionCountSettings, runtimeStrategy, vrFields, vrDerived, scheduledStartDate,
+    divisionCount, divisionCountSettings, runtimeStrategy, vrFields, recurringMode, rampDefaults, scheduledStartDate,
   } = input
   const {
     avgPrice, quantity, intervalWeeks, bandWidth, initialValue, initialGradient,
-    gGraceWeeks, gStepWeeks, gMax, initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor,
+    gGraceWeeks, gStepWeeks, gMax, initialPoolLimitRate, pGraceWeeks, pStepWeeks, poolLimitFloor, recurringAmount,
   } = vrFields
-  const { normalizedRecurringAmount, effectiveInitialGradient, effectiveGMax, effectiveInitialPoolLimitRate, effectivePoolLimitFloor } = vrDerived
   const normalizedInitialSeed = seedUsd ?? 0
 
   return initial
@@ -70,14 +71,14 @@ export function buildStrategyPayload(input: BuildStrategyPayloadInput): Strategy
           bandWidth: runtimeStrategy?.fields.bandWidth?.customizable === false
             ? runtimeStrategy.fields.bandWidth.defaultValue
             : bandWidth ?? undefined,
-          recurringAmount: normalizedRecurringAmount,
+          recurringAmount: signedRecurringAmount(recurringMode, recurringAmount),
           // 초기 V 직접 입력 — 있으면 전송, 없으면 생략(서버가 평가금 기준으로 계산)
           ...(initialValue !== null && initialValue > 0 ? { initialVrValue: initialValue } : {}),
           // "자동" 4필드 — 미입력 시 UI가 표시한 placeholder(서버 기본값과 동일한 부호파생값)를 그대로 전송
-          initialGradient: initialGradient ?? effectiveInitialGradient,
-          gMax: gMax ?? effectiveGMax,
-          initialPoolLimitRate: initialPoolLimitRate ?? effectiveInitialPoolLimitRate,
-          poolLimitFloor: poolLimitFloor ?? effectivePoolLimitFloor,
+          initialGradient: initialGradient ?? rampDefaults.initialGradient,
+          gMax: gMax ?? rampDefaults.gMax,
+          initialPoolLimitRate: initialPoolLimitRate ?? rampDefaults.initialPoolLimitRate,
+          poolLimitFloor: poolLimitFloor ?? rampDefaults.poolLimitFloor,
           // 유예·단계주기 — 값이 있을 때만 포함(생략 시 서버 기본값 적용)
           ...(gGraceWeeks !== null ? { gGraceWeeks } : {}),
           ...(gStepWeeks !== null ? { gStepWeeks } : {}),

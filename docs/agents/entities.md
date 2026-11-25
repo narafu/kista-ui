@@ -4,7 +4,7 @@ FSD 계층에서 가장 저수준 도메인 레이어. `shared/`만 import 가�
 router.refresh() 허용 범위와 stale time 표는 `docs/agents/shared.md`를 따른다.
 
 - **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** (화면은 finance-widgets.md, 폼·뮤테이션은 각 `features/finance/<slice>/CLAUDE.md`·`features/asset/save-asset/CLAUDE.md`) — 관련: `entities/finance`, `financeKeys`, `useFinanceQueries`, `isMonthClosed`, `useMonthlyClosingScopeGroupId`, `FinanceTransactionResponse`, `FinanceCategoryResponse`, `FinanceGroupMember`, `useShareFinanceTransactionMutation`
-- **전략·DCA·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `TradingCycleResponse`, `normalizeStrategy`, `StrategyRequest`, `isScheduledStart`, `DCA rules[]`, `useStrategySeedPreviewQuery`
+- **전략·DCA·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `TradingCycleResponse`, `normalizeStrategy`, `StrategyRequest`, `isScheduledStart`, `DCA rules[]`, `useStrategyValidationQuery`
 
 ## 의존성 규칙
 
@@ -55,7 +55,7 @@ import { useDeleteAccountMutation } from '@entities/account'
 
 - **account**: `accountNo`는 8자리만. 계좌 목록은 `accountListQueryOptions(token?)`/`useAccountsQuery()`와 `accountKeys.list()` 캐시를 SSOT로 사용한다. 생성/수정/삭제 mutation은 완전한 list cache가 있으면 직접 반영하고, list cache가 없으면 canonical list query 전체 조회를 await한다. detail은 생성/수정 시 직접 쓰고 삭제 시 detail/prices를 제거한다. account-cache E2E(`e2e/support/account-cache-lock.ts`)는 고정 개발 USER UUID를 key로 OS temp directory에 cross-process lock을 걸어 계좌 캐시 회귀 스펙이 다른 실행과 동시에 계좌를 조회/변경하지 않도록 격리한다
 - **meta**: `MetaProvider`는 `(main)/layout.tsx`·`(admin)/layout.tsx`에서 제공 — 그 밖(`(auth)` 등)에서는 `useMeta()` 호출 불가라 서버 컴포넌트가 `getMetaBundle()`로 받아 prop으로 넘긴다(`app/(auth)/login/page.tsx`). `getMetaBundle`은 `cache: 'no-store'` — 관리자 운영 설정(전략·증권사 `enabled`, 전략 `fields` 허용값·기본값, VR `vrRampDefaults`, `approvalRequired`, `benchmarkEtf`)이 실려 저장 즉시 반영돼야 한다(Next Data Cache는 응답 Cache-Control이 아니라 fetch 옵션만 보고 저장한다). Client는 `useMeta()`의 `findStrategyType(code)`/`findTicker(code)`/`labelOf(category, code)` 사용. `TickerMeta.targetProfitRate`는 `string` 타입. `MetaBundle`은 `strategyTypes`/`tickers`/`brokers`/`strategyStatuses`/`cycleSeedTypes`에 더해 `assetClasses`/`markets`/`financeAccountTypes`/`financeCategoryTypes`(전부 `EnumMeta[]`)를 포함한다 — `labelOf('assetClasses'|'markets', code)`로 소비
-- **runtime-config**: 앱 화면 소비는 meta로 옮겼다(S7). 남은 것은 관리자 운영 설정 편집 타입(`RuntimeConfig`·`RuntimeFieldSettings` — `features/admin/settings`)과 T10에서 삭제될 전략 폼 파일(`useTypeDefaults`·`strategyFormGuards`)의 타입 참조뿐이다. `useRuntimeConfigQuery`·`/api/runtime-config` 라우트는 소비처가 없어 T10 정리 때 함께 지운다. 자산 등록 폼의 운용전략 추천 목록은 `RuntimeConfig`가 아니라 유저별 설정이다 — `entities/user`의 `User.strategySuggestions` 참고
+- **runtime-config**: 앱 화면 소비는 meta로 옮겼다(S7). 남은 것은 관리자 운영 설정 편집 타입(`RuntimeConfig`·`RuntimeFieldSettings` — `features/admin/settings`)뿐이다(전략 폼은 T10에서 meta로 옮겼다). `useRuntimeConfigQuery`·`/api/runtime-config` 라우트는 소비처가 없어 삭제 대상이다(visual-diff fixture의 DCA 패치가 아직 이 경로를 본다). 자산 등록 폼의 운용전략 추천 목록은 `RuntimeConfig`가 아니라 유저별 설정이다 — `entities/user`의 `User.strategySuggestions` 참고
 - **admin-settings**: `GET/PUT /api/admin/settings`는 관리자 프록시를 사용한다. 저장은 optimistic update 없이 처리하고 성공 후 `router.refresh()`로 레이아웃 meta를 다시 받는다(승인 필수 해제 시 관리자 사용자 목록·통계도 무효화)
 - **trade/providers**: `TradeNotificationProvider`는 SSE `/api/trades/stream` 구독용 — 타 도메인 캐시 무효화는 `onTrade` 콜백으로 주입받는다(`widgets/layout/TradeNotificationBridge`)
 - **privacy**: 관리자 전용 — Server Component에서 apiFetch로 `/api/admin/privacy-trade-bases` 직접 호출 (Route Handler 없음)

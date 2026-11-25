@@ -15,6 +15,8 @@ function addDaysToKstDate(days: number): string {
 }
 
 const runtimeRecurringMode = vi.hoisted(() => ({ defaultValue: 'HOLD' }))
+// 메타 VR 램프 기본값표 — 기본은 없음(구버전 api, 고정표로 대체)
+const vrRampMeta = vi.hoisted(() => ({ value: undefined as Record<string, Record<string, number>> | undefined }))
 const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
 let createSuccessHandler: ((saved?: { todayOpenBatchMissed?: boolean }) => void) | undefined
 const toastInfoMock = vi.hoisted(() => vi.fn())
@@ -46,6 +48,17 @@ const seedPreviewState = {
   isLoading: false,
 }
 
+// 서버 검증 훅 대역 — derived는 위 시드 미리보기 값, current는 "지금 입력"의 결과(pending이면 없음)
+const validationState = {
+  fieldErrors: [] as { field: string | null; detail: string }[],
+  warnings: [] as { code: string; detail: string }[],
+  pending: false,
+  isError: false,
+  noData: false, // 다른 범위로 바뀌어 표시할 결과도 없음
+  calls: [] as unknown[][],
+  refetch: vi.fn(),
+}
+
 vi.mock('@entities/meta', async () => ({
   ...(await vi.importActual<typeof import('@entities/meta')>('@entities/meta')),
   useMeta: () => ({
@@ -60,8 +73,11 @@ vi.mock('@entities/meta', async () => ({
       brokers: [],
       approvalRequired: false,
     },
-    findStrategyType: (code: string) => code === 'VR'
+    findStrategyType: (code: string) => code === 'PRIVACY'
+      ? { code: 'PRIVACY', availableTickers: ['SOXL'], requiresPrivacyBase: true, tickerFixed: true, supportsReverseMode: false, divisionCounts: [] }
+      : code === 'VR'
       ? {
+          vrRampDefaults: vrRampMeta.value,
           code: 'VR',
           availableTickers: ['TQQQ'],
           requiresPrivacyBase: false,
@@ -103,16 +119,28 @@ vi.mock('@entities/strategy', async () => ({
     isPending: false,
     }
   },
-  useStrategySeedPreviewQuery: () => seedPreviewState,
+  useStrategyValidationQuery: (...args: unknown[]) => {
+    validationState.calls.push(args)
+    const data = { fieldErrors: validationState.fieldErrors, warnings: validationState.warnings, derived: seedPreviewState.data }
+    return {
+      data: validationState.isError || validationState.noData ? undefined : data,
+      current: validationState.pending || validationState.isError ? undefined : data,
+      isLoading: seedPreviewState.isLoading,
+      isError: validationState.isError,
+      refetch: validationState.refetch,
+    }
+  },
 }))
 
 vi.mock('./useSeedModel', () => ({
   useSeedModel: () => seedModelState,
+  isBelowMinSeed: () => seedModelState.isBelowMinSeed,
 }))
 
 describe('useStrategyForm submit policy', () => {
   beforeEach(() => {
     runtimeRecurringMode.defaultValue = 'HOLD'
+    vrRampMeta.value = undefined
     mockCreateMutate.mockClear()
     mockUpdateMutate.mockClear()
     invalidateQueriesMock.mockClear()
@@ -128,6 +156,13 @@ describe('useStrategyForm submit policy', () => {
     seedPreviewState.data.skipReason = null
     seedPreviewState.data.availableCash = null
     seedPreviewState.isLoading = false
+    validationState.fieldErrors = []
+    validationState.warnings = []
+    validationState.pending = false
+    validationState.isError = false
+    validationState.noData = false
+    validationState.calls = []
+    validationState.refetch.mockClear()
   })
 
   it.each([
@@ -1156,5 +1191,217 @@ describe('useStrategyForm submit policy', () => {
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', broker: 'MOCK' }))
 
     expect(result.current.isMock).toBe(true)
+  })
+})
+
+describe('useStrategyForm 서버 검증 연결', () => {
+  const submitEvent = { preventDefault() {} } as React.FormEvent
+  const lastValidation = () => validationState.calls.at(-1) as [unknown, unknown, { enabled: boolean }]
+
+  beforeEach(() => {
+    runtimeRecurringMode.defaultValue = 'HOLD'
+    vrRampMeta.value = undefined
+    mockCreateMutate.mockClear()
+    mockUpdateMutate.mockClear()
+    seedModelState.seedUsdInput = 1200
+    seedModelState.seedUsd = 1200
+    seedModelState.resetSeed.mockClear()
+    seedModelState.isBelowMinSeed = false
+    seedModelState.isInvalidSeed = false
+    seedPreviewState.data.basePrice = 100
+    seedPreviewState.data.minSeed = 500
+    seedPreviewState.data.skipReason = null
+    seedPreviewState.data.availableCash = null
+    seedPreviewState.isLoading = false
+    validationState.fieldErrors = []
+    validationState.warnings = []
+    validationState.pending = false
+    validationState.isError = false
+    validationState.noData = false
+    validationState.calls = []
+    validationState.refetch.mockClear()
+  })
+
+  it('등록 검증 바디는 제출 바디와 같다(INFINITE·VR)', async () => {
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(lastValidation()[0]).toEqual({ kind: 'create', accountId: 'account-1' })
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalledTimes(1))
+    expect(lastValidation()[1]).toEqual(mockCreateMutate.mock.calls[0][0])
+
+    act(() => result.current.setType('VR'))
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalledTimes(2))
+    expect(lastValidation()[1]).toEqual(mockCreateMutate.mock.calls[1][0])
+  })
+
+  it('수정 검증은 수정 대상 경로로 제출 바디와 같은 바디를 보낸다', async () => {
+    const initial = {
+      id: 'strategy-1', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TSLA', cycleSeedType: 'MAX' as const,
+      initialDeposit: 1200, divisionCount: 20, isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [], currentHoldings: 0,
+    }
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial }))
+    expect(lastValidation()[0]).toEqual({ kind: 'update', strategyId: 'strategy-1' })
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockUpdateMutate).toHaveBeenCalledTimes(1))
+    expect(lastValidation()[1]).toEqual(mockUpdateMutate.mock.calls[0][0])
+  })
+
+  it('지금 입력에 대한 서버 거절은 입력칸에 붙이고 제출을 막는다', async () => {
+    validationState.fieldErrors = [{ field: 'scheduledStartDate', detail: '시작예정일은 오늘 이후여야 합니다.' }]
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBe('시작예정일은 오늘 이후여야 합니다.')
+    expect(result.current.submitDisabledField).toBe('scheduledStart')
+    let submitted = true
+    await act(async () => { submitted = result.current.handleSubmit(submitEvent) })
+    expect(submitted).toBe(false)
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+  })
+
+  it('필드를 모르는 서버 거절은 폼 하단 사유로 둔다', () => {
+    validationState.fieldErrors = [{ field: 'ticker', detail: '이미 같은 종목의 전략이 있습니다.' }]
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBe('이미 같은 종목의 전략이 있습니다.')
+    expect(result.current.submitDisabledField).toBeNull()
+  })
+
+  it('로컬 규칙 사유가 서버 거절보다 먼저 보인다', () => {
+    validationState.fieldErrors = [{ field: 'initialDeposit', detail: '서버 문장' }]
+    seedModelState.isBelowMinSeed = true
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBe('최소 투자금 $500.00 이상이 필요합니다.')
+  })
+
+  it('검증 응답을 기다리는 중이거나 실패해도 제출한다 — 지난 입력의 거절로 막지 않는다', async () => {
+    validationState.fieldErrors = [{ field: null, detail: '지난 입력의 거절' }]
+    validationState.pending = true
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBeNull()
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalledTimes(1))
+
+    validationState.pending = false
+    validationState.isError = true
+    rerender()
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalledTimes(2))
+  })
+
+  it('PRIVACY 등록은 최소 시드를 판정할 서버 값이 없으면 막고, 실패면 다시 시도를 안내한다', async () => {
+    seedPreviewState.data.minSeed = null
+    seedPreviewState.data.basePrice = null
+    validationState.isError = true
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('PRIVACY'))
+    expect(result.current.seedCheck).toBe('failed')
+    expect(result.current.submitDisabledReason).toBe('최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.')
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+    result.current.retryValidation()
+    expect(validationState.refetch).toHaveBeenCalled()
+
+    // 응답 대기 중 — 대기 사유
+    validationState.isError = false
+    validationState.pending = true
+    validationState.noData = true
+    rerender()
+    expect(result.current.seedCheck).toBe('loading')
+
+    // 서버가 미리보기를 계산하지 못한 응답(fail-open)도 실패로 본다
+    validationState.pending = false
+    validationState.noData = false
+    rerender()
+    expect(result.current.seedCheck).toBe('failed')
+
+    // 값이 오면 통과
+    seedPreviewState.data.minSeed = 500
+    rerender()
+    expect(result.current.seedCheck).toBe('ok')
+  })
+
+  it('PRIVACY 등록을 서버가 거절해 파생값이 비면 최소 시드 확인 실패가 아니라 서버 사유를 보인다', () => {
+    seedPreviewState.data.minSeed = null
+    seedPreviewState.data.basePrice = null
+    validationState.fieldErrors = [{ field: 'ticker', detail: '지원하지 않는 종목입니다.' }]
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('PRIVACY'))
+    expect(result.current.seedCheck).toBe('ok')
+    expect(result.current.submitDisabledReason).toBe('지원하지 않는 종목입니다.')
+    expect(result.current.cannotSubmit || result.current.submitDisabledReason !== null).toBe(true)
+  })
+
+  it('수정의 서버 거절은 보유·시작예정일 칸이 없으므로 폼 하단에 둔다', () => {
+    validationState.fieldErrors = [{ field: 'scheduledStartDate', detail: '시작예정일은 오늘 이후여야 합니다.' }]
+    const { result } = renderHook(() => useStrategyForm({
+      accountId: 'account-1',
+      initial: {
+        id: 'strategy-1', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TSLA', cycleSeedType: 'MAX',
+        initialDeposit: 1200, divisionCount: 20, isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [], currentHoldings: 3,
+      },
+    }))
+    expect(result.current.submitDisabledReason).toBe('시작예정일은 오늘 이후여야 합니다.')
+    expect(result.current.submitDisabledField).toBeNull()
+  })
+
+  it('INFINITE 등록은 검증이 실패해도 최소 시드 확인으로 막지 않는다(서버가 검증한다)', () => {
+    seedPreviewState.data.minSeed = null
+    seedPreviewState.data.basePrice = null
+    validationState.isError = true
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.seedCheck).toBe('ok')
+    expect(result.current.cannotSubmit).toBe(false)
+  })
+
+  it('최소 시드로 시드를 채우는 것은 범위(유형·종목·분할 수)마다 지금 입력의 응답이 처음 올 때 한 번이다', () => {
+    validationState.pending = true
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(seedModelState.resetSeed).not.toHaveBeenCalled()
+
+    validationState.pending = false
+    rerender()
+    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(1)
+    expect(seedModelState.resetSeed).toHaveBeenCalledWith({ seedUsdInput: 500 })
+
+    // 같은 범위에서 시세가 바뀌어 최소 시드가 달라져도 사용자가 고친 시드를 덮지 않는다
+    seedPreviewState.data.minSeed = 650
+    rerender()
+    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(1)
+
+    act(() => result.current.setDivisionCount(30))
+    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(2)
+    expect(seedModelState.resetSeed).toHaveBeenLastCalledWith({ seedUsdInput: 650 })
+  })
+
+  it('경고는 지금 입력의 결과만 내보낸다', () => {
+    validationState.warnings = [{ code: 'AVAILABLE_CASH_EXCEEDED', detail: '가용 예수금 초과' }]
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.warnings).toEqual([{ code: 'AVAILABLE_CASH_EXCEEDED', detail: '가용 예수금 초과' }])
+    validationState.pending = true
+    rerender()
+    expect(result.current.warnings).toEqual([])
+  })
+
+  it('VR 램프 "자동" 값은 메타 vrRampDefaults를 쓰고 그대로 전송한다', async () => {
+    vrRampMeta.value = {
+      HOLD: { initialGradient: 11, gMax: 21, initialPoolLimitRate: 0.7, poolLimitFloor: 0.4, gGraceWeeks: 52, gStepWeeks: 26, pGraceWeeks: 52, pStepWeeks: 26 },
+    }
+    seedModelState.seedUsd = 100000
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('VR'))
+    expect(result.current.vrRampDefaults).toMatchObject({ initialGradient: 11, gMax: 21, initialPoolLimitRate: 0.7, poolLimitFloor: 0.4 })
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    await waitFor(() => expect(mockCreateMutate).toHaveBeenCalled())
+    expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ initialGradient: 11, gMax: 21, initialPoolLimitRate: 0.7, poolLimitFloor: 0.4 }))
+  })
+
+  it('DCA 수정은 이 폼의 검증을 부르지 않는다(DcaStrategyForm이 따로 부른다)', () => {
+    renderHook(() => useStrategyForm({
+      accountId: 'account-1',
+      initial: {
+        id: 'd1', accountId: 'account-1', type: 'DCA', status: 'ACTIVE', ticker: 'QLD', cycleSeedType: 'NONE',
+        isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [],
+      },
+    }))
+    expect(lastValidation()[2].enabled).toBe(false)
   })
 })

@@ -1,9 +1,8 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { todayKst } from '@shared/lib/format'
-import type { CycleSeedType, Strategy, StrategySeedPreview } from '@entities/strategy'
+import type { CycleSeedType, Strategy, StrategyValidation, VrRecurringMode } from '@entities/strategy'
 import type { StrategyFieldSettings, StrategyTypeMeta } from '@entities/meta'
 import type { VrFields } from './useStrategyForm'
-import type { VrRecurringMode } from './vrDerived'
 import type { DivisionCount, StrategyFormValues } from './strategyFormSchema'
 
 type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
@@ -38,7 +37,21 @@ function buildVrDefaults(vr?: StrategyVr) {
   }
 }
 
-export function buildStrategyFormDefaults(initial: Strategy | undefined, defaultType: string | undefined): StrategyFormValues {
+// 유형별 등록 기본값(관리자 운영 설정) — 첫 화면과 유형 변경이 같은 값을 쓴다. 시드는 최소 시드 도착 때(useInitialSeedReset) 채운다
+export function typeDefaultValues(settings: RuntimeStrategySettings | undefined): Partial<StrategyFormValues> {
+  if (!settings) return {}
+  const { ticker, divisionCount, bandWidth, intervalWeeks, recurringMode } = settings.fields
+  return {
+    ticker: ticker.defaultValue,
+    ...(divisionCount ? { divisionCount: divisionCount.defaultValue as DivisionCount } : {}),
+    ...(bandWidth ? { bandWidth: bandWidth.defaultValue } : {}),
+    ...(intervalWeeks ? { intervalWeeks: intervalWeeks.defaultValue } : {}),
+    ...(recurringMode ? { recurringMode: recurringMode.defaultValue as VrRecurringMode, recurringAmount: 0 } : {}),
+  }
+}
+
+// 등록은 defaultType 유형의 기본값을 채운다 — 수정은 저장값만
+export function buildStrategyFormDefaults(initial: Strategy | undefined, defaultType: string, settings?: RuntimeStrategySettings): StrategyFormValues {
   const divisionCount: DivisionCount = initial?.divisionCount ?? 1
   return {
     type: initial?.type ?? defaultType ?? '',
@@ -52,7 +65,14 @@ export function buildStrategyFormDefaults(initial: Strategy | undefined, default
     ...buildVrDefaults(initial?.vr),
     // 시작예정일도 등록 전용 — 등록은 오늘 기본값(필수), 수정 모드에서는 항상 빈 값
     scheduledStartDate: initial ? null : todayKst(),
+    ...(initial ? {} : typeDefaultValues(settings)),
   }
+}
+
+// 적립 금액은 절댓값으로 입력받고 부호는 적립 방향이 정한다 — 거치는 0
+export function signedRecurringAmount(mode: VrRecurringMode, amount: number | null): number {
+  const magnitude = Math.abs(amount ?? 0)
+  return mode === 'HOLD' ? 0 : mode === 'WITHDRAW' ? -magnitude : magnitude
 }
 
 // VR 필드 watch (avgPrice·quantity는 중간부터 시작 공통 필드)
@@ -88,8 +108,8 @@ export function deriveRuntimeFields(
   }
 }
 
-// basePrice/minSeed는 백엔드 계산 — VR 전략은 시드 미리보기 불필요
-export function deriveSeedPreview(isVr: boolean, data: StrategySeedPreview | undefined) {
+// basePrice/minSeed는 서버 검증의 파생값 — VR 전략은 시드 미리보기를 쓰지 않는다
+export function deriveSeedPreview(isVr: boolean, data: StrategyValidation['derived'] | undefined) {
   if (isVr) return { basePrice: null, minSeed: null, seedUnavailableReason: null, availableCash: null }
   return {
     basePrice: data?.basePrice ?? null,
@@ -106,8 +126,15 @@ export function toCycleSeedType(isVr: boolean, autoStart: boolean, seedMode: 'KE
   return seedMode === 'KEEP' ? 'MAINTAIN' : 'MAX'
 }
 
-export function createFormSetters(form: UseFormReturn<StrategyFormValues>) {
+export function createFormSetters(form: UseFormReturn<StrategyFormValues>, settingsOf: (type: string) => RuntimeStrategySettings | undefined) {
   return {
+    // 유형을 바꾸면 그 유형의 기본값으로 다시 채운다(사용자가 고른 종목·분할 수·VR 값은 버린다)
+    setType: (t: string) => {
+      form.setValue('type', t)
+      for (const [key, value] of Object.entries(typeDefaultValues(settingsOf(t)))) {
+        form.setValue(key as keyof StrategyFormValues, value)
+      }
+    },
     handleTickerChange: (code: string) => { form.setValue('ticker', code) },
     setAutoStart: (v: boolean) => { form.setValue('autoStart', v) },
     setSeedMode: (m: 'KEEP' | 'MAX') => { form.setValue('seedMode', m) },

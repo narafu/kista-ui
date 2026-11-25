@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,7 +6,7 @@ import { accountKeys } from '@entities/account'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
-import { mockApi } from '@testing/mockApi'
+import { apiError, mockApi, type ApiHandlers } from '@testing/mockApi'
 import { renderApp } from '@testing/renderApp'
 import { ReconfigureVrForm } from './ReconfigureVrForm'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
@@ -44,8 +44,11 @@ const strategy: ReconfigureVrStrategy = {
 
 let requests: { method: string; path: string; body: unknown }[] = []
 
-function renderForm(target: ReconfigureVrStrategy = strategy) {
+const PASSED = { fieldErrors: [], warnings: [], derived: {} }
+
+function renderForm(target: ReconfigureVrStrategy = strategy, validation: ApiHandlers['POST /api/trading-cycles/{id}/vr-config-validations'] = PASSED) {
   ;({ requests } = mockApi({
+    'POST /api/trading-cycles/{id}/vr-config-validations': validation,
     'PUT /api/trading-cycles/{id}/vr-config': strategy as never,
     // 저장 뒤 훅이 전략 목록을 다시 맞춘다
     'GET /api/trading-cycles': [strategy] as never,
@@ -126,6 +129,29 @@ describe('ReconfigureVrForm', () => {
       initialGradient: 10,
       initialPoolLimitRate: 0.75,
     }))
+  })
+
+  it('서버 검증은 제출과 같은 바디를 받고, 지금 입력에 대한 거절이면 확인 다이얼로그를 열지 않는다', async () => {
+    renderForm(strategy, { fieldErrors: [{ field: 'withdrawShares', detail: '보유 수량보다 많이 인출할 수 없습니다.' }], warnings: [], derived: {} })
+    expect(await screen.findByText('보유 수량보다 많이 인출할 수 없습니다.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    // onSubmit은 비동기 검증(form.trigger) 뒤에 다이얼로그를 연다 — 그 판정이 끝날 때까지 기다린 뒤 확인한다
+    await act(() => new Promise((r) => setTimeout(r, 50)))
+    expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
+    expect(screen.getByText('보유 수량보다 많이 인출할 수 없습니다.')).toHaveFocus()
+    expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
+      bandWidth: 15, intervalWeeks: 4, recurringAmount: -100,
+      initialGradient: 10, gGraceWeeks: 52, gStepWeeks: 26, gMax: 20,
+      initialPoolLimitRate: 0.75, pGraceWeeks: 52, pStepWeeks: 26, poolLimitFloor: 0.5,
+    })
+  })
+
+  it('검증 호출이 실패해도(503) 제출을 막지 않는다 — 제출에서 서버가 다시 거른다', async () => {
+    renderForm(strategy, apiError(503, { detail: '증권사 응답 지연' }))
+    await waitFor(() => expect(requests.some((r) => r.method === 'POST')).toBe(true))
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+    expect(await submittedAfterSend()).toEqual(expect.objectContaining({ bandWidth: 15 }))
   })
 
   it('재설정 성공 시 사이클이 교체되므로 주문 미리보기 등을 무효화한 뒤 상세로 이동한다', async () => {

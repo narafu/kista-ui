@@ -10,7 +10,7 @@ import { testMeta } from '@entities/meta/__fixtures__/testMeta'
 const createMutate = vi.fn()
 const hookSuccess = vi.hoisted(() => ({ create: undefined as (() => Promise<void>) | undefined }))
 const reconfigureMutate = vi.fn()
-const seedPreview = vi.hoisted(() => ({ availableCash: null as number | null, calls: [] as unknown[][] }))
+const seedPreview = vi.hoisted(() => ({ availableCash: null as number | null, calls: [] as unknown[][], fieldErrors: [] as { field: string | null; detail: string }[] }))
 vi.mock('@entities/strategy', async (orig) => ({
   ...(await orig<typeof import('@entities/strategy')>()),
   useCreateStrategyMutation: (_accountId: string, onSuccess?: () => Promise<void>) => {
@@ -18,9 +18,10 @@ vi.mock('@entities/strategy', async (orig) => ({
     return { mutate: createMutate, isPending: false }
   },
   useReconfigureDcaMutation: () => ({ mutate: reconfigureMutate, isPending: false }),
-  useStrategySeedPreviewQuery: (...args: unknown[]) => {
+  useStrategyValidationQuery: (...args: unknown[]) => {
     seedPreview.calls.push(args)
-    return { data: { ticker: 'UPRO', basePrice: null, minSeed: null, skipReason: null, availableCash: seedPreview.availableCash } }
+    const data = { fieldErrors: seedPreview.fieldErrors, warnings: [], derived: { basePrice: null, minSeed: null, skipReason: null, availableCash: seedPreview.availableCash } }
+    return { data, current: data, isLoading: false, isError: false, refetch: vi.fn() }
   },
 }))
 
@@ -66,6 +67,7 @@ describe('DcaStrategyForm', () => {
     reconfigureMutate.mockClear()
     seedPreview.availableCash = null
     seedPreview.calls = []
+    seedPreview.fieldErrors = []
     // jsdom의 history.back은 popstate를 비동기로 쏘거나 생략할 수 있어 동기 popstate로 고정한다
     vi.spyOn(window.history, 'back').mockImplementation(() => window.dispatchEvent(new PopStateEvent('popstate', { state: null })))
   })
@@ -117,6 +119,7 @@ describe('DcaStrategyForm', () => {
   it('등록: 가용 예수금을 계좌 통화로 보여주고 100% 채우기 값이 initialDeposit으로 실린다', async () => {
     seedPreview.availableCash = 1500
     renderForm()
+    expect(seedPreview.calls[0][0]).toEqual({ kind: 'create', accountId: 'a1' })
     expect(seedPreview.calls[0][1]).toMatchObject({ type: 'DCA', ticker: 'UPRO' })
     expect(screen.getByText('가용 예수금 $1,500.00')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '100%' }))
@@ -128,6 +131,25 @@ describe('DcaStrategyForm', () => {
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
     await waitFor(() => expect(createMutate).toHaveBeenCalled())
     expect(createMutate.mock.calls[0][0]).toMatchObject({ initialDeposit: 1500 })
+  })
+
+  it('등록: 서버 검증이 지금 입력을 거절하면 사유를 보이고 등록하지 않는다', async () => {
+    seedPreview.fieldErrors = [{ field: 'ticker', detail: '이미 같은 종목의 전략이 있습니다.' }]
+    renderForm()
+    fireEvent.click(screen.getByRole('button', { name: '매수 규칙 추가' }))
+    fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+    await screen.findByText('규칙 (1/10)')
+    expect(screen.getByRole('alert')).toHaveTextContent('이미 같은 종목의 전략이 있습니다.')
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus())
+    expect(createMutate).not.toHaveBeenCalled()
+  })
+
+  it('등록: 규칙이 없을 때는 서버의 빈 규칙 거절을 보이지 않는다(손대기 전부터 뜨지 않게)', () => {
+    seedPreview.fieldErrors = [{ field: 'dca', detail: 'DCA 규칙은 1개 이상이어야 합니다.' }]
+    renderForm()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('수정: 예수금 칸이 없고 가용 예수금을 조회하지 않는다', () => {

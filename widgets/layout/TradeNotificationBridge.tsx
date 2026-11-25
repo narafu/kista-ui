@@ -8,7 +8,7 @@ import { TradeNotificationProvider, tradeKeys } from '@entities/trade'
 
 // 체결로 값이 바뀌는 조회 키. tradeKeys.all은 계좌 포트폴리오(예수금·평가금)를, strategy list·detail은 currentRound·currentHoldings를, dca-executions는 회차 주문 체결 상태를 포함한다.
 // strategy lists는 details보다 먼저 무효화해야 한다 — detail queryFn이 목록 캐시를 거치므로 순서가 바뀌면 갱신 전 목록을 재사용한다.
-// strategy seed-preview는 시세 기반이라 제외한다(전략 폼이 열린 중 재조회되면 minSeed 변경으로 사용자가 조정한 시드가 초기화될 수 있다).
+// strategy validation(전략 폼 서버 검증)은 입력이 바뀔 때마다 다시 부르므로 체결로 무효화하지 않는다.
 // housing-comparison은 내 투자 수익률을 포함해 대상이고, stats의 housing·etf 시장 시계열과 regions 같은 외부 참조 데이터는 체결과 무관해 제외한다
 export const TRADE_DEPENDENT_KEYS = [
   tradeKeys.all,

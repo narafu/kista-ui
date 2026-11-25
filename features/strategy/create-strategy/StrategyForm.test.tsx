@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Strategy } from '@entities/strategy'
 import { StrategyForm } from './StrategyForm'
@@ -127,7 +127,10 @@ const baseFormState = {
   cannotSubmit: false,
   submitDisabledReason: null,
   submitDisabledField: null,
-  handleSubmit: vi.fn((e: React.FormEvent) => e.preventDefault()),
+  seedCheck: 'ok' as const,
+  retryValidation: vi.fn(),
+  warnings: [] as { code: string; detail: string }[],
+  handleSubmit: vi.fn((e: React.FormEvent) => { e.preventDefault(); return true }),
 }
 
 const initialStrategy: Strategy = {
@@ -283,7 +286,54 @@ describe('StrategyForm VR settings section', () => {
     render(<StrategyForm accountId="account-1" />)
 
     expect(screen.getByText('리밸런싱 주기는 1 이상 정수여야 합니다.')).toBeInTheDocument()
+    // 제출 버튼은 진행 중·잠금일 때만 비활성 — 입력 오류로는 막지 않는다(a11y.md)
+    expect(screen.getByRole('button', { name: '등록' })).toBeEnabled()
+  })
+
+  it('막힌 제출은 사유로 포커스를 옮긴다', async () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      submitDisabledReason: '최소 투자금 $500.00 이상이 필요합니다.',
+      handleSubmit: vi.fn((e: React.FormEvent) => { e.preventDefault(); return false }),
+    })
+    render(<StrategyForm accountId="account-1" />)
+    fireEvent.click(screen.getByRole('button', { name: '등록' }))
+    await waitFor(() => expect(screen.getByText('최소 투자금 $500.00 이상이 필요합니다.')).toHaveFocus())
+  })
+
+  it('등록 가능한 유형이 없을 때만 제출 버튼을 잠근다', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      runtimeConfigUnavailable: true,
+      cannotSubmit: true,
+      submitDisabledReason: '현재 등록 가능한 전략이 없습니다.',
+    })
+    render(<StrategyForm accountId="account-1" />)
     expect(screen.getByRole('button', { name: '등록' })).toBeDisabled()
+  })
+
+  it('최소 투자금 확인이 실패하면 다시 시도 버튼으로 검증을 다시 부른다', () => {
+    const retryValidation = vi.fn()
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      cannotSubmit: true,
+      seedCheck: 'failed',
+      retryValidation,
+      submitDisabledReason: '최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.',
+    })
+    render(<StrategyForm accountId="account-1" />)
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+    expect(retryValidation).toHaveBeenCalled()
+  })
+
+  it('서버 검증 경고를 서버 문장 그대로 보인다', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      warnings: [{ code: 'AVAILABLE_CASH_EXCEEDED', detail: '입력 예수금이 가용 예수금 $1,000.00보다 큽니다.' }],
+    })
+    render(<StrategyForm accountId="account-1" />)
+    expect(screen.getByText('입력 예수금이 가용 예수금 $1,000.00보다 큽니다.')).toBeInTheDocument()
   })
 
   it('shows a field reason once, inline only, not at the form bottom', () => {

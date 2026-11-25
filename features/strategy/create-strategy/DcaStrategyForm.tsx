@@ -11,8 +11,8 @@ import { invalidateLedgerTotals } from '@entities/account'
 import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { tradeKeys } from '@entities/trade'
-import { useCreateStrategyMutation, useReconfigureDcaMutation, useStrategySeedPreviewQuery } from '@entities/strategy'
-import type { DcaDirection, Strategy } from '@entities/strategy'
+import { StrategyValidationWarnings, useCreateStrategyMutation, useReconfigureDcaMutation, useStrategyValidationQuery } from '@entities/strategy'
+import type { DcaDirection, Strategy, StrategyRequest } from '@entities/strategy'
 import { StrategyTickerSection } from './sections/StrategyTickerSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
 import { SeedInputSection } from './sections/SeedInputSection'
@@ -83,16 +83,33 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const reconfigure = useReconfigureDcaMutation(initial?.id ?? '', invalidateDependents)
   const pending = create.isPending || reconfigure.isPending
   const ticker = form.watch('ticker')
+  // 등록 검증 — 바디는 제출 바디 그대로. 규칙 편집 화면이 검증한 값만 목록에 들어가 보통 만들어지지만, 못 만들면 검증하지 않는다
+  const formValues = form.watch()
+  let createBody: StrategyRequest | null = null
+  try {
+    createBody = initial ? null : buildDcaCreatePayload(formValues)
+  } catch {
+    createBody = null
+  }
+  const validation = useStrategyValidationQuery(
+    { kind: 'create', accountId },
+    createBody,
+    { enabled: createBody !== null && !!ticker, keepWhile: (a, b) => a?.ticker === b?.ticker },
+  )
   // 가용 예수금(계좌 미배정 금액, 계좌 통화) — 다른 전략처럼 참고값·비율 채우기용이고 초과해도 막지 않는다. 등록만 조회
-  // divisionCount는 DCA와 무관한 필수 쿼리 파라미터라 서버 기본값(20)을 보낸다
-  const seedPreview = useStrategySeedPreviewQuery(accountId, { type: 'DCA', ticker, divisionCount: 20 }, { enabled: !initial && !!ticker })
-  const availableCash = seedPreview.data?.availableCash == null ? null : Math.max(0, seedPreview.data.availableCash)
+  const cash = validation.data?.derived?.availableCash
+  const availableCash = cash == null ? null : Math.max(0, cash)
+  // 서버 거절은 지금 입력의 결과만 — 검증 중·실패면 막지 않고 제출에서 서버가 다시 거른다
+  // 규칙이 없으면 서버 거절을 보이지 않는다 — 서버가 빈 규칙을 거절해 손대기 전부터 오류가 뜬다(빈 목록은 로컬 검증이 제출 때 안내). 가용 예수금은 그대로 쓴다
+  const serverError = formValues.rules.length > 0 ? validation.current?.fieldErrors[0] : undefined
+  const serverErrorRef = useRef<HTMLParagraphElement>(null)
   const needsHoldingsHint = form.watch('rules').some((r) => r.direction === 'SELL' || r.conditions.some((c) => c.indicator === 'AVG_PRICE'))
   const rulesError = form.formState.errors.rules
   const rulesErrorMessage = rulesError?.root?.message ?? rulesError?.message ?? (rulesError ? '규칙 입력값을 확인하세요.' : undefined)
 
   const submit = form.handleSubmit((values) => {
     if (initial) reconfigure.mutate(buildDcaConfig(values), { onSuccess: done })
+    else if (serverError) serverErrorRef.current?.focus()
     else create.mutate(buildDcaCreatePayload(values), { onSuccess: done })
   })
 
@@ -193,6 +210,8 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
             error={rulesErrorMessage}
           />
         </div>
+        {serverError && <p ref={serverErrorRef} tabIndex={-1} role="alert" className="text-sm font-semibold text-warn pt-3">{serverError.detail}</p>}
+        <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} />
         <FormActions onCancel={onCancel} isPending={pending} label={initial ? '수정' : '등록'} className="py-6" />
       </form>
     </>

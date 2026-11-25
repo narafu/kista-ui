@@ -107,13 +107,24 @@ export interface StrategyRequest {
   scheduledStartDate?: string // 시작예정일 (yyyy-MM-dd) — 세 전략 공통, 등록 전용, 미전송 시 오늘 시작
 }
 
-export interface StrategySeedPreview {
-  ticker: string
-  basePrice: number | null
-  minSeed: number | null
-  skipReason: string | null
-  // 가용 예수금 — 모의계좌이거나 조회 실패면 null (참고값, 시드 검증에는 쓰지 않는다)
-  availableCash: number | null
+// 등록·수정·VR 재설정 검증 대상 — 검증 바디는 각 제출 바디와 같다
+export type StrategyValidationTarget =
+  | { kind: 'create'; accountId: string }
+  | { kind: 'update'; strategyId: string }
+  | { kind: 'vr-config'; strategyId: string }
+
+// 검증 응답 — 서버가 첫 거절에서 멈춰 fieldErrors는 0~1개. field가 null이면 여러 필드에 걸친 거절
+export interface StrategyValidation {
+  fieldErrors: { field: string | null; detail: string }[]
+  warnings: { code: string; detail: string }[]
+  // 서버 파생값 중 화면이 쓰는 것만. 400(Bean Validation 위반)이면 null
+  derived: {
+    basePrice: number | null
+    minSeed: number | null
+    skipReason: string | null
+    // 가용 예수금 — 모의계좌이거나 조회 실패면 null (참고값, 시드 검증에는 쓰지 않는다)
+    availableCash: number | null
+  } | null
 }
 
 // PRIVACY·INFINITE 진행 중 사이클 투자금 추가 — POST /api/trading-cycles/{id}/capital-injection 요청 바디.

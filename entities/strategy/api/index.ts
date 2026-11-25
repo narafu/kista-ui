@@ -1,8 +1,8 @@
-import { fetchEither, jsonBody } from '@shared/lib/api-client'
+import { ApiError, apiMsg, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import { optDec, optNum, optStr } from '@shared/lib/normalize'
 import { buildQueryString } from '@shared/lib/query-string'
-import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionFilters, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategySeedPreview, StrategyVrSummary } from '../model/types'
+import type { CycleSeedType, DcaCondition, CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaDirection, DcaExecution, DcaExecutionFilters, DcaExecutionPage, DcaFrequency, DcaIndicator, DcaOperator, DcaOrderType, DcaRule, DcaShortfallPolicy, DcaSizing, DcaSizingType, DcaWeekday, ReconfigureVrRequest, Strategy, StrategyDcaSummary, StrategyRequest, StrategyValidation, StrategyValidationTarget, StrategyVrSummary } from '../model/types'
 import { WEEKDAY_LABEL } from '../model/dcaFormat'
 
 // VR 요약 숫자 문자열 → number 변환
@@ -196,26 +196,34 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
   return fetchEither<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
 }
 
-export async function getStrategySeedPreview(
-  accountId: string,
-  params: { type: string; ticker: string; divisionCount: number },
-  token?: string,
-): Promise<StrategySeedPreview> {
-  const qs = new URLSearchParams({
-    type: params.type,
-    ticker: params.ticker,
-    divisionCount: String(params.divisionCount),
-  }).toString()
-  const raw = await fetchEither<Record<string, unknown>>(
-    `/api/accounts/${accountId}/strategy-seed-preview?${qs}`,
-    undefined,
-    token,
-  )
+function validationPath(target: StrategyValidationTarget): string {
+  switch (target.kind) {
+    case 'create': return `/api/accounts/${target.accountId}/trading-cycle-validations`
+    case 'update': return `/api/trading-cycles/${target.strategyId}/update-validations`
+    case 'vr-config': return `/api/trading-cycles/${target.strategyId}/vr-config-validations`
+  }
+}
+
+const optMoney = (v: unknown) => (v != null ? toNum(v) : null)
+
+// 저장 없는 검증 — 통과·거절 모두 200. 등록·VR 재설정 검증은 @Valid라 Bean Validation 위반만 400 ProblemDetail(detail만, 필드 없음)로 와서 필드 없는 거절로 받는다
+export async function validateStrategy(target: StrategyValidationTarget, body: unknown): Promise<StrategyValidation> {
+  let raw: { fieldErrors?: StrategyValidation['fieldErrors']; warnings?: StrategyValidation['warnings']; derived?: Record<string, unknown> | null }
+  try {
+    raw = await fetchEither(validationPath(target), jsonBody('POST', body))
+  } catch (err) {
+    if (!(err instanceof ApiError) || err.status !== 400) throw err
+    return { fieldErrors: [{ field: null, detail: apiMsg(err, '입력값을 확인해 주세요.') }], warnings: [], derived: null }
+  }
+  const d = raw.derived
   return {
-    ticker: String(raw.ticker),
-    basePrice: raw.basePrice != null ? toNum(raw.basePrice) : null,
-    minSeed: raw.minSeed != null ? toNum(raw.minSeed) : null,
-    skipReason: raw.skipReason != null ? String(raw.skipReason) : null,
-    availableCash: raw.availableCash != null ? toNum(raw.availableCash) : null,
+    fieldErrors: raw.fieldErrors ?? [],
+    warnings: raw.warnings ?? [],
+    derived: d ? {
+      basePrice: optMoney(d.basePrice),
+      minSeed: optMoney(d.minSeed),
+      skipReason: d.skipReason != null ? String(d.skipReason) : null,
+      availableCash: optMoney(d.availableCash),
+    } : null,
   }
 }

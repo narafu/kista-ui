@@ -1,9 +1,10 @@
 'use client'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { QueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { apiMsg } from '@shared/lib/api-client'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
+import { useDebouncedValue } from '@shared/lib/hooks/use-debounced-value'
 import { upsertById, synchronizeListQueries } from '@shared/lib/query'
 import {
   createStrategy,
@@ -17,9 +18,9 @@ import {
   deleteStrategy,
   pauseStrategy,
   resumeStrategy,
-  getStrategySeedPreview,
+  validateStrategy,
 } from '../api'
-import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionFilters, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategySeedPreview } from '../model/types'
+import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionFilters, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategyValidation, StrategyValidationTarget } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
 import {
   strategyDetailQueryOptions,
@@ -75,16 +76,45 @@ function updateStrategyStatus(strategies: Strategy[], id: string, status: string
   return strategies.map((strategy) => strategy.id === id ? { ...strategy, status } : strategy)
 }
 
-export function useStrategySeedPreviewQuery(
-  accountId: string,
-  params: { type: string; ticker: string; divisionCount: number },
-  options?: { enabled?: boolean },
+export const STRATEGY_VALIDATION_DEBOUNCE_MS = 400
+
+// 등록·수정·VR 재설정 입력을 디바운스해 서버 검증을 부른다. 키가 바디라 늦게 온 이전 입력의 응답은 최신 입력의 결과가 되지 못한다.
+// current는 "지금 입력"의 결과만(디바운스 대기·placeholder·실패면 undefined) — 제출 차단은 이것만 본다.
+// data는 표시용 — keepWhile(이전 바디, 지금 바디)이 참이면 새 응답 전까지 이전 결과를 유지해 깜빡임을 막는다.
+// 벤더 일시 오류(429·503)만 1회 재시도한다. 404(사용자 복제본 없음)·네트워크 오류는 isError로 둔다.
+// 같은 바디의 재조회가 실패해도 받아 둔 결과는 그 입력의 결과로 남는다(거절이 입력 변화 없이 풀리지 않게)
+export function useStrategyValidationQuery<TBody>(
+  target: StrategyValidationTarget,
+  body: TBody,
+  options: { enabled: boolean; keepWhile?: (prev: TBody, next: TBody) => boolean },
 ) {
-  return useQuery<StrategySeedPreview>({
-    queryKey: strategyKeys.seedPreview(accountId, params.type, params.ticker, params.divisionCount),
-    queryFn: () => getStrategySeedPreview(accountId, params),
-    enabled: options?.enabled ?? true,
+  const json = JSON.stringify(body)
+  const debounced = useDebouncedValue(json, STRATEGY_VALIDATION_DEBOUNCE_MS)
+  const targetKey = target.kind === 'create' ? `create:${target.accountId}` : `${target.kind}:${target.strategyId}`
+  const query = useQuery<StrategyValidation>({
+    queryKey: strategyKeys.validation(targetKey, debounced),
+    queryFn: () => validateStrategy(target, JSON.parse(debounced)),
+    enabled: options.enabled,
+    // 키가 입력마다 바뀌므로 같은 입력을 다시 부를 이유가 없다 — 재조회는 시세·증권사 호출만 늘린다
+    staleTime: Infinity,
+    retry: (count, err) => count < 1 && err instanceof ApiError && (err.status === 429 || err.status === 503),
+    placeholderData: (prev, prevQuery) => {
+      const prevBody = prevQuery?.queryKey[3]
+      return options.keepWhile && typeof prevBody === 'string' && options.keepWhile(JSON.parse(prevBody), JSON.parse(debounced))
+        ? keepPreviousData(prev)
+        : undefined
+    },
   })
+  const settled = debounced === json
+  // 디바운스 대기 중에도 같은 범위(keepWhile)의 결과만 보인다 — 유형을 바꾼 직후 이전 유형의 최소 시드를 쓰지 않게
+  const sameScope = settled || (options.keepWhile?.(JSON.parse(debounced), body) ?? false)
+  return {
+    data: sameScope ? query.data : undefined,
+    current: settled && !query.isPlaceholderData ? query.data : undefined,
+    isLoading: query.isLoading,
+    isError: query.isError && settled,
+    refetch: query.refetch,
+  }
 }
 
 export function useAllStrategiesQuery(options?: { enabled?: boolean }) {

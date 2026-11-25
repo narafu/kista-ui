@@ -1,6 +1,7 @@
-export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyAction, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyAction, StrategyRequest, ReconfigureVrRequest, StrategyValidation, StrategyVrSummary } from './model/types'
 export { dcaIndicatorLabel, earliestNextExecution, formatDcaCondition, formatDcaSchedule, formatDcaSizing, latestLastExecution, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
 export { DcaRuleSummaryLabel } from './ui/DcaRuleSummaryLabel'
+export { StrategyValidationWarnings } from './ui/StrategyValidationWarnings'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
@@ -12,7 +13,7 @@ export {
   findStrategy,
 } from './api'
 export {
-  useStrategySeedPreviewQuery,
+  useStrategyValidationQuery,
   useStrategyDetailQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,

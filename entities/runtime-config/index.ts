@@ -1,4 +1,4 @@
-// 앱 소비처는 meta로 옮겼다(S7) — T10에서 이 슬라이스·/api/runtime-config 라우트와 함께 삭제할 때까지 유지
+// 앱 소비처는 meta로 옮겼다(S7·T10) — 남은 소비처는 관리자 설정 편집 타입. 쿼리·/api/runtime-config 라우트는 삭제 대상
 /** @public */
 export { runtimeConfigKeys, useRuntimeConfigQuery } from './hooks/useRuntimeConfigQuery'
 export type {

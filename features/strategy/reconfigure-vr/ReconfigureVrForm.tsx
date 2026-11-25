@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AlertTriangle } from 'lucide-react'
@@ -12,7 +12,7 @@ import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
-import { useReconfigureVrMutation } from '@entities/strategy'
+import { StrategyValidationWarnings, useReconfigureVrMutation, useStrategyValidationQuery } from '@entities/strategy'
 import type { ReconfigureVrRequest } from '@entities/strategy'
 import { createReconfigureVrFormSchema, type ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
@@ -106,6 +106,15 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
   const mutation = useReconfigureVrMutation(strategy.id, handleReconfigureSuccess)
   const disabled = mutation.isPending
 
+  // 서버 검증 — 바디는 제출 바디 그대로. 거절은 지금 입력의 결과만 막고, 검증 중·실패면 막지 않는다(제출에서 서버가 다시 거른다)
+  const validation = useStrategyValidationQuery(
+    { kind: 'vr-config', strategyId: strategy.id },
+    toReconfigureVrRequest(form.watch()),
+    { enabled: true },
+  )
+  const serverError = validation.current?.fieldErrors[0]
+  const serverErrorRef = useRef<HTMLParagraphElement>(null)
+
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
   // 이 콜백은 비동기일 수밖에 없다. 대신 여기서 명시적으로 form.trigger()를 await해
   // createReconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
@@ -114,7 +123,8 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const valid = await form.trigger()
-    if (valid) setConfirmOpen(true)
+    if (valid && serverError) serverErrorRef.current?.focus()
+    else if (valid) setConfirmOpen(true)
   }
 
   function handleConfirm() {
@@ -135,6 +145,9 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
       <InjectSection form={form} disabled={disabled} />
 
       <WithdrawSection form={form} disabled={disabled} />
+
+      {serverError && <p ref={serverErrorRef} tabIndex={-1} role="alert" className="text-sm font-semibold text-warn">{serverError.detail}</p>}
+      <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} />
 
       <FormActions
         onCancel={handleDone}

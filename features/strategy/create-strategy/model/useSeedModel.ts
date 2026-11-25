@@ -5,8 +5,7 @@ import type { Strategy } from '@entities/strategy'
 
 interface UseSeedModelOptions {
   initial?: Strategy
-  minSeed: number | null
-  // 중간부터 시작(보유 평단가·수량) — 최소 시드 판정 시 이미 보유한 평가금액도 합산
+  // 중간부터 시작(보유 평단가·수량) — 이미 보유한 평가금액이 있으면 예수금 0도 허용
   avgPrice?: number | null
   quantity?: number | null
 }
@@ -16,7 +15,6 @@ interface UseSeedModelReturn {
   setSeedUsdInput: (v: number | null) => void
   resetSeed: (opts: { seedUsdInput?: number | null }) => void
   seedUsd: number | null
-  isBelowMinSeed: boolean
   isInvalidSeed: boolean
 }
 
@@ -28,7 +26,6 @@ interface UseSeedModelReturn {
  */
 export function useSeedModel({
   initial,
-  minSeed,
   avgPrice = null,
   quantity = null,
 }: UseSeedModelOptions): UseSeedModelReturn {
@@ -47,9 +44,7 @@ export function useSeedModel({
 
   const seedUsd = seedUsdInput
 
-  // 최소 시드 판정 = 예수금 직접 입력 + 이미 보유 중인 평가금액(평단가 × 수량)
   const existingHoldingsValue = (avgPrice ?? 0) * (quantity ?? 0)
-  const isBelowMinSeed = seedUsd !== null && minSeed !== null && seedUsd + existingHoldingsValue < minSeed
 
   // 보유 평가금액만으로 충분하면 예수금 0도 허용
   // (VR 거치식이 초기 V값만으로 시드 0을 허용하는 것과 동일한 규칙 — 둘 다 완전히 비어있을 때만 차단)
@@ -60,7 +55,12 @@ export function useSeedModel({
     setSeedUsdInput,
     resetSeed,
     seedUsd,
-    isBelowMinSeed,
     isInvalidSeed,
   }
+}
+
+// 최소 시드 판정 = 예수금 직접 입력 + 이미 보유 중인 평가금액(평단가 × 수량). 최소 시드는 서버 검증 응답이라 시드 상태와 따로 계산한다
+export function isBelowMinSeed(input: { seedUsd: number | null; minSeed: number | null; avgPrice: number | null; quantity: number | null }): boolean {
+  const { seedUsd, minSeed, avgPrice, quantity } = input
+  return seedUsd !== null && minSeed !== null && seedUsd + (avgPrice ?? 0) * (quantity ?? 0) < minSeed
 }

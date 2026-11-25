@@ -1,12 +1,43 @@
 import { fmtUsd, todayKst } from '@shared/lib/format'
 import { vrRampInvalidReason } from '@entities/strategy'
-import type { Strategy } from '@entities/strategy'
-import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import type { Strategy, VrRecurringMode } from '@entities/strategy'
+import type { StrategyFieldSettings, StrategyTypeMeta } from '@entities/meta'
 import type { DivisionCount } from './strategyFormSchema'
-import type { VrDerived, VrRecurringMode } from './vrDerived'
-import type { VrFields } from './useStrategyForm'
+import type { VrFields, VrRampDefaults } from './useStrategyForm'
+import { signedRecurringAmount } from './strategyFormHelpers'
 
-type RuntimeStrategySettings = RuntimeConfig['strategies'][RuntimeStrategyType]
+type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
+
+// 서버 검증과 겹치는 VR 자산 조건의 입력값(2026-11-25 사용자 결정으로 즉시 안내용으로 유지 — 최종 판정은 서버 검증).
+// 서버 VrRegistration과 같은 식이지만 V값은 평단가 추정치라 서버(전일종가 기준)와 다를 수 있다
+export interface VrAssets {
+  recurringMagnitude: number
+  normalizedRecurringAmount: number
+  initialAssets: number   // 거치·적립 게이트 — 초기 V 입력(>0)이 있으면 그 값
+  evaluatedAssets: number // 인출식 최소 자산 — 초기 V 입력을 반영하지 않는다(우회 방지, 서버와 같은 원칙)
+  requiredWithdrawalAssets: number
+}
+
+export function computeVrAssets(input: {
+  initial?: Strategy
+  vrFields: VrFields
+  seedUsd: number | null
+  recurringMode: VrRecurringMode
+}): VrAssets {
+  const { initial, vrFields: { avgPrice, quantity, initialValue, recurringAmount, intervalWeeks }, seedUsd, recurringMode } = input
+  const estimatedStockValue = initial ? initial.vr?.value ?? 0 : (avgPrice ?? 0) * (quantity ?? 0)
+  const vrValue = !initial && initialValue !== null && initialValue > 0 ? initialValue : estimatedStockValue
+  const normalizedRecurringAmount = signedRecurringAmount(recurringMode, recurringAmount)
+  return {
+    recurringMagnitude: Math.abs(recurringAmount ?? 0),
+    normalizedRecurringAmount,
+    initialAssets: vrValue + (seedUsd ?? 0),
+    evaluatedAssets: estimatedStockValue + (seedUsd ?? 0),
+    requiredWithdrawalAssets: intervalWeeks !== null && intervalWeeks > 0
+      ? Math.abs(normalizedRecurringAmount) * 100 * (4 / intervalWeeks)
+      : 0,
+  }
+}
 
 // 중간부터 시작 공통 검증 (세 전략 공통, 등록 전용) — 서버 validateBootstrapPosition과 동일 규칙(보유 수량>0이면 평단가>0 필수)에
 // 반대 방향(평단가 입력했는데 수량 미입력)도 UI에서 선제 안내 — 서버는 quantity<=0이면 avgPrice를 payload에서 생략해 조용히 버리므로 사용자에게 알려야 함
@@ -38,11 +69,14 @@ export function isInvalidVr(input: {
   isVr: boolean
   vrFields: VrFields
   recurringMode: VrRecurringMode
-  vrDerived: VrDerived
+  vrAssets: VrAssets
+  rampDefaults: VrRampDefaults
 }): boolean {
-  const { isVr, vrFields, recurringMode, vrDerived } = input
+  const { isVr, vrFields, recurringMode, vrAssets, rampDefaults } = input
   const { intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, pStepWeeks } = vrFields
-  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient, effectiveInitialPoolLimitRate } = vrDerived
+  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets } = vrAssets
+  const effectiveInitialGradient = vrFields.initialGradient ?? rampDefaults.initialGradient
+  const effectiveInitialPoolLimitRate = vrFields.initialPoolLimitRate ?? rampDefaults.initialPoolLimitRate
   return isVr && (
     intervalWeeks === null ||
     intervalWeeks < 1 ||
@@ -64,7 +98,7 @@ export function isRuntimeValueInvalid(input: {
   initial?: Strategy
   runtimeStrategy?: RuntimeStrategySettings
   ticker: string
-  divisionCountSettings?: RuntimeFieldSettings<number>
+  divisionCountSettings?: StrategyFieldSettings<number>
   divisionCount: DivisionCount
   isVr: boolean
   bandWidth: number | null
@@ -99,17 +133,20 @@ export function computeCannotSubmit(input: {
   isBelowMinSeed: boolean
   isVr: boolean
   isInvalidSeed: boolean
-  basePrice: number | null
-  seedUnavailableReason: string | null
+  seedCheck: SeedCheck
 }): boolean {
   const {
     initial, canEditSeed, runtimeConfigUnavailable, isRuntimeValueInvalid, isInvalidBootstrap,
-    isInvalidScheduledStart, isInvalidVr, isBelowMinSeed, isVr, isInvalidSeed, basePrice, seedUnavailableReason,
+    isInvalidScheduledStart, isInvalidVr, isBelowMinSeed, isVr, isInvalidSeed, seedCheck,
   } = input
   return initial && !canEditSeed
     ? false
-    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && basePrice === null && seedUnavailableReason === null)
+    : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && seedCheck !== 'ok')
 }
+
+// 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록)를 판정할 서버 파생값의 상태 — 값이 없으면 제출을 막는다.
+// ok: 판정 가능하거나 판정이 필요 없음, loading: 검증 응답 대기, failed: 검증 호출 실패 또는 서버가 미리보기를 계산하지 못함
+export type SeedCheck = 'ok' | 'loading' | 'failed'
 
 // 제출 불가 사유를 표시할 입력칸 — null이면 폼 하단에 둔다(여러 칸에 걸친 사유, 접힌 고급 설정 안의 밴드 폭·주기·램프)
 export type SubmitReasonField = 'holdings' | 'scheduledStart' | 'recurring'
@@ -131,20 +168,23 @@ export function computeSubmitDisabled(input: {
   isVr: boolean
   vrFields: VrFields
   recurringMode: VrRecurringMode
-  vrDerived: VrDerived
+  vrAssets: VrAssets
+  rampDefaults: VrRampDefaults
   isRuntimeValueInvalid: boolean
   seedUnavailableReason: string | null
   isBelowMinSeed: boolean
   minSeed: number | null
   isInvalidSeed: boolean
-  basePrice: number | null
+  seedCheck: SeedCheck
 }): SubmitDisabled | null {
   const {
     initial, canEditSeed, runtimeConfigUnavailable, isInvalidScheduledStart, isVr, vrFields, recurringMode,
-    vrDerived, isRuntimeValueInvalid, seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, basePrice,
+    vrAssets, rampDefaults, isRuntimeValueInvalid, seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, seedCheck,
   } = input
   const { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, pStepWeeks } = vrFields
-  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets, effectiveInitialGradient, effectiveInitialPoolLimitRate } = vrDerived
+  const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets } = vrAssets
+  const effectiveInitialGradient = vrFields.initialGradient ?? rampDefaults.initialGradient
+  const effectiveInitialPoolLimitRate = vrFields.initialPoolLimitRate ?? rampDefaults.initialPoolLimitRate
   return initial && !canEditSeed
     ? null
     : runtimeConfigUnavailable
@@ -194,7 +234,8 @@ export function computeSubmitDisabled(input: {
           if (seedUnavailableReason === 'NO_PRIVACY_BASE') return reason('P 매매표가 없어 등록할 수 없습니다.')
           if (isBelowMinSeed && minSeed !== null) return reason(`최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`)
           if (isInvalidSeed) return reason('예수금은 0보다 커야 합니다.')
-          if (basePrice === null && seedUnavailableReason === null) return reason('기준 가격을 불러오는 중입니다.')
+          if (seedCheck === 'loading') return reason('최소 투자금을 확인하는 중입니다.')
+          if (seedCheck === 'failed') return reason('최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.')
           return null
         })()
 }

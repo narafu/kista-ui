@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 
 const fetchEitherMock = vi.fn()
 
-vi.mock('@shared/lib/api-client', () => ({
+vi.mock('@shared/lib/api-client', async () => ({
+  ...(await vi.importActual<typeof import('@shared/lib/api-client')>('@shared/lib/api-client')),
   fetchEither: (...args: unknown[]) => fetchEitherMock(...args),
   clientFetch: vi.fn(),
   jsonBody: (method: string, body: unknown) => ({ method, body: JSON.stringify(body) }),
@@ -235,13 +236,41 @@ describe('reconfigureVr', () => {
     expect(result.initialDeposit).toBe(1500)
   })
 
-  it('getStrategySeedPreview는 availableCash를 숫자로 정규화하고 없으면 null이다', async () => {
-    const { getStrategySeedPreview } = await import('./index')
-    fetchEitherMock.mockResolvedValueOnce({ ticker: 'TQQQ', basePrice: '50', minSeed: '1000', skipReason: null, availableCash: '1234.5' })
-    expect((await getStrategySeedPreview('a1', { type: 'INFINITE', ticker: 'TQQQ', divisionCount: 40 })).availableCash).toBe(1234.5)
+  it('validateStrategy는 대상별 경로로 바디를 POST하고 derived 금액을 숫자로 정규화한다', async () => {
+    const { validateStrategy } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({
+      fieldErrors: [{ field: 'ticker', detail: '이미 등록된 종목입니다.' }],
+      warnings: [],
+      derived: { basePrice: '50', minSeed: '1000', skipReason: null, availableCash: '1234.5' },
+    })
+    const result = await validateStrategy({ kind: 'create', accountId: 'a1' }, { type: 'INFINITE' })
+    expect(fetchEitherMock).toHaveBeenLastCalledWith(
+      '/api/accounts/a1/trading-cycle-validations',
+      { method: 'POST', body: JSON.stringify({ type: 'INFINITE' }) },
+    )
+    expect(result).toEqual({
+      fieldErrors: [{ field: 'ticker', detail: '이미 등록된 종목입니다.' }],
+      warnings: [],
+      derived: { basePrice: 50, minSeed: 1000, skipReason: null, availableCash: 1234.5 },
+    })
 
-    fetchEitherMock.mockResolvedValueOnce({ ticker: 'TQQQ', basePrice: null, minSeed: null, skipReason: null })
-    expect((await getStrategySeedPreview('a1', { type: 'INFINITE', ticker: 'TQQQ', divisionCount: 40 })).availableCash).toBeNull()
+    fetchEitherMock.mockResolvedValueOnce({ fieldErrors: [], warnings: [], derived: {} })
+    await validateStrategy({ kind: 'update', strategyId: 's1' }, {})
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/update-validations', expect.anything())
+    fetchEitherMock.mockResolvedValueOnce({ fieldErrors: [], warnings: [], derived: {} })
+    await validateStrategy({ kind: 'vr-config', strategyId: 's1' }, {})
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/vr-config-validations', expect.anything())
+  })
+
+  it('validateStrategy는 Bean Validation 400을 필드 없는 거절로 받고 그 밖의 오류는 던진다', async () => {
+    const { validateStrategy } = await import('./index')
+    const { ApiError } = await import('@shared/lib/api-client')
+    fetchEitherMock.mockRejectedValueOnce(new ApiError(400, { title: 'Validation Failed', detail: '밴드 폭은 0보다 커야 합니다.' }))
+    expect(await validateStrategy({ kind: 'create', accountId: 'a1' }, {})).toEqual({
+      fieldErrors: [{ field: null, detail: '밴드 폭은 0보다 커야 합니다.' }], warnings: [], derived: null,
+    })
+    fetchEitherMock.mockRejectedValueOnce(new ApiError(503, null))
+    await expect(validateStrategy({ kind: 'create', accountId: 'a1' }, {})).rejects.toBeInstanceOf(ApiError)
   })
 })
 

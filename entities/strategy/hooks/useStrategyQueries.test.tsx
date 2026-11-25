@@ -66,7 +66,7 @@ vi.mock('../api', () => ({
   pauseStrategy: pauseStrategyMock,
   resumeStrategy: resumeStrategyMock,
   listDcaExecutions: listDcaExecutionsMock,
-  getStrategySeedPreview: vi.fn(),
+  validateStrategy: vi.fn(),
 }))
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))

@@ -2,6 +2,7 @@
 
 import type { SubmitReasonField } from './model/strategyFormGuards'
 import { FormActions } from '@shared/ui/FormActions'
+import { Button } from '@/components/ui/button'
 import { useMeta } from '@entities/meta'
 import { useStrategyForm } from './model/useStrategyForm'
 import type { UseStrategyFormReturn } from './model/useStrategyForm'
@@ -16,7 +17,7 @@ import { InitialHoldingsSection } from './sections/InitialHoldingsSection'
 import { ScheduledStartSection } from './sections/ScheduledStartSection'
 import { DcaStrategyForm } from './DcaStrategyForm'
 import { StrategyFormSkeleton } from './StrategyFormSkeleton'
-import type { Strategy } from '@entities/strategy'
+import { StrategyValidationWarnings, type Strategy } from '@entities/strategy'
 import type { BrokerCode } from '@entities/account'
 
 interface Props {
@@ -88,7 +89,11 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
   const fieldError = (f: SubmitReasonField) => (form.submitDisabledField === f ? form.submitDisabledReason ?? undefined : undefined)
 
   return (
-    <form onSubmit={form.handleSubmit}>
+    <form onSubmit={(e) => {
+      const formEl = e.currentTarget
+      // 막힌 제출은 사유로 포커스를 옮긴다 — 사유는 렌더 뒤에 생길 수 있어 다음 프레임에 찾는다
+      if (!form.handleSubmit(e)) requestAnimationFrame(() => formEl.querySelector<HTMLElement>('[aria-invalid="true"], [data-submit-reason]')?.focus())
+    }}>
       <StrategyTypeSection
         initial={initial}
         type={form.type}
@@ -166,15 +171,22 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
       )}
 
       {form.submitDisabledReason && !form.submitDisabledField && (
-        <p className="text-sm font-semibold text-warn py-3">
-          {form.submitDisabledReason}
-        </p>
+        <div className="flex items-center gap-3 py-3">
+          <p data-submit-reason tabIndex={-1} className="text-sm font-semibold text-warn">
+            {form.submitDisabledReason}
+          </p>
+          {form.seedCheck === 'failed' && (
+            <Button type="button" variant="outline" size="sm" onClick={form.retryValidation}>다시 시도</Button>
+          )}
+        </div>
       )}
+
+      <StrategyValidationWarnings warnings={form.warnings} />
 
       <FormActions
         onCancel={onCancel}
         isPending={form.loading}
-        locked={form.cannotSubmit}
+        locked={form.runtimeConfigUnavailable}
         label={initial ? '수정' : '등록'}
         className="py-6"
       />

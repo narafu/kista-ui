@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { QueryClient } from '@tanstack/react-query'
 import { useCreateStrategyMutation, useUpdateStrategyMutation } from '@entities/strategy'
@@ -73,21 +73,26 @@ export function useLoadFailToast(isMock: boolean, pricesError: boolean) {
 export function useInitialSeedReset({
   initial,
   minSeed,
+  scope,
   isVr,
   resetSeed,
 }: {
   initial?: Strategy
-  minSeed: number | null
+  minSeed: number | null // 지금 입력에 대한 검증 응답의 최소 시드(대기 중이면 null)
+  scope: string // 최소 시드가 달라지는 입력(유형·종목·분할 수)
   isVr: boolean
   resetSeed: ReturnType<typeof useSeedModel>['resetSeed']
 }) {
-  // 엔드포인트 minSeed 도착/변경 시 시드 입력 재초기화 (신규 등록 한정)
+  // 범위(유형·종목·분할 수)마다 최소 시드가 처음 도착할 때 한 번만 시드를 채운다 (신규 등록 한정).
+  // 시드가 검증 바디에 들어가 입력마다 재검증되므로, 시세 변동으로 최소 시드가 바뀌어도 사용자가 고친 시드를 덮지 않는다.
   // canEditSeed(holdings=0 수정)는 기존 시작금액을 유지해야 하므로 여기서 제외한다.
+  const appliedScope = useRef<string | null>(null)
   useEffect(() => {
     if (initial) return
-    if (minSeed === null) return
+    if (minSeed === null || appliedScope.current === scope) return
+    appliedScope.current = scope
     resetSeed({ seedUsdInput: Math.ceil(minSeed) })
-  }, [initial, minSeed, resetSeed])
+  }, [initial, minSeed, scope, resetSeed])
 
   // VR 신규 등록은 초기 시드를 0으로 시작
   useEffect(() => {

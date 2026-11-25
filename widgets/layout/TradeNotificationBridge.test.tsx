@@ -41,7 +41,7 @@ const PRESERVED: QueryKey[] = [
   statsKeys.etfPriceSeries(undefined, undefined, 'SPY'),
   statsKeys.housingRegions(),
   // 계좌 메타(이름·증권사)는 체결과 무관
-  strategyKeys.seedPreview('a1', 'INFINITE', 'TQQQ', 40),
+  strategyKeys.validation('create:a1', '{}'),
   accountKeys.list(),
 ]
 

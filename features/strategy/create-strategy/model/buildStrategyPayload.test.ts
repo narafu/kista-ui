@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { strategy } from '@entities/strategy/model/fixtures'
-import type { RuntimeConfig, RuntimeStrategyType } from '@entities/runtime-config'
+import { RAMP_DEFAULTS_BY_MODE, type VrRecurringMode } from '@entities/strategy'
+import type { StrategyTypeMeta } from '@entities/meta'
 import { buildStrategyPayload, type BuildStrategyPayloadInput } from './buildStrategyPayload'
-import { computeVrDerived, type VrRecurringMode } from './vrDerived'
 import type { VrFields } from './useStrategyForm'
 
-type RuntimeStrategySettings = RuntimeConfig['strategies'][RuntimeStrategyType]
+type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
 
 function vrFields(overrides: Partial<VrFields> = {}): VrFields {
   return {
@@ -29,25 +29,11 @@ const vrRuntime: RuntimeStrategySettings = {
 
 function build(input: Partial<BuildStrategyPayloadInput> & { vrFields: VrFields; recurringMode?: VrRecurringMode; seedUsd: number | null }) {
   const { recurringMode = 'HOLD', ...rest } = input
-  const vrDerived = computeVrDerived({
-    initial: rest.initial,
-    avgPrice: rest.vrFields.avgPrice,
-    quantity: rest.vrFields.quantity,
-    initialValue: rest.vrFields.initialValue,
-    seedUsd: rest.seedUsd,
-    recurringMode,
-    recurringAmount: rest.vrFields.recurringAmount,
-    intervalWeeks: rest.vrFields.intervalWeeks,
-    initialGradient: rest.vrFields.initialGradient,
-    gMax: rest.vrFields.gMax,
-    initialPoolLimitRate: rest.vrFields.initialPoolLimitRate,
-    poolLimitFloor: rest.vrFields.poolLimitFloor,
-  })
   return buildStrategyPayload({
     type: 'INFINITE', ticker: 'TSLA', cycleSeedType: 'MAX', canEditSeed: false, isVr: false,
     usesDivisionCount: false, divisionCount: 20, divisionCountSettings: undefined,
     runtimeStrategy: undefined, scheduledStartDate: null,
-    ...rest, vrDerived,
+    ...rest, recurringMode, rampDefaults: RAMP_DEFAULTS_BY_MODE[recurringMode],
   })
 }
 

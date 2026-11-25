@@ -27,7 +27,7 @@ const initial: Strategy = {
 // 폼이 시드 미리보기를 읽는다(전략 정책은 renderApp의 meta)
 const formApi = {
   'GET /api/accounts/{accountId}/trading-cycles': [initial],
-  'GET /api/accounts/{accountId}/strategy-seed-preview': { ticker: 'TQQQ', basePrice: 50, minSeed: 100, availableCash: 5000 },
+  'POST /api/trading-cycles/{id}/update-validations': { fieldErrors: [], warnings: [], derived: { minSeed: 100 } },
 } as never
 
 const SEED_LOCKED = '예수금은 전략 등록 후 수정할 수 없습니다'

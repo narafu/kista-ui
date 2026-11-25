@@ -19,7 +19,7 @@ export const strategyFormSchema = z.object({
   initialValue: z.number().nonnegative().nullable().optional(),
   scheduledStartDate: z.string().nullable().optional(),
   // VR 램프 파라미터 — 전부 optional. initialGradient/gMax/initialPoolLimitRate/poolLimitFloor 4필드는
-  // 생략해도 백엔드로 넘어가지 않는다 — buildStrategyPayload가 RAMP_DEFAULTS_BY_MODE(recurringMode별 고정표)로
+  // 생략해도 백엔드로 넘어가지 않는다 — buildStrategyPayload가 메타 vrRampDefaults(recurringMode별 표, 없으면 같은 값의 RAMP_DEFAULTS_BY_MODE)로
   // 채워 항상 명시값을 보낸다. 나머지 유예·단계주기 4필드만 생략 시 백엔드 기본값에 위임한다
   initialGradient: z.number().int().positive().nullable().optional(),
   gGraceWeeks: z.number().int().nonnegative().nullable().optional(),
