@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { Button } from '@/components/ui/button'
 import { BudgetFormDialog } from '@features/finance/manage-budgets'
 import { SectionError } from '@shared/ui/SectionError'
@@ -137,11 +138,9 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
   const orderedRootIds = sortedCategoryTree.map((c) => c.id)
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+      <SectionTitle className="pb-3">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</SectionTitle>
+      <div>
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
@@ -191,8 +190,8 @@ export function FinanceBudgetProgress({ type, budgets, transactions, categoryTre
             )}
           </div>
         )}
-      </CardContent>
+      </div>
       <BudgetFormDialog type={type} target={{ mode: 'create' }} open={addOpen} onClose={() => setAddOpen(false)} defaultCategoryId={addCategoryId} />
-    </Card>
+    </Surface>
   )
 }

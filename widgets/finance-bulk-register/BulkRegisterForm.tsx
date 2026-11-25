@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { MonthClosedNotice } from '@shared/ui/MonthClosedNotice'
 import { SectionError } from '@shared/ui/SectionError'
@@ -278,9 +279,9 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     const sectionItems = flattenNodes(nodes)
     const allIncluded = sectionItems.length > 0 && sectionItems.every((item) => rowState(item).included)
     return (
-      <Surface as="section" aria-label={title} className="p-6">
+      <Surface as="section" aria-label={title}>
         <div className="flex items-center justify-between gap-3 mb-3">
-          <h2 className="text-sm font-bold">{title}</h2>
+          <SectionTitle>{title}</SectionTitle>
           {sectionItems.length > 0 && (
             <Switch
               checked={allIncluded}
@@ -324,7 +325,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
       )}
 
       {canShareToGroup && (
-        <Surface className="px-6 py-4">
+        <Surface size="compact">
           <ShareToGroupSwitch
             id="bulkRegisterShareToGroup"
             checked={shareToGroup}

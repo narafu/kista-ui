@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { asyncFallback } from '@shared/ui/AsyncSection'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
+import { cn } from '@shared/lib/utils'
 import { MONTHLY_TREND_RANGE_OPTIONS } from '@entities/finance'
 import type { TrendRange } from '@entities/finance'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
@@ -21,16 +23,16 @@ interface Props {
 
 export function AssetTrend({ className, month, range, onRangeChange }: Props) {
   return (
-    <Card className={className}>
-      <CardHeader className="items-center pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">월별 추이</CardTitle>
-        <CardAction>
+    <Surface size="compact" className={cn('flex flex-col gap-4 overflow-hidden text-sm', className)}>
+      <div className="flex items-center justify-between gap-1 pb-3">
+        <SectionTitle>월별 추이</SectionTitle>
+        <div>
           <SegmentedToggle aria-label="추이 기간" options={MONTHLY_TREND_RANGE_OPTIONS} value={range} onChange={onRangeChange} />
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col">
         <AssetTrendInner month={month} range={range} />
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

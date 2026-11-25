@@ -2,7 +2,9 @@
 
 import dynamic from 'next/dynamic'
 import { asyncFallback } from '@shared/ui/AsyncSection'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
+import { cn } from '@shared/lib/utils'
 import { MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
@@ -29,19 +31,19 @@ interface Props {
 
 export function FinanceTrend({ type, transactions, range, onRangeChange, categoryTree, index, period, isLoading, isError, className, today }: Props) {
   return (
-    <Card className={className}>
-      <CardHeader className="items-center pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}</CardTitle>
-        <CardAction>
+    <Surface size="compact" className={cn('flex flex-col gap-4 overflow-hidden text-sm', className)}>
+      <div className="flex items-center justify-between gap-1 pb-3">
+        <SectionTitle>{period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}</SectionTitle>
+        <div>
           <SegmentedToggle
             aria-label="추이 기간"
             options={period.mode === 'yearly' ? YEARLY_TREND_RANGE_OPTIONS : MONTHLY_TREND_RANGE_OPTIONS}
             value={range}
             onChange={onRangeChange}
           />
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex flex-1 flex-col">
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col">
         <FinanceTrendInner
           type={type}
           transactions={transactions}
@@ -53,7 +55,7 @@ export function FinanceTrend({ type, transactions, range, onRangeChange, categor
           isError={isError}
           today={today}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { maskAmount } from '@shared/lib/format'
@@ -73,12 +74,12 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
   )
 
   return (
-    <Card>
-      <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">{labelOf('financeCategoryTypes', type)} 요약</CardTitle>
+    <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+      <div className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+        <SectionTitle>{labelOf('financeCategoryTypes', type)} 요약</SectionTitle>
         <PeriodControls period={period} onPeriodChange={onPeriodChange} today={today} />
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {isLoading ? (
           <LoadingRow />
         ) : isError ? (
@@ -100,7 +101,7 @@ export function FinanceSummary({ type, transactions, index, isLoading, isError, 
             amountValue={amountValue}
           />
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

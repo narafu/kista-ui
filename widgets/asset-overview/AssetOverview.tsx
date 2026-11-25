@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { SectionError } from '@shared/ui/SectionError'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
@@ -68,12 +69,12 @@ export function AssetOverview({ month, months, onMonthChange, today, selectedCat
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-3 pb-3">
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">자산 요약</CardTitle>
+    <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+      <div className="flex flex-row items-center justify-between gap-3 pb-3">
+        <SectionTitle>자산 요약</SectionTitle>
         <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
-      </CardHeader>
-      <CardContent>
+      </div>
+      <div>
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (
@@ -87,7 +88,7 @@ export function AssetOverview({ month, months, onMonthChange, today, selectedCat
             <AssetClassSection breakdown={assetClassBreakdown} delta={assetClassDelta} labelOf={labelOf} />
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

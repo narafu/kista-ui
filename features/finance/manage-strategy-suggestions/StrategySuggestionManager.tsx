@@ -3,6 +3,7 @@
 import { DEFAULT_STRATEGY_SUGGESTIONS, useMeQuery, useUpdateStrategySuggestionsMutation } from '@entities/user'
 import { SuggestionListEditor } from '@shared/ui/SuggestionListEditor'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 
@@ -21,8 +22,8 @@ export function StrategySuggestionManager() {
   }
 
   return (
-    <Surface as="section" className="p-6">
-      <h2 className="text-sm font-bold mb-0.5">운용전략 관리</h2>
+    <Surface as="section">
+      <SectionTitle className="mb-0.5">운용전략 관리</SectionTitle>
       <div className="text-sm text-muted-foreground mb-[18px]">자산 등록 폼의 운용전략 추천 목록을 관리합니다.</div>
       {/* 유저 정보를 못 받은 동안 섹션을 통째로 숨기면 설정 위치를 잃는다 — 제목은 두고 상태를 알린다 */}
       {user ? (

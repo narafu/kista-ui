@@ -1,7 +1,8 @@
 'use client'
 
 import { AlertTriangle, CalendarClock, CheckCircle2 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import {
@@ -42,11 +43,11 @@ export function AssetRecordCheck({ month }: Props) {
 
   if (assetsQuery.isLoading || checksQuery.isLoading || groupsQuery.isLoading) {
     return (
-      <Card>
-        <CardContent>
+      <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+        <div>
           <LoadingRow />
-        </CardContent>
-      </Card>
+        </div>
+      </Surface>
     )
   }
   if ([assetsQuery, checksQuery, groupsQuery].some((query) => query.isError && !query.data)) {
@@ -61,11 +62,9 @@ export function AssetRecordCheck({ month }: Props) {
   const completed = isMonthClosed(monthlyClosings, month, closingScopeGroupId)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle role="heading" aria-level={2} className="text-base lg:text-lg">기록 점검</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
+      <SectionTitle>기록 점검</SectionTitle>
+      <div className="space-y-4">
         <section>
           <h3 className="text-sm font-semibold mb-1.5">미기록 카테고리</h3>
           {missingCategories.length === 0 ? (
@@ -116,7 +115,7 @@ export function AssetRecordCheck({ month }: Props) {
               : '완료로 설정하면 재무 기록의 등록·수정·삭제가 잠깁니다.'}
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </Surface>
   )
 }

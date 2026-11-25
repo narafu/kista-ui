@@ -6,6 +6,7 @@ import { StrategySuggestionManager } from '@features/finance/manage-strategy-sug
 import { GroupManager } from '@features/finance/manage-group'
 import { HideAmountsToggle } from '@features/finance/hide-amounts'
 import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@shared/lib/utils'
 
@@ -19,9 +20,9 @@ import { cn } from '@shared/lib/utils'
 export function AssetSettingsPanel() {
   return (
     <div className="flex flex-col gap-[18px]">
-      <Surface as="section" className="p-6 flex items-center justify-between gap-4">
+      <Surface as="section" className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-bold mb-0.5">일괄 등록</h2>
+          <SectionTitle className="mb-0.5">일괄 등록</SectionTitle>
           <div className="text-sm text-muted-foreground">지난달 자산·수입·소비·저축 기록을 이번 달로 한 번에 등록합니다.</div>
         </div>
         <Link
@@ -33,12 +34,12 @@ export function AssetSettingsPanel() {
         </Link>
       </Surface>
 
-      <Surface as="section" className="p-6">
+      <Surface as="section">
         <HideAmountsToggle />
       </Surface>
 
-      <Surface as="section" className="p-6">
-        <h2 className="text-sm font-bold mb-0.5">카테고리</h2>
+      <Surface as="section">
+        <SectionTitle className="mb-0.5">카테고리</SectionTitle>
         <div className="text-sm text-muted-foreground mb-[18px]">자산·수입·소비·저축 카테고리를 관리합니다.</div>
         <CategoryManager />
       </Surface>
