@@ -416,6 +416,11 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - 집계할 때 `diff > 0`만 세면 크기 불일치(`diff`가 `"SIZE …"` 문자열)를 놓친다. `diff !== 0`으로 센다.
 - `6a3e0a14`(S1)의 visual-diff: **해소(2026-11-21)**. 대상 화면만(`--only '^(account-detail|account-new|create-strategy|stock-dca)'`) `190caf90` 대 `6a3e0a14`로 돌렸다. 22샷 중 2샷만 다르고, 계좌 등록의 "증권사·거래소" → "증권사" 문구로 의도한 변경이다. 전체 시나리오를 돌린 실행은 옛 커밋 worktree의 폰트 모듈 오류로 판정에 쓰지 않았다.
 
+- `b1adbb12`~`fb5d91cb`(S4 3차, 2026-11-25): 로컬 api 무응답으로 못 돌렸다. api(`KISTA_ROLE=all`)가 응답하면 차례로 돌린다.
+  - visual-diff 단계별(백그라운드, `diff !== 0`으로 센다): `npm run visual-diff -- 252cc6ae`를 `b1adbb12`에서(차이 0 기대), `b1adbb12` 대 `dc88ce0e`(모서리만), `dc88ce0e` 대 `e55da6c0`(조회 실패 화면이 없으면 차이 없음), `e55da6c0` 대 `fb5d91cb`(모서리·테두리·그림자·여백 의도분만, 위 "사용자 확인 대기" 목록). 의도하지 않은 간격 차이는 되돌린다.
+  - `npm run a11y-check -- --url http://localhost:3000`(dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`).
+  - e2e(worktree 절차): `--project=setup --no-deps` 다음 `--project=chromium --no-deps`.
+
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
 - **T0 운영 확인(읽기 전용, 2026-11-15)**: `BINANCE`·`UPBIT` 계좌 live 0(전체 각 1, 삭제 표시), `BTC`·`ETH` 전략 live 0(`ETH` 전체 2), 코인 미체결 주문 0, 미완료 코인 이벤트 0. push 조건 충족.
@@ -569,3 +574,14 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - fable-api에 전달: cross-repo 후보 6건, 주제 목록, 원칙 위반 전수 목록과 집계 명세, 검증 전용 엔드포인트·단건 조회 요청(전부 수용, api T10·T11·T12).
 - fable-api에서 받음: BigDecimal은 JSON number(코드 확인), 지침서 10 규약, 예외 대장 판정(등록 예외 0건), KIS·업비트 삭제 결정, 프로세스 구조 권고(D1=A: 진입점 하나, 사용자 결정 전).
 - fable-infra에서 받음: 배포 자산 후보 6건(09에 반영).
+
+## S4 3차 실행 기록 — 토큰·Surface (지침서 06의 6 + 11의 11, 2026-11-25)
+
+- 기준은 `252cc6ae`다. 커밋 8개: `b1adbb12` 토큰 별칭·색 치환, `dc88ce0e` 모서리·토큰 lint, `e55da6c0` 조회 실패 색, `f3b9eaf2` 통계·벤치마크(+`Surface` size·`SectionTitle`), `93f1ed21` 계좌·전략, `38768f75` 가계부, `0471c700` 관리자·설정·대시보드·`card.tsx` 삭제·문서, `fb5d91cb` Pretendard. 앞 셋은 작업 중 스냅샷 트리 그대로고, 넷째부터는 그 위에 경로 단위로 나눴다(가운데 커밋의 화면은 섞여 있을 수 있다. 판정은 마지막 트리로 한다).
+- 판정: `git grep -n "components/ui/card" -- '*.ts' '*.tsx'` 0건, `-[var(--` 216 → 0줄, `style={{` 58 → 42줄. 재측정 수치·모서리 매핑·판정 제외는 06·11의 "S4 3차 실행 보정" 절에 있다.
+- 검증: typecheck·lint·knip 통과, vitest 262파일 1853건 통과(+ `SectionError` 2건). 변이 확인 둘: `SectionTitle`에 `text-[var(--warn)]`를 넣으면 토큰 lint가 잡는다. `SectionError` 문구를 `text-muted-foreground`로 되돌리면 새 색 단언이 실패한다. 이 단언은 D 위임이 C의 색을 조용히 되돌린 것을 발견하고 넣었다.
+- 리뷰(`/code-review medium`) 5건: 재시작 안내가 빨강으로 보이는 것(재시작 안내는 muted로 고침)과 `PrivacyBaseChart`의 낡은 Card 주석은 고쳤다. 남은 3건은 사용자가 이번 범위에서 그대로 두기로 한 것과 같다(아래 "사용자 확인 대기").
+- **사용자 확인 대기**:
+  - 설정·가계부 설정 카드의 모바일 여백이 24px에서 16px로 준다(`default`). `BulkRegisterForm`의 `px-6 py-4` 박스는 `compact`로 옮겼다. 계좌 수정 폼 제목 둘의 글자가 커진다. 관리자 개요·관리자 설정 페이지·`AdminTradesWorkbench`의 `h2`가 bold·semibold에서 medium이 된다. `StrategyMetaSection`의 `CardAction` 배치는 visual-diff로 확인한다.
+  - 같은 화면 안의 불일치(리뷰 1·3·4): 가계부 설정 탭에서 `SectionTitle`(16px medium) 구역과 `AccountManager`·`GroupManager`·`HideAmountsToggle`의 손수 `h2`(14px bold)·`rounded-[1.25rem]` 카드가 섞인다. 관리자 설정도 `AdminSettingsForm`의 하위 `h2` 4개가 `text-base font-bold`로 남는다. 손수 카드 셸(`CredentialsCard`·`AssetForm`·`AccountManager`·`GroupManager`의 `rounded-[1.25rem]`, `DashboardEmpty` 모바일 알림 카드)과 손수 `h2`(`ReconfigureVrSections`, `AllStrategiesList`, 계좌 등록 단계)도 남았다. 통일할지 정해야 한다.
+- **visual-diff·a11y-check·e2e는 못 돌렸다.** 로컬 api(:8080)가 리슨은 하지만 응답하지 않는다(`/api/accounts` 15초 시간 초과). 아래 "e2e 대기"에 적었다. 다크 모드 visual-diff는 도구에 옵션이 없다.
