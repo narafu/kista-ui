@@ -74,7 +74,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
         <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
-      <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="사용자 목록" tabIndex={0}>
+      <div className="rounded-xl border border-border overflow-x-auto" role="region" aria-label="사용자 목록" tabIndex={0}>
         <table className={cn('min-w-[720px] w-full text-sm', evenColumnsClass(4))}>
           <thead className="bg-muted/50">
             <tr>

@@ -25,7 +25,7 @@ export function CycleSeedSection({ autoStart, setAutoStart, seedMode, setSeedMod
       <StrategyFieldLabel hint="">사이클 연속여부</StrategyFieldLabel>
 
       {/* 자동 시작 토글 */}
-      <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-card mb-[14px]">
+      <div className="flex items-center justify-between px-[14px] py-3 rounded-sm border border-border bg-card mb-[14px]">
         <div>
           <div className="text-sm font-bold text-foreground">
             다음 사이클 자동 시작

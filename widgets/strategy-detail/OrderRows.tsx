@@ -76,7 +76,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
       <ul className="space-y-2 p-4 lg:hidden">
         {sorted.map((o, i) => (
           // id 없는 주문의 fallback 키(행 상태가 없는 읽기 전용 목록이라 정렬로 인덱스가 바뀌어도 무방)
-          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+          <li key={o.id ?? `${o.ticker}-${o.direction}-${i}`} className="rounded-lg border border-border bg-card px-3 py-2.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-1.5">

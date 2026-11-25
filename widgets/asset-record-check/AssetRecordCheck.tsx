@@ -73,7 +73,7 @@ export function AssetRecordCheck({ month }: Props) {
               <CheckCircle2 className="size-4" /> 모든 카테고리 기록 완료
             </p>
           ) : (
-            <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+            <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
               <AlertTriangle className="size-4 mt-0.5 shrink-0" />
               <span>{missingCategories.map(formatAssetL1CategoryLabel).join(', ')}</span>
             </div>
@@ -88,7 +88,7 @@ export function AssetRecordCheck({ month }: Props) {
                 <CheckCircle2 className="size-4" /> 전월 대비 누락 계좌 없음
               </p>
             ) : (
-              <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+              <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
                 <AlertTriangle className="size-4 mt-0.5 shrink-0" />
                 <span>{missingAccounts.join(', ')}</span>
               </div>
@@ -99,7 +99,7 @@ export function AssetRecordCheck({ month }: Props) {
         {dateGroups.length > 1 && (
           <section>
             <h3 className="text-sm font-semibold mb-1.5">기준일 혼재 경고</h3>
-            <div className="flex items-start gap-1.5 rounded-[var(--r-md)] border border-info bg-info-bg px-3 py-2 text-sm text-info">
+            <div className="flex items-start gap-1.5 rounded-lg border border-info bg-info-bg px-3 py-2 text-sm text-info">
               <CalendarClock className="size-4 mt-0.5 shrink-0" />
               <span>
                 선택한 달의 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.

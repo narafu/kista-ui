@@ -22,7 +22,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>매매 전략</StrategyFieldLabel>
       {initial ? (
-        <div className="flex items-center gap-2 px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+        <div className="flex items-center gap-2 px-[14px] py-3 rounded-sm border border-border bg-muted">
           <span className="text-sm font-[800] text-rose-600">
             {labelOf('strategyTypes', initial.type)}
           </span>
@@ -30,7 +30,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
       ) : (
         <div className="grid grid-cols-2 gap-2.5">
           {strategyTypes.length === 0 && (
-            <p className="col-span-2 rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+            <p className="col-span-2 rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
               현재 등록 가능한 전략이 없습니다.
             </p>
           )}
@@ -43,7 +43,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
                 selected={selected}
                 onClick={() => setType(t.code)}
                 disabled={loading}
-                className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4"
+                className="flex items-center gap-2 rounded-lg px-[14px] py-4"
               >
                 <span className={selected ? 'size-4 shrink-0 text-selection-fg' : 'size-4 shrink-0 text-muted-foreground'}>
                   {singleTicker ? <Activity size={16} /> : <Zap size={16} />}

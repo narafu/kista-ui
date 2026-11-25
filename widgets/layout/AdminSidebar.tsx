@@ -40,7 +40,7 @@ export function AdminSidebar() {
 
       {/* 앱으로 돌아가기 + 로그아웃 */}
       <SidebarNavItem href="/dashboard" label="앱으로 돌아가기" icon={ArrowLeft} active={false} />
-      <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+      <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors w-full text-left">
         <LogOut className="size-[18px] shrink-0" />
         로그아웃
       </LogoutButton>

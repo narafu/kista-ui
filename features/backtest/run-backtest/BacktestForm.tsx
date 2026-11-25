@@ -39,7 +39,7 @@ export function BacktestForm({ form }: Props) {
                   selected={selected}
                   onClick={() => form.setType(t.code as BacktestType)}
                   disabled={form.isLoading}
-                  className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4"
+                  className="flex items-center gap-2 rounded-lg px-[14px] py-4"
                 >
                   <span className={selected ? 'size-4 shrink-0 text-selection-fg' : 'size-4 shrink-0 text-muted-foreground'}>
                     {singleTicker ? <Activity size={16} /> : <Zap size={16} />}

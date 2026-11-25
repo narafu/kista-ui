@@ -50,7 +50,7 @@ export function DcaRuleList({ rules, onSelect, onAdd, registerRowRef, error }: P
             // 인덱스 키 — 행에 내부 상태가 없고 포커스 복귀도 인덱스로 찾는다
             <li key={i}>
               <button type="button" ref={(el) => registerRowRef(i, el)} onClick={() => onSelect(i)}
-                className="flex w-full items-center gap-3 rounded-[var(--r-sm)] border border-border bg-card px-3 py-2.5 text-left hover:border-selection-hover-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                className="flex w-full items-center gap-3 rounded-sm border border-border bg-card px-3 py-2.5 text-left hover:border-selection-hover-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">
                     <DcaRuleSummaryLabel rule={toSummaryInput(r)} labelOf={labelOf} badgeClassName={directionBadgeClass(r.direction)} />

@@ -27,7 +27,7 @@ export function BacktestPageContent() {
       {form.isLoading ? (
         <div ref={resultRef} role="status" aria-label="백테스트 실행 중" className="flex min-w-0 scroll-mt-20 flex-col gap-5">
           <BacktestSummaryCards />
-          <Skeleton className="h-[290px] w-full rounded-[var(--r-lg)] sm:h-[340px]" />
+          <Skeleton className="h-[290px] w-full rounded-xl sm:h-[340px]" />
         </div>
       ) : result ? (
         <div ref={resultRef} className="flex min-w-0 scroll-mt-20 flex-col gap-5">
@@ -40,7 +40,7 @@ export function BacktestPageContent() {
             summary={result.summary}
             excludesRecurringFlows={form.resultParams?.type === 'VR' && !!form.resultParams.vrRecurringAmount}
           />
-          <div className="rounded-[var(--r-lg)] border border-border bg-card p-4 sm:p-6">
+          <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
             <EquityLineChart
               title="백테스트 자산 추이"
               rows={result.points.map((p) => ({ date: p.date, asset: p.totalAsset, principal: p.principal }))}
@@ -57,7 +57,7 @@ export function BacktestPageContent() {
           <BacktestWarnings warnings={result.warnings} />
         </div>
       ) : (
-        <div className="hidden min-h-[24rem] items-center justify-center rounded-[var(--r-lg)] border border-dashed border-border text-sm text-muted-foreground lg:flex">
+        <div className="hidden min-h-[24rem] items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground lg:flex">
           조건을 입력하고 실행하면 결과가 여기에 표시됩니다.
         </div>
       )}

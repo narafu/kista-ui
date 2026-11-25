@@ -114,7 +114,7 @@ export function StrategyOrderHistory({ strategyId }: Props) {
                 <div key={`${g.key}-${i}`} className="space-y-1.5">
                   <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((o) => (
-                    <div key={o.id} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-1.5">
+                    <div key={o.id} className="rounded-lg border border-border bg-card px-3 py-2.5 space-y-1.5">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                           <Badge tone="none" size="sm" className={directionBadgeClass(o.direction)}>

@@ -24,7 +24,7 @@ export function AdminAccountsTable({ accounts }: { accounts: AdminAccount[] }) {
   const { labelOf } = useMeta()
 
   return (
-    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="계좌 목록" tabIndex={0}>
+    <div className="rounded-xl border border-border overflow-x-auto" role="region" aria-label="계좌 목록" tabIndex={0}>
       <table className={cn('min-w-[720px] w-full text-sm', evenColumnsClass(5))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>

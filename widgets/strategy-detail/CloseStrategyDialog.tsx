@@ -63,7 +63,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
             </AlertDialogDescription>
           </AlertDialogHeader>
           <RadioGroup value={choice} onValueChange={(v) => setPicked(v as CloseChoice)} aria-label="종료 방식" disabled={disabled}>
-            <label className="flex items-start gap-3 rounded-[var(--r-md)] border border-border p-3 has-data-checked:border-primary has-data-disabled:opacity-60">
+            <label className="flex items-start gap-3 rounded-lg border border-border p-3 has-data-checked:border-primary has-data-disabled:opacity-60">
               <RadioGroupItem value="ARCHIVE" disabled={disabled || hasHoldings} className="mt-0.5" />
               <span className="min-w-0 space-y-0.5 text-sm">
                 <span className="block font-medium">보관</span>
@@ -72,7 +72,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
                 </span>
               </span>
             </label>
-            <label className="flex items-start gap-3 rounded-[var(--r-md)] border border-border p-3 has-data-checked:border-destructive has-data-disabled:opacity-60">
+            <label className="flex items-start gap-3 rounded-lg border border-border p-3 has-data-checked:border-destructive has-data-disabled:opacity-60">
               <RadioGroupItem value="DELETE" disabled={disabled} className="mt-0.5" />
               <span className="min-w-0 space-y-0.5 text-sm">
                 <span className="block font-medium">삭제</span>

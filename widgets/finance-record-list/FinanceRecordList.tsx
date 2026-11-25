@@ -191,7 +191,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
             <EmptyState variant="text" message="조건에 맞는 거래내역이 없습니다." />
           ) : (
             <>
-              <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="거래내역 표" tabIndex={0}>
+              <div className="hidden overflow-x-auto lg:block rounded-xl border border-border" role="region" aria-label="거래내역 표" tabIndex={0}>
                 <table className={cn('w-full min-w-[720px] text-sm', evenColumnsClass(4))} aria-label="거래내역">
                   <thead className="bg-muted/50">
                     <tr>
@@ -247,7 +247,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
               </div>
 
               <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-              <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="거래내역">
+              <ul className="m-0 list-none divide-y rounded-xl border border-border p-0 lg:hidden" aria-label="거래내역">
                 {paged.map((t) => {
                   const entry = index.get(t.categoryId)
                   const closed = isClosed(t.transactionDate)

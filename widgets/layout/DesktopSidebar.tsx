@@ -92,7 +92,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
                         key={sub.href}
                         href={subLinkHref}
                         aria-current={subActive ? 'page' : undefined}
-                        className={`px-3 py-1.5 rounded-[var(--r-md)] text-sm transition-colors ${
+                        className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
                           subActive
                             ? 'text-sidebar-active-fg font-medium'
                             : 'text-muted-foreground hover:text-foreground'
@@ -113,7 +113,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
             <Link
               href="/admin"
               aria-current={pathname.startsWith('/admin') ? 'page' : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname.startsWith('/admin')
                   ? 'bg-admin-bg text-admin-fg'
                   : 'text-admin-fg hover:bg-admin-bg/60'
@@ -134,7 +134,7 @@ export function DesktopSidebar({ isAdmin, isAuthenticated }: Props) {
           <ThemeToggle />
         </div>
         {isAuthenticated ? (
-          <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-[var(--r-md)] text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
+          <LogoutButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-rose-50/60 hover:text-foreground transition-colors w-full text-left">
             <LogOut className="size-[18px] shrink-0" />
             로그아웃
           </LogoutButton>

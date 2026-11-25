@@ -42,7 +42,7 @@ export function EmptyState({ message, variant = 'box', icon, title, action, clas
   }
 
   return (
-    <div className={cn('rounded-[var(--r-lg)] border border-border p-10 text-center text-sm text-muted-foreground', className)}>
+    <div className={cn('rounded-xl border border-border p-10 text-center text-sm text-muted-foreground', className)}>
       {children}
       {message}
     </div>

@@ -107,7 +107,7 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
             <CardContent className="text-sm">
               <ul className="space-y-3">
                 {dca.rules.map((r) => (
-                  <li key={r.ruleKey} className="rounded-[var(--r-md)] border border-border px-3 py-2.5">
+                  <li key={r.ruleKey} className="rounded-lg border border-border px-3 py-2.5">
                     {/* 모바일 세로 길이를 줄이려 주기·주문 방식은 배지 옆 한 줄, 다음 판정·최근 결과는 하단 보조 줄로 둔다 */}
                     <div className="flex flex-wrap items-center gap-x-2">
                       <Badge tone="none" size="sm" className={directionBadgeClass(r.direction)}>{labelOf('orderDirections', r.direction)}</Badge>

@@ -67,7 +67,7 @@ export function AdminTradeFilterPanel({
   const helperMessage = getHelperMessage({ brokers, accounts, strategies, selectedUserId, selectedBroker, selectedAccountId })
 
   return (
-    <section className="rounded-[var(--r-lg)] border border-border bg-background p-4" aria-label="거래 내역 필터">
+    <section className="rounded-xl border border-border bg-background p-4" aria-label="거래 내역 필터">
       <h2 className="text-base font-semibold">거래 내역 필터</h2>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -148,13 +148,13 @@ export function AdminTradeFilterPanel({
       </div>
 
       {helperMessage ? (
-        <p className="mt-4 rounded-[var(--r-md)] border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+        <p className="mt-4 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
           {helperMessage}
         </p>
       ) : null}
 
       {selectedStrategy ? (
-        <div className="mt-4 rounded-[var(--r-md)] border border-border bg-muted/20 p-3">
+        <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">현재 전략 상태: {labelOf('strategyStatuses', selectedStrategy.status)}</p>
             <Button type="button" variant="outline" size="sm" onClick={onStrategyStatusToggle} disabled={strategyStatusPending}>

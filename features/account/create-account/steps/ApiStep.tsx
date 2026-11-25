@@ -123,7 +123,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
       )}
 
       {broker === 'MERITZ' && (
-        <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+        <p className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
           메리츠증권은 계좌번호를 받지 않고 App Key에 연결된 계좌 하나로 매매합니다. 계좌를 여러 개 등록하려면 계좌마다 App Key를 따로 발급받으세요.
         </p>
       )}

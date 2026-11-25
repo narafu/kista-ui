@@ -103,7 +103,7 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                   <div className="flex items-center gap-1">
                     <Input type="number" step="any" aria-label={`조건 ${i + 1} 기준값`} aria-invalid={!!rowError?.threshold} aria-describedby={errorId}
                       {...form.register(`conditions.${i}.threshold`, { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
-                      className="h-11 w-20 rounded-[var(--r-sm)] px-2" />
+                      className="h-11 w-20 rounded-sm px-2" />
                     {indicator && THRESHOLD_SUFFIX[indicator] && <span className="text-sm">{THRESHOLD_SUFFIX[indicator]}</span>}
                   </div>
                 )}

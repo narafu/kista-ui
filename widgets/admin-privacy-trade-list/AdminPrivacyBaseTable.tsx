@@ -199,7 +199,7 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
             })}
           </div>
 
-          <div className="hidden rounded-[var(--r-lg)] border border-border overflow-x-auto lg:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
+          <div className="hidden rounded-xl border border-border overflow-x-auto lg:block" role="region" aria-label="P 매매표 목록" tabIndex={0} data-testid="admin-privacy-desktop-table-wrap">
             <table className={cn('w-full text-sm min-w-[760px]', evenColumnsClass(7))} data-testid="admin-privacy-desktop-table">
               <thead className="bg-muted/50 border-b border-border">
                 <tr>
@@ -279,7 +279,7 @@ function MobileBaseCard({
   onDeleteOrder: (order: AdminPrivacyOrder) => void
 }) {
   return (
-    <article className="rounded-[var(--r-lg)] border border-border bg-card/70 px-4 py-3 shadow-sm">
+    <article className="rounded-xl border border-border bg-card/70 px-4 py-3 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         {/* 카드 헤더 전체가 아코디언 토글 — 데스크탑 표의 IconButton 토글과 같은 aria-expanded/controls */}
         <h3 className="min-w-0 flex-1">

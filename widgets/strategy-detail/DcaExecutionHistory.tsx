@@ -118,7 +118,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
                 <div key={`${g.key}-${i}`} className="space-y-1.5">
                   <div className={DATE_GROUP_LABEL_CLASS}>{g.key}</div>
                   {g.items.map((r) => (
-                    <div key={r.ruleKey} className="rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5 space-y-2">
+                    <div key={r.ruleKey} className="rounded-lg border border-border bg-card px-3 py-2.5 space-y-2">
                       <div className="flex items-start justify-between gap-2 text-sm">
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">{directionBadge(r)}{scheduleCell(r)}</div>

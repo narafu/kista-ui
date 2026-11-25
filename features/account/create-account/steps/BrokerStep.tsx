@@ -34,12 +34,12 @@ export function BrokerStep({ onNext }: Props) {
       </div>
       <div className="flex flex-col gap-3">
         {isLoading && (
-          <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
             등록 가능한 증권사를 확인하고 있습니다.
           </p>
         )}
         {isError && (
-          <div className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          <div className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
             <p>증권사 설정을 불러오지 못했습니다.</p>
             <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
               다시 시도
@@ -47,7 +47,7 @@ export function BrokerStep({ onNext }: Props) {
           </div>
         )}
         {runtimeConfig && enabledBrokers.length === 0 && (
-          <p className="rounded-[var(--r-sm)] border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
             현재 등록 가능한 증권사가 없습니다.
           </p>
         )}
@@ -62,7 +62,7 @@ export function BrokerStep({ onNext }: Props) {
               key={code}
               type="button"
               onClick={() => onNext({ broker: code as BrokerCode })}
-              className="flex items-center gap-4 w-full rounded-[var(--r-lg)] border border-border bg-card p-5 text-left hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow]"
+              className="flex items-center gap-4 w-full rounded-xl border border-border bg-card p-5 text-left hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow]"
             >
               <div className="size-10 rounded-full bg-muted flex items-center justify-center shrink-0">
                 <Icon className="size-5 text-rose-600" />

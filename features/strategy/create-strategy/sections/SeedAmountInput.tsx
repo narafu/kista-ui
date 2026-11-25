@@ -30,7 +30,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
 
   if (belowMinSeed && minSeed !== null) {
     return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-warn-bg border border-warn">
+      <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-warn-bg border border-warn">
         <span className="text-sm text-warn font-bold">최소 투자금 미달</span>
         <span className="text-sm font-extrabold text-warn tabular-nums">
           최소 {fmtMoney(minSeed, 'USD')}
@@ -40,7 +40,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   }
   if (shortage !== null && deposit !== null) {
     return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
+      <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-muted border border-border">
         <span className="text-sm text-muted-foreground font-medium">추가 입금 필요</span>
         <span className="text-sm font-semibold text-foreground tabular-nums">
           {fmtMoney(shortage, 'USD')}
@@ -53,7 +53,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   }
   if (sufficient) {
     return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-brand-soft border border-rose-200">
+      <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-brand-soft border border-rose-200">
         <span className="text-sm text-brand-fg-soft font-bold">예수금으로 즉시 시작 가능</span>
         <span className="text-sm font-extrabold text-brand-fg tabular-nums">✓</span>
       </div>
@@ -62,7 +62,7 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   // 최소 투자금이 없으면(VR 등) 알릴 내용이 없다 — 라벨만 반복하는 빈 줄을 두지 않는다
   if (minSeed === null) return null
   return (
-    <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-muted border border-border">
+    <div className="flex justify-between items-center px-3 py-2.5 rounded-sm bg-muted border border-border">
       <span className="text-sm text-muted-foreground font-bold">예수금 입력</span>
       <span className="text-sm text-muted-foreground">최소 {fmtMoney(minSeed, 'USD')}</span>
     </div>

@@ -95,7 +95,7 @@ export function PrivacyTradesPageSkeleton() {
   return (
     <div className="animate-pulse">
       <Skeleton className="h-8 w-40 mb-6" />
-      <div className="mb-6 rounded-[var(--r-lg)] border border-border bg-card p-4 sm:p-6">
+      <div className="mb-6 rounded-xl border border-border bg-card p-4 sm:p-6">
         <ChartSkeleton />
       </div>
       <AdminTableBlock rows={4} />

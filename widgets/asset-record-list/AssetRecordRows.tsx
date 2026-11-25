@@ -131,7 +131,7 @@ interface TableProps {
 
 export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, allPagedSelected, somePagedSelected, onToggleAll }: TableProps) {
   return (
-    <div className="hidden overflow-x-auto lg:block rounded-[var(--r-lg)] border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
+    <div className="hidden overflow-x-auto lg:block rounded-xl border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
       <table className={cn('w-full min-w-[1200px] text-sm', evenColumnsClass(10))} aria-label="자산 기록">
         <thead className="bg-muted/50">
           <tr>
@@ -205,7 +205,7 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
 
 export function AssetRecordMobileList({ paged, row }: { paged: AssetSnapshot[]; row: AssetRowContext }) {
   return (
-    <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0 lg:hidden" aria-label="자산 기록">
+    <ul className="m-0 list-none divide-y rounded-xl border border-border p-0 lg:hidden" aria-label="자산 기록">
       {paged.map((snapshot) => (
         <MobileItem key={snapshot.id} snapshot={snapshot} row={row} />
       ))}

@@ -178,7 +178,7 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
+      className="group relative block rounded-xl border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
     >
       {/* 상태 액센트 스트립 — 정상(ACTIVE)은 표시하지 않는다 */}
       {statusAccent && (
@@ -191,7 +191,7 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
       {orderSignal && (
         <span
           data-testid="strategy-order-border-accent"
-          className="pointer-events-none absolute inset-0 rounded-[var(--r-lg)] border-t-[3px] border-r-[3px] border-b-[3px] border-l-0"
+          className="pointer-events-none absolute inset-0 rounded-xl border-t-[3px] border-r-[3px] border-b-[3px] border-l-0"
           style={{ borderColor: orderSignal.color }}
         />
       )}

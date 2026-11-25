@@ -62,7 +62,7 @@ export function AdminTradesTable({ trades, sort }: Props) {
   }
 
   return (
-    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label="거래 내역" tabIndex={0}>
+    <div className="rounded-xl border border-border overflow-x-auto" role="region" aria-label="거래 내역" tabIndex={0}>
       <table className={cn('min-w-[960px] w-full text-sm', evenColumnsClass(9))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>

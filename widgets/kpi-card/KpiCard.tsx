@@ -15,7 +15,7 @@ export function KpiCard({ label, value, sub, className, valueClassName, skeleton
   return (
     <div
       className={cn(
-        'rounded-[var(--r-lg)] p-4 sm:p-5 flex flex-col gap-1 bg-card border border-border shadow-card',
+        'rounded-xl p-4 sm:p-5 flex flex-col gap-1 bg-card border border-border shadow-card',
         className,
       )}
     >

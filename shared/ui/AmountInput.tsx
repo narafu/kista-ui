@@ -22,7 +22,7 @@ function exceedsMaxDecimals(raw: string, maxDecimals: number): boolean {
 // SeedAmountInput의 상시 rose 테두리는 포커스가 아닌 강조라 유지하고, 포커스 ring만 같은 걸 덧씌운다
 function inputBoxClass(disabled: boolean) {
   return cn(
-    'flex items-center h-11 rounded-[var(--r-sm)] bg-card px-3 border border-border-strong transition-[border-color,box-shadow] duration-150',
+    'flex items-center h-11 rounded-sm bg-card px-3 border border-border-strong transition-[border-color,box-shadow] duration-150',
     disabled ? 'opacity-50' : 'focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
   )
 }

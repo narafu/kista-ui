@@ -26,7 +26,7 @@ export function AccountTable({ accounts, label }: { accounts: AdminAnomalyAccoun
   }, [accounts, sortKey, sortDirection])
   const head = { activeKey: sortKey, direction: sortDirection, onSort: handleSort }
   return (
-    <div className="rounded-[var(--r-lg)] border border-border overflow-x-auto" role="region" aria-label={label} tabIndex={0}>
+    <div className="rounded-xl border border-border overflow-x-auto" role="region" aria-label={label} tabIndex={0}>
       <table className={cn('min-w-[320px] w-full text-sm', evenColumnsClass(3))}>
         <thead className="bg-muted/50 border-b border-border">
           <tr>

@@ -218,7 +218,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between rounded-[var(--r-md)] border border-border bg-muted/40 px-4 py-2.5">
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/40 px-4 py-2.5">
           <span className="text-sm font-medium">{selectedIds.size}건 선택됨</span>
           <Button type="button" variant="destructive" size="sm" onClick={() => deleteDialog.request(Array.from(selectedIds))}>
             선택 삭제

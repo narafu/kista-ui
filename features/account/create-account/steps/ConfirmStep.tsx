@@ -58,7 +58,7 @@ export function ConfirmStep({ data, onBack }: Props) {
         </p>
       </div>
 
-      <div className="rounded-[var(--r-lg)] border border-border bg-card divide-y divide-border">
+      <div className="rounded-xl border border-border bg-card divide-y divide-border">
         <div className="flex items-center justify-between px-4 py-3">
           <span className="text-sm text-muted-foreground">증권사</span>
           <span className="text-sm font-semibold">{labelOf('brokers', broker)}</span>

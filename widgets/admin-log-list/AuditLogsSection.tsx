@@ -45,7 +45,7 @@ export function AuditLogsSection({
       ) : logs.length === 0 ? (
         <EmptyState message="관리자 로그가 없습니다." />
       ) : (
-        <div className="rounded-[var(--r-lg)] border border-border divide-y divide-border">
+        <div className="rounded-xl border border-border divide-y divide-border">
           {logs.map((log) => (
             <div key={log.id} className="px-4 py-3 hover:bg-muted/30 transition-colors">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">

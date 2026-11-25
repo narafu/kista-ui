@@ -99,7 +99,7 @@ function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListCol
   const badges = visible.filter((c) => c.mobile === 'badge')
   const fields = visible.filter((c) => !c.mobile)
   return (
-    <li className={grouped ? 'space-y-1.5 rounded-[var(--r-md)] border border-border bg-card px-3 py-2.5' : 'space-y-3 p-4'}>
+    <li className={grouped ? 'space-y-1.5 rounded-lg border border-border bg-card px-3 py-2.5' : 'space-y-3 p-4'}>
       {titles.length + badges.length > 0 && (
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-center gap-1.5">

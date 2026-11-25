@@ -11,7 +11,7 @@ export default function AdminLogsLoading() {
       </div>
       <div className="space-y-8">
         {Array.from({ length: 3 }).map((_, section) => (
-          <div key={section} className="rounded-[var(--r-lg)] border border-border bg-card p-4 lg:p-5">
+          <div key={section} className="rounded-xl border border-border bg-card p-4 lg:p-5">
             <Skeleton className="h-6 w-32 mb-4" />
             {Array.from({ length: 3 }).map((_, row) => (
               <div key={row} className="h-14 border-b border-border last:border-0 flex items-center gap-4">

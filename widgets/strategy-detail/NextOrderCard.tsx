@@ -155,7 +155,7 @@ export function NextOrderCard({
   return (
     <div className="space-y-2 xl:absolute xl:inset-0 xl:flex xl:flex-col">
       {bannerText && (
-        <div className="flex items-center gap-2 rounded-[var(--r-md)] bg-warn-bg px-3.5 py-2.5 text-base font-semibold text-warn">
+        <div className="flex items-center gap-2 rounded-lg bg-warn-bg px-3.5 py-2.5 text-base font-semibold text-warn">
           <AlertTriangle className="size-4 shrink-0" />
           <span className="whitespace-pre-line">{bannerText}</span>
         </div>

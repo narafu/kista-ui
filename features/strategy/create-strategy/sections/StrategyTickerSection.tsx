@@ -24,7 +24,7 @@ export function StrategyTickerSection({
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>종목</StrategyFieldLabel>
       {initial ? (
-        <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+        <div className="flex items-center justify-between px-[14px] py-3 rounded-sm border border-border bg-muted">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-[800]">{initial.ticker}</span>
           </div>
@@ -60,7 +60,7 @@ export function StrategyTickerSection({
           })}
         </div>
       ) : availableTickers.length === 1 ? (
-        <div className="flex items-center justify-between px-[14px] py-3 rounded-[var(--r-sm)] border border-border bg-muted">
+        <div className="flex items-center justify-between px-[14px] py-3 rounded-sm border border-border bg-muted">
           <div className="flex items-center gap-2.5">
             <span className="text-sm font-[800]">{availableTickers[0]}</span>
           </div>

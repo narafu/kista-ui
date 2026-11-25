@@ -119,7 +119,7 @@ function PrivacyBaseForm({ base, onDone }: { base?: AdminPrivacyBase; onDone: ()
 
           {/* 2열(방향·유형 / 가격·수량) — 다이얼로그 폭이 좁아 PC에서도 한 줄에 넷을 넣으면 가격·수량 칸이 찌그러진다 */}
           {orderRows.map((row, i) => (
-            <div key={row.id} className="grid grid-cols-2 items-end gap-2 rounded-[var(--r-sm)] border border-border p-3">
+            <div key={row.id} className="grid grid-cols-2 items-end gap-2 rounded-sm border border-border p-3">
               <PrivacyOrderFields control={control as unknown as Control<FieldValues>} prefix={`orders.${i}.`} compact disabled={isPending} />
               {orderRows.length > 1 && (
                 <IconButton aria-label={`주문 ${i + 1} 삭제`} className="col-span-2 justify-self-end" onClick={() => remove(i)} disabled={isPending}>

@@ -17,7 +17,7 @@ export function SelectionCard({
     <button
       type={type}
       className={cn(
-        'min-h-11 rounded-[var(--r-sm)] border text-left transition-[border-color,background-color,color,box-shadow] duration-150',
+        'min-h-11 rounded-sm border text-left transition-[border-color,background-color,color,box-shadow] duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:cursor-not-allowed disabled:opacity-50',
         selected

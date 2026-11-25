@@ -26,7 +26,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
         {/* Row 1: 안내 카드 2개 */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div
-            className="rounded-[var(--r-lg)] border border-rose-200 bg-brand-soft p-5 flex flex-col"
+            className="rounded-xl border border-rose-200 bg-brand-soft p-5 flex flex-col"
           >
             <p className="text-sm font-bold tracking-[0.12em] uppercase text-brand-fg-soft mb-2">시작하기</p>
             <p className="text-sm font-bold mb-1.5">첫 계좌 등록</p>
@@ -53,10 +53,10 @@ export function DashboardEmpty({ marketPanels }: Props) {
       <div className="lg:hidden">
         <h1 className="sr-only">개요</h1>
         <div
-          className="rounded-[var(--r-lg)] border border-rose-200 bg-brand-soft p-5 mb-4 text-center"
+          className="rounded-xl border border-rose-200 bg-brand-soft p-5 mb-4 text-center"
         >
           <div className="size-16 rounded-2xl bg-card flex items-center justify-center mx-auto mb-3 shadow-[0_4px_12px_rgba(143,68,48,0.18)]">
-            <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-[var(--r-lg)]" style={{ height: 52, width: 52 }} />
+            <Image src="/logo.png" alt="KISTA" width={52} height={52} className="rounded-xl" style={{ height: 52, width: 52 }} />
           </div>
           <p className="text-sm font-bold tracking-[0.15em] uppercase text-brand-fg-soft mb-1.5">KISTA 시작하기</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-4">
@@ -64,7 +64,7 @@ export function DashboardEmpty({ marketPanels }: Props) {
           </p>
           <NewAccountButton className="w-full h-12 text-sm">첫 계좌 등록하기</NewAccountButton>
         </div>
-        <div className="rounded-[var(--r-lg)] border border-border bg-card p-3.5 mb-4">
+        <div className="rounded-xl border border-border bg-card p-3.5 mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">{NOTIFICATION_CARD.desc}</p>
           <Link href={NOTIFICATION_CARD.href} className="text-sm font-bold text-brand-fg-soft underline-offset-4 hover:underline">

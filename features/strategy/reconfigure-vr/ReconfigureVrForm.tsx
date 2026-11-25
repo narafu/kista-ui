@@ -123,7 +123,7 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <div className="flex items-start gap-2.5 rounded-[var(--r-sm)] bg-warn-bg text-warn px-4 py-3 text-sm font-medium">
+      <div className="flex items-start gap-2.5 rounded-sm bg-warn-bg text-warn px-4 py-3 text-sm font-medium">
         <AlertTriangle className="size-4 shrink-0 mt-0.5" />
         <p>설정을 하나라도 변경하면 진행 중인 사이클이 즉시 종료되고 새 사이클이 시작되며, 오늘 접수된 미체결 주문이 모두 취소됩니다.</p>
       </div>

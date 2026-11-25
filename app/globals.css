@@ -34,13 +34,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
+  /* 모서리 체계는 이것 하나다. sm·xl·2xl은 예전 자체 --r-sm·--r-lg·--r-xl 값(8·16·22px)이고 lg(12px)가 예전 --r-md다 */
+  --radius-sm: 8px;
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: 16px;
+  --radius-2xl: 22px;
 
   /* KISTA brand colors for Tailwind utility classes */
   --color-rose-50:  var(--rose-50);
@@ -192,12 +191,8 @@
   --font-sans:    'Pretendard Variable', 'Pretendard', system-ui, -apple-system, sans-serif;
   --font-display: var(--font-bricolage), sans-serif;
 
-  /* Border & radius tokens */
+  /* Border tokens */
   --border-strong: oklch(0.86 0.018 50);
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 22px;
 
   /* Status: error (반려/거절) */
   --status-error: #C03F36;
@@ -474,7 +469,7 @@
   -webkit-backdrop-filter: blur(20px);
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(199, 123, 102, 0.22);
-  border-radius: var(--r-xl);
+  border-radius: var(--radius-2xl);
 }
 
 .dark .glass-card {

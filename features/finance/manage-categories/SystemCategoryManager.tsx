@@ -65,7 +65,7 @@ export function SystemCategoryManager() {
       ) : l1Categories.length === 0 ? (
         <EmptyState variant="text" message="등록된 카테고리가 없습니다." />
       ) : (
-        <ul className="m-0 list-none rounded-[var(--r-lg)] border border-border p-0">
+        <ul className="m-0 list-none rounded-xl border border-border p-0">
           {l1Categories.map((category) => (
             <CategoryRow
               key={category.id}

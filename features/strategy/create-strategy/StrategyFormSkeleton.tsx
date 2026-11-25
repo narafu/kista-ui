@@ -28,7 +28,7 @@ export function StrategyFormSkeleton({ hasCancel = true }: { hasCancel?: boolean
       {/* 시작금액 / 시드 영역 공용 스켈레톤 */}
       <div className="py-[18px] border-b border-border">
         <Skeleton className="h-4 w-24 mb-3 rounded" />
-        <Skeleton className="h-12 w-full rounded-[var(--r-sm)]" />
+        <Skeleton className="h-12 w-full rounded-sm" />
       </div>
 
       {/* 사이클 연속여부 */}

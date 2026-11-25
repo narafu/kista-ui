@@ -66,7 +66,7 @@ export function SettingsPageContent() {
         <ThemeCards />
       </Surface>
 
-      <section id="danger" className="rounded-[var(--r-lg)] border border-status-error-border bg-status-error-bg p-6">
+      <section id="danger" className="rounded-xl border border-status-error-border bg-status-error-bg p-6">
         <div className="flex items-center gap-2.5 mb-3"><AlertTriangle className="size-4 text-status-error" /><h2 className="text-sm font-semibold text-status-error">위험 구역</h2></div>
         <p className="text-sm text-muted-foreground mb-4">되돌릴 수 없는 작업입니다.</p>
         <DeleteAccountButton />

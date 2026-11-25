@@ -195,7 +195,7 @@ export function BudgetManager({ type }: Props) {
       >
         {() => (
         <>
-          <ul className="m-0 list-none divide-y rounded-[var(--r-lg)] border border-border p-0" aria-label="예산 목록">
+          <ul className="m-0 list-none divide-y rounded-xl border border-border p-0" aria-label="예산 목록">
             {paged.map((budget) => {
               const path = getCategoryPath(categories, budget.categoryId)
               const categoryName = path[path.length - 1]?.name ?? '(삭제된 카테고리)'

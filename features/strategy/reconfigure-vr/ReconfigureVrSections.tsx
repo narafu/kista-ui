@@ -104,7 +104,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
   const injectShares = form.watch('injectShares')
 
   return (
-      <section className="space-y-4 rounded-[var(--r-sm)] border border-border p-4">
+      <section className="space-y-4 rounded-sm border border-border p-4">
         <h2 className="text-sm font-bold text-foreground">투자금 추가 (선택)</h2>
         <p className="text-xs text-muted-foreground">설정 변경과 별개로 보유 주식·예수금을 추가로 편입합니다. 비워두면 추가하지 않습니다.</p>
         <div className="space-y-2">
@@ -134,7 +134,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
 
 export function WithdrawSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
   return (
-      <section className="space-y-4 rounded-[var(--r-sm)] border border-border p-4">
+      <section className="space-y-4 rounded-sm border border-border p-4">
         <h2 className="text-sm font-bold text-foreground">투자금 인출 (선택)</h2>
         <p className="text-xs text-muted-foreground">보유 주식·예수금 중 일부를 전략에서 빼냅니다. 비워두면 인출하지 않습니다.</p>
         <div className="space-y-2">

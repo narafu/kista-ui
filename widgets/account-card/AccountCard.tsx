@@ -40,7 +40,7 @@ export function AccountCard({ account }: Props) {
   return (
     <Link
       href={`/accounts/${account.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
+      className="group relative block rounded-xl border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
     >
       {aggregatedAccent && (
         <span

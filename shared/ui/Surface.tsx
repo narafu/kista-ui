@@ -7,7 +7,7 @@ type Props = HTMLAttributes<HTMLElement> & { as?: 'div' | 'section' }
 export function Surface({ as: Tag = 'div', className, ...props }: Props) {
   return (
     <Tag
-      className={cn('rounded-[var(--r-lg)] bg-card border border-border shadow-card', className)}
+      className={cn('rounded-xl bg-card border border-border shadow-card', className)}
       {...props}
     />
   )
