@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { ShareToGroupSwitch } from '@shared/ui/ShareToGroupSwitch'
 import { CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import { selectAllOnFocus } from '@shared/ui/select-all-on-focus'
-import { cn } from '@shared/lib/utils'
+import { Surface } from '@shared/ui/Surface'
 import { digitsOnly, formatAmountDisplay, todayKst } from '@shared/lib/format'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
@@ -96,12 +96,10 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 목록 로딩 중에도 잠근다(전환 전과 같은 수준) — 문구는 로드가 끝나 정말 못 풀 때만 띄운다. 로드 실패는 아래 "불러오지 못했습니다" 문구가 이유다
   const locked = monthClosed || categoryUnresolved
 
-  const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
-
   return (
     <form onSubmit={(e) => (locked ? e.preventDefault() : form.submit(e))}>
       <div className="max-w-xl">
-        <div className={cn(cardClass, 'space-y-4')}>
+        <Surface className="space-y-4">
           <FormField control={form.control} name="entryDate" label="기준일" required>
             {(f) => <Input {...f} type="date" disabled={isPending} className="h-11" />}
           </FormField>
@@ -175,7 +173,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
           {monthClosed && <MonthClosedNotice />}
 
           <FormActions onCancel={onCancel} form={form} locked={locked} label={MODE_LABEL[mode]} pendingLabel={MODE_PENDING_LABEL[mode]} className="pt-2" />
-        </div>
+        </Surface>
       </div>
     </form>
   )

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { cn } from '@shared/lib/utils'
 import { SectionError } from '@shared/ui/SectionError'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useAppForm } from '@shared/ui/form/useAppForm'
 import { useAdminSettingsQuery, useUpdateAdminSettingsMutation } from '@entities/admin-settings'
 import { adminKeys } from '@entities/admin'
@@ -169,7 +170,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     <form onSubmit={submit} className="space-y-5">
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">가입 승인</h2>
+          <SectionTitle>가입 승인</SectionTitle>
           <Controller control={control} name="auth.approvalRequired" render={({ field }) => (
             <ToggleRow
               id="approval-required"
@@ -187,7 +188,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">증권사 등록</h2>
+          <SectionTitle>증권사 등록</SectionTitle>
           {(Object.keys(draft.brokers) as BrokerCode[])
             .sort((a, b) => Number(isMockBroker(a)) - Number(isMockBroker(b)))
             .map((broker) => (
@@ -198,7 +199,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="border-b border-border px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">전략 생성</h2>
+          <SectionTitle>전략 생성</SectionTitle>
           <div className="divide-y divide-border">
             <StrategyBlock
               control={control}
@@ -296,7 +297,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
         </section>
 
         <section className="px-4 py-4 sm:px-5">
-          <h2 className="text-base font-bold">벤치마크 비교</h2>
+          <SectionTitle>벤치마크 비교</SectionTitle>
           <div className="grid gap-2 py-3 sm:grid-cols-[minmax(140px,1fr)_minmax(220px,1.5fr)] sm:items-start">
             <div className="flex min-h-8 items-center sm:pr-4">
               <span className="text-sm font-medium">ETF 벤치마크 자산</span>

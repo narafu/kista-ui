@@ -64,13 +64,13 @@ export function DashboardEmpty({ marketPanels }: Props) {
           </p>
           <NewAccountButton className="w-full h-12 text-sm">첫 계좌 등록하기</NewAccountButton>
         </div>
-        <div className="rounded-xl border border-border bg-card p-3.5 mb-4">
+        <Surface size="compact" className="mb-4">
           <p className="text-sm font-bold mb-0.5">{NOTIFICATION_CARD.title}</p>
           <p className="text-sm text-muted-foreground leading-relaxed mb-3">{NOTIFICATION_CARD.desc}</p>
           <Link href={NOTIFICATION_CARD.href} className="text-sm font-bold text-brand-fg-soft underline-offset-4 hover:underline">
             {NOTIFICATION_CARD.cta}
           </Link>
-        </div>
+        </Surface>
       </div>
 
       <DashboardMarkets marketPanels={marketPanels} />

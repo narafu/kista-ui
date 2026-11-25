@@ -420,6 +420,15 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - visual-diff 단계별(백그라운드, `diff !== 0`으로 센다): `npm run visual-diff -- 252cc6ae`를 `b1adbb12`에서(차이 0 기대), `b1adbb12` 대 `dc88ce0e`(모서리만), `dc88ce0e` 대 `e55da6c0`(조회 실패 화면이 없으면 차이 없음), `e55da6c0` 대 `fb5d91cb`(모서리·테두리·그림자·여백 의도분만, 위 "사용자 확인 대기" 목록). 의도하지 않은 간격 차이는 되돌린다.
   - `npm run a11y-check -- --url http://localhost:3000`(dev 서버는 `TRADING_API_BASE_URL=http://localhost:8080 npm run dev`).
   - e2e(worktree 절차): `--project=setup --no-deps` 다음 `--project=chromium --no-deps`.
+- S4 3차 후속(카드·제목 통일, 2026-11-25): 로컬 api 무응답으로 못 돌렸다. 응답하면 `npm run visual-diff -- 65c9102e`를 새 커밋에서(백그라운드, `diff !== 0`으로 센다. 의도분은 아래 후속 기록의 "화면에 보이는 차이"만) + 위 S4 3차 항목과 같은 실행으로 a11y-check·e2e를 돌린다. 해시는 후속 커밋(`git log --oneline -1`)으로 채운다.
+
+### S4 3차 후속 — 카드·제목 통일 (2026-11-25, 기준 `65c9102e`)
+
+- 손수 카드 셸 `rounded-[1.25rem]`(CredentialsCard·AssetForm·AccountManager·GroupManager)을 `Surface default`로, `DashboardEmpty` 모바일 알림 카드를 `Surface compact`로 옮겼다. `git grep "rounded-\[1.25rem\]"` 0건. form이 셸이던 곳(CredentialsCard·EditAccountForm·AssetForm)은 `<Surface><form>`로 중첩했고 폼 로직·요청 바디는 그대로다.
+- h2 → `SectionTitle`: `HideAmountsToggle`·`AccountManager`·`GroupManager`(id 유지), `AdminSettingsForm` 4개, `ReconfigureVrSections` 4개, `AllStrategiesList`.
+- 그대로 둔 것(shared.md에 한 줄 기록): 상태색 "위험 구역", 계좌 등록 `steps/*` h2 4개(전부 마법사 단계 제목), sr-only, id·ref 제목(`HousingBenchmarkInfo`, `DcaRuleEditor`). `ReconfigureVrSections`의 `rounded-sm` 외곽선 section 2개와 `AdminSettingsForm`의 `rounded-lg` 셸은 20px 셸이 아니라 범위 밖이다. `HousingBenchmarkSummary`의 `text-sm font-medium` h2는 표 카드 안 소제목이라 두었다(통일하려면 별도 결정).
+- 화면에 보이는 차이(의도): 카드 모서리 20→16px, 여백 `py-7 px-6`(28·24px) → `p-4 sm:p-6`(모바일 16px, sm 이상 24px — 세로는 28→24), 제목 14px bold → 16px(lg 18px) medium, 가계부 설정 탭은 `Surface`로 그림자·테두리 체계가 `SectionTitle` 구역과 같아진다. `DashboardEmpty` 모바일 알림 카드는 여백 14→16px에 그림자가 붙는다. `AllStrategiesList` 계좌 별명은 14px semibold → 16px medium(`truncate` 없음, 긴 별명은 줄바꿈 가능).
+- visual-diff·a11y·e2e는 못 돌렸다(위 "e2e 대기").
 
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
@@ -583,5 +592,5 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 리뷰(`/code-review medium`) 5건: 재시작 안내가 빨강으로 보이는 것(재시작 안내는 muted로 고침)과 `PrivacyBaseChart`의 낡은 Card 주석은 고쳤다. 남은 3건은 사용자가 이번 범위에서 그대로 두기로 한 것과 같다(아래 "사용자 확인 대기").
 - **사용자 확인 대기**:
   - 설정·가계부 설정 카드의 모바일 여백이 24px에서 16px로 준다(`default`). `BulkRegisterForm`의 `px-6 py-4` 박스는 `compact`로 옮겼다. 계좌 수정 폼 제목 둘의 글자가 커진다. 관리자 개요·관리자 설정 페이지·`AdminTradesWorkbench`의 `h2`가 bold·semibold에서 medium이 된다. `StrategyMetaSection`의 `CardAction` 배치는 visual-diff로 확인한다.
-  - 같은 화면 안의 불일치(리뷰 1·3·4): 가계부 설정 탭에서 `SectionTitle`(16px medium) 구역과 `AccountManager`·`GroupManager`·`HideAmountsToggle`의 손수 `h2`(14px bold)·`rounded-[1.25rem]` 카드가 섞인다. 관리자 설정도 `AdminSettingsForm`의 하위 `h2` 4개가 `text-base font-bold`로 남는다. 손수 카드 셸(`CredentialsCard`·`AssetForm`·`AccountManager`·`GroupManager`의 `rounded-[1.25rem]`, `DashboardEmpty` 모바일 알림 카드)과 손수 `h2`(`ReconfigureVrSections`, `AllStrategiesList`, 계좌 등록 단계)도 남았다. 통일할지 정해야 한다.
+  - 같은 화면 안의 불일치(리뷰 1·3·4): **해소(2026-11-25)** — 아래 "S4 3차 후속 — 카드·제목 통일".
 - **visual-diff·a11y-check·e2e는 못 돌렸다.** 로컬 api(:8080)가 리슨은 하지만 응답하지 않는다(`/api/accounts` 15초 시간 초과). 아래 "e2e 대기"에 적었다. 다크 모드 visual-diff는 도구에 옵션이 없다.

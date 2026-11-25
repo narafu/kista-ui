@@ -12,6 +12,7 @@ import { Badge } from '@shared/ui/Badge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { useSearchParam } from '@shared/lib/hooks/use-search-param'
 
@@ -98,7 +99,7 @@ export function AllStrategiesList() {
           {groupByAccount && (
             <div className="flex items-center gap-2 mb-2.5">
               <Badge tone="none" size="sm" className="rounded-sm bg-accent text-accent-foreground">{findBroker(account.broker)?.label ?? account.broker}</Badge>
-              <h2 className="text-sm font-semibold text-foreground">{account.nickname}</h2>
+              <SectionTitle>{account.nickname}</SectionTitle>
             </div>
           )}
           <div className="grid grid-cols-1 gap-2 lg:grid-cols-4 lg:gap-3">

@@ -85,7 +85,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 
 `shared/ui/`는 도메인 무관 커스텀 UI 컴포넌트 디렉토리다. 이름으로 역할이 자명한 것들(`Spinner`·`CardSkeleton`·`Badge`·`EmptyState`·`PageSizeSelector`·`PaginationBar`·`UrlRangeFilterBar`·`stepper/`) 외 비자명 규칙만 기록:
 
-- `Surface` — 섹션 카드 셸은 이것 하나(`components/ui/card`는 지웠다). `size`: `default` `p-4 sm:p-6`(설정·폼) / `compact` `p-4`(목록·차트·요약) / `flush` 여백 없음(표·차트를 가장자리까지, 안쪽 여백은 자식이). 레이아웃(flex·gap·overflow)은 className. `SectionTitle` — 구역 제목 `h2`(`text-base font-medium lg:text-lg`), className에는 배치만 넣고 크기·굵기·색을 덮지 않는다
+- `Surface` — 섹션 카드 셸은 이것 하나(`components/ui/card`는 지웠다). `size`: `default` `p-4 sm:p-6`(설정·폼) / `compact` `p-4`(목록·차트·요약) / `flush` 여백 없음(표·차트를 가장자리까지, 안쪽 여백은 자식이). 레이아웃(flex·gap·overflow)은 className. `SectionTitle` — 구역 제목 `h2`(`text-base font-medium lg:text-lg`), className에는 배치만 넣고 크기·굵기·색을 덮지 않는다(예외로 손수 둔 제목: 상태색 "위험 구역"(설정·계좌 수정), 계좌 등록 `steps/*`의 마법사 단계 제목, sr-only, ref·id로 포커스·연결하는 제목, 폼 안 하위 구역의 h3)
 - `IconButton` — 44px 히트영역 아이콘 전용 버튼(`<button>`), `aria-label` 필수 prop. `<Link>` 아이콘 버튼엔 미사용 — 대신 `shared/ui/iconButtonStyles.ts`(Fast Refresh 위해 컴포넌트 파일과 분리)가 export하는 `ICON_LINK_GHOST_CLASS` 완성 클래스 문자열을 그대로 재사용한다(과거 손으로 다시 이어 붙이다 스타일이 드리프트한 적 있어 export로 전환)
 - `InputWithUnit`(`InputUnitSuffix.tsx`) — 공용 `Input` 오른쪽에 단위 span만 덧붙이는 래퍼. input에 `pr-8`·`aria-describedby={unitId}`는 호출부가 직접 단다. 자체 상자를 그리는 `AmountInput`과 구분: 공용 Input 스타일을 유지해야 하는 폼(가계부 콤마 금액 등)에서만 쓴다
 - `AmountInput` — 우측 정렬 숫자 입력 + 단위 상자(값 `number | null`, 입력 중 문자열 버퍼 유지). 소수 자릿수는 `currency`(`CURRENCY_SCALE`에서 결정) 또는 `maxDecimals`(퍼센트·수량) 중 하나만 준다 — 둘을 함께 주면 타입 오류. 단위를 보이지 않으려면 `unit=""`. `type="number"` 스피너·`min` 제약이 필요한 폼(`CategoryFormDialog`·`DcaConditionsSection` 기준값·`PrivacyBaseFormDialog`·`PrivacyOrderFields`)은 공용 `Input`을 그대로 쓴다

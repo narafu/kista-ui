@@ -9,7 +9,8 @@ import {
   useRemoveFinanceGroupMemberMutation,
 } from '@entities/finance'
 import { useMeQuery } from '@entities/user'
-import { cn } from '@shared/lib/utils'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
@@ -17,8 +18,6 @@ import { AcceptInvitationForm } from './AcceptInvitationForm'
 import { GroupMemberList } from './GroupMemberList'
 import { InviteDialog } from './InviteDialog'
 import { LeaveGroupDialog } from './LeaveGroupDialog'
-
-const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
 
 interface GroupSectionProps {
   groupId: string
@@ -88,16 +87,16 @@ export function GroupManager() {
   // 그룹 소속 사용자에게 다른 그룹 참여 폼이 잠깐 보이거나 실패 시 남는 것을 막는다.
   if (!groups) {
     return (
-      <section aria-labelledby="financeGroupTitle" className={cn(cardClass, 'space-y-4')}>
-        <h2 id="financeGroupTitle" className="text-sm font-bold">그룹</h2>
+      <Surface as="section" aria-labelledby="financeGroupTitle" className="space-y-4">
+        <SectionTitle id="financeGroupTitle">그룹</SectionTitle>
         {isError ? <SectionError message="그룹 정보를 불러오지 못했습니다." /> : <LoadingRow />}
-      </section>
+      </Surface>
     )
   }
 
   return (
-    <section aria-labelledby="financeGroupTitle" className={cn(cardClass, 'space-y-6')}>
-      <h2 id="financeGroupTitle" className="text-sm font-bold">그룹</h2>
+    <Surface as="section" aria-labelledby="financeGroupTitle" className="space-y-6">
+      <SectionTitle id="financeGroupTitle">그룹</SectionTitle>
       {group && (
         <GroupSection groupId={group.id} myUserId={me?.id} />
       )}
@@ -116,6 +115,6 @@ export function GroupManager() {
           <AcceptInvitationForm />
         </div>
       )}
-    </section>
+    </Surface>
   )
 }

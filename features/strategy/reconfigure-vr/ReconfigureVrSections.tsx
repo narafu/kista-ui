@@ -4,6 +4,7 @@ import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AmountInput } from '@shared/ui/AmountInput'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
@@ -50,7 +51,7 @@ export function ParamsSection({ form, vr, disabled }: SectionProps) {
 
   return (
       <section className="space-y-4">
-        <h2 className="text-sm font-bold text-foreground">파라미터</h2>
+        <SectionTitle>파라미터</SectionTitle>
         <div className="space-y-2">
           <Label htmlFor="bandWidth">밴드 폭</Label>
           <AmountInput id="bandWidth" unit="%" disabled={disabled} value={form.watch('bandWidth') ?? null}
@@ -87,7 +88,7 @@ export function RampSection({ form, vr, disabled }: SectionProps) {
 
   return (
       <section className="space-y-4">
-        <h2 className="text-sm font-bold text-foreground">램프 설정</h2>
+        <SectionTitle>램프 설정</SectionTitle>
         {/* 비운 램프 값은 서버가 현재 활성 버전 값을 그대로 이어받는다(inheritFrom) — placeholder도 현재 값 */}
         <VrRampFields
           fields={fields}
@@ -105,7 +106,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
 
   return (
       <section className="space-y-4 rounded-sm border border-border p-4">
-        <h2 className="text-sm font-bold text-foreground">투자금 추가 (선택)</h2>
+        <SectionTitle>투자금 추가 (선택)</SectionTitle>
         <p className="text-xs text-muted-foreground">설정 변경과 별개로 보유 주식·예수금을 추가로 편입합니다. 비워두면 추가하지 않습니다.</p>
         <div className="space-y-2">
           <Label htmlFor="injectShares">편입 주식 수</Label>
@@ -135,7 +136,7 @@ export function InjectSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
 export function WithdrawSection({ form, disabled }: Omit<SectionProps, 'vr'>) {
   return (
       <section className="space-y-4 rounded-sm border border-border p-4">
-        <h2 className="text-sm font-bold text-foreground">투자금 인출 (선택)</h2>
+        <SectionTitle>투자금 인출 (선택)</SectionTitle>
         <p className="text-xs text-muted-foreground">보유 주식·예수금 중 일부를 전략에서 빼냅니다. 비워두면 인출하지 않습니다.</p>
         <div className="space-y-2">
           <Label htmlFor="withdrawShares">인출 주식 수</Label>

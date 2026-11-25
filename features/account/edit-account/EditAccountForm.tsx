@@ -13,6 +13,7 @@ import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@shared/lib/utils'
+import { Surface } from '@shared/ui/Surface'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
@@ -24,7 +25,7 @@ import { statsKeys } from '@entities/stats'
 import { orderKeys } from '@entities/order'
 import { tradeKeys } from '@entities/trade'
 import type { Account } from '@entities/account'
-import { CARD_CLASS, CredentialsCard } from './CredentialsCard'
+import { CredentialsCard } from './CredentialsCard'
 
 interface Props {
   account: Account
@@ -75,42 +76,44 @@ export function EditAccountForm({ account }: Props) {
 
   return (
     <div className="max-w-xl space-y-4">
-      <form onSubmit={form.submit} className={cn(CARD_CLASS, 'space-y-4')}>
-        <SectionTitle className="mb-1">계좌 정보 수정</SectionTitle>
+      <Surface>
+        <form onSubmit={form.submit} className="space-y-4">
+          <SectionTitle className="mb-1">계좌 정보 수정</SectionTitle>
 
-        <FormField control={form.control} name="nickname" label="계좌 별칭" required>
-          {(f) => <Input {...f} className="h-12" disabled={form.isPending} maxLength={100} />}
-        </FormField>
-
-        {account.accountNoMasked != null && (
-          <div className="space-y-2">
-            <Label htmlFor="accountNo">계좌번호</Label>
-            <Input
-              id="accountNo"
-              defaultValue={account.accountNoMasked}
-              className="h-12"
-              disabled
-            />
-            <p className="text-sm text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
-          </div>
-        )}
-
-        {showExpiry && (
-          <FormField control={form.control} name="apiKeyExpiresOn" id="edit-expires-on" label="API 키 만료일" hint="증권사에서 확인한 실제 만료일을 입력하세요">
-            {(f) => <Input {...f} type="date" min={kstToday()} className="h-12" disabled={form.isPending} />}
+          <FormField control={form.control} name="nickname" label="계좌 별칭" required>
+            {(f) => <Input {...f} className="h-12" disabled={form.isPending} maxLength={100} />}
           </FormField>
-        )}
 
-        <p className="text-sm text-muted-foreground">
-          전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
-        </p>
+          {account.accountNoMasked != null && (
+            <div className="space-y-2">
+              <Label htmlFor="accountNo">계좌번호</Label>
+              <Input
+                id="accountNo"
+                defaultValue={account.accountNoMasked}
+                className="h-12"
+                disabled
+              />
+              <p className="text-sm text-muted-foreground">계좌번호는 변경할 수 없습니다</p>
+            </div>
+          )}
 
-        <FormActions cancelHref={`/accounts/${account.id}`} form={form} label="저장" className="pt-2" />
-      </form>
+          {showExpiry && (
+            <FormField control={form.control} name="apiKeyExpiresOn" id="edit-expires-on" label="API 키 만료일" hint="증권사에서 확인한 실제 만료일을 입력하세요">
+              {(f) => <Input {...f} type="date" min={kstToday()} className="h-12" disabled={form.isPending} />}
+            </FormField>
+          )}
+
+          <p className="text-sm text-muted-foreground">
+            전략은 계좌 상세 화면에서 등록·수정할 수 있습니다.
+          </p>
+
+          <FormActions cancelHref={`/accounts/${account.id}`} form={form} label="저장" className="pt-2" />
+        </form>
+      </Surface>
 
       {!isMockBroker(account.broker) && <CredentialsCard account={account} />}
 
-      <div className={cn(CARD_CLASS, 'border-status-error-border bg-status-error-bg')}>
+      <Surface className="border-status-error-border bg-status-error-bg">
         <div className="flex items-center gap-2.5 mb-3">
           <AlertTriangle className="size-4 text-status-error" />
           <h2 className="text-sm font-semibold text-status-error">위험 구역</h2>
@@ -146,7 +149,7 @@ export function EditAccountForm({ account }: Props) {
           onConfirm={handleDelete}
           pending={deleteBlocked}
         />
-      </div>
+      </Surface>
     </div>
   )
 }

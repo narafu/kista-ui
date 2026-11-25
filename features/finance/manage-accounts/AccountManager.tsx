@@ -10,7 +10,8 @@ import { GroupSharedBadge } from '@shared/ui/GroupSharedBadge'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
-import { cn } from '@shared/lib/utils'
+import { Surface } from '@shared/ui/Surface'
+import { SectionTitle } from '@shared/ui/SectionTitle'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
 import { useMeta } from '@entities/meta'
 import {
@@ -54,8 +55,6 @@ function maskAccountNo(accountNo: string) {
   return accountNo.length <= 4 ? '•'.repeat(accountNo.length) : `••••${last4}`
 }
 
-const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
-
 type SortKey = 'createdAt' | 'name'
 
 const SORT_ITEMS: { value: SortKey; label: string }[] = [
@@ -93,9 +92,9 @@ export function AccountManager() {
   const visibleAccounts = useMemo(() => groupedAccounts.flatMap((g) => g.accounts), [groupedAccounts])
 
   return (
-    <div className={cn(cardClass, 'space-y-4')}>
+    <Surface className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-bold">계좌 관리</h2>
+        <SectionTitle>계좌 관리</SectionTitle>
         <Button type="button" variant="brand-soft" size="sm" className="gap-1.5" onClick={() => setFormTarget('new')}>
           <Plus className="size-3.5" />
           계좌 추가
@@ -189,6 +188,6 @@ export function AccountManager() {
           account={deleteDialog.target}
         />
       )}
-    </div>
+    </Surface>
   )
 }
