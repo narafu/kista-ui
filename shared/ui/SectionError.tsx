@@ -33,7 +33,7 @@ export function SectionError({ message: fallbackMessage = '통계를 불러오�
 function ErrorCard({ message, bare, children }: { message: string; bare: boolean; children?: React.ReactNode }) {
   return (
     <div className={bare ? 'text-center' : 'rounded-xl bg-card border border-border p-10 text-center'}>
-      <p className="text-sm text-muted-foreground">{message}</p>
+      <p className="text-sm text-status-error">{message}</p>
       {children}
     </div>
   )
