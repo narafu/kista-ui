@@ -749,6 +749,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/scheduler/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 개장 스케쥴러 수동 트리거 */
+        post: operations["triggerOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/market-index-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 벤치마크 ETF 지수 종가 동기화 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerMarketIndexPriceSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-price-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-price-index/full-refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 월간 풀 리프레시 수동 트리거
+         * @description 20년 전체를 다시 받아 KB Land 과거 값 보정을 즉시 반영하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndexFullRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-housing-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandHousingBenchmark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 마감 스케쥴러 수동 트리거 */
+        post: operations["triggerClose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/privacy-trade-bases": {
         parameters: {
             query?: never;
@@ -1604,26 +1718,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/runtime-config": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * 공개 런타임 설정 조회
-         * @description 가입 승인 필요 여부·증권사별 활성화·전략 생성 정책을 반환합니다. 로그인 없이 호출 가능하며 동적 설정이므로 캐시하지 않습니다.
-         */
-        get: operations["getRuntimeConfig"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/meta": {
         parameters: {
             query?: never;
@@ -2226,120 +2320,6 @@ export interface paths {
          * @description 조치 완료 처리를 위해 오류 로그를 소프트 삭제합니다.
          */
         delete: operations["softDeleteErrorLog"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/open": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 개장 스케쥴러 수동 트리거 */
-        post: operations["triggerOpen"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/market-index-prices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 벤치마크 ETF 지수 종가 동기화 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerMarketIndexPriceSync"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndex"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index/full-refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 월간 풀 리프레시 수동 트리거
-         * @description 20년 전체를 다시 받아 KB Land 과거 값 보정을 즉시 반영하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndexFullRefresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-housing-benchmark": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandHousingBenchmark"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 마감 스케쥴러 수동 트리거 */
-        post: operations["triggerClose"];
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -4482,7 +4462,7 @@ export interface components {
              * @example ESTIMATED
              */
             apiKeyExpirySource: string;
-            /** @description 신규 계좌 등록 허용 여부 (/api/runtime-config brokers[broker].enabled와 같은 값) */
+            /** @description 신규 계좌 등록 허용 여부 (RuntimeConfigService brokers[broker].enabled와 같은 값) */
             enabled: boolean;
         };
         DcaIndicatorMeta: {
@@ -4584,7 +4564,7 @@ export interface components {
             orderPreviewWarningCodes: components["schemas"]["EnumMeta"][];
             /** @description 전략 입력 검증 경고 코드 목록 (검증 전용 엔드포인트 warnings[].code 코드값) */
             strategyValidationWarningCodes: components["schemas"]["EnumMeta"][];
-            /** @description 가입 승인 필수 여부 (/api/runtime-config auth.approvalRequired와 같은 값) */
+            /** @description 가입 승인 필수 여부 (RuntimeConfigService auth.approvalRequired와 같은 값) */
             approvalRequired: boolean;
             /** @description ETF 벤치마크 비교 자산 허용값·기본값 */
             benchmarkEtf: components["schemas"]["BenchmarkEtfMeta"];
@@ -4634,9 +4614,9 @@ export interface components {
             conditionIndicators: string[];
             /** @description 등록 가능 증권사 name() 목록 (빈 목록이면 전체 허용) */
             supportedBrokers: string[];
-            /** @description 신규 전략 생성 허용 여부 (/api/runtime-config strategies[type].enabled와 같은 값) */
+            /** @description 신규 전략 생성 허용 여부 (RuntimeConfigService strategies[type].enabled와 같은 값) */
             enabled: boolean;
-            /** @description 생성 필드별 허용값·기본값 (/api/runtime-config strategies[type].fields와 같은 값) */
+            /** @description 생성 필드별 허용값·기본값 (RuntimeConfigService strategies[type].fields와 같은 값) */
             fields: components["schemas"]["StrategyFieldsMeta"];
             /** @description VR 램프 기본값표 — 적립 모드(DEPOSIT·HOLD·WITHDRAW)별. VR 외 전략은 생략 */
             vrRampDefaults?: {
@@ -6898,6 +6878,114 @@ export interface operations {
             };
         };
     };
+    triggerOpen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerMarketIndexPriceSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandPriceIndex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandPriceIndexFullRefresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandHousingBenchmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerClose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     listBases: {
         parameters: {
             query?: {
@@ -8342,26 +8430,6 @@ export interface operations {
             };
         };
     };
-    getRuntimeConfig: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["RuntimeSettingsResponse"];
-                };
-            };
-        };
-    };
     getBundle: {
         parameters: {
             query?: never;
@@ -9267,114 +9335,6 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerOpen: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerMarketIndexPriceSync: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndex: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndexFullRefresh: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandHousingBenchmark: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerClose: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
                 headers: {
                     [name: string]: unknown;
                 };

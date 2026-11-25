@@ -144,7 +144,7 @@ export function computeCannotSubmit(input: {
     : runtimeConfigUnavailable || isRuntimeValueInvalid || isInvalidBootstrap || isInvalidScheduledStart || isInvalidVr || isBelowMinSeed || (!isVr && isInvalidSeed) || (!isVr && seedCheck !== 'ok')
 }
 
-// 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록)를 판정할 서버 파생값의 상태 — 값이 없으면 제출을 막는다.
+// 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록·시드를 바꾸는 수정)를 판정할 서버 파생값의 상태 — 값이 없으면 제출을 막는다.
 // ok: 판정 가능하거나 판정이 필요 없음, loading: 검증 응답 대기, failed: 검증 호출 실패 또는 서버가 미리보기를 계산하지 못함
 export type SeedCheck = 'ok' | 'loading' | 'failed'
 
@@ -231,7 +231,7 @@ export function computeSubmitDisabled(input: {
           return null
         })()
       : (() => {
-          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return reason('P 매매표가 없어 등록할 수 없습니다.')
+          if (seedUnavailableReason === 'NO_PRIVACY_BASE') return reason(`P 매매표가 없어 ${initial ? '수정' : '등록'}할 수 없습니다.`)
           if (isBelowMinSeed && minSeed !== null) return reason(`최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`)
           if (isInvalidSeed) return reason('예수금은 0보다 커야 합니다.')
           if (seedCheck === 'loading') return reason('최소 투자금을 확인하는 중입니다.')

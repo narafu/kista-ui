@@ -224,9 +224,11 @@ export function useStrategyForm({
     scope: `${type}|${ticker}|${divisionCount}`,
   })
 
-  // 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록)는 서버 파생값이 있어야 판정한다. 수정은 서버가 값을 주지 않아 판정하지 않는다(사용자 결정)
+  // 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE는 서버 파생값이 있어야 판정한다. 수정은 시드를 실제로 바꿀 때만 판정한다 —
+  // 자동 시작 등 다른 설정만 바꾸는 저장을 검증 실패·기준표 없음으로 막지 않게(서버는 시드 수정(보유 0)일 때만 값을 준다)
   // 서버가 지금 입력을 거절했으면 그 사유가 막는다(거절 응답은 파생값이 비어 있을 수 있다 — 해석 실패·400)
-  const seedCheck: SeedCheck = initial || !requiresPrivacyBase || minSeed !== null || seedUnavailableReason !== null
+  const judgesSeed = !initial || (canEditSeed && seedUsd !== (initial.initialDeposit ?? null))
+  const seedCheck: SeedCheck = !judgesSeed || !requiresPrivacyBase || minSeed !== null || seedUnavailableReason !== null
     || (validation.current?.fieldErrors.length ?? 0) > 0
     ? 'ok'
     : validation.isError || validation.data ? 'failed' : 'loading'
@@ -255,7 +257,7 @@ export function useStrategyForm({
     isInvalidScheduledStart: invalidScheduledStart,
     isVr, vrFields, recurringMode, vrAssets, rampDefaults,
     isRuntimeValueInvalid: runtimeValueInvalid,
-    seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, seedCheck,
+    seedUnavailableReason: judgesSeed ? seedUnavailableReason : null, isBelowMinSeed, minSeed, isInvalidSeed, seedCheck,
   })
 
   // 서버 거절은 로컬 규칙이 모두 통과한 뒤에 보인다(로컬이 즉시·구체적). 지금 입력의 결과만 쓴다 — 검증 중·실패면 막지 않고 제출에서 서버가 다시 거른다
@@ -269,7 +271,8 @@ export function useStrategyForm({
   const submitDisabledReason = submitDisabled?.message ?? resolverValidationReason
   // 특정 입력칸의 사유면 그 칸 아래에 표시한다(하단은 여러 칸에 걸친 사유·resolver 사유만)
   const submitDisabledField = submitDisabled?.field ?? null
-  const blocked = cannotSubmit || serverDisabled !== null
+  // 사유가 있으면 막는다 — NO_PRIVACY_BASE처럼 cannotSubmit이 보지 않는 사유도 있다(서버도 거절하지 않는다, Q-35)
+  const blocked = cannotSubmit || submitDisabled !== null
 
   const setters = createFormSetters(form, settingsOf)
 

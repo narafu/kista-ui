@@ -1330,6 +1330,82 @@ describe('useStrategyForm 서버 검증 연결', () => {
     expect(result.current.cannotSubmit || result.current.submitDisabledReason !== null).toBe(true)
   })
 
+  it('PRIVACY 등록도 기준표가 없으면(NO_PRIVACY_BASE) 제출을 막는다(서버가 거절하지 않는다, Q-35)', async () => {
+    seedPreviewState.data.skipReason = 'NO_PRIVACY_BASE'
+    seedPreviewState.data.minSeed = null
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('PRIVACY'))
+    expect(result.current.submitDisabledReason).toBe('P 매매표가 없어 등록할 수 없습니다.')
+    await act(async () => { result.current.handleSubmit(submitEvent) })
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+  })
+
+  describe('PRIVACY 수정(보유 0, 시드 수정)은 등록과 같이 서버 파생값으로 판정한다', () => {
+    const privacyInitial = (currentHoldings: number) => ({
+      id: 'strategy-1', accountId: 'account-1', type: 'PRIVACY' as const, status: 'ACTIVE' as const, ticker: 'SOXL', cycleSeedType: 'MAX' as const,
+      initialDeposit: 1200, isReverseMode: false, cycleInProgress: false, allowedActions: [], blockedActions: [], currentHoldings,
+    })
+
+    it('시드를 바꿨는데 파생값이 없으면 막는다', async () => {
+      seedModelState.seedUsd = 1800
+      seedPreviewState.data.minSeed = null
+      validationState.isError = true
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(0) }))
+      expect(result.current.seedCheck).toBe('failed')
+      expect(result.current.submitDisabledReason).toBe('최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.')
+      await act(async () => { result.current.handleSubmit(submitEvent) })
+      expect(mockUpdateMutate).not.toHaveBeenCalled()
+    })
+
+    it('시드를 바꿨는데 기준표가 없으면(NO_PRIVACY_BASE) 막는다', async () => {
+      seedModelState.seedUsd = 1800
+      seedPreviewState.data.skipReason = 'NO_PRIVACY_BASE'
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(0) }))
+      expect(result.current.submitDisabledReason).toBe('P 매매표가 없어 수정할 수 없습니다.')
+      await act(async () => { result.current.handleSubmit(submitEvent) })
+      expect(mockUpdateMutate).not.toHaveBeenCalled()
+    })
+
+    it('기준가·가용 예수금을 그대로 내준다', () => {
+      seedPreviewState.data.availableCash = 3000
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(0) }))
+      expect(result.current.basePrice).toBe(100)
+      expect(result.current.availableCash).toBe(3000)
+      expect(result.current.seedCheck).toBe('ok')
+    })
+
+    it('시드를 그대로 두고 다른 설정만 바꾸면 검증 실패로 막지 않는다', async () => {
+      seedModelState.seedUsd = 1200 // initialDeposit과 같다
+      seedPreviewState.data.minSeed = null
+      validationState.isError = true
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(0) }))
+      act(() => result.current.setAutoStart(false))
+      expect(result.current.seedCheck).toBe('ok')
+      expect(result.current.submitDisabledReason).toBeNull()
+      await act(async () => { result.current.handleSubmit(submitEvent) })
+      await waitFor(() => expect(mockUpdateMutate).toHaveBeenCalled())
+    })
+
+    it('시드를 그대로 두면 기준표가 없어도(NO_PRIVACY_BASE) 막지 않는다', async () => {
+      seedModelState.seedUsd = 1200
+      seedPreviewState.data.minSeed = null
+      seedPreviewState.data.skipReason = 'NO_PRIVACY_BASE'
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(0) }))
+      expect(result.current.submitDisabledReason).toBeNull()
+      await act(async () => { result.current.handleSubmit(submitEvent) })
+      await waitFor(() => expect(mockUpdateMutate).toHaveBeenCalled())
+    })
+
+    it('보유가 있어 시드를 못 고치면 파생값 없이도 막지 않는다', async () => {
+      seedPreviewState.data.minSeed = null
+      validationState.isError = true
+      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial: privacyInitial(3) }))
+      expect(result.current.seedCheck).toBe('ok')
+      await act(async () => { result.current.handleSubmit(submitEvent) })
+      await waitFor(() => expect(mockUpdateMutate).toHaveBeenCalled())
+    })
+  })
+
   it('수정의 서버 거절은 보유·시작예정일 칸이 없으므로 폼 하단에 둔다', () => {
     validationState.fieldErrors = [{ field: 'scheduledStartDate', detail: '시작예정일은 오늘 이후여야 합니다.' }]
     const { result } = renderHook(() => useStrategyForm({
