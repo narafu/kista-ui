@@ -140,16 +140,16 @@ describe('DcaStrategyForm', () => {
     fireEvent.change(screen.getByLabelText('회차당 금액'), { target: { value: '300' } })
     fireEvent.click(screen.getByRole('button', { name: '완료' }))
     await screen.findByText('규칙 (1/10)')
-    expect(screen.getByRole('alert')).toHaveTextContent('이미 같은 종목의 전략이 있습니다.')
+    const reason = screen.getByText('이미 같은 종목의 전략이 있습니다.')
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
-    await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus())
+    await waitFor(() => expect(reason).toHaveFocus())
     expect(createMutate).not.toHaveBeenCalled()
   })
 
   it('등록: 규칙이 없을 때는 서버의 빈 규칙 거절을 보이지 않는다(손대기 전부터 뜨지 않게)', () => {
     seedPreview.fieldErrors = [{ field: 'dca', detail: 'DCA 규칙은 1개 이상이어야 합니다.' }]
     renderForm()
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText('DCA 규칙은 1개 이상이어야 합니다.')).not.toBeInTheDocument()
   })
 
   it('수정: 예수금 칸이 없고 가용 예수금을 조회하지 않는다', () => {

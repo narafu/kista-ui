@@ -98,12 +98,13 @@ export const hasSeed = (key) => !missing.has(key)
 export const tickerOf = (strategyId) =>
   Object.values(seed.accounts).map((s) => s[strategyId]).find(Boolean) ?? 'SOXL'
 
-// 로컬 시드 미리보기의 availableCash는 항상 null이고 브라우저에서만 부른다 — 실제 응답에 가용 예수금 5000을 덮어
-// 전략 등록 폼의 가용 예수금 힌트와 25·50·75·100% 채우기 버튼을 띄운다
-export const stubSeedCash = (p) => p.route(`**/api/accounts/${seed.toss.accountId}/strategy-seed-preview**`, async (r) => {
+// 로컬 등록 검증의 derived.availableCash는 항상 null이고 브라우저에서만 부른다 — 실제 응답에 가용 예수금 5000을 덮어
+// 전략 등록 폼의 가용 예수금 힌트와 25·50·75·100% 채우기 버튼을 띄운다(검증은 저장 없는 POST)
+export const stubSeedCash = (p) => p.route(`**/api/accounts/${seed.toss.accountId}/trading-cycle-validations`, async (r) => {
   const res = await r.fetch()
+  const body = await res.json()
   // 원본 헤더(content-length·content-encoding)를 넘기면 바뀐 본문과 어긋난다 — 상태 코드만 옮긴다
-  r.fulfill({ status: res.status(), json: { ...(await res.json()), availableCash: 5000 } })
+  r.fulfill({ status: res.status(), json: { ...body, derived: { ...body.derived, availableCash: 5000 } } })
 })
 
 /** 시나리오·화면 경로에 필요한 실데이터 id — 8080 직접 GET. 못 찾으면 assetSnapshotId는 undefined */

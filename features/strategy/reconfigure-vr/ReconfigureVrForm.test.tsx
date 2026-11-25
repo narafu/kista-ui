@@ -148,7 +148,8 @@ describe('ReconfigureVrForm', () => {
 
   it('검증 호출이 실패해도(503) 제출을 막지 않는다 — 제출에서 서버가 다시 거른다', async () => {
     renderForm(strategy, apiError(503, { detail: '증권사 응답 지연' }))
-    await waitFor(() => expect(requests.some((r) => r.method === 'POST')).toBe(true))
+    // 막지 않고 안내만 한다(1회 재시도 뒤)
+    expect(await screen.findByText('입력값 사전 확인을 불러오지 못했습니다. 제출하면 서버가 다시 확인합니다.', {}, { timeout: 3000 })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
     expect(await submittedAfterSend()).toEqual(expect.objectContaining({ bandWidth: 15 }))

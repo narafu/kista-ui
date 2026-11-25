@@ -448,7 +448,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 ## S7 후속 C 실행 기록 — T10 서버 검증 연결 (2026-11-25, 커밋 `72ff7d9d`)
 
 - 기준 api: s7은 api main `7b8463ba0`에 머지됐다(`b52c5b807` 포함, worktree 없음). 미배포 — api 먼저 배포한다. 그 전 api에 붙으면 검증 엔드포인트가 404라 검증 결과 없이 제출되고(서버가 제출에서 거른다), PRIVACY 등록은 최소 시드를 판정하지 못해 "확인하지 못했습니다"로 막힌다.
-- 연결: 등록·수정·VR 재설정 폼이 `useStrategyValidationQuery`(entities/strategy)로 400ms 디바운스해 부른다. Route Handler는 추가하지 않았다(기존 `app/api/accounts`·`app/api/trading-cycles` catch-all 프록시). 바디 = 제출 바디(`buildStrategyPayload`·`buildDcaCreatePayload`·`toReconfigureVrRequest`). 쿼리 키가 바디라 늦게 온 이전 입력의 응답은 최신 결과가 되지 못한다. `staleTime: Infinity`(같은 입력 재호출 없음).
+- 연결: 등록·수정·VR 재설정 폼이 `useStrategyValidationQuery`(entities/strategy)로 400ms 디바운스해 부른다. Route Handler는 추가하지 않았다(기존 `app/api/accounts`·`app/api/trading-cycles` catch-all 프록시). 바디 = 제출 바디(`buildStrategyPayload`·`buildDcaCreatePayload`·`toReconfigureVrRequest`). 쿼리 키가 바디라 늦게 온 이전 입력의 응답은 최신 결과가 되지 못한다. 같은 입력은 기본 staleTime(30초) 안에서 재사용한다.
 - 실패 처리(사용자 결정): 검증 대기·실패(404·429/503·네트워크)는 제출을 막지 않는다. 429·503만 1회 재시도. 예외로 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE(등록)는 `derived`가 없으면 "최소 투자금을 확인하는 중입니다."·"…확인하지 못했습니다. 다시 시도해주세요." + 다시 시도 버튼으로 막는다. 서버가 거절해 `derived`가 빈 응답은 서버 사유를 보인다. 등록·VR 검증의 Bean Validation 400은 `detail`만 와서 필드 없는 거절로 받는다.
 - 우선순위: 로컬 guard → 지금 입력의 서버 `fieldErrors`(→ 보유·시작예정일·적립금 칸, 수정이거나 그 밖의 필드는 하단). 경고는 서버 문장 그대로(`StrategyValidationWarnings`), 막지 않는다.
 - 제출 버튼: 진행 중·등록 가능 유형 없음일 때만 비활성(a11y.md). 전에는 guard 위반이면 `locked`였다. 막힌 제출은 사유로 포커스(등록·수정 폼은 `aria-invalid` 칸 또는 하단 사유, DCA·VR 재설정은 서버 거절 문장).
@@ -458,7 +458,8 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - `strategyFormGuards`의 서버 중복 규칙(사용자 결정으로 유지): 보유 평단가·수량 5건, 시작예정일, VR 주기·밴드·적립금 정수, VR 거치·인출 자산>0·인출식 최소 자산, 램프 교차 3건, `isRuntimeValueInvalid`. UI 전용 4건(비VR 예수금>0·PRIVACY 최소 시드·NO_PRIVACY_BASE·VR 금액 0)도 유지.
 - 테스트: 기존 제출 바디 단언 기대값 변경 0건(`git diff`로 확인 — 바뀐 단언은 seed-preview API·`isBelowMinSeed` 반환값·제출 버튼 비활성 기대뿐). 새로 고정: 검증 바디 = 제출 바디(등록 INFINITE·VR, 수정, VR 재설정), 디바운스·늦은 응답·범위 밖 이전 결과 숨김·재조회 실패 시 결과 유지·429/503 재시도·404 무재시도(훅), 서버 거절 차단·로컬 우선·검증 중/실패 시 제출·PRIVACY 대기/실패/거절·시드 채움 1회·메타 램프값·수정 하단 배치(폼). 변이 확인 19건 모두 실패로 잡힘(처음 놓친 VR 재설정 1건은 비동기 판정을 기다리게 고쳐 잡음, 훅의 범위 밖 결과 노출은 테스트가 실제 결함을 잡아 고침).
 - 리뷰(`/code-review high`) 7건 모두 고침: PRIVACY 거절이 "확인 실패"로 가려짐, DCA 빈 규칙 거절이 손대기 전부터 뜸(규칙 없을 땐 숨김 — 가용 예수금 때문에 검증은 계속 부름), 재조회 실패 시 거절이 풀림, 수정에서 안 보이는 칸에 사유가 붙음, DCA·VR 막힌 제출 포커스, 400 `fieldErrors` 파싱 죽은 코드, 경고 key 중복.
-- 검증: typecheck·lint·knip 통과, vitest 261파일 1867건 통과(+기존 expected fail 1). 실서버·e2e·a11y-check는 못 돌렸다(위 "e2e 대기").
+- 후속(같은 날, 다음 커밋): ① 승인안의 "404는 안내"가 빠져 있어 검증 실패 시 "입력값 사전 확인을 불러오지 못했습니다. 제출하면 서버가 다시 확인합니다."를 세 폼에 더했다(막지 않음). ② a11y-check(브라우저 POST abort)·visual-diff 프록시(GET 전용)가 검증 POST를 막아 등록 화면이 달라지던 것을 `READ_ONLY_POST`(`scripts/shared/browser.mjs`, 검증 3경로만 — 저장 없는 POST) 허용으로 고쳤다. `stubSeedCash`·`e2e/ledger-budget.spec.ts`의 seed-preview stub은 등록 검증 응답 stub으로 옮겼다. ③ DCA·VR 재설정 서버 거절 문장은 `role="alert"` 대신 상시 `aria-live="polite"` 영역(디바운스마다 재낭독 방지). ④ 재검토(Sonnet) 지적으로 `staleTime: Infinity`를 빼 기본 30초로 둔다(서버 상태가 바뀐 뒤에도 같은 입력의 거절이 고정되지 않게). 수정·VR 재설정은 마운트 직후 무변경 바디로 검증하는데, 서버 `StrategyUpdateWriter`·`VrReconfigureService.plan`에 "변경 없음" 거절은 없다(보관·사이클 종료·현재가 조회 실패 거절은 제출도 같은 이유로 실패하므로 그대로 보인다).
+- 검증: typecheck·lint·knip 통과, vitest 261파일 1868건 통과(기존 expected fail 1 포함). 실서버·e2e·a11y-check는 못 돌렸다(위 "e2e 대기").
 - 남긴 것(제안): `entities/runtime-config`의 `useRuntimeConfigQuery`·`/api/runtime-config` 라우트는 소비처가 없다(visual-diff fixture의 DCA 패치만 이 경로를 본다). `RAMP_DEFAULTS_BY_MODE`는 zod 스키마 교차 검증과 메타 없을 때 대체값으로 남았다. 등록 폼의 `useAppForm`·`FormField` 전환(04-6)은 별도 세션(사용자 결정).
 
 ## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)

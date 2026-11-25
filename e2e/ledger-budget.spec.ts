@@ -12,9 +12,9 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
     const accountId = accounts.find((a) => a.broker === 'MOCK' || a.broker === 'TOSS')?.id
     expect(accountId, 'dev 시드에 MOCK·TOSS 계좌가 있어야 한다').toBeTruthy()
 
-    // 로컬 시드 미리보기는 availableCash가 항상 null이고 TOSS 시드 계좌는 가짜 자격증명이라 503일 수 있다 — 응답 전체를 고정한다
-    await page.route('**/api/accounts/*/strategy-seed-preview**', (route) =>
-      route.fulfill({ json: { ticker: 'SOXL', basePrice: 80, minSeed: 3000, skipReason: null, availableCash: 5000 } }))
+    // 로컬 등록 검증은 availableCash가 항상 null이고 TOSS 시드 계좌는 가짜 자격증명이라 503일 수 있다 — 응답 전체를 고정한다
+    await page.route('**/api/accounts/*/trading-cycle-validations', (route) =>
+      route.fulfill({ json: { fieldErrors: [], warnings: [], derived: { basePrice: 80, minSeed: 3000, skipReason: null, availableCash: 5000 } } }))
     let createBody: Record<string, unknown> | null = null
     await page.route('**/api/accounts/*/trading-cycles', async (route) => {
       if (route.request().method() !== 'POST') return route.fallback()

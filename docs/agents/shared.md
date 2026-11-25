@@ -55,7 +55,7 @@ Next.js persistent cache는 가변 인증 데이터에 사용하지 않는다. �
 - **대상·제외 키**: 무효화는 `widgets/layout/TradeNotificationBridge.tsx`에서 마운트되며 대상·제외 키와 `strategyKeys.lists()` → `details()` 순서는 `TradeNotificationBridge.test.tsx`가 고정한다(1회 호출은 `entities/strategy/model/queryOptions.test.ts`). 이유만 남긴다.
   - lists를 details보다 먼저 무효화해야 한다 — `strategyDetailQueryOptions`가 목록 캐시를 거쳐 찾으므로, 순서가 바뀌면 detail이 아직 fresh한 목록 캐시를 재사용해 갱신 전 값을 받는다.
   - housing-comparison은 내 투자 수익률을 포함하므로 대상이다. housing·etf 시장 시계열·regions는 체결과 무관하다(`statsKeys.all` 금지).
-  - `strategyKeys.seedPreview`는 시세 기반이라 폼이 열린 중 재조회되면 사용자가 조정한 시드가 초기화될 수 있다(`strategyKeys.all` 금지).
+  - `strategyKeys.validation`(전략 폼 서버 검증)은 입력마다 키가 바뀌어 체결 무효화 대상이 아니다(`strategyKeys.all` 금지).
 - **서버 TTL**: summary·equity-curve·housing-comparison의 kista-api 서버 TTL 캐시는 체결 시 사용자 단위로 비워지므로 재조회가 새 값을 받는다. Redis 메시지 유실이나 계산 중 경합이 생기면 TTL이 지나야 갱신된다(`entities.md` "stats 서버 TTL" 참고).
 - **브리지에 두는 이유**: `entities/trade`에서 `@entities/order`·`@entities/stats`·`@entities/strategy`를 import하면 같은 계층 cross-import가 된다.
 - **targeted 무효화를 하지 않는 이유**: 2026-10부터 payload에 `accountId`·`strategyId`(nullable)가 담기지만, 이를 써서 키를 좁히지 않는다.

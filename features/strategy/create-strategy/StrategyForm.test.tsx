@@ -130,6 +130,7 @@ const baseFormState = {
   seedCheck: 'ok' as const,
   retryValidation: vi.fn(),
   warnings: [] as { code: string; detail: string }[],
+  validationUnavailable: false,
   handleSubmit: vi.fn((e: React.FormEvent) => { e.preventDefault(); return true }),
 }
 

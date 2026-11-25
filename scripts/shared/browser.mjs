@@ -19,10 +19,13 @@ export async function devToken(role, { timeout } = {}) {
   return (await r.json()).accessToken
 }
 
+// 저장 없는 전략 검증 POST(api T10 — 저장·이벤트·락·주문 취소 없음, 현재가 조회만) — 읽기 전용 도구도 통과시킨다
+export const READ_ONLY_POST = /\/api\/(accounts\/[^/]+\/trading-cycle-validations|trading-cycles\/[^/]+\/(update|vr-config)-validations)$/
+
 /**
  * kista-token(+추가 쿠키)을 심은 컨텍스트. 비회원은 token을 생략한다.
  * 컨텍스트 옵션은 그대로 넘어간다 — 호출자가 현재 값을 유지해야 픽셀이 안 바뀐다(visual-diff).
- * readOnly에 서버 주소를 주면 브라우저에서 나가는 GET/HEAD 외 요청을 전부 abort한다(a11y-check — 로컬 DB 실데이터 보호).
+ * readOnly에 서버 주소를 주면 브라우저에서 나가는 GET/HEAD 외 요청을 전부 abort한다(a11y-check — 로컬 DB 실데이터 보호). 예외는 READ_ONLY_POST.
  * @param {import('@playwright/test').Browser} browser
  * @param {{ token?: string, cookies?: Record<string, string>, host?: string, readOnly?: string } & import('@playwright/test').BrowserContextOptions} options
  */
@@ -35,6 +38,7 @@ export async function authedContext(browser, { token, cookies = {}, host = 'loca
     await ctx.route('**/*', (route) => {
       const req = route.request()
       if (req.method() === 'GET' || req.method() === 'HEAD') return route.continue()
+      if (req.method() === 'POST' && READ_ONLY_POST.test(new URL(req.url()).pathname)) return route.continue()
       // HMR·클라이언트 에러 리포트 같은 개발용 요청은 조용히 막는다
       if (!/\/_next\/|__nextjs|client-errors/.test(req.url())) console.log(`  · blocked ${req.method()} ${req.url().replace(readOnly, '')}`)
       return route.abort()

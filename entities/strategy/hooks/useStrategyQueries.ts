@@ -95,8 +95,6 @@ export function useStrategyValidationQuery<TBody>(
     queryKey: strategyKeys.validation(targetKey, debounced),
     queryFn: () => validateStrategy(target, JSON.parse(debounced)),
     enabled: options.enabled,
-    // 키가 입력마다 바뀌므로 같은 입력을 다시 부를 이유가 없다 — 재조회는 시세·증권사 호출만 늘린다
-    staleTime: Infinity,
     retry: (count, err) => count < 1 && err instanceof ApiError && (err.status === 429 || err.status === 503),
     placeholderData: (prev, prevQuery) => {
       const prevBody = prevQuery?.queryKey[3]

@@ -146,8 +146,8 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
       <WithdrawSection form={form} disabled={disabled} />
 
-      {serverError && <p ref={serverErrorRef} tabIndex={-1} role="alert" className="text-sm font-semibold text-warn">{serverError.detail}</p>}
-      <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} />
+      <div aria-live="polite">{serverError && <p ref={serverErrorRef} tabIndex={-1} className="text-sm font-semibold text-warn">{serverError.detail}</p>}</div>
+      <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} unavailable={validation.isError} />
 
       <FormActions
         onCancel={handleDone}

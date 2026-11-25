@@ -1350,6 +1350,7 @@ describe('useStrategyForm 서버 검증 연결', () => {
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
     expect(result.current.seedCheck).toBe('ok')
     expect(result.current.cannotSubmit).toBe(false)
+    expect(result.current.validationUnavailable).toBe(true)
   })
 
   it('최소 시드로 시드를 채우는 것은 범위(유형·종목·분할 수)마다 지금 입력의 응답이 처음 올 때 한 번이다', () => {

@@ -125,6 +125,8 @@ export interface UseStrategyFormReturn {
   retryValidation: () => void
   // 서버 검증 경고(저장은 된다) — 지금 입력의 결과만
   warnings: StrategyValidation['warnings']
+  // 검증 호출 실패 — 막지 않고 안내만(PRIVACY 최소 시드 확인 실패는 seedCheck가 따로 막는다)
+  validationUnavailable: boolean
   // 제출했으면 true, 막혔으면 false(호출부가 사유로 포커스를 옮긴다)
   handleSubmit: (e: React.FormEvent) => boolean
 }
@@ -308,6 +310,7 @@ export function useStrategyForm({
     seedCheck,
     retryValidation: () => { void validation.refetch() },
     warnings: validation.current?.warnings ?? [],
+    validationUnavailable: validation.isError && seedCheck !== 'failed',
     handleSubmit,
   }
 }

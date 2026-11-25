@@ -210,8 +210,8 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
             error={rulesErrorMessage}
           />
         </div>
-        {serverError && <p ref={serverErrorRef} tabIndex={-1} role="alert" className="text-sm font-semibold text-warn pt-3">{serverError.detail}</p>}
-        <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} />
+        <div aria-live="polite">{serverError && <p ref={serverErrorRef} tabIndex={-1} className="text-sm font-semibold text-warn pt-3">{serverError.detail}</p>}</div>
+        <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} unavailable={validation.isError} />
         <FormActions onCancel={onCancel} isPending={pending} label={initial ? '수정' : '등록'} className="py-6" />
       </form>
     </>

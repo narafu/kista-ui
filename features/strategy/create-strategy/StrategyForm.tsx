@@ -181,7 +181,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         </div>
       )}
 
-      <StrategyValidationWarnings warnings={form.warnings} />
+      <StrategyValidationWarnings warnings={form.warnings} unavailable={form.validationUnavailable} />
 
       <FormActions
         onCancel={onCancel}
