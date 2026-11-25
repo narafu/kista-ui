@@ -35,7 +35,7 @@ const LINE_OPTIONS = { lineWidth: 1, priceLineVisible: false, lastValueVisible: 
 function toggleButtonClass(active: boolean) {
   return cn(
     'text-xs px-1.5 py-1 rounded font-medium transition-colors',
-    active ? 'bg-[var(--brand-fg-soft)] text-[var(--background)]' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
+    active ? 'bg-brand-fg-soft text-background' : 'text-muted-foreground hover:text-foreground hover:bg-accent',
   )
 }
 
@@ -216,7 +216,7 @@ export default function MarketChartCardInner({ category }: Props) {
     <>
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <div className="flex items-center gap-1.5 whitespace-nowrap">
-          <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">{category.title}</span>
+          <span className="text-sm font-semibold tracking-widest uppercase text-brand-fg-soft">{category.title}</span>
           <span className="text-xs text-muted-foreground">일봉</span>
         </div>
         <div className="ml-auto flex items-center gap-1">

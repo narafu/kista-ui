@@ -30,9 +30,9 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
 
   if (belowMinSeed && minSeed !== null) {
     return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--warn-bg)] border border-[var(--warn)]">
-        <span className="text-sm text-[var(--warn)] font-bold">최소 투자금 미달</span>
-        <span className="text-sm font-extrabold text-[var(--warn)] tabular-nums">
+      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-warn-bg border border-warn">
+        <span className="text-sm text-warn font-bold">최소 투자금 미달</span>
+        <span className="text-sm font-extrabold text-warn tabular-nums">
           최소 {fmtMoney(minSeed, 'USD')}
         </span>
       </div>
@@ -53,9 +53,9 @@ function SeedStatus({ value, deposit, minSeed, belowMinSeed }: StatusProps) {
   }
   if (sufficient) {
     return (
-      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-[var(--brand-soft-bg)] border border-[var(--rose-200)]">
-        <span className="text-sm text-[var(--brand-fg-soft)] font-bold">예수금으로 즉시 시작 가능</span>
-        <span className="text-sm font-extrabold text-[var(--brand-fg)] tabular-nums">✓</span>
+      <div className="flex justify-between items-center px-3 py-2.5 rounded-[var(--r-sm)] bg-brand-soft border border-rose-200">
+        <span className="text-sm text-brand-fg-soft font-bold">예수금으로 즉시 시작 가능</span>
+        <span className="text-sm font-extrabold text-brand-fg tabular-nums">✓</span>
       </div>
     )
   }
@@ -78,10 +78,10 @@ export function SeedAmountInput({ value, onChange, deposit, minSeed, belowMinSee
         className={cn(
           'min-w-0 rounded-lg border bg-card flex items-center px-3.5 h-11 mb-3',
           // 상시 rose 테두리는 강조라 포커스와 구분되지 않는다 — 포커스는 공용 Input과 같은 ring을 덧씌운다
-          disabled ? 'opacity-50' : 'border-[var(--rose-400)] shadow-[0_0_0_3px_rgba(203,131,106,0.18)] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
+          disabled ? 'opacity-50' : 'border-rose-400 shadow-[0_0_0_3px_rgba(203,131,106,0.18)] focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50',
         )}
       >
-        <span className="text-sm font-extrabold text-[var(--rose-600)] mr-1.5">$</span>
+        <span className="text-sm font-extrabold text-rose-600 mr-1.5">$</span>
         {/* 단위·기호를 품은 컨테이너가 테두리·포커스를 그리므로 안쪽은 공용 Input이 아닌 투명 raw input */}
         <input
           type="text"

@@ -97,7 +97,7 @@ export function RecurringModeEditor({ label, field, error, onChange, inputRef }:
             {VR_RECURRING_MODE_LABEL.HOLD} <span className="ml-auto text-xs font-sans">고정</span>
           </div>
         )}
-        {(inputError || error) && <p role="alert" className="text-xs text-[var(--status-error)]">{inputError || error}</p>}
+        {(inputError || error) && <p role="alert" className="text-xs text-status-error">{inputError || error}</p>}
       </div>
     </div>
   )

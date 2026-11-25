@@ -126,7 +126,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
       </div>
 
       {needsTelegram && (
-        <p className="text-sm mt-2 text-[var(--warn)]">
+        <p className="text-sm mt-2 text-warn">
           텔레그램 알림을 받으려면 위에서 텔레그램 봇을 먼저 연결해주세요.
         </p>
       )}
@@ -136,7 +136,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
         </p>
       )}
       {fcmStatus === 'error' && (
-        <p className="text-sm mt-2 text-[var(--warn)]">
+        <p className="text-sm mt-2 text-warn">
           {/* fcmStatus 'error'는 클라이언트 effect 이후에만 설정되어 SSR 렌더에 도달하지 않음 */}
           {typeof window !== 'undefined' && 'Notification' in window && 'PushManager' in window
             ? '푸시 알림 설정에 실패했습니다. 새로고침 후 다시 시도해주세요.'

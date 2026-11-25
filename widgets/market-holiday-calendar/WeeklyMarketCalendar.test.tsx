@@ -45,10 +45,10 @@ describe('WeeklyMarketCalendar', () => {
     const holidayText = screen.getAllByText('휴장').find((node) => node.className.includes('text-xs'))
     const holidayCell = holidayText?.parentElement
 
-    expect(holidayText).toHaveClass('text-[var(--gold)]')
-    expect(holidayText).toHaveClass('bg-[var(--gold)]/15')
+    expect(holidayText).toHaveClass('text-gold')
+    expect(holidayText).toHaveClass('bg-gold/15')
     expect(holidayText).toHaveClass('rounded')
-    expect(holidayCell).not.toHaveClass('bg-[var(--gold)]/15')
+    expect(holidayCell).not.toHaveClass('bg-gold/15')
   })
 
   it('uses a more visible today container style for dark theme contrast', () => {

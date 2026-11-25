@@ -180,7 +180,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             />
           )} />
           {serverSnapshot.auth.approvalRequired && !draft.auth.approvalRequired && (
-            <div className="flex gap-2 rounded-md border border-[var(--warn)] bg-[var(--warn-bg)] px-3 py-2 text-xs text-[var(--warn)]">
+            <div className="flex gap-2 rounded-md border border-warn bg-warn-bg px-3 py-2 text-xs text-warn">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" /> 저장 즉시 가입 승인 대기 상태가 해제됩니다.
             </div>
           )}
@@ -289,7 +289,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
             ) : (
               <div className="py-3">
                 <span className="text-sm font-medium">{labelOf('strategyTypes', 'DCA')}</span>
-                <p className="mt-1 text-sm text-[var(--status-error)]">설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.</p>
+                <p className="mt-1 text-sm text-status-error">설정 정보가 오래되어 저장할 수 없습니다. 페이지를 새로고침해야 합니다.</p>
               </div>
             )}
           </div>

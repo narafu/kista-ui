@@ -90,7 +90,7 @@ export function DcaSettingsSection({ form, orderTypes, frequencies }: Props) {
         )}
 
         {(errors.dayOfWeek || errors.dayOfMonth) && (
-          <p id={scheduleErrorId} className="mt-1 text-sm text-[var(--status-error)]">{errors.dayOfWeek?.message ?? errors.dayOfMonth?.message}</p>
+          <p id={scheduleErrorId} className="mt-1 text-sm text-status-error">{errors.dayOfWeek?.message ?? errors.dayOfMonth?.message}</p>
         )}
         {frequency === 'MONTHLY' && dayOfMonth && LATE_DAYS.has(dayOfMonth) && <Caption>해당 날짜가 없는 달은 말일에 실행</Caption>}
         <Caption>휴장일이면 같은 주·월 안의 다음 거래일에 실행</Caption>
@@ -138,7 +138,7 @@ export function DcaSizingSection({ form }: Pick<Props, 'form'>) {
               <AmountInput id={percentId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="%" maxDecimals={2} disabled={false}
                 errorId={errors.percent ? `${percentId}-error` : undefined} />
             )} />
-            {errors.percent && <p id={`${percentId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.percent.message}</p>}
+            {errors.percent && <p id={`${percentId}-error`} className="mt-1 text-sm text-status-error">{errors.percent.message}</p>}
             <Caption>100% = 보유 전량</Caption>
           </>
         ) : (
@@ -148,7 +148,7 @@ export function DcaSizingSection({ form }: Pick<Props, 'form'>) {
               <AmountInput id={amountId} value={field.value} ref={field.ref} onBlur={field.onBlur} onChange={field.onChange} unit="USD" currency="USD" disabled={false}
                 errorId={errors.amount ? `${amountId}-error` : undefined} />
             )} />
-            {errors.amount && <p id={`${amountId}-error`} className="mt-1 text-sm text-[var(--status-error)]">{errors.amount.message}</p>}
+            {errors.amount && <p id={`${amountId}-error`} className="mt-1 text-sm text-status-error">{errors.amount.message}</p>}
           </>
         )}
       </div>

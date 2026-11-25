@@ -45,11 +45,11 @@ export function HousingBenchmarkChart({ points, investmentLabel, investmentCurre
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-0.5 w-3.5 rounded-full bg-[var(--chart-1)]" />
+              <span className="inline-block h-0.5 w-3.5 rounded-full bg-chart-1" />
               {formatHousingBenchmarkSeriesLabel(investmentLabel, investmentCurrency)}
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="inline-block h-0 w-3.5 border-t-2 border-dashed border-[var(--chart-2)]" />
+              <span className="inline-block h-0 w-3.5 border-t-2 border-dashed border-chart-2" />
               {formatHousingBenchmarkSeriesLabel(benchmarkLabel, benchmarkCurrency)}
             </span>
           </div>

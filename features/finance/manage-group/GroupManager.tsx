@@ -18,7 +18,7 @@ import { GroupMemberList } from './GroupMemberList'
 import { InviteDialog } from './InviteDialog'
 import { LeaveGroupDialog } from './LeaveGroupDialog'
 
-const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
+const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
 
 interface GroupSectionProps {
   groupId: string

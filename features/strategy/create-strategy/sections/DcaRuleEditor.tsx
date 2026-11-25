@@ -34,7 +34,7 @@ export function DcaRuleEditor({ initial, isNew, onDone, onDelete, onCancel }: Pr
   return (
     <form onSubmit={form.handleSubmit((v) => onDone(v))}>
       <button type="button" onClick={onCancel}
-        className="mb-1 text-sm font-semibold text-[var(--brand-fg-soft)] hover:underline">
+        className="mb-1 text-sm font-semibold text-brand-fg-soft hover:underline">
         ← 규칙 목록
       </button>
       <h2 ref={titleRef} tabIndex={-1} className="flex items-center gap-2 pb-2 text-lg font-[800] outline-none">

@@ -82,7 +82,7 @@ export function PrivacyBaseChart({ windowFrom: rangeFrom, windowTo, sinceYearlyR
     return (
       <div className="space-y-3">
         {candlesQuery.isError && !candlesQuery.data ? (
-          <div role="alert" className="flex flex-wrap items-center gap-2 pl-1 text-xs text-[var(--warn)]">
+          <div role="alert" className="flex flex-wrap items-center gap-2 pl-1 text-xs text-warn">
             <span>종가를 불러오지 못해 종가·현금비중을 표시하지 않습니다.</span>
             <Button variant="outline" size="sm" onClick={() => void candlesQuery.refetch()}>다시 시도</Button>
           </div>

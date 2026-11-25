@@ -21,8 +21,8 @@ export function SelectionCard({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         'disabled:cursor-not-allowed disabled:opacity-50',
         selected
-          ? 'border-2 border-[var(--selection-border)] bg-[var(--selection-bg)] text-[var(--selection-fg)] shadow-[0_0_0_3px_var(--selection-halo)]'
-          : 'border border-border bg-card text-foreground enabled:hover:border-[var(--selection-hover-border)]',
+          ? 'border-2 border-selection-border bg-selection-bg text-selection-fg shadow-[0_0_0_3px_var(--selection-halo)]'
+          : 'border border-border bg-card text-foreground enabled:hover:border-selection-hover-border',
         className,
       )}
       {...props}

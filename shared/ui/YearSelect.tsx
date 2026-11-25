@@ -36,7 +36,7 @@ export function YearSelect({ value, onValueChange, today, label = '기준 연도
       <PopoverTrigger
         aria-label={`${label} ${value}년`}
         className={cn(
-          'flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-transparent px-3 text-sm whitespace-nowrap transition-colors outline-none select-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+          'flex h-9 items-center gap-1.5 rounded-lg border border-border-strong bg-transparent px-3 text-sm whitespace-nowrap transition-colors outline-none select-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
           className,
         )}
       >
@@ -53,7 +53,7 @@ export function YearSelect({ value, onValueChange, today, label = '기준 연도
               onClick={() => pick(year)}
               className={cn(
                 'rounded px-2 py-2 text-sm tabular-nums transition-colors hover:bg-accent',
-                year === value && 'bg-[var(--brand-fg-soft)] text-[var(--background)] hover:bg-[var(--brand-fg-soft)]',
+                year === value && 'bg-brand-fg-soft text-background hover:bg-brand-fg-soft',
               )}
             >
               {year}

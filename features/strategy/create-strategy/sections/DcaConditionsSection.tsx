@@ -123,13 +123,13 @@ export function DcaConditionsSection({ form, indicators, direction }: Props) {
                 </Button>
               </div>
               {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
-              {rowErrorMessage && <p id={errorId} className="mt-1 text-sm text-[var(--status-error)]">{rowErrorMessage}</p>}
+              {rowErrorMessage && <p id={errorId} className="mt-1 text-sm text-status-error">{rowErrorMessage}</p>}
             </div>
           )
         })}
       </div>
 
-      {listError && <p className="mt-1 text-sm text-[var(--status-error)]">{listError}</p>}
+      {listError && <p className="mt-1 text-sm text-status-error">{listError}</p>}
 
       {fields.length < MAX_DCA_CONDITIONS && defaultIndicator && defaultOperator && <Button type="button" variant="brand-soft" size="sm" className="mt-3"
         onClick={() => append({ indicator: defaultIndicator, operator: defaultOperator, threshold: null, smaPeriod: null })}>

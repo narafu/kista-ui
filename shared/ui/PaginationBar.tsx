@@ -14,7 +14,7 @@ import {
 import { SEGMENT_ACTIVE_CLASS } from './segmentedStyles'
 
 // 현재 페이지는 outline 기본값이 다크에서 거의 안 보여 기간 토글과 같은 세그먼트 활성색으로 칠한다 — outline의 hover·dark 배경을 함께 덮는다
-const ACTIVE_PAGE_CLASS = `${SEGMENT_ACTIVE_CLASS} border-transparent hover:bg-[var(--brand-fg-soft)] hover:text-[var(--background)] dark:bg-[var(--brand-fg-soft)] dark:hover:bg-[var(--brand-fg-soft)]`
+const ACTIVE_PAGE_CLASS = `${SEGMENT_ACTIVE_CLASS} border-transparent hover:bg-brand-fg-soft hover:text-background dark:bg-brand-fg-soft dark:hover:bg-brand-fg-soft`
 
 interface Props {
   page: number

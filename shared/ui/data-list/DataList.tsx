@@ -188,7 +188,7 @@ export function DataList<T>({ label, rows, columns, rowKey, isLoading, isError, 
       {loadMore && (loadMore.hasMore || loadMore.isFetching) && (
         <div className="flex flex-col items-center gap-1 border-t py-4">
           {loadMore.isError && !loadMore.isFetching && (
-            <p role="alert" className="text-sm text-[var(--status-error)]">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
+            <p role="alert" className="text-sm text-status-error">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
           )}
           <Button type="button" variant="outline" onClick={() => loadMore.onLoadMore()} disabled={loadMore.isFetching}>
             {loadMore.isFetching ? '불러오는 중…' : '더 보기'}

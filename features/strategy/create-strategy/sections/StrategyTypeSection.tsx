@@ -45,7 +45,7 @@ export function StrategyTypeSection({ initial, type, setType, loading, strategyT
                 disabled={loading}
                 className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4"
               >
-                <span className={selected ? 'size-4 shrink-0 text-[var(--selection-fg)]' : 'size-4 shrink-0 text-muted-foreground'}>
+                <span className={selected ? 'size-4 shrink-0 text-selection-fg' : 'size-4 shrink-0 text-muted-foreground'}>
                   {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                 </span>
                 <span className="text-sm font-[800]">

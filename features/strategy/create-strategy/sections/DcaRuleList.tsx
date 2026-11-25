@@ -35,7 +35,7 @@ export function DcaRuleList({ rules, onSelect, onAdd, registerRowRef, error }: P
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>규칙 ({rules.length}/{MAX_DCA_RULES})</StrategyFieldLabel>
       {(rules.length === 0 || error) && (
-        <p className={cn('py-2 text-sm', error ? 'text-[var(--status-error)]' : 'text-muted-foreground')}>{error ?? '규칙을 추가하세요.'}</p>
+        <p className={cn('py-2 text-sm', error ? 'text-status-error' : 'text-muted-foreground')}>{error ?? '규칙을 추가하세요.'}</p>
       )}
       <ul className="space-y-2">
         {rules.map((r, i) => {
@@ -50,7 +50,7 @@ export function DcaRuleList({ rules, onSelect, onAdd, registerRowRef, error }: P
             // 인덱스 키 — 행에 내부 상태가 없고 포커스 복귀도 인덱스로 찾는다
             <li key={i}>
               <button type="button" ref={(el) => registerRowRef(i, el)} onClick={() => onSelect(i)}
-                className="flex w-full items-center gap-3 rounded-[var(--r-sm)] border border-border bg-card px-3 py-2.5 text-left hover:border-[var(--selection-hover-border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                className="flex w-full items-center gap-3 rounded-[var(--r-sm)] border border-border bg-card px-3 py-2.5 text-left hover:border-selection-hover-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold">
                     <DcaRuleSummaryLabel rule={toSummaryInput(r)} labelOf={labelOf} badgeClassName={directionBadgeClass(r.direction)} />

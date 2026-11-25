@@ -48,7 +48,7 @@ export function YearMonthSelect({ value, onValueChange, today, label = '기준 �
       <PopoverTrigger
         aria-label={`${label} ${selectedYear}년 ${selectedMonth}월`}
         className={cn(
-          'flex h-9 items-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-transparent px-3 text-sm whitespace-nowrap transition-colors outline-none select-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+          'flex h-9 items-center gap-1.5 rounded-lg border border-border-strong bg-transparent px-3 text-sm whitespace-nowrap transition-colors outline-none select-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
           className,
         )}
       >
@@ -90,7 +90,7 @@ export function YearMonthSelect({ value, onValueChange, today, label = '기준 �
                 onClick={() => pick(month)}
                 className={cn(
                   'whitespace-nowrap rounded px-1 py-2 text-sm tabular-nums transition-colors hover:bg-accent',
-                  active && 'bg-[var(--brand-fg-soft)] text-[var(--background)] hover:bg-[var(--brand-fg-soft)]',
+                  active && 'bg-brand-fg-soft text-background hover:bg-brand-fg-soft',
                 )}
               >
                 {month}월

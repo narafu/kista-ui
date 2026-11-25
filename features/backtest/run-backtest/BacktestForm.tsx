@@ -41,7 +41,7 @@ export function BacktestForm({ form }: Props) {
                   disabled={form.isLoading}
                   className="flex items-center gap-2 rounded-[var(--r-md)] px-[14px] py-4"
                 >
-                  <span className={selected ? 'size-4 shrink-0 text-[var(--selection-fg)]' : 'size-4 shrink-0 text-muted-foreground'}>
+                  <span className={selected ? 'size-4 shrink-0 text-selection-fg' : 'size-4 shrink-0 text-muted-foreground'}>
                     {singleTicker ? <Activity size={16} /> : <Zap size={16} />}
                   </span>
                   <span className="text-sm font-[800]">{labelOf('strategyTypes', t.code)}</span>
@@ -222,7 +222,7 @@ export function BacktestForm({ form }: Props) {
           <p id="backtestSubmitReason" className="text-sm text-muted-foreground">{form.submitDisabledReason}</p>
         )}
         {form.errorMessage && (
-          <p role="alert" className="text-sm font-semibold text-[var(--status-error)]">{form.errorMessage}</p>
+          <p role="alert" className="text-sm font-semibold text-status-error">{form.errorMessage}</p>
         )}
 
         <div className="flex gap-2.5">

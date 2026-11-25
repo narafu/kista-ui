@@ -138,7 +138,7 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
           {suggestions?.map((suggestion) => <option key={suggestion} value={suggestion} />)}
         </datalist>
       )}
-      {(inputError || error) && <p role="alert" className="text-xs text-[var(--status-error)]">{inputError || error}</p>}
+      {(inputError || error) && <p role="alert" className="text-xs text-status-error">{inputError || error}</p>}
     </div>
   )
 }

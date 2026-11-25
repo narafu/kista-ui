@@ -40,7 +40,7 @@ export function AccountCard({ account }: Props) {
   return (
     <Link
       href={`/accounts/${account.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
+      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
     >
       {aggregatedAccent && (
         <span
@@ -84,7 +84,7 @@ export function AccountCard({ account }: Props) {
           ) : (
             <Badge tone={strategiesFailed ? 'error' : 'neutral'}>{emptyLabel}</Badge>
           )}
-          <ChevronRight className="mt-0.5 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+          <ChevronRight className="mt-0.5 size-4 text-muted-foreground group-hover:text-brand-fg-soft transition-colors shrink-0" />
         </div>
       </div>
 
@@ -131,14 +131,14 @@ export function AccountCard({ account }: Props) {
               ))}
             </ul>
           ) : (
-            <p className={cn('text-sm', strategiesFailed ? 'text-[var(--status-error)]' : 'text-muted-foreground')}>{emptyLabel}</p>
+            <p className={cn('text-sm', strategiesFailed ? 'text-status-error' : 'text-muted-foreground')}>{emptyLabel}</p>
           )}
         </div>
 
         {/* 푸터 */}
         <div className="flex items-center justify-end gap-1 pl-6 pr-5 py-3 border-t border-border bg-muted/30 text-sm text-muted-foreground">
           계좌 상세 보기
-          <ChevronRight className="size-3.5 group-hover:text-[var(--brand-fg-soft)] transition-colors" />
+          <ChevronRight className="size-3.5 group-hover:text-brand-fg-soft transition-colors" />
         </div>
       </div>
     </Link>

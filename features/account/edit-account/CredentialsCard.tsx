@@ -14,7 +14,7 @@ interface Props {
   account: Account
 }
 
-export const CARD_CLASS = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
+export const CARD_CLASS = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
 
 const schema = z.object({
   appKey: z.string().trim().min(1, '값을 입력하세요.'),
@@ -53,7 +53,7 @@ export function CredentialsCard({ account }: Props) {
         </FormField>
       )}
       {mutation.isError && (
-        <p className="text-sm text-[var(--status-error)]">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>
+        <p className="text-sm text-status-error">{brokerErrorMessage(mutation.error, invalidMessage, 'API 키 재등록에 실패했습니다.')}</p>
       )}
       <FormActions form={form} label="API 키 재등록" pendingLabel="연결 확인 중…" />
     </form>

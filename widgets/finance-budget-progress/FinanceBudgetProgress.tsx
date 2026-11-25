@@ -66,7 +66,7 @@ function BreakdownBar({ label, actual, allocated, remaining, percent, color, isG
         <span
           className={cn(
             'text-xs tabular-nums',
-            !isOver ? 'text-muted-foreground' : overIsGood ? 'text-[var(--status-ok)]' : 'text-destructive',
+            !isOver ? 'text-muted-foreground' : overIsGood ? 'text-status-ok' : 'text-destructive',
           )}
         >
           {isOver

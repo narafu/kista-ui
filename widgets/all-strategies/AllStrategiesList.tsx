@@ -31,7 +31,7 @@ function StrategiesEmptyState({ accounts }: { accounts: Account[] }) {
               <Link
                 key={account.id}
                 href={`/accounts/${account.id}/strategies/new`}
-                className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] text-sm"
+                className="flex items-center justify-between px-4 py-2.5 rounded-[var(--r-md)] border border-border bg-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] text-sm"
               >
                 <span className="font-medium text-foreground">{account.nickname}</span>
                 <ChevronRight className="size-3.5 text-muted-foreground" />

@@ -49,12 +49,12 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
       )}
     </>
   )
-  const chevron = <ChevronRight className="size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+  const chevron = <ChevronRight className="size-4 text-muted-foreground group-hover:text-brand-fg-soft transition-colors shrink-0" />
 
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
+      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
     >
       {statusAccent && (
         <span data-testid="strategy-status-strip" className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: statusAccent }} />

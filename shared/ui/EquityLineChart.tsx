@@ -50,16 +50,16 @@ export function EquityLineChart({
     <div>
       <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap pb-3">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0.5 w-3.5 rounded-full" style={{ backgroundColor: 'var(--chart-1)' }} />
+          <span className="inline-block h-0.5 w-3.5 rounded-full bg-chart-1" />
           {assetLabel}
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block h-0 w-3.5 border-t-2 border-dashed" style={{ borderColor: 'var(--muted-foreground)' }} />
+          <span className="inline-block h-0 w-3.5 border-t-2 border-dashed border-muted-foreground" />
           {principalLabel}
         </span>
         {markerDates.length > 0 && markerLabel && (
           <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-0 border-l border-dashed" style={{ borderColor: 'var(--muted-foreground)' }} />
+            <span className="inline-block h-3 w-0 border-l border-dashed border-muted-foreground" />
             {markerLabel}
           </span>
         )}

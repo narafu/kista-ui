@@ -37,7 +37,7 @@ export function WithdrawUserButton({ userId, nickname, isSelf = false }: Props) 
         open={open}
         onOpenChange={setOpen}
         size="default"
-        title={<span className="text-[var(--status-error)]">회원을 탈퇴 처리하시겠습니까?</span>}
+        title={<span className="text-status-error">회원을 탈퇴 처리하시겠습니까?</span>}
         description={
           <>
             <strong className="font-semibold text-foreground">{nickname}</strong> 회원을 탈퇴 처리합니다.{' '}

@@ -36,7 +36,7 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors disabled:opacity-50',
         completed
-          ? 'border-[var(--status-ok)] bg-[var(--status-ok-bg)] text-[var(--status-ok)]'
+          ? 'border-status-ok bg-status-ok-bg text-status-ok'
           : 'border-dashed border-muted-foreground/50 bg-transparent text-muted-foreground hover:border-foreground/60 hover:text-foreground',
       )}
     >

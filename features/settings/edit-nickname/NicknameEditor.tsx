@@ -74,14 +74,14 @@ export function NicknameEditor({ initialNickname }: Props) {
           disabled={form.isPending}
           className="w-32"
         />
-        <IconButton type="submit" disabled={form.isPending} aria-label="저장" className="text-[var(--status-ok)] hover:text-[var(--status-ok)]">
+        <IconButton type="submit" disabled={form.isPending} aria-label="저장" className="text-status-ok hover:text-status-ok">
           <Check className="size-4" />
         </IconButton>
         <IconButton onClick={cancel} disabled={form.isPending} aria-label="취소">
           <X className="size-4" />
         </IconButton>
       </div>
-      {error && <p role="alert" className="text-sm text-[var(--status-error)]">{error}</p>}
+      {error && <p role="alert" className="text-sm text-status-error">{error}</p>}
     </form>
   )
 }

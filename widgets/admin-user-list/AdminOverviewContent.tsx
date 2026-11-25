@@ -20,10 +20,10 @@ export function AdminOverviewContent() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <StatCard icon={<Users className="size-5 text-[var(--brand-fg-soft)]" />} label="전체" value={stats?.totalUsers ?? '-'} />
+          <StatCard icon={<Users className="size-5 text-brand-fg-soft" />} label="전체" value={stats?.totalUsers ?? '-'} />
           <StatCard icon={<Clock className="size-5 text-warn" />} label={ADMIN_USER_STATUS_LABEL.PENDING} value={stats?.pendingCount ?? '-'} />
           <StatCard icon={<CheckCircle className="size-5 text-status-ok" />} label={ADMIN_USER_STATUS_LABEL.ACTIVE} value={stats?.activeCount ?? '-'} />
-          <StatCard icon={<XCircle className="size-5 text-[var(--status-error)]" />} label={ADMIN_USER_STATUS_LABEL.REJECTED} value={stats?.rejectedCount ?? '-'} />
+          <StatCard icon={<XCircle className="size-5 text-status-error" />} label={ADMIN_USER_STATUS_LABEL.REJECTED} value={stats?.rejectedCount ?? '-'} />
         </div>
       )}
       <section>

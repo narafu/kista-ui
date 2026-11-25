@@ -30,7 +30,7 @@ export function ScheduledStartSection({ value, onChange, loading, error }: Props
         aria-describedby={error ? `${id}-error` : undefined}
         className="h-11 w-auto rounded-[var(--r-sm)] px-3"
       />
-      {error && <p id={`${id}-error`} className="mt-1 text-sm text-[var(--status-error)]">{error}</p>}
+      {error && <p id={`${id}-error`} className="mt-1 text-sm text-status-error">{error}</p>}
     </div>
   )
 }

@@ -23,20 +23,20 @@ export function avgGapLevel(close: number | null, avgPrice: number | null): 0 | 
 // 범례와 툴팁이 같은 표식을 쓰도록 한곳에 둔다 — 툴팁 값과 차트 요소를 눈으로 짝짓기 위함
 // 매수는 채운 원, 매도는 속이 빈 원 — 색만으로 구분하지 않도록 모양도 다르게 한다
 export const SWATCH = {
-  close: 'h-0.5 w-4 bg-[var(--chart-2)]',
-  avgPrice: 'w-4 border-t-2 border-dashed border-[var(--foreground)]',
+  close: 'h-0.5 w-4 bg-chart-2',
+  avgPrice: 'w-4 border-t-2 border-dashed border-foreground',
   // 차트 배경 띠와 같은 토큰
-  avgGap1: 'h-2 w-4 rounded-sm bg-[var(--avg-gap-1-bg)]',
-  avgGap2: 'h-2 w-4 rounded-sm bg-[var(--avg-gap-2-bg)]',
-  buy: 'size-2.5 rounded-full bg-[var(--pos)]',
-  sell: 'size-2.5 rounded-full border-2 border-[var(--neg)] bg-card',
-  cash: 'h-2 w-4 rounded-sm bg-[var(--info)]',
-  cashLow: 'h-2 w-4 rounded-sm border border-[var(--warn)] bg-[var(--warn-bg)]',
+  avgGap1: 'h-2 w-4 rounded-sm bg-avg-gap-1-bg',
+  avgGap2: 'h-2 w-4 rounded-sm bg-avg-gap-2-bg',
+  buy: 'size-2.5 rounded-full bg-pos',
+  sell: 'size-2.5 rounded-full border-2 border-neg bg-card',
+  cash: 'h-2 w-4 rounded-sm bg-info',
+  cashLow: 'h-2 w-4 rounded-sm border border-warn bg-warn-bg',
   boundary: 'h-3 w-0 border-l border-dashed border-muted-foreground',
-  profit: 'h-2 w-4 rounded-sm bg-[var(--pos)]',
-  loss: 'h-2 w-4 rounded-sm bg-[var(--neg)]',
+  profit: 'h-2 w-4 rounded-sm bg-pos',
+  loss: 'h-2 w-4 rounded-sm bg-neg',
   flat: 'h-2 w-4 rounded-sm bg-muted-foreground',
-  cumulative: 'h-0.5 w-4 bg-[var(--chart-4)]',
+  cumulative: 'h-0.5 w-4 bg-chart-4',
   // 범례용 — 확정 손익 영역은 이익/손실에 따라 두 색이라 반반으로 보여준다
   confirmed: 'h-2 w-4 rounded-sm bg-[linear-gradient(90deg,var(--pos)_50%,var(--neg)_50%)]',
 }

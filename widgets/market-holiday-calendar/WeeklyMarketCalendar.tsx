@@ -96,7 +96,7 @@ function CompactRow({ rowStart, summary, holidaySet }: CompactRowProps) {
           {day.getDate()}
         </span>
         {isHoliday && !isWeekend && (
-          <span className="text-[10px] leading-none text-[var(--gold)]">휴장</span>
+          <span className="text-[10px] leading-none text-gold">휴장</span>
         )}
         {daySummary && <TradeBadges summary={daySummary} badgeClassName={COMPACT_BADGE_CLASS} />}
       </div>
@@ -130,7 +130,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasAccount 
     const closedLabel = isWeekend
       ? <span className="text-xs px-1.5 py-[1px] rounded bg-muted text-muted-foreground">휴</span>
       : isHoliday
-        ? <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-[var(--gold)]/15 text-[var(--gold)]">휴장</span>
+        ? <span className="text-xs font-semibold px-1.5 py-[1px] rounded bg-gold/15 text-gold">휴장</span>
         : null
 
     let badge: React.ReactNode
@@ -165,7 +165,7 @@ function CurrentRow({ weekStart, tradeSummary, holidaySet, todayStr, hasAccount 
           'w-[26px] h-[26px] flex items-center justify-center text-xs font-medium rounded-full',
           // 다크 --rose-500(#C77F63)은 흰 글자 대비 3.16이라 어두운 배경색 글자로 바꾼다
           isToday ? 'bg-rose-500 text-white dark:text-background font-bold' :
-          isHoliday ? 'text-[var(--gold)]' :
+          isHoliday ? 'text-gold' :
           isSun ? 'text-pos' :
           isSat ? 'text-neg' :
           'text-foreground',
@@ -236,7 +236,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
 
   return (
     <Surface className="p-5 flex flex-col gap-1">
-      <span className="text-sm font-semibold tracking-widest uppercase text-[var(--brand-fg-soft)]">
+      <span className="text-sm font-semibold tracking-widest uppercase text-brand-fg-soft">
         미국 휴장일 · 주간 거래
       </span>
       <div className="flex items-center justify-between mb-1">
@@ -271,7 +271,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
 
       <div className="mt-2 flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="size-[7px] rounded-full bg-[var(--gold)] shrink-0" />
+          <span className="size-[7px] rounded-full bg-gold shrink-0" />
           미국 휴장
         </span>
         {accountIds.length > 0 && (
@@ -302,7 +302,7 @@ export function WeeklyMarketCalendar({ initialWeekStartDate, isAuthenticated }: 
       ) : nextHoliday && ddayCount !== null && (
         <p className="mt-auto pt-2 text-sm text-muted-foreground">
           다음 휴장일{' '}
-          <span className="font-medium text-[var(--gold)]">{monthDayLabel(nextHoliday)}</span>
+          <span className="font-medium text-gold">{monthDayLabel(nextHoliday)}</span>
           <span className="num">{ddayCount === 0 ? ' · 오늘' : ` · D-${ddayCount}`}</span>
         </p>
       )}

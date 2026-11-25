@@ -37,7 +37,7 @@ export function InitialHoldingsSection({
             currency="USD"
             errorId={errors?.avgPrice ? `${id}-avgPrice-error` : pairErrorId}
           />
-          {errors?.avgPrice && <p id={`${id}-avgPrice-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.avgPrice}</p>}
+          {errors?.avgPrice && <p id={`${id}-avgPrice-error`} role="alert" className="mt-1 text-sm text-status-error">{errors.avgPrice}</p>}
         </div>
         <div>
           <StrategyFieldLabel htmlFor={`${id}-quantity`}>수량</StrategyFieldLabel>
@@ -50,10 +50,10 @@ export function InitialHoldingsSection({
             unitClassName="ml-1.5"
             errorId={errors?.quantity ? `${id}-quantity-error` : pairErrorId}
           />
-          {errors?.quantity && <p id={`${id}-quantity-error`} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{errors.quantity}</p>}
+          {errors?.quantity && <p id={`${id}-quantity-error`} role="alert" className="mt-1 text-sm text-status-error">{errors.quantity}</p>}
         </div>
       </div>
-      {error && <p id={pairErrorId} role="alert" className="mt-1 text-sm text-[var(--status-error)]">{error}</p>}
+      {error && <p id={pairErrorId} role="alert" className="mt-1 text-sm text-status-error">{error}</p>}
       {caption && <p className="mt-2 text-sm text-muted-foreground">{caption}</p>}
     </div>
   )

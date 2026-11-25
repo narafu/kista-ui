@@ -109,10 +109,10 @@ export function EditAccountForm({ account }: Props) {
 
       {!isMockBroker(account.broker) && <CredentialsCard account={account} />}
 
-      <div className={cn(CARD_CLASS, 'border-[var(--status-error-border)] bg-[var(--status-error-bg)]')}>
+      <div className={cn(CARD_CLASS, 'border-status-error-border bg-status-error-bg')}>
         <div className="flex items-center gap-2.5 mb-3">
-          <AlertTriangle className="size-4 text-[var(--status-error)]" />
-          <h2 className="text-sm font-semibold text-[var(--status-error)]">위험 구역</h2>
+          <AlertTriangle className="size-4 text-status-error" />
+          <h2 className="text-sm font-semibold text-status-error">위험 구역</h2>
         </div>
         <p className="text-sm text-muted-foreground mb-4">
           계좌를 삭제하면 {isMockBroker(account.broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 이 계좌의 전략과 거래 기록을 더 이상 볼 수 없습니다.

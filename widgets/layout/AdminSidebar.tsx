@@ -24,7 +24,7 @@ export function AdminSidebar() {
     <aside className="hidden lg:flex flex-col w-[220px] h-screen sticky top-0 shrink-0 border-r border-border px-4 py-6 bg-muted/30 overflow-y-auto">
       {/* 로고 */}
       <Link href="/admin" className="flex items-center gap-2 px-2 pb-6">
-        <span className="font-extrabold text-lg tracking-wide" style={{ color: 'var(--brand-fg-soft)' }}>
+        <span className="font-extrabold text-lg tracking-wide text-brand-fg-soft">
           KISTA
         </span>
         <Badge tone="admin" size="sm">ADMIN</Badge>

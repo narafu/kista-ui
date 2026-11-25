@@ -1,7 +1,7 @@
 import type { ThHTMLAttributes } from 'react'
 import { cn } from '@shared/lib/utils'
 
-export const TABLE_HEAD_TEXT_CLASS = 'text-xs lg:text-sm font-semibold uppercase tracking-widest text-[var(--brand-fg-soft)]'
+export const TABLE_HEAD_TEXT_CLASS = 'text-xs lg:text-sm font-semibold uppercase tracking-widest text-brand-fg-soft'
 
 // 표 열 균등 분배 — 남는 폭이 내용이 긴 한 열로 몰리지 않게 헤더 셀에 같은 퍼센트 폭을 준다.
 // 아이콘·체크박스처럼 내용 폭만 쓸 열은 헤더에 `w-px`를 주면 분배에서 빠진다(그 열 수는 n에서 뺀다).

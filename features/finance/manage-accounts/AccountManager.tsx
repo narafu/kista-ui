@@ -54,7 +54,7 @@ function maskAccountNo(accountNo: string) {
   return accountNo.length <= 4 ? '•'.repeat(accountNo.length) : `••••${last4}`
 }
 
-const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
+const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
 
 type SortKey = 'createdAt' | 'name'
 

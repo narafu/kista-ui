@@ -13,14 +13,6 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
@@ -78,6 +70,19 @@
   --color-admin-bg: var(--admin-bg);
   --color-sidebar-active: var(--sidebar-active-bg);
   --color-sidebar-active-fg: var(--sidebar-active-fg);
+  --color-gold: var(--gold);
+  --color-border-strong: var(--border-strong);
+  --color-status-error-border: var(--status-error-border);
+  --color-selection-border: var(--selection-border);
+  --color-selection-hover-border: var(--selection-hover-border);
+  --color-selection-bg: var(--selection-bg);
+  --color-selection-fg: var(--selection-fg);
+  --color-avg-gap-1: var(--avg-gap-1);
+  --color-avg-gap-1-bg: var(--avg-gap-1-bg);
+  --color-avg-gap-2: var(--avg-gap-2);
+  --color-avg-gap-2-bg: var(--avg-gap-2-bg);
+  --shadow-card: var(--sh-card);
+  --shadow-rose: var(--sh-rose);
 }
 
 /* ── KISTA Light Mode ───────────────────────────────────────── */
@@ -147,19 +152,9 @@
   --asset-series-5: #4F8F4A;
   --asset-series-6: #A84A85;
 
-  /* shadcn sidebar tokens */
-  --sidebar:                  #FBF6F1;
-  --sidebar-foreground:       oklch(0.32 0.018 40);
-  --sidebar-primary:          #A35A43;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent:           #FFFFFF;
-  --sidebar-accent-foreground: #95513C;
-  --sidebar-border:           oklch(0.92 0.012 50);
-  --sidebar-ring:             #BA735C;
 
   /* KISTA-specific layout tokens */
   --sidebar-bg:         #FBF6F1;
-  --sidebar-fg:         oklch(0.32 0.018 40);
   --sidebar-active-bg:  #FFFFFF;
   --sidebar-active-fg:  #95513C;
 
@@ -191,7 +186,6 @@
 
   /* Shadows */
   --sh-card: 0 1px 2px rgba(74,38,22,.04), 0 6px 16px rgba(74,38,22,.05);
-  --sh-pop:  0 14px 38px rgba(74,38,22,.14);
   --sh-rose: 0 8px 22px rgba(176,100,79,.32);
 
   /* Typography */
@@ -251,17 +245,8 @@
   --asset-series-5: #6BA362;
   --asset-series-6: #BD5E97;
 
-  --sidebar:                  #0E0F11;
-  --sidebar-foreground:       #9B9892;
-  --sidebar-primary:          #C99780;
-  --sidebar-primary-foreground: #1A1108;
-  --sidebar-accent:           #1B1C1F;
-  --sidebar-accent-foreground: #D6A98E;
-  --sidebar-border:           rgba(232,230,227,0.07);
-  --sidebar-ring:             #C99780;
 
   --sidebar-bg:         #0E0F11;
-  --sidebar-fg:         #9B9892;
   --sidebar-active-bg:  #1B1C1F;
   --sidebar-active-fg:  #D6A98E;
 
@@ -288,7 +273,6 @@
   --selection-halo: rgba(214, 169, 142, 0.13);
 
   --sh-card: 0 1px 2px rgba(0,0,0,.36), 0 8px 18px rgba(0,0,0,.42);
-  --sh-pop:  0 16px 42px rgba(0,0,0,.55);
 
   /* Dark mode border & alpha rose */
   --border-strong: rgba(232, 230, 227, 0.14);
@@ -334,6 +318,11 @@
   }
 }
 
+/* 그라데이션 토큰은 색 유틸리티(background-color)로 못 쓴다 — background-image로 */
+@utility bg-brand-soft {
+  background-image: var(--brand-soft-bg);
+}
+
 /* ── KISTA utility classes ──────────────────────────────────── */
 .num {
   font-variant-numeric: tabular-nums;
@@ -368,8 +357,6 @@
 
 .text-pos  { color: var(--pos); }
 .text-neg  { color: var(--neg); }
-.text-pos-bg { background-color: var(--pos-bg); }
-.text-neg-bg { background-color: var(--neg-bg); }
 .bg-pos-bg  { background-color: var(--pos-bg); }
 .bg-neg-bg  { background-color: var(--neg-bg); }
 .bg-status-ok-bg { background-color: var(--status-ok-bg); }
@@ -377,24 +364,6 @@
 .text-warn       { color: var(--warn); }
 .bg-warn-bg      { background-color: var(--warn-bg); }
 
-/* 반응형 그리드 유틸리티 */
-.sm\:kpi-grid       { display: grid; grid-template-columns: 1fr; }
-.sm\:portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
-.md\:profit-grid    { display: grid; grid-template-columns: 1fr; }
-.lg\:form-grid      { display: grid; grid-template-columns: 1fr; }
-.lg\:settings-grid  { display: grid; grid-template-columns: 1fr; }
-
-@media (min-width: 640px) {
-  .sm\:kpi-grid       { grid-template-columns: 1fr 1fr 1.4fr; }
-  .sm\:portfolio-grid { grid-template-columns: repeat(7, 1fr); }
-}
-@media (min-width: 768px) {
-  .md\:profit-grid    { grid-template-columns: 1fr 1fr; }
-}
-@media (min-width: 1024px) {
-  .lg\:form-grid      { grid-template-columns: 1.4fr 1fr; }
-  .lg\:settings-grid  { grid-template-columns: 200px 1fr; }
-}
 
 /* 모바일 가독성: text-xs/text-sm을 한 단계씩 올림 (line-height는 unitless 비율이라 자동 재계산) */
 @media (max-width: 1023px) {

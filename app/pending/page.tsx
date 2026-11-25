@@ -39,11 +39,10 @@ export default async function PendingPage() {
         <div className="flex flex-col items-center gap-2 mb-8">
           <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2" style={{ height: 44, width: 44 }} />
           <div
-            className="flex items-center gap-2 px-3 py-1 rounded-full"
-            style={{ background: 'var(--warn-bg)' }}
+            className="flex items-center gap-2 px-3 py-1 rounded-full bg-warn-bg"
           >
-            <Clock className="size-3.5" style={{ color: 'var(--warn)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--warn)' }}>검토 대기중</span>
+            <Clock className="size-3.5 text-warn" />
+            <span className="text-xs font-semibold text-warn">검토 대기중</span>
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1">승인 대기 중입니다</h1>
           <p className="text-sm text-muted-foreground text-center">

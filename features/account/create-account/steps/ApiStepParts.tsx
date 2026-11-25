@@ -117,7 +117,7 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
         </div>
       )}
       {isError && (
-        <div className="flex items-center gap-1.5 text-sm text-[var(--status-error)]">
+        <div className="flex items-center gap-1.5 text-sm text-status-error">
           <XCircle className="size-4" />
           {brokerErrorMessage(error, `증권사 API 인증에 실패했습니다. ${keyLabel} 또는 ${secretLabel}을 확인하세요.`, '연결 테스트에 실패했습니다. 잠시 후 다시 시도해주세요.')}
         </div>

@@ -96,7 +96,7 @@ export function AssetForm({ mode, initial, onSuccess, onCancel }: Props) {
   // 목록 로딩 중에도 잠근다(전환 전과 같은 수준) — 문구는 로드가 끝나 정말 못 풀 때만 띄운다. 로드 실패는 아래 "불러오지 못했습니다" 문구가 이유다
   const locked = monthClosed || categoryUnresolved
 
-  const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-[var(--sh-card)] border border-border'
+  const cardClass = 'bg-card rounded-[1.25rem] py-7 px-6 shadow-card border border-border'
 
   return (
     <form onSubmit={(e) => (locked ? e.preventDefault() : form.submit(e))}>

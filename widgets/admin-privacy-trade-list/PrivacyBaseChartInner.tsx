@@ -50,7 +50,7 @@ function fmtAvgPrice(avgPrice: number | null, close: number | null | undefined) 
 function avgGapTextClass(row: PrivacyChartRow, showAvgGap: boolean) {
   if (!showAvgGap) return undefined
   const level = avgGapLevel(row.close, row.avgPrice)
-  return level === 2 ? 'font-semibold text-[var(--avg-gap-2)]' : level === 1 ? 'text-[var(--avg-gap-1)]' : undefined
+  return level === 2 ? 'font-semibold text-avg-gap-2' : level === 1 ? 'text-avg-gap-1' : undefined
 }
 
 // 현금비중 + 추정 현금. 예: 21%(2,519.69)
@@ -106,7 +106,7 @@ function InfoSections({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticke
           label="현금비중"
           value={fmtCash(row)}
           swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
-          className={cashLow ? 'text-[var(--warn)]' : undefined}
+          className={cashLow ? 'text-warn' : undefined}
         />
       </TooltipSection>
       <TooltipSection title="누적 실현손익">
@@ -118,7 +118,7 @@ function InfoSections({ row, ticker, showAvgGap }: { row: PrivacyChartRow; ticke
             label="연초 재설정(추정)"
             value={row.resetEstimatedPnl == null ? '추정 불가' : fmtSignedUsd(row.resetEstimatedPnl)}
             swatch={pnlSwatch(row.resetEstimatedPnl ?? 0)}
-            className={row.resetEstimatedPnl == null ? 'text-[var(--warn)]' : pnlTextClass(row.resetEstimatedPnl)}
+            className={row.resetEstimatedPnl == null ? 'text-warn' : pnlTextClass(row.resetEstimatedPnl)}
           />
         )}
         <TooltipRow label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} swatch={SWATCH.cumulative} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} />
@@ -171,7 +171,7 @@ function MobileInfoBar({ row, showAvgGap }: { row: PrivacyChartRow; showAvgGap: 
             swatch={cashLow ? SWATCH.cashLow : SWATCH.cash}
             label="현금비중"
             value={fmtCash(row)}
-            className={cashLow ? 'text-[var(--warn)]' : undefined}
+            className={cashLow ? 'text-warn' : undefined}
             inline
           />
           <InfoItem swatch={SWATCH.cumulative} label="누적 실현손익" value={fmtSignedUsd(row.cumulativePnl)} className={cn('font-semibold', pnlTextClass(row.cumulativePnl))} inline />

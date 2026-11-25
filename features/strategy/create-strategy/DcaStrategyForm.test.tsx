@@ -77,7 +77,7 @@ describe('DcaStrategyForm', () => {
     renderForm()
     expect(screen.getByText('규칙을 추가하세요.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '등록' }))
-    await waitFor(() => expect(screen.getByText('규칙을 추가하세요.')).toHaveClass('text-[var(--status-error)]'))
+    await waitFor(() => expect(screen.getByText('규칙을 추가하세요.')).toHaveClass('text-status-error'))
     expect(createMutate).not.toHaveBeenCalled()
   })
 

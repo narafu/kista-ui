@@ -10,9 +10,9 @@ export default function RejectedPage() {
         {/* 헤더 섹션 */}
         <div className="flex flex-col items-center gap-2 mb-8">
           <Image src="/logo.png" alt="KISTA" width={44} height={44} className="rounded-[10px] mb-2 opacity-70" style={{ height: 44, width: 44 }} />
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ background: 'var(--status-error-bg)' }}>
-            <XCircle className="size-3.5" style={{ color: 'var(--status-error)' }} />
-            <span className="text-xs font-semibold" style={{ color: 'var(--status-error)' }}>신청 반려</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-status-error-bg">
+            <XCircle className="size-3.5 text-status-error" />
+            <span className="text-xs font-semibold text-status-error">신청 반려</span>
           </div>
           <h1 className="text-xl font-bold text-foreground mt-1">신청이 반려되었습니다</h1>
           <p className="text-sm text-muted-foreground text-center">
@@ -23,9 +23,9 @@ export default function RejectedPage() {
         {/* 반려 사유 카드 */}
         <div className="rejected-reason-card rounded-[10px] p-4 mb-6">
           <div className="flex items-start gap-2">
-            <span className="mt-0.5 text-base" style={{ color: 'var(--status-error)' }}>⚠</span>
+            <span className="mt-0.5 text-base text-status-error">⚠</span>
             <div>
-              <div className="text-sm font-bold mb-1" style={{ color: 'var(--status-error)' }}>
+              <div className="text-sm font-bold mb-1 text-status-error">
                 반려 사유
               </div>
               <div className="text-sm leading-relaxed text-foreground">

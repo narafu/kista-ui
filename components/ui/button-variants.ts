@@ -25,7 +25,7 @@ export const buttonVariants = cva(
           "bg-gradient-to-br from-rose-500 to-rose-700 font-semibold text-white dark:text-background shadow-[0_1px_4px_rgba(225,29,72,0.30)] hover:brightness-95",
         // 설정 화면 CRUD 리스트의 "항목 추가"류 2단계 CTA. --rose-*·--brand-fg-soft는 다크모드 오버라이드 있음(globals.css)
         "brand-soft":
-          "border-[var(--rose-200)] bg-[var(--rose-50)] font-semibold text-[var(--brand-fg-soft)] hover:border-[var(--rose-300)] hover:bg-[var(--rose-100)]",
+          "border-rose-200 bg-rose-50 font-semibold text-brand-fg-soft hover:border-rose-300 hover:bg-rose-100",
       },
       size: {
         default:

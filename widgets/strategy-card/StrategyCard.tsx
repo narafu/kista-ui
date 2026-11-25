@@ -93,7 +93,7 @@ function MobileLayout({ strategy, accountLabel, usesDivisionCount, isVr, schedul
         {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
           <span className="shrink-0 whitespace-nowrap text-xs font-semibold text-foreground">{fmtDecimal(strategy.currentRound!, 1)}회차</span>
         )}
-        <ChevronRight className="ml-auto size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+        <ChevronRight className="ml-auto size-4 text-muted-foreground group-hover:text-brand-fg-soft transition-colors shrink-0" />
       </div>
     </div>
   )
@@ -142,7 +142,7 @@ function PcLayout({ strategy, accountLabel, usesDivisionCount, isVr, scheduledSt
           {usesDivisionCount && (strategy.currentRound ?? 0) > 0 && (
             <span className="ml-auto shrink-0 whitespace-nowrap text-sm font-semibold text-foreground">{fmtDecimal(strategy.currentRound!, 1)}회차</span>
           )}
-          <ChevronRight className="ml-2 size-4 text-muted-foreground group-hover:text-[var(--brand-fg-soft)] transition-colors shrink-0" />
+          <ChevronRight className="ml-2 size-4 text-muted-foreground group-hover:text-brand-fg-soft transition-colors shrink-0" />
         </div>
       </div>
       {/* 시드 정보 행 */}
@@ -178,7 +178,7 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   return (
     <Link
       href={`/accounts/${accountId}/strategies/${strategy.id}`}
-      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-[var(--sh-card)] hover:border-rose-300 hover:shadow-[var(--sh-rose)] transition-[border-color,box-shadow] overflow-hidden"
+      className="group relative block rounded-[var(--r-lg)] border border-border bg-card shadow-card hover:border-rose-300 hover:shadow-rose transition-[border-color,box-shadow] overflow-hidden"
     >
       {/* 상태 액센트 스트립 — 정상(ACTIVE)은 표시하지 않는다 */}
       {statusAccent && (
