@@ -47,6 +47,8 @@ const strategy: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 describe('AccountDetailTabs', () => {

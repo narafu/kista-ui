@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import { useStrategiesQuery, strategyStatusAccent, strategyTypeShort } from '@entities/strategy'
-import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account } from '@entities/account'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
@@ -27,7 +26,7 @@ export function AccountCard({ account }: Props) {
   const { findBroker, labelOf } = useMeta()
   const broker = findBroker(account.broker)
   const brokerLabel = broker?.label ?? account.broker
-  const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
+  const expiry = account.apiKeyExpiry?.status === 'EXPIRED' || account.apiKeyExpiry?.status === 'EXPIRING' ? account.apiKeyExpiry.status : null
   // 하나라도 ACTIVE가 아니면 그 상태의 accent로 왼쪽 띠를 표시한다(모두 ACTIVE면 띠 없음)
   const inactive = strategies.find((s) => s.status !== 'ACTIVE')
   const aggregatedAccent = inactive ? strategyStatusAccent(inactive.status) : undefined
@@ -58,7 +57,7 @@ export function AccountCard({ account }: Props) {
             {brokerLabel}
           </span>
           {expiry && (
-            <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
+            <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{labelOf('apiKeyExpiryStatuses', expiry)}</Badge>
           )}
         </div>
         {/* 2행: 닉네임 + 전략 수 + 상태 + 화살표 */}
@@ -98,7 +97,7 @@ export function AccountCard({ account }: Props) {
               {brokerLabel}
             </span>
             {expiry && (
-              <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>
+              <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{labelOf('apiKeyExpiryStatuses', expiry)}</Badge>
             )}
           </div>
           {/* 닉네임 + 집계 상태 */}

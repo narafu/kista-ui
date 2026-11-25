@@ -13,6 +13,8 @@ import {
   useCreateStrategyMutation,
   useDcaExecutionsQuery,
   useDeleteStrategyMutation,
+  useInjectCapitalMutation,
+  useWithdrawCapitalMutation,
   usePauseStrategyMutation,
   useReconfigureDcaMutation,
   useReconfigureVrMutation,
@@ -25,6 +27,8 @@ const {
   listStrategiesMock,
   createStrategyMock,
   updateStrategyMock,
+  injectCapitalMock,
+  withdrawCapitalMock,
   reconfigureVrMock,
   reconfigureDcaMock,
   deleteStrategyMock,
@@ -37,6 +41,8 @@ const {
   listStrategiesMock: vi.fn(),
   createStrategyMock: vi.fn(),
   updateStrategyMock: vi.fn(),
+  injectCapitalMock: vi.fn(),
+  withdrawCapitalMock: vi.fn(),
   reconfigureVrMock: vi.fn(),
   reconfigureDcaMock: vi.fn(),
   deleteStrategyMock: vi.fn(),
@@ -51,6 +57,8 @@ vi.mock('../api', () => ({
   listStrategies: listStrategiesMock,
   createStrategy: createStrategyMock,
   updateStrategy: updateStrategyMock,
+  injectCapital: injectCapitalMock,
+  withdrawCapital: withdrawCapitalMock,
   reconfigureVr: reconfigureVrMock,
   reconfigureDca: reconfigureDcaMock,
   deleteStrategy: deleteStrategyMock,
@@ -74,6 +82,8 @@ const strategyA: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 const strategyB: Strategy = {
@@ -388,5 +398,23 @@ describe('useReconfigureDcaMutation', () => {
     await expect(result.current.mutateAsync(dcaRequest)).rejects.toThrow('boom')
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith('저장에 실패했습니다.'))
+  })
+})
+
+describe('투자금 변경·수정 실패 토스트', () => {
+  it.each([
+    ['수정(예수금 newSeed)', () => useUpdateStrategyMutation(strategyA.id), updateStrategyMock, { newSeed: 500 }],
+    ['투자금 추가', () => useInjectCapitalMutation(strategyA.id), injectCapitalMock, { amount: 100 }],
+    ['투자금 인출', () => useWithdrawCapitalMutation(strategyA.id), withdrawCapitalMock, { amount: 100 }],
+  ] as const)('%s이 400으로 거절되면 서버 detail을 토스트 한 번으로 그대로 보여 준다', async (_name, useHook, apiMock, vars) => {
+    const detail = '오늘 마감 리포트가 끝나기 전에는 예수금을 수정할 수 없습니다.'
+    apiMock.mockRejectedValue(new ApiError(400, { detail }))
+    vi.mocked(toast.error).mockClear()
+
+    const { result } = renderHook(useHook as () => { mutateAsync: (v: never) => Promise<unknown> }, { wrapper: createWrapper(createTestQueryClient()) })
+    await expect(result.current.mutateAsync(vars as never)).rejects.toBeInstanceOf(ApiError)
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith(detail))
+    expect(toast.error).toHaveBeenCalledOnce()
   })
 })

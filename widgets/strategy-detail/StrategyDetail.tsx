@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Surface } from '@shared/ui/Surface'
 import { StrategyTradesTab } from '@widgets/cycle-history'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
-import { useStrategyOrderPreviewQuery, computeOrderReadiness } from '@entities/order'
+import { useStrategyOrderPreviewQuery } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 import { nextOrderBannerText } from './orderBannerCopy'
 import { useTodayMarketStatus } from './useTodayMarketStatus'
@@ -32,12 +32,9 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
   const placedOrders = preview?.todayOrders ?? []
   const mode: 'preview' | 'executed' = placedOrders.length > 0 ? 'executed' : 'preview'
 
-  // 카드와 동일한 공용 판정 — "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준
-  const readiness = computeOrderReadiness(preview)
-
   const { marketStatusMessage, isConfirmedHoliday } = useTodayMarketStatus()
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, readiness)
+  const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, preview?.warnings ?? [])
 
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),
@@ -77,7 +74,6 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
             isLoadingPreview={isLoadingPreview}
             isPreviewError={isPreviewError}
             previewError={previewError}
-            readiness={readiness}
             mode={mode}
             canExecute={canExecute}
             bannerText={bannerText}

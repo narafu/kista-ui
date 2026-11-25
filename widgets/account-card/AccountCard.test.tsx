@@ -50,6 +50,8 @@ const baseStrategy: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 describe('AccountCard', () => {
@@ -62,14 +64,17 @@ describe('AccountCard', () => {
 
   afterEach(() => vi.useRealTimers())
 
-  it('API 키 만료가 30일 이내면 만료 임박 배지를 보여준다', () => {
-    render(<AccountCard account={{ ...baseAccount, broker: 'MERITZ', accountNoMasked: null, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} />)
-    expect(screen.getAllByText('API 키 만료 임박').length).toBeGreaterThan(0)
+  it.each([
+    ['EXPIRED', 'API 키 재등록 필요'],
+    ['EXPIRING', 'API 키 만료 임박'],
+  ] as const)('apiKeyExpiry.status가 %s면 배지를 보여준다', (status, label) => {
+    render(<AccountCard account={{ ...baseAccount, apiKeyExpiry: { status } }} />)
+    expect(screen.getAllByText(label).length).toBeGreaterThan(0)
   })
 
-  it('만료된 키는 재등록 필요 배지를 보여준다', () => {
-    render(<AccountCard account={{ ...baseAccount, apiKeyExpiresAt: '2026-10-01T00:00:00+09:00' }} />)
-    expect(screen.getAllByText('API 키 재등록 필요').length).toBeGreaterThan(0)
+  it.each([{ status: 'OK' }, { status: 'NONE' }, undefined] as const)('apiKeyExpiry가 %j면 만료 배지가 없다', (apiKeyExpiry) => {
+    render(<AccountCard account={{ ...baseAccount, apiKeyExpiry }} />)
+    expect(screen.queryByText(/API 키/)).not.toBeInTheDocument()
   })
 
   it('distinguishes loading and failed strategy queries from an empty strategy list', () => {

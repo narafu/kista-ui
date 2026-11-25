@@ -17,6 +17,8 @@ const strategy: Strategy = {
   cycleSeedType: 'NONE',
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
   ledgerDeposit: 1000,
 }
 

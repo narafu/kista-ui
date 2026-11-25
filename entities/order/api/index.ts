@@ -3,7 +3,7 @@ import { buildQueryString } from '@shared/lib/query-string'
 import { normalizePlacedOrderBase } from '@shared/model/placed-order'
 import type { PlacedOrder } from '@shared/model/placed-order'
 import { toNum } from '@shared/lib/utils'
-import type { AccountCashCheck, AccountHoldingsCheck, LedgerCheck, NextOrderPreview, SkipReason, StrategyOrder } from '../model/types'
+import type { AccountCashCheck, AccountHoldingsCheck, LedgerCheck, NextOrderPreview, OrderWarning, SkipReason, StrategyOrder } from '../model/types'
 
 interface CancelOrdersResult {
   cancelledCount: number
@@ -32,6 +32,14 @@ function normalizeAccountHoldingsCheck(raw: unknown): AccountHoldingsCheck | nul
   if (raw == null) return null
   const r = raw as Record<string, unknown>
   return { availableQuantity: toNum(r.availableQuantity), requiredSellQuantity: toNum(r.requiredSellQuantity), sufficient: Boolean(r.sufficient) }
+}
+
+// 구버전 응답(warnings 없음)은 경고 없음으로 본다 — 정보 표시일 뿐 주문 실행 판정은 서버가 한다
+function normalizeWarnings(raw: unknown): OrderWarning[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter((w): w is Record<string, unknown> => typeof w === 'object' && w !== null && typeof (w as Record<string, unknown>).code === 'string')
+    .map((r) => ({ code: r.code as OrderWarning['code'], detail: String(r.detail ?? '') }))
 }
 
 function normalizePreview(raw: unknown): NextOrderPreview {
@@ -71,7 +79,7 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   const ledgerCheck = normalizeLedgerCheck(r.ledgerCheck)
   const accountCashCheck = normalizeAccountCashCheck(r.accountCashCheck)
   const accountHoldingsCheck = normalizeAccountHoldingsCheck(r.accountHoldingsCheck)
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck, accountCashCheck, accountHoldingsCheck }
+  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck, accountCashCheck, accountHoldingsCheck, warnings: normalizeWarnings(r.warnings) }
 }
 
 // token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유

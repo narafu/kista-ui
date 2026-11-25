@@ -12,6 +12,8 @@ const baseStrategy: Strategy = {
   cycleSeedType: 'MAX',
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 function addDaysToKstDate(days: number): string {

@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MetaProvider } from '@entities/meta'
 import { testMeta } from '@entities/meta/__fixtures__/testMeta'
-import { computeOrderReadiness } from '@entities/order'
 import type { Strategy } from '@entities/strategy'
 import { NextOrderCard } from './NextOrderCard'
 
@@ -44,7 +43,6 @@ function renderCard() {
           isLoadingPreview={false}
           isPreviewError={false}
           previewError={null}
-          readiness={computeOrderReadiness(undefined)}
           mode="preview"
           canExecute
           bannerText={null}

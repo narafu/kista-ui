@@ -47,6 +47,14 @@ export interface AccountHoldingsCheck {
   sufficient: boolean          // false면 배치 접수 시 증권사가 SELL을 거절할 수 있다 (경고 전용)
 }
 
+// 서버 판정 경고 코드 — 라벨은 메타 orderPreviewWarningCodes
+export type OrderWarningCode = 'LEDGER_SHORTFALL' | 'ACCOUNT_CASH_SHORTFALL' | 'ACCOUNT_CASH_PARTIAL' | 'HOLDINGS_SHORTFALL' | 'BUY_UNPLACED' | 'SELL_UNPLACED'
+
+export interface OrderWarning {
+  code: OrderWarningCode
+  detail: string // 서버가 만든 한국어 안내 문장 — 클라가 다시 조립하지 않고 그대로 표시한다
+}
+
 export interface NextOrderPreview {
   tradeDate: string
   position: NextOrderPositionSnapshot | null
@@ -57,6 +65,7 @@ export interface NextOrderPreview {
   ledgerCheck: LedgerCheck | null          // 전략 원장 예수금 점검 결과 (DCA·신규 BUY 없음·skip이면 null)
   accountCashCheck: AccountCashCheck | null // 계좌 주문가능 USD 점검 (MOCK·필요 BUY 없음·조회 실패면 null)
   accountHoldingsCheck: AccountHoldingsCheck | null // 계좌 종목 판매 가능 수량 점검 (MOCK·필요 SELL 없음·조회 실패면 null)
+  warnings: OrderWarning[] // 서버 판정 경고 (원장·계좌 예수금·보유 수량 부족, 방향별 미접수 순) — 구버전 응답엔 없어 빈 배열로 정규화
 }
 
 export interface StrategyOrder {

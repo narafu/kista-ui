@@ -3,7 +3,7 @@
 페이지를 구성하는 독립 UI 블록. `features/`, `entities/`, `shared/`를 import 가능하며 `app/` 라우트 페이지에서 직접 사용하는 최상위 UI 단위다.
 
 - **가계부(finance) 작업 시 docs/agents/finance.md 필수 Read** — 화면은 docs/agents/finance-widgets.md — 관련: `/finance` 탭 구조, `asset-overview`, `asset-trend`, `asset-composition`, `asset-record-check`, `asset-record-list`, `asset-settings/AssetSettingsPanel`, `FinanceHeader`, `use-amount-hidden`
-- **전략·DCA·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `strategy-card`, `strategy-detail`, `computeOrderReadiness`, `isScheduledStart`, DCA 분기, `dca-executions`
+- **전략·DCA·브로커 분기 작업 시 docs/agents/strategy.md 필수 Read** — 관련: `strategy-card`, `strategy-detail`, 서버 `warnings` 배지, `isScheduledStart`, DCA 분기, `dca-executions`
 
 ## 의존성 규칙
 

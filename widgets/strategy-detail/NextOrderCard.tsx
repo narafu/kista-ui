@@ -9,7 +9,8 @@ import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities
 import { asyncFallback } from '@shared/ui/AsyncSection'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
-import type { NextOrderPreview, OrderReadiness } from '@entities/order'
+import { hasWarning } from '@entities/order'
+import type { NextOrderPreview, OrderWarning } from '@entities/order'
 import { directionUnplacedMessage, pausedSkipReasonLabel, previewErrorMsg, SKIP_REASON_LABELS } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
@@ -25,23 +26,22 @@ interface Props {
   isLoadingPreview: boolean
   isPreviewError: boolean
   previewError: unknown
-  readiness: OrderReadiness
   mode: 'preview' | 'executed'
   canExecute: boolean
   bannerText: string | null
 }
 
 // executed 모드에서만 의미 있음: preview 모드는 "아직 시도 안 함"과 "전량 거절"을 구분할 수 없다
-function getUnplacedDirections(mode: 'preview' | 'executed', readiness: OrderReadiness): Array<'BUY' | 'SELL'> {
+function getUnplacedDirections(mode: 'preview' | 'executed', preview: NextOrderPreview | undefined): Array<'BUY' | 'SELL'> {
   if (mode !== 'executed') return []
-  return [...(readiness.buy.unplaced ? (['BUY'] as const) : []), ...(readiness.sell.unplaced ? (['SELL'] as const) : [])]
+  return [...(hasWarning(preview, 'BUY_UNPLACED') ? (['BUY'] as const) : []), ...(hasWarning(preview, 'SELL_UNPLACED') ? (['SELL'] as const) : [])]
 }
 
 interface ExecutedBodyProps {
   placedOrders: NextOrderPreview['todayOrders']
   orders: NextOrderPreview['orders']
   unplacedDirections: Array<'BUY' | 'SELL'>
-  readiness: OrderReadiness
+  warnings: OrderWarning[]
   onCancelAll: () => void
   cancelAllPending: boolean
   onCancelOne: (id: string) => void
@@ -58,10 +58,10 @@ export function executedHeaderLabel(placedOrders: NextOrderPreview['todayOrders'
   return placed > 0 ? `${placed}건 접수됨 · ${submitting}건 접수 중` : `${submitting}건 접수 중`
 }
 
-function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onCancelAll, cancelAllPending, onCancelOne, cancellingId, cancelPending }: ExecutedBodyProps) {
+function ExecutedBody({ placedOrders, orders, unplacedDirections, warnings, onCancelAll, cancelAllPending, onCancelOne, cancellingId, cancelPending }: ExecutedBodyProps) {
   const { labelOf } = useMeta()
   // 마감 접수가 아직 없으면 AT_CLOSE 계획은 접수 시점 전이다(예: INFINITE 개장 매도 선접수 후 마감 배치 대상 BUY) —
-  // computeOrderReadiness의 closePlaced와 같은 기준. 미접수 방향은 위 미접수 목록이 이미 보여주므로 뺀다
+  // 서버 미접수 판정(OrderPreviewWarning)의 closePlaced와 같은 기준. 미접수 방향은 위 미접수 목록이 이미 보여주므로 뺀다
   const closePlaced = placedOrders.some((o) => o.timing === 'AT_CLOSE')
   const pendingOrders = closePlaced ? [] : orders.filter((o) => o.timing === 'AT_CLOSE' && !unplacedDirections.some((d) => d === o.direction))
   return (
@@ -83,7 +83,7 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, readiness, onC
           <div className="flex flex-col gap-0.5 px-6 py-3 border-b border-border">
             {unplacedDirections.map((d) => (
               <p key={d} className="whitespace-pre-line text-base text-warn">
-                {directionUnplacedMessage(d, readiness)}
+                {directionUnplacedMessage(d, warnings)}
               </p>
             ))}
           </div>
@@ -130,7 +130,6 @@ export function NextOrderCard({
   isLoadingPreview,
   isPreviewError,
   previewError,
-  readiness,
   mode,
   canExecute,
   bannerText,
@@ -144,7 +143,7 @@ export function NextOrderCard({
   const placedOrders = preview?.todayOrders ?? []
   const orders = preview?.orders ?? []
 
-  const unplacedDirections = getUnplacedDirections(mode, readiness)
+  const unplacedDirections = getUnplacedDirections(mode, preview)
 
   const cancelAllMutation = useCancelAllOrdersMutation(strategy.id)
   const cancelOneMutation = useCancelOneOrderMutation(strategy.id)
@@ -182,7 +181,7 @@ export function NextOrderCard({
               placedOrders={placedOrders}
               orders={orders}
               unplacedDirections={unplacedDirections}
-              readiness={readiness}
+              warnings={preview?.warnings ?? []}
               onCancelAll={() =>
                 cancelAllMutation.mutate(undefined, {
                   onSuccess: (r) => {
@@ -217,7 +216,7 @@ export function NextOrderCard({
           )}
         </div>
       </Surface>
-      {readiness.ledgerTrimmed && (
+      {preview?.ledgerCheck?.sufficient === true && preview.ledgerCheck.trimmed && (
         <p className="text-base text-muted-foreground">전략 원장에 맞춰 매수 주문을 줄여 접수합니다.</p>
       )}
     </div>

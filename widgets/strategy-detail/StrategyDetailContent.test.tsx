@@ -34,6 +34,8 @@ const serverStrategy: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: ['INJECT_CAPITAL', 'WITHDRAW_CAPITAL'],
+  blockedActions: [],
 }
 
 function createClient() {
@@ -101,64 +103,36 @@ describe('StrategyDetailContent', () => {
     expect(screen.queryByTestId('infinite-detail')).not.toBeInTheDocument()
   })
 
-  it.each([
-    ['INFINITE', true],
-    ['PRIVACY', true],
-    ['VR', false],
-    ['DCA', true],
-  ] as const)('%s 전략의 "투자금 추가" 버튼 노출은 %s', (type, visible) => {
+  const setup = (over: Partial<Strategy>) => {
     const queryClient = createClient()
     queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
+    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ...over })
     renderApp(content(), { queryClient })
+  }
 
-    expect(!!screen.queryByRole('button', { name: '투자금 추가' })).toBe(visible)
+  it.each(['투자금 추가', '투자금 인출'])('allowed면 "%s" 버튼이 활성으로 보인다', (name) => {
+    setup({})
+    expect(screen.getByRole('button', { name })).toBeEnabled()
   })
 
-  it('INFINITE 전략도 진행 중 사이클이 없으면 "투자금 추가" 버튼를 숨긴다', () => {
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
-    renderApp(content(), { queryClient })
-
+  it('allowed·blocked 어디에도 없으면(미지원·구버전 응답) 두 버튼을 렌더하지 않는다', () => {
+    setup({ allowedActions: [], blockedActions: [] })
     expect(screen.queryByRole('button', { name: '투자금 추가' })).not.toBeInTheDocument()
-  })
-
-  it.each([
-    ['INFINITE', true],
-    ['PRIVACY', true],
-    ['VR', false],
-    ['DCA', true],
-  ] as const)('%s 전략의 "투자금 인출" 버튼 노출은 %s', (type, visible) => {
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, type })
-    renderApp(content(), { queryClient })
-
-    expect(!!screen.queryByRole('button', { name: '투자금 인출' })).toBe(visible)
-  })
-
-  it('진행 중 사이클이 없으면 "투자금 인출" 버튼를 숨긴다', () => {
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, cycleInProgress: false })
-    renderApp(content(), { queryClient })
-
     expect(screen.queryByRole('button', { name: '투자금 인출' })).not.toBeInTheDocument()
   })
 
-  it.each([
-    [0.009, false],
-    [0, false],
-    [0.01, true],
-    [undefined, true],
-  ] as const)('장부 예수금 %s이면 "투자금 인출" 버튼 노출은 %s', (ledgerDeposit, visible) => {
-    const queryClient = createClient()
-    queryClient.setQueryData(accountKeys.detail(serverAccount.id), serverAccount)
-    queryClient.setQueryData(strategyKeys.detail(serverStrategy.id), { ...serverStrategy, ledgerDeposit })
-    renderApp(content(), { queryClient })
-
-    expect(!!screen.queryByRole('button', { name: '투자금 인출' })).toBe(visible)
+  it('blocked면 버튼을 비활성으로 보이고 사유 라벨을 설명으로 연결하며 클릭해도 열리지 않는다', () => {
+    setup({
+      allowedActions: ['INJECT_CAPITAL'],
+      blockedActions: [{ action: 'WITHDRAW_CAPITAL', reasonCode: 'NO_WITHDRAWABLE_BALANCE' }],
+    })
+    const button = screen.getByRole('button', { name: '투자금 인출' })
+    expect(button).toHaveAttribute('aria-disabled', 'true')
+    expect(button).toHaveAccessibleDescription('인출 가능한 예수금 없음')
+    expect(screen.getByText('인출 가능한 예수금 없음')).toBeVisible()
+    fireEvent.click(button)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '투자금 추가' })).toBeEnabled()
   })
 
   it.each([

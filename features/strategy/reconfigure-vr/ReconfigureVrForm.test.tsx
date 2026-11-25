@@ -20,6 +20,8 @@ const strategy: ReconfigureVrStrategy = {
   cycleSeedType: 'NONE',
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
   vr: {
     value: 3000,
     bandWidth: 15,

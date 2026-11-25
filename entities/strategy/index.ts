@@ -1,10 +1,11 @@
-export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
+export type { CycleSeedType, DcaCondition, DcaConfigRequest, DcaDirection, DcaIndicator, DcaOperator, DcaRule, DcaRuleRequest, DcaWeekday, Strategy, StrategyAction, StrategyRequest, ReconfigureVrRequest, StrategySeedPreview, StrategyVrSummary } from './model/types'
 export { dcaIndicatorLabel, earliestNextExecution, formatDcaCondition, formatDcaSchedule, formatDcaSizing, latestLastExecution, STOCK_WEEKDAYS, WEEKDAY_LABEL } from './model/dcaFormat'
 export { DcaRuleSummaryLabel } from './ui/DcaRuleSummaryLabel'
 export { strategyKeys } from './model/queryKeys'
 export { seedBadgeClass, strategyStatusAccent, strategyTypeShort } from './model/badges'
 export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-start'
-export { supportsCapitalAdjustment, canWithdrawCapital, floorToCents } from './model/capitalAdjustment'
+export { floorToCents } from './model/capitalAdjustment'
+export { actionState } from './model/actionState'
 export { nextVrRolloverDate } from './model/vr-rollover'
 export { POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {

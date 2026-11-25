@@ -89,6 +89,8 @@ function strategyFor(accountId: string, id: string): Strategy {
     divisionCount: 20,
     isReverseMode: false,
     cycleInProgress: true,
+    allowedActions: [],
+    blockedActions: [],
   }
 }
 

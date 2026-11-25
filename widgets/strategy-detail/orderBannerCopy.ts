@@ -1,5 +1,5 @@
-import type { SkipReason, OrderReadiness } from '@entities/order'
-import { fmtShares, fmtUsd } from '@shared/lib/format'
+import type { SkipReason, OrderWarning, OrderWarningCode } from '@entities/order'
+import { fmtUsd } from '@shared/lib/format'
 import { ApiError, apiMsg } from '@shared/lib/api-client'
 
 export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
@@ -17,42 +17,28 @@ export function pausedSkipReasonLabel(reason: SkipReason): string {
   return SKIP_REASON_LABELS[reason]
 }
 
-// "미접수" 목록 문구 — BUY는 원장 부족이면 재시도 없이 거절되고, 계좌 예수금 부족(조회 시점 추정)이면 증권사가 거절할 수 있어 사유를 안내한다. 그 외 미접수는 장 마감 시 재시도된다
-export function directionUnplacedMessage(direction: 'BUY' | 'SELL', readiness: OrderReadiness): string {
-  if (direction === 'SELL') return readiness.holdingsShortfall ? '보유 수량 부족으로 매도 거절 가능' : '장 마감 시 매도 재시도 예정'
-  if (readiness.ledgerShortfall) return '전략 원장 예수금 부족으로 매수 미접수'
-  if (readiness.accountCashPartial) return '계좌 예수금 부족으로 보정 주문 거절 가능'
-  if (readiness.accountCashShortfall) return '계좌 예수금 부족으로 매수 거절 가능'
+// "미접수" 목록 문구 — 사유는 서버 경고 코드로 분기한다. BUY는 원장 부족이면 재시도 없이 거절되고, 계좌 예수금 부족(조회 시점 추정)이면 증권사가 거절할 수 있어 사유를 안내한다.
+// 금액이 담긴 서버 문장(detail)은 상단 배너가 이미 보여주므로 여기선 방향별 짧은 상태만 둔다. 그 외 미접수는 장 마감 시 재시도된다
+export function directionUnplacedMessage(direction: 'BUY' | 'SELL', warnings: OrderWarning[]): string {
+  const has = (code: OrderWarningCode) => warnings.some((w) => w.code === code)
+  if (direction === 'SELL') return has('HOLDINGS_SHORTFALL') ? '보유 수량 부족으로 매도 거절 가능' : '장 마감 시 매도 재시도 예정'
+  if (has('LEDGER_SHORTFALL')) return '전략 원장 예수금 부족으로 매수 미접수'
+  if (has('ACCOUNT_CASH_PARTIAL')) return '계좌 예수금 부족으로 보정 주문 거절 가능'
+  if (has('ACCOUNT_CASH_SHORTFALL')) return '계좌 예수금 부족으로 매수 거절 가능'
   return '장 마감 시 매수 예정'
 }
 
-// 카드 상단 배너 문구 — 휴장일/전략 원장·계좌 예수금 부족/보유 수량 부족을 안내한다.
+// 방향별 미접수 경고는 배너가 아니라 "미접수" 목록이 보여준다
+const UNPLACED_CODES: readonly OrderWarningCode[] = ['BUY_UNPLACED', 'SELL_UNPLACED']
+
+// 카드 상단 배너 문구 — 휴장일이면 휴장 안내, 아니면 서버 경고(원장·계좌 예수금·보유 수량 부족)의 detail을 그대로 이어 붙인다.
 // 원장 거절은 재시도가 없어 preview·executed 모두 "장 마감 시 매수 예정" 같은 약속 문구를 붙이지 않는다
-export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, readiness: OrderReadiness): string | null {
+export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, warnings: OrderWarning[]): string | null {
   if (!canExecute) return null
   if (mode === 'preview' && marketStatusMessage) return marketStatusMessage
   if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
 
-  return [buyShortfallText(readiness), sellShortfallText(readiness)].filter(Boolean).join('\n') || null
-}
-
-function buyShortfallText({ ledgerShortfall, accountCashShortfall, accountCashPartial, correctionExcludedBuyUsd }: OrderReadiness): string | null {
-  if (ledgerShortfall) return `전략 원장 예수금 부족(원장 $${fmtUsd(ledgerShortfall.remainingLedger)} / 필요 $${fmtUsd(ledgerShortfall.requiredBuyUsd)})`
-  if (!accountCashShortfall) return null
-  // 계좌 단위 값이라 필요 금액은 이 전략이 아니라 계좌 전체 BUY 합계다
-  const amounts = `주문가능 $${fmtUsd(accountCashShortfall.availableUsd)} / 계좌 전체 접수 필요 $${fmtUsd(accountCashShortfall.requiredBuyUsd)}${correctionExcludedText(correctionExcludedBuyUsd)}`
-  return accountCashPartial ? `보정 주문 거절 가능(${amounts})` : `계좌 예수금 부족(${amounts})`
-}
-
-// 상세 배너에 보정 제외 금액을 덧붙인다 (카드 배지는 한 줄 고정이라 금액 없이 상태만 보여준다)
-function correctionExcludedText(correctionExcludedBuyUsd: number | null): string {
-  return correctionExcludedBuyUsd == null ? '' : ` · 보정 주문 제외 $${fmtUsd(correctionExcludedBuyUsd)}`
-}
-
-// (계좌, 종목) 단위 값이라 필요 수량은 같은 종목 전략 전체 SELL 합계다
-function sellShortfallText({ holdingsShortfall }: OrderReadiness): string | null {
-  if (!holdingsShortfall) return null
-  return `보유 수량 부족(판매가능 ${fmtShares(holdingsShortfall.availableQuantity)} / 종목 전체 필요 ${fmtShares(holdingsShortfall.requiredSellQuantity)})`
+  return warnings.filter((w) => !UNPLACED_CODES.includes(w.code)).map((w) => w.detail).filter(Boolean).join('\n') || null
 }
 
 // 404만 화면 고유 문구, 나머지는 서버 detail을 그대로 노출한다 — 증권사 장애 503·API 키 오류 422·호출 한도 429는

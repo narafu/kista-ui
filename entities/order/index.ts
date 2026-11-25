@@ -3,11 +3,12 @@ export type {
   NextOrderPreview,
   StrategyOrder,
   LedgerCheck,
+  OrderWarning,
+  OrderWarningCode,
 } from './model/types'
 export { orderKeys } from './model/queryKeys'
 export { orderPreviewQueryOptions, seedOrderPreviews } from './model/queryOptions'
-export type { OrderReadiness, DirectionReadiness } from './model/order-readiness'
-export { computeOrderReadiness } from './model/order-readiness'
+export { hasWarning } from './model/warnings'
 export { orderStatusBadgeClass } from './model/status-badge'
 export {
   getAccountOrderPreviews,

@@ -106,31 +106,16 @@ describe('AccountSummaryCard', () => {
     expect(screen.getByText('전략 기준 금액을 불러오지 못했습니다.')).toBeInTheDocument()
   })
 
-  it('TOSS 계좌도 apiKeyExpiresAt이 있으면 만료 배지를 보여준다', () => {
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
-    try {
-      render(<AccountSummaryCard account={{ ...account, apiKeyExpiresAt: '2026-11-01T00:00:00+09:00' }} deposit={0} posEvalUsd={0} />)
-      expect(screen.getByText('API 키 만료 임박')).toBeInTheDocument()
-    } finally {
-      vi.useRealTimers()
-    }
+  it.each([
+    ['EXPIRED', 'API 키 재등록 필요'],
+    ['EXPIRING', 'API 키 만료 임박'],
+  ] as const)('apiKeyExpiry.status가 %s면 배지를 보여준다', (status, label) => {
+    render(<AccountSummaryCard account={{ ...account, apiKeyExpiry: { status } }} deposit={0} posEvalUsd={0} />)
+    expect(screen.getByText(label)).toBeInTheDocument()
   })
 
-  it('키가 만료됐으면 재등록 필요를 보여준다', () => {
-    vi.useFakeTimers({ toFake: ['Date'] })
-    vi.setSystemTime(new Date('2026-10-18T00:00:00+09:00'))
-    try {
-      render(
-        <AccountSummaryCard
-          account={{ ...account, broker: 'MERITZ', accountNoMasked: null, apiKeyExpiresAt: '2026-10-01T00:00:00+09:00' }}
-          deposit={0}
-          posEvalUsd={0}
-        />,
-      )
-      expect(screen.getByText('API 키 재등록 필요')).toBeInTheDocument()
-    } finally {
-      vi.useRealTimers()
-    }
+  it.each([{ status: 'OK' }, { status: 'NONE' }, undefined] as const)('apiKeyExpiry가 %j면 만료 배지가 없다', (apiKeyExpiry) => {
+    render(<AccountSummaryCard account={{ ...account, apiKeyExpiry }} deposit={0} posEvalUsd={0} />)
+    expect(screen.queryByText(/API 키/)).not.toBeInTheDocument()
   })
 })

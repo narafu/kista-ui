@@ -8,13 +8,14 @@ import { statsKeys } from '@entities/stats'
 import { accountKeys } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
 import type { Strategy } from '@entities/strategy'
+import { ApiError } from '@shared/lib/api-client'
 import { useManageStrategyMutations } from './useManageStrategyMutations'
 
 const pauseMutate = vi.fn()
 const resumeMutate = vi.fn()
 const deleteMutate = vi.fn()
 const archiveMutate = vi.fn()
-const { toastSuccessMock } = vi.hoisted(() => ({ toastSuccessMock: vi.fn() }))
+const { toastSuccessMock, toastErrorMock } = vi.hoisted(() => ({ toastSuccessMock: vi.fn(), toastErrorMock: vi.fn() }))
 
 vi.mock('@entities/strategy', () => ({
   usePauseStrategyMutation: () => ({ mutate: pauseMutate, isPending: false }),
@@ -24,7 +25,7 @@ vi.mock('@entities/strategy', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  toast: { success: toastSuccessMock, error: vi.fn() },
+  toast: { success: toastSuccessMock, error: toastErrorMock },
 }))
 
 const strategy: Strategy = {
@@ -38,6 +39,8 @@ const strategy: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 function createWrapper(queryClient: QueryClient) {
@@ -160,5 +163,19 @@ describe('useManageStrategyMutations', () => {
 
     expect(toastSuccessMock).toHaveBeenCalledWith('전략을 삭제했습니다')
     await waitFor(() => expect(onDeleted).toHaveBeenCalledOnce())
+  })
+
+  it.each([
+    ['resume', resumeMutate, '남은 원장($3.00)이 1주 가격($10.00)보다 작아 재개할 수 없습니다. 전략을 삭제한 뒤 충분한 투자금으로 다시 등록해야 합니다.'],
+    ['archive', archiveMutate, '오늘 접수된 주문이 마감 반영된 뒤 보관할 수 있습니다.'],
+  ] as const)('%s가 400으로 거절되면 서버 detail을 토스트 한 번으로 그대로 보여 준다', async (action, mutate, detail) => {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    mutate.mockImplementation((_strategy, options) => options.onError(new ApiError(400, { detail })))
+
+    const { result } = renderHook(() => useManageStrategyMutations(), { wrapper: createWrapper(queryClient) })
+    act(() => result.current[action](strategy))
+
+    expect(toastErrorMock).toHaveBeenCalledOnce()
+    expect(toastErrorMock).toHaveBeenCalledWith(detail)
   })
 })

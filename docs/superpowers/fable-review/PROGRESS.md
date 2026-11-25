@@ -444,6 +444,28 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 리뷰(`/code-review medium`) 6건, 코드는 고치지 않았다. 관리자 설정 변경이 열린 화면에 반영되지 않는 것(이전 runtime-config는 포커스 때 다시 받았다. 지금은 새로고침·이동 때 반영, 서버가 400으로 막는다), `getMetaBundle`에 시간 제한이 없어 로그인 페이지가 api 지연에 묶이는 것, 요청마다 `no-store` 호출 비용, ETF 허용 목록이 비었을 때의 폴백 부재, `/me` 로딩 중 재신청 버튼 활성, 램프 기본값이 없을 때 안내 부재. 사용자 판단이 필요하면 후속으로 다룬다.
 - 다음: 세션 B(T6 서버 판정 전환, T10 검증 엔드포인트). 그 뒤에 `entities/runtime-config`와 `RAMP_DEFAULTS_BY_MODE`를 지운다.
 
+## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)
+
+- 기준 api는 `s7-ui-contract`(`b52c5b807`, 미배포·미merge). api 먼저 배포해야 한다 — 그 전 api에 붙으면 아래 "서버 값 없음" 동작이 된다.
+- 삭제: `computeOrderReadiness`·`OrderReadiness`·`DirectionReadiness`(소스 3곳·테스트 2곳), `supportsCapitalAdjustment`·`canWithdrawCapital`(소스 2곳), `apiKeyExpiryState`·`API_KEY_EXPIRY_LABEL`(소스 3곳·테스트 1곳). `floorToCents`는 CapitalForm이 써서 남겼다.
+- 그대로 둔 것: `isScheduledStart`(시작예정 배지는 표시용이고 서버에 대응 필드가 없다), 투자금 외 버튼(VR 재설정·수정·일시중지·재개·보관·삭제의 노출 조건은 이번 범위 밖 — `allowedActions`로 옮기는 것은 후속 후보), `ledgerCheck.trimmed` 정보 안내(서버 원 필드를 그대로 읽는다).
+- 버튼 상태(투자금 추가=INJECT_CAPITAL, 인출=WITHDRAW_CAPITAL):
+
+| | 전 | 후 |
+|---|---|---|
+| 추가 | `cycleInProgress` && 유형 PRIVACY·INFINITE·DCA이면 보임 | allowed → 활성, blocked → 비활성(`focusableWhenDisabled`)+사유 라벨(메타 `strategyActionBlockReasons`, 눈에 보이는 텍스트 + `aria-describedby`), 둘 다 없음 → 숨김 |
+| 인출 | 위 + 장부 예수금(센트 절사) > 0 (값 모르면 허용) | 위와 같은 3상태. 예수금 0이면 `NO_WITHDRAWABLE_BALANCE`로 비활성+사유 |
+
+  차이: 사이클 없음·예수금 0이던 "숨김"이 "비활성+사유"로 바뀐다(U3). VR·유형 미지원은 계속 숨김.
+- 서버 값이 없는 응답(구버전·누락): `allowedActions`·`blockedActions`는 `[]`로 정규화 → 두 버튼 모두 숨김(돈이 움직이는 액션이 안 보이는 쪽이 안전한 기본값. 대가: api 전 배포 상태에선 버튼이 사라진다). `apiKeyExpiry` 누락 → 배지 없음. `warnings` 누락 → 경고 배지·배너·미접수 줄 없음. 이쪽은 안전한 기본값이 아니다 — 원장·예수금 부족 경고가 사라지면 사용자가 주문이 안 나간다는 걸 모른다(주문 자체는 서버가 판정). api를 먼저 배포하면 발생하지 않으므로 배포 순서로 막는다.
+- 계좌 만료 배지: 서버 `apiKeyExpiry.status`(EXPIRED=error, EXPIRING=warn, OK·NONE=없음). 경계가 바뀐다 — 기존은 ms 기준(만료 시각), 지금은 KST 일수(`daysLeft≤0` EXPIRED, 1~30 EXPIRING). 만료 당일은 EXPIRING에서 EXPIRED로 바뀐다.
+- 미리보기: 서버 `warnings` 코드로 카드 배지 판정(우선순위·색 유지), 상세 배너는 서버 `detail` 그대로. 문구 변화: 카드 "예수금 부족"→"전략 원장 예수금 부족", "미접수 주문"→"매수 미접수"/"매도 미접수"(둘 다면 매수만). 배너 문장이 서버 문장으로 바뀌고 보유 수량의 "주" 단위가 빠진다. 방향별 미접수 줄은 코드 분기만 바꾸고 문구는 유지(서버 `BUY_UNPLACED`·`SELL_UNPLACED` detail은 어디에도 표시하지 않는다 — 배너와 겹침).
+- 서버 400 `detail` 3건(마감 리포트 창·당일 주문 반영 전 보관·재개 시 1주 미만 잔액): 프록시가 4xx body를 그대로 중계하고 `apiMsg`가 detail을 쓴다. 수정·투자금은 훅 레벨 토스트, 보관·재개는 호출부 `withActionFeedback` 토스트 한 곳뿐이라 중복이 없어 코드는 고치지 않고 테스트만 추가했다. 위치가 갈리므로 보관·재개 훅에 `onError`를 두면 중복된다.
+- 검증: typecheck·lint·knip 통과, vitest 261파일 1839건 통과(리뷰 수정 라운드 뒤 재실행). e2e·실화면은 못 돌렸다(위 "e2e 대기"와 같은 이유, s7 api `role=all` 필요). 볼 것: 전략 상세의 투자금 버튼 3상태(비활성 사유 텍스트), 전략 카드 경고 배지(라벨이 "전략 원장 예수금 부족"으로 길어져 모바일 한 줄 배지가 넘치는지), 계좌 카드 만료 배지.
+- api 세션 확인(2026-11-25, s7은 로컬 main `7b8463ba0`에 머지됨): ① 서버에 시작예정 판정 필드·사유 코드가 없다(`TradingCycleResponse.startDate`뿐) — `isScheduledStart`는 삭제 대상이 아니라 유지가 맞다. ② `BUY_UNPLACED`·`SELL_UNPLACED`의 detail은 사유 없는 고정 문장("접수 시점이 지난 매수 주문이 오늘 접수되지 않았습니다.")이고 "장 마감 시 접수 예정" 뜻이 없다(마감 전엔 미접수 경고 자체가 안 난다). 서버 detail로 방향별 줄을 대체하면 사유·예정 안내가 사라지므로 기존 클라 문구를 유지한다(코드 분기만 warnings).
+- 리뷰(`/code-review medium`) 6건: 비활성 사유가 sr-only뿐(고침: 눈에 보이게), `warnings` 원소 null 방어(고침), 빈 detail 배너(고침), strategy.md 41행 드리프트(고침). 안 고친 것: `allowedActions` 누락 시 구 규칙 폴백(서버 값 없으면 숨김이 요청된 기본값), 만료 배지 `apiKeyExpiresAt` 폴백(같은 이유), 카드·배너 우선순위 불일치 가능성(서버가 LEDGER_SHORTFALL이면 계좌 예수금 경고를 생략하는 규칙에 의존).
+- 다음: 세션 C(T10 검증 엔드포인트 — `strategyFormGuards`·`vrDerived`·`useTypeDefaults` 삭제, 서버가 검증하지 않는 4건은 남김). 설계 판단이 크니 Opus 세션을 권한다.
+
 ## S1 실행 기록 — 코인 제거 (지침서 12, 2026-11-15~16)
 
 - **T0 운영 확인(읽기 전용, 2026-11-15)**: `BINANCE`·`UPBIT` 계좌 live 0(전체 각 1, 삭제 표시), `BTC`·`ETH` 전략 live 0(`ETH` 전체 2), 코인 미체결 주문 0, 미완료 코인 이벤트 0. push 조건 충족.

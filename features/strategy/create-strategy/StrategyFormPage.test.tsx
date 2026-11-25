@@ -19,6 +19,8 @@ const initial: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
   currentHoldings: 0,
 }
 

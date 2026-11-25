@@ -43,7 +43,7 @@ function rule(ruleKey: string, amount: number, o: Partial<DcaRule> = {}): DcaRul
 
 function existing(rules: DcaRule[]): Strategy {
   return {
-    id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'QLD', cycleSeedType: 'NONE', isReverseMode: false, cycleInProgress: true,
+    id: 's1', accountId: 'a1', type: 'DCA', status: 'ACTIVE', ticker: 'QLD', cycleSeedType: 'NONE', isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [],
     dca: { rules, currentHoldings: null, avgPrice: null },
   }
 }

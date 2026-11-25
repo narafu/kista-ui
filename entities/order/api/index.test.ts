@@ -258,6 +258,24 @@ describe('order api', () => {
     expect((await getStrategyOrdersPreview('strategy-1')).ledgerCheck).toBeNull()
   })
 
+  it('normalizes warnings, and treats a missing (older) response as no warnings', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    const base = { tradeDate: '2026-07-18', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' }
+    clientFetchMock.mockResolvedValueOnce(base)
+    clientFetchMock.mockResolvedValueOnce({ ...base, warnings: [{ code: 'LEDGER_SHORTFALL', detail: '원장 부족' }] })
+
+    expect((await getStrategyOrdersPreview('strategy-1')).warnings).toEqual([])
+    expect((await getStrategyOrdersPreview('strategy-1')).warnings).toEqual([{ code: 'LEDGER_SHORTFALL', detail: '원장 부족' }])
+  })
+
+  it('drops malformed warning entries (null, non-object, missing string code) without throwing', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    const base = { tradeDate: '2026-07-18', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' }
+    clientFetchMock.mockResolvedValueOnce({ ...base, warnings: [null, 'x', 3, { detail: 'no code' }, { code: 7 }, { code: 'LEDGER_SHORTFALL', detail: '원장 부족' }] })
+
+    expect((await getStrategyOrdersPreview('strategy-1')).warnings).toEqual([{ code: 'LEDGER_SHORTFALL', detail: '원장 부족' }])
+  })
+
   it('normalizes a populated ledgerCheck', async () => {
     const { getStrategyOrdersPreview } = await import('./index')
     clientFetchMock.mockResolvedValueOnce({

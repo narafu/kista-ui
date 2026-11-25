@@ -5,8 +5,8 @@ import type { ReactNode } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { fmtUsd, fmtDecimal } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
-import { computeOrderReadiness, useStrategyOrderPreviewQuery } from '@entities/order'
-import type { OrderReadiness } from '@entities/order'
+import { useStrategyOrderPreviewQuery } from '@entities/order'
+import type { OrderWarning, OrderWarningCode } from '@entities/order'
 import { seedBadgeClass, strategyStatusAccent, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { Badge } from '@shared/ui/Badge'
@@ -25,15 +25,22 @@ interface OrderSignal {
   label: string
 }
 
-// 전략 원장 예수금 부족 최우선, 다음은 계좌 예수금·보유 수량 부족(계좌 단위 — 증권사 거절 가능). 미접수는 부족이 확인되지 않아도(unplaced만으로도) 최소 경고 처리해
-// "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다. 배지는 한 줄 고정이라 상태만 보여주고 금액은 상세 배너에 둔다
-function getOrderSignal({ buy, sell, ledgerShortfall, accountCashShortfall, accountCashPartial, holdingsShortfall }: OrderReadiness, hasTodayOrders: boolean): OrderSignal | null {
-  if (ledgerShortfall) return { color: 'var(--status-error)', tone: 'error', label: '예수금 부족' }
-  // 보정 주문을 빼면 충분하면 일부만 거절될 수 있어 경고로 낮춘다
-  if (accountCashPartial) return { color: 'var(--warn)', tone: 'warn', label: '보정 주문 거절 가능' }
-  if (accountCashShortfall) return { color: 'var(--status-error)', tone: 'error', label: '계좌 예수금 부족' }
-  if (holdingsShortfall) return { color: 'var(--status-error)', tone: 'error', label: '보유 수량 부족' }
-  if (buy.unplaced || sell.unplaced) return { color: 'var(--warn)', tone: 'warn', label: '미접수 주문' }
+// 서버 경고 코드별 색 — 위에서부터 우선순위: 전략 원장 부족 최우선, 다음은 계좌 예수금·보유 수량 부족(계좌 단위 — 증권사 거절 가능).
+// 보정 주문을 빼면 충분한 부분 부족과 미접수는 경고(주황)로 낮춘다
+const ORDER_SIGNAL_RULES: ReadonlyArray<{ code: OrderWarningCode; color: string; tone: 'error' | 'warn' }> = [
+  { code: 'LEDGER_SHORTFALL', color: 'var(--status-error)', tone: 'error' },
+  { code: 'ACCOUNT_CASH_PARTIAL', color: 'var(--warn)', tone: 'warn' },
+  { code: 'ACCOUNT_CASH_SHORTFALL', color: 'var(--status-error)', tone: 'error' },
+  { code: 'HOLDINGS_SHORTFALL', color: 'var(--status-error)', tone: 'error' },
+  { code: 'BUY_UNPLACED', color: 'var(--warn)', tone: 'warn' },
+  { code: 'SELL_UNPLACED', color: 'var(--warn)', tone: 'warn' },
+]
+
+// 미접수는 부족이 확인되지 않아도 최소 경고 처리해 "타 방향은 접수됨" 하나만 보고 초록으로 오인시키지 않는다.
+// 배지는 한 줄 고정이라 메타 라벨(짧은 상태)만 보여주고 금액이 담긴 서버 문장(detail)은 상세 배너에 둔다
+function getOrderSignal(warnings: OrderWarning[], hasTodayOrders: boolean, labelOf: (category: 'orderPreviewWarningCodes', code: string) => string): OrderSignal | null {
+  const rule = ORDER_SIGNAL_RULES.find((r) => warnings.some((w) => w.code === r.code))
+  if (rule) return { color: rule.color, tone: rule.tone, label: labelOf('orderPreviewWarningCodes', rule.code) }
   if (hasTodayOrders) return { color: 'var(--status-ok)', tone: null, label: '오늘 주문 접수됨' }
   return null
 }
@@ -166,12 +173,10 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   const seedBadgeCls = seedBadgeClass(strategy.cycleSeedType)
   const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
   const statusAccent = strategyStatusAccent(strategy.status)
-  // "오늘 계획된 주문 중 실제 미접수 방향이 있는가" 기준 — marketSession(장 시간대)이 아니라
-  // 이 전략의 실제 주문 시도 결과로 판정한다 (SELL만 성공하고 BUY만 미접수인 상태를 구분하기 위함)
-  const readiness = computeOrderReadiness(preview)
+  // 부족·미접수 판정은 서버 warnings가 SSOT — marketSession(장 시간대)이 아니라 이 전략의 실제 주문 시도 결과 기준이다
   const hasTodayOrders = (preview?.todayOrders ?? []).length > 0
   // 미리보기는 일시중지 중에도 계획·부족 판정을 내려준다 — 실행되지 않을 주문의 경고를 띄우지 않도록 운영중일 때만 표시 (NextOrderCard와 동일)
-  const orderSignal = strategy.status === 'ACTIVE' ? getOrderSignal(readiness, hasTodayOrders) : null
+  const orderSignal = strategy.status === 'ACTIVE' ? getOrderSignal(preview?.warnings ?? [], hasTodayOrders, labelOf) : null
 
   const layoutProps: LayoutProps = { strategy, accountLabel, usesDivisionCount, isVr, scheduledStart, typeLabel: labelOf('strategyTypes', strategy.type), seedLabel, seedBadgeCls, statusLabel, orderSignal }
 

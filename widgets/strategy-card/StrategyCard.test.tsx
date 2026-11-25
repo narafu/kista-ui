@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fmtDate, todayKst } from '@shared/lib/format'
 import type { Strategy } from '@entities/strategy'
 import { dcaRule, strategy as buildStrategy } from '@entities/strategy/model/fixtures'
-import type { LedgerCheck } from '@entities/order'
+import type { LedgerCheck, OrderWarning } from '@entities/order'
 import { StrategyCard } from './StrategyCard'
 
 // todayKst() 기준 며칠 뒤/전 날짜를 yyyy-MM-dd로 계산 (달력일 산술만 필요 — UTC로 취급해도 안전)
@@ -16,6 +16,8 @@ function addDaysToKstDate(days: number): string {
 
 // 실제 DTO에서 파생 — 목 리터럴에서 필요한 필드만 채우고 나머지는 Partial로 생략
 const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
+// 서버가 만든 경고 — 카드는 코드만 보고 문장(detail)은 쓰지 않는다
+const w = (code: OrderWarning['code']): OrderWarning => ({ code, detail: `${code} 서버 문장` })
 const OK: LedgerCheck = { remainingLedger: 500, requiredBuyUsd: 100, sufficient: true, trimmed: false }
 
 let previewState = {
@@ -26,6 +28,7 @@ let previewState = {
     ledgerCheck: null as LedgerCheck | null,
     accountCashCheck: null as { availableUsd: number; requiredBuyUsd: number; correctionBuyUsd: number; sufficient: boolean } | null,
     accountHoldingsCheck: null as { availableQuantity: number; requiredSellQuantity: number; sufficient: boolean } | null,
+    warnings: [] as OrderWarning[],
   },
   isLoading: false,
 }
@@ -79,6 +82,8 @@ const strategy: Strategy = {
   isReverseMode: false,
   cycleInProgress: true,
   currentRound: 10.3,
+  allowedActions: [],
+  blockedActions: [],
 }
 
 describe('StrategyCard mobile row', () => {
@@ -91,6 +96,7 @@ describe('StrategyCard mobile row', () => {
         ledgerCheck: null,
         accountCashCheck: null,
         accountHoldingsCheck: null,
+        warnings: [],
       },
       isLoading: false,
     }
@@ -213,6 +219,7 @@ describe('StrategyCard mobile row', () => {
         orders: [{ direction: 'BUY', price: '1200', quantity: 1 }],
         todayOrders: [],
         ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
+        warnings: [w('LEDGER_SHORTFALL')],
       },
     }
 
@@ -220,7 +227,7 @@ describe('StrategyCard mobile row', () => {
 
     expect(screen.getByTestId('strategy-order-border-accent')).toHaveAttribute('style', expect.stringContaining('border-color: var(--status-error);'))
     // 색만으로 전달하지 않도록 같은 판정을 배지 텍스트로도 보여준다 (모바일·PC 레이아웃 각각)
-    expect(screen.getAllByText('예수금 부족')).toHaveLength(2)
+    expect(screen.getAllByText('전략 원장 예수금 부족')).toHaveLength(2)
   })
 
   it('marks borders red with an account-level badge when the account cash is short', () => {
@@ -232,6 +239,7 @@ describe('StrategyCard mobile row', () => {
         todayOrders: [],
         ledgerCheck: OK,
         accountCashCheck: { availableUsd: 300, requiredBuyUsd: 1200, correctionBuyUsd: 0, sufficient: false },
+        warnings: [w('ACCOUNT_CASH_SHORTFALL')],
       },
     }
 
@@ -250,6 +258,7 @@ describe('StrategyCard mobile row', () => {
         todayOrders: [],
         ledgerCheck: OK,
         accountCashCheck: { availableUsd: 250, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false },
+        warnings: [w('ACCOUNT_CASH_PARTIAL')],
       },
     }
 
@@ -267,6 +276,7 @@ describe('StrategyCard mobile row', () => {
         orders: [{ direction: 'SELL', price: '1300', quantity: 12 }],
         todayOrders: [],
         accountHoldingsCheck: { availableQuantity: 5, requiredSellQuantity: 12, sufficient: false },
+        warnings: [w('HOLDINGS_SHORTFALL')],
       },
     }
 
@@ -287,6 +297,7 @@ describe('StrategyCard mobile row', () => {
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
         ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
+        warnings: [w('LEDGER_SHORTFALL'), w('BUY_UNPLACED')],
       },
     }
 
@@ -306,6 +317,7 @@ describe('StrategyCard mobile row', () => {
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
         ledgerCheck: OK,
+        warnings: [w('BUY_UNPLACED')],
       },
     }
 
@@ -326,6 +338,7 @@ describe('StrategyCard mobile row', () => {
           { direction: 'SELL', price: '160', quantity: 9 },
         ],
         todayOrders: [{ status: 'PLACED', direction: 'BUY' }],
+        warnings: [w('SELL_UNPLACED')],
       },
     }
 
@@ -336,7 +349,7 @@ describe('StrategyCard mobile row', () => {
     expect(borderAccent).toHaveAttribute('style', expect.stringContaining('border-color: var(--warn);'))
   })
 
-  it('labels an unplaced direction as 미접수 주문', () => {
+  it('labels an unplaced direction with the server meta label', () => {
     previewState = {
       ...previewState,
       data: {
@@ -347,12 +360,36 @@ describe('StrategyCard mobile row', () => {
         ],
         todayOrders: [{ status: 'PLACED', direction: 'SELL' }],
         ledgerCheck: OK,
+        warnings: [w('BUY_UNPLACED')],
       },
     }
 
     render(<StrategyCard accountId="account-1" strategy={strategy} />)
 
-    expect(screen.getAllByText('미접수 주문')).toHaveLength(2)
+    expect(screen.getAllByText('매수 미접수')).toHaveLength(2)
+  })
+
+  it('picks the highest-priority warning (ledger over holdings) and ignores warnings from missing fields', () => {
+    previewState = {
+      ...previewState,
+      data: { ...previewState.data, orders: [{ direction: 'BUY', price: '1', quantity: 1 }], todayOrders: [], warnings: [w('HOLDINGS_SHORTFALL'), w('LEDGER_SHORTFALL')] },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.getAllByText('전략 원장 예수금 부족')).toHaveLength(2)
+    expect(screen.queryByText('보유 수량 부족')).not.toBeInTheDocument()
+  })
+
+  it('shows no border or badge when there are no warnings and nothing was placed (older responses without warnings behave the same)', () => {
+    previewState = {
+      ...previewState,
+      data: { ...previewState.data, orders: [{ direction: 'BUY', price: '1', quantity: 1 }], todayOrders: [], ledgerCheck: SHORT, warnings: undefined as unknown as OrderWarning[] },
+    }
+
+    render(<StrategyCard accountId="account-1" strategy={strategy} />)
+
+    expect(screen.queryByTestId('strategy-order-border-accent')).not.toBeInTheDocument()
   })
 
   it('shows the reverse mode badge on mobile as well as PC', () => {
@@ -382,6 +419,7 @@ describe('StrategyCard scheduled start badge', () => {
         ledgerCheck: null,
         accountCashCheck: null,
         accountHoldingsCheck: null,
+        warnings: [],
       },
       isLoading: false,
     }
@@ -424,6 +462,7 @@ describe('StrategyCard status', () => {
         ledgerCheck: null,
         accountCashCheck: null,
         accountHoldingsCheck: null,
+        warnings: [],
       },
       isLoading: false,
     }
@@ -443,6 +482,7 @@ describe('StrategyCard status', () => {
         todayOrders: [],
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: SHORT, accountCashCheck: null, accountHoldingsCheck: null,
+        warnings: [w('LEDGER_SHORTFALL')],
       },
       isLoading: false,
     }

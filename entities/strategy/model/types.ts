@@ -1,7 +1,9 @@
 // type/status/ticker는 string — 백엔드 메타 API가 SSOT (리터럴 직접 사용 금지)
 // CycleSeedType은 요청 DTO에서 enum으로 선언 → api-schema에서 파생
 export type { CycleSeedType } from '@shared/lib/api-schema'
-import type { CycleSeedType } from '@shared/lib/api-schema'
+import type { CycleSeedType, StrategyAction } from '@shared/lib/api-schema'
+
+export type { StrategyAction }
 
 // VR(밸류리밸런싱) 전략 요약 — 사이클 시작 시 스냅샷 + 설정값
 export interface StrategyVrSummary {
@@ -75,6 +77,8 @@ export interface Strategy {
   currentHoldings?: number
   vr?: StrategyVrSummary  // VR 전략 전용 요약 (타 전략 undefined)
   dca?: StrategyDcaSummary // DCA 전략 전용 설정·다음 판정·최근 결과 (타 전략 undefined)
+  allowedActions: StrategyAction[]  // 지금 가능한 행위 — 구버전 응답은 [] (버튼 숨김이 안전 기본값)
+  blockedActions: { action: StrategyAction; reasonCode: string }[] // 지원하지만 지금 막힌 행위와 사유(라벨은 메타 strategyActionBlockReasons)
   startDate?: string      // 사이클 시작(예정)일 (yyyy-MM-dd) — 오늘 이후면 아직 매매 시작 전(시작예정)
   todayOpenBatchMissed?: boolean // 등록 응답 전용 — 오늘 개장 배치 이후 등록돼 오늘 밤 장 시작 주문이 자동 생성되지 않음
 }

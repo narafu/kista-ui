@@ -15,5 +15,6 @@ export const dcaRule = (over: Partial<DcaRule> = {}): DcaRule => ({
 
 export const strategy = (over: Partial<Strategy> = {}): Strategy => ({
   id: 's1', accountId: 'a1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TQQQ', cycleSeedType: 'NONE', isReverseMode: false, cycleInProgress: false,
+  allowedActions: [], blockedActions: [],
   ...over,
 })

@@ -8,7 +8,6 @@ import { isMockBroker } from '@shared/lib/api-schema'
 import { Badge } from '@shared/ui/Badge'
 import { RevealableValue } from '@widgets/revealable-value'
 import { useMeta } from '@entities/meta'
-import { apiKeyExpiryState, API_KEY_EXPIRY_LABEL } from '@entities/account'
 import type { Account, AccountLedgerTotals } from '@entities/account'
 
 // 모든 타일을 같은 글씨 크기로 — 모바일 2열 타일 폭(360px에서 약 100px)에 금액이 들어가게 하고, 더 길면 타일 밖으로 넘치지 않게 줄바꿈한다
@@ -26,7 +25,7 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
   const { labelOf } = useMeta()
   const brokerLabel = labelOf('brokers', account.broker)
   const isMock = isMockBroker(account.broker)
-  const expiry = apiKeyExpiryState(account.apiKeyExpiresAt)
+  const expiry = account.apiKeyExpiry?.status === 'EXPIRED' || account.apiKeyExpiry?.status === 'EXPIRING' ? account.apiKeyExpiry.status : null
   // 조회 중·실패(undefined)와 서버가 null로 준 값(조회 실패)은 모두 "-"(fmtMoneyOrDash)
   // 통화는 서버 필드 우선, 없으면(로딩·실패) USD
   const ledgerCurrency = ledgerTotals?.currency ?? 'USD'
@@ -40,7 +39,7 @@ export function AccountSummaryCard({ account, deposit, posEvalUsd, ledgerTotals,
       <div className="px-4 pb-3">
         <SectionTitle className="flex items-center gap-2">
           계좌 요약
-          {expiry && <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{API_KEY_EXPIRY_LABEL[expiry]}</Badge>}
+          {expiry && <Badge tone={expiry === 'EXPIRED' ? 'error' : 'warn'} size="sm">{labelOf('apiKeyExpiryStatuses', expiry)}</Badge>}
         </SectionTitle>
       </div>
       <div className="px-4 pb-6 sm:px-6">

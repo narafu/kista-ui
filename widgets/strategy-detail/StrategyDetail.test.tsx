@@ -150,6 +150,8 @@ const baseStrategy: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
+  allowedActions: [],
+  blockedActions: [],
   currentRound: 0,
 }
 
@@ -455,6 +457,7 @@ describe('StrategyDetail server trading day (KST 토요일 새벽 = 미국 금�
       skipReason: null,
       otherStrategiesPlannedBuyUsd: '0',
       ledgerCheck: null,
+      warnings: [],
     },
     isLoading: false,
     isError: false,
@@ -522,6 +525,7 @@ describe('StrategyDetail market-holiday failure', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -543,6 +547,7 @@ describe('StrategyDetail market-holiday failure', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -564,6 +569,7 @@ describe('StrategyDetail market-holiday failure', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -591,6 +597,7 @@ describe('StrategyDetail unplaced order banner', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -621,6 +628,10 @@ describe('StrategyDetail unplaced order banner', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: { remainingLedger: 100, requiredBuyUsd: 200, sufficient: false, trimmed: false },
+        warnings: [
+          { code: 'LEDGER_SHORTFALL', detail: '전략 원장 예수금이 부족해 매수가 접수되지 않습니다(원장 $100.00 / 필요 $200.00).' },
+          { code: 'BUY_UNPLACED', detail: '접수 시점이 지난 매수 주문이 오늘 접수되지 않았습니다.' },
+        ],
       },
       isLoading: false,
       isError: false,
@@ -630,6 +641,8 @@ describe('StrategyDetail unplaced order banner', () => {
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
     expect(screen.getByText('전략 원장 예수금 부족으로 매수 미접수')).toBeInTheDocument()
+    // 배너는 서버 문장 그대로
+    expect(screen.getByText('전략 원장 예수금이 부족해 매수가 접수되지 않습니다(원장 $100.00 / 필요 $200.00).')).toBeInTheDocument()
     // 접수된 SELL 테이블 아래에 아직 마감 대기 중인 BUY 계획 주문 테이블도 별도로 렌더한다 —
     // 접수 테이블엔 SELL만, 미접수 테이블엔 BUY만 들어가는지 실제 필터 결과로 검증
     const orderTables = screen.getAllByTestId('order-rows')
@@ -653,6 +666,7 @@ describe('StrategyDetail unplaced order banner', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -674,6 +688,7 @@ describe('StrategyDetail unplaced order banner', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -698,6 +713,7 @@ describe('StrategyDetail cancel-all toast', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -722,6 +738,7 @@ describe('StrategyDetail cancel-all toast', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -746,6 +763,7 @@ describe('StrategyDetail cancel-all toast', () => {
         skipReason: null,
         otherStrategiesPlannedBuyUsd: '0',
         ledgerCheck: null,
+        warnings: [],
       },
       isLoading: false,
       isError: false,
@@ -775,10 +793,13 @@ describe('StrategyDetail ledger check', () => {
   const SELL = { ticker: 'TSLA', orderType: 'LIMIT', direction: 'SELL', quantity: 1, price: '25.00' }
   const PLACED_SELL = { id: 'o1', ticker: 'TSLA', direction: 'SELL', orderType: 'LIMIT', quantity: 1, price: '25.00', status: 'PLACED' }
   const SHORT = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
+  // 서버가 SHORT 점검값에서 만든 경고 — 문장은 서버 그대로
+  const LEDGER_WARNING = { code: 'LEDGER_SHORTFALL', detail: '전략 원장 예수금이 부족해 매수가 접수되지 않습니다(원장 $50.00 / 필요 $100.00).' }
+  const BUY_UNPLACED_WARNING = { code: 'BUY_UNPLACED', detail: '접수 시점이 지난 매수 주문이 오늘 접수되지 않았습니다.' }
 
   function mockPreview(overrides: Record<string, unknown>) {
     mockPreviewQuery.mockReturnValueOnce({
-      data: { todayOrders: [], position: null, orders: [BUY], skipReason: null, otherStrategiesPlannedBuyUsd: '0', ledgerCheck: null, ...overrides },
+      data: { todayOrders: [], position: null, orders: [BUY], skipReason: null, otherStrategiesPlannedBuyUsd: '0', ledgerCheck: null, warnings: [], ...overrides },
       isLoading: false,
       isError: false,
       error: null,
@@ -786,11 +807,19 @@ describe('StrategyDetail ledger check', () => {
   }
 
   it('preview 모드에서 원장 부족 배너에 남은 원장과 필요 금액을 보여준다', () => {
-    mockPreview({ ledgerCheck: SHORT })
+    mockPreview({ ledgerCheck: SHORT, warnings: [LEDGER_WARNING] })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('전략 원장 예수금 부족(원장 $50.00 / 필요 $100.00)')).toBeInTheDocument()
+    expect(screen.getByText(LEDGER_WARNING.detail)).toBeInTheDocument()
+  })
+
+  it('warnings가 없는 구버전 응답이면 부족 배너 없이 그려진다', () => {
+    mockPreview({ ledgerCheck: SHORT, warnings: undefined })
+
+    render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
+
+    expect(screen.queryByText(/전략 원장 예수금/)).not.toBeInTheDocument()
   })
 
   it('원장이 충분하면 배너와 안내 문구를 보이지 않는다', () => {
@@ -812,11 +841,11 @@ describe('StrategyDetail ledger check', () => {
   })
 
   it('executed 모드에서 BUY가 원장 부족으로 미접수면 약속 문구 없이 배너와 사유를 보여준다', () => {
-    mockPreview({ todayOrders: [PLACED_SELL], orders: [BUY, SELL], ledgerCheck: SHORT })
+    mockPreview({ todayOrders: [PLACED_SELL], orders: [BUY, SELL], ledgerCheck: SHORT, warnings: [LEDGER_WARNING, BUY_UNPLACED_WARNING] })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
-    expect(screen.getByText('전략 원장 예수금 부족(원장 $50.00 / 필요 $100.00)')).toBeInTheDocument()
+    expect(screen.getByText(LEDGER_WARNING.detail)).toBeInTheDocument()
     expect(screen.getByText('전략 원장 예수금 부족으로 매수 미접수')).toBeInTheDocument()
     expect(screen.queryByText(/장 마감 시 매수 예정/)).not.toBeInTheDocument()
     // 접수된 SELL 테이블 아래에 미접수 BUY 계획 주문 테이블이 따로 렌더된다
@@ -827,7 +856,7 @@ describe('StrategyDetail ledger check', () => {
   })
 
   it('executed 모드에서 원장이 충분한 미접수 BUY는 장 마감 시 매수 예정으로 안내한다', () => {
-    mockPreview({ todayOrders: [PLACED_SELL], orders: [BUY, SELL], ledgerCheck: { remainingLedger: 500, requiredBuyUsd: 100, sufficient: true, trimmed: false } })
+    mockPreview({ todayOrders: [PLACED_SELL], orders: [BUY, SELL], ledgerCheck: { remainingLedger: 500, requiredBuyUsd: 100, sufficient: true, trimmed: false }, warnings: [BUY_UNPLACED_WARNING] })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 
@@ -836,7 +865,7 @@ describe('StrategyDetail ledger check', () => {
   })
 
   it('executed 모드에서 미접수 SELL은 장 마감 시 매도 재시도 예정으로 안내한다', () => {
-    mockPreview({ todayOrders: [{ ...PLACED_SELL, direction: 'BUY' }], orders: [BUY, SELL] })
+    mockPreview({ todayOrders: [{ ...PLACED_SELL, direction: 'BUY' }], orders: [BUY, SELL], warnings: [{ code: 'SELL_UNPLACED', detail: '접수 시점이 지난 매도 주문이 오늘 접수되지 않았습니다.' }] })
 
     render(<StrategyDetail accountId="account-1" strategy={baseStrategy} />)
 

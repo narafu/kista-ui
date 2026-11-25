@@ -1,95 +1,64 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@shared/lib/api-client'
-import type { DirectionReadiness, LedgerCheck, OrderReadiness } from '@entities/order'
+import type { OrderWarning } from '@entities/order'
 import { directionUnplacedMessage, nextOrderBannerText, pausedSkipReasonLabel, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
 
-const BUY_DIRECTION: DirectionReadiness = { hasOrders: true, unplaced: false }
-const NO_DIRECTION: DirectionReadiness = { hasOrders: false, unplaced: false }
-const SHORT: LedgerCheck = { remainingLedger: 50, requiredBuyUsd: 100, sufficient: false, trimmed: false }
-const CASH_SHORT = { availableUsd: 30, requiredBuyUsd: 200, correctionBuyUsd: 0, sufficient: false }
-const HOLDINGS_SHORT = { availableQuantity: 5, requiredSellQuantity: 12, sufficient: false }
-
-function readiness(overrides: Partial<OrderReadiness> = {}): OrderReadiness {
-  return {
-    buy: NO_DIRECTION,
-    sell: NO_DIRECTION,
-    ledgerShortfall: null,
-    ledgerTrimmed: false,
-    accountCashShortfall: null,
-    accountCashPartial: false,
-    correctionExcludedBuyUsd: null,
-    holdingsShortfall: null,
-    ...overrides,
-  }
-}
+// 서버 OrderPreviewWarning이 만든 문장 그대로 — 클라는 다시 조립하지 않는다
+const LEDGER: OrderWarning = { code: 'LEDGER_SHORTFALL', detail: '전략 원장 예수금이 부족해 매수가 접수되지 않습니다(원장 $50.00 / 필요 $100.00).' }
+const CASH: OrderWarning = { code: 'ACCOUNT_CASH_SHORTFALL', detail: '계좌 예수금이 부족해 매수가 거절될 수 있습니다(주문가능 $30.00 / 계좌 전체 접수 필요 $200.00).' }
+const CASH_PARTIAL: OrderWarning = { code: 'ACCOUNT_CASH_PARTIAL', detail: '계좌 예수금이 부족해 보정 주문이 거절될 수 있습니다(주문가능 $250.00 / 계좌 전체 접수 필요 $326.41 · 보정 주문 제외 $210.81).' }
+const HOLDINGS: OrderWarning = { code: 'HOLDINGS_SHORTFALL', detail: '보유 수량이 부족해 매도가 거절될 수 있습니다(판매가능 5 / 종목 전체 필요 12).' }
+const BUY_UNPLACED: OrderWarning = { code: 'BUY_UNPLACED', detail: '접수 시점이 지난 매수 주문이 오늘 접수되지 않았습니다.' }
 
 describe('nextOrderBannerText', () => {
-  it('returns null when the strategy cannot execute, regardless of market status or shortfall', () => {
-    const result = nextOrderBannerText(false, 'preview', true, '미국 증시 휴장 여부를 확인하지 못했습니다', readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
+  it('skips empty warning details when joining the banner text', () => {
+    expect(nextOrderBannerText(true, 'executed', false, null, [{ code: 'LEDGER_SHORTFALL', detail: '' }, { code: 'HOLDINGS_SHORTFALL', detail: '보유 부족' }])).toBe('보유 부족')
+  })
+
+  it('returns null when the strategy cannot execute, regardless of market status or warnings', () => {
+    const result = nextOrderBannerText(false, 'preview', true, '미국 증시 휴장 여부를 확인하지 못했습니다', [LEDGER])
 
     expect(result).toBeNull()
   })
 
-  it('surfaces the market status message in preview mode before checking holiday/shortfall state', () => {
-    const result = nextOrderBannerText(true, 'preview', true, '미국 증시 휴장 여부를 확인하는 중입니다', readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
+  it('surfaces the market status message in preview mode before the server warnings', () => {
+    const result = nextOrderBannerText(true, 'preview', true, '미국 증시 휴장 여부를 확인하는 중입니다', [LEDGER])
 
     expect(result).toBe('미국 증시 휴장 여부를 확인하는 중입니다')
   })
 
-  it('shows the fixed holiday message in preview mode when the market status is confirmed but no loading/error message exists', () => {
-    const result = nextOrderBannerText(true, 'preview', true, null, readiness())
-
-    expect(result).toBe('오늘은 휴장일입니다')
+  it('shows the fixed holiday message in preview mode (holiday wins over warnings)', () => {
+    expect(nextOrderBannerText(true, 'preview', true, null, [])).toBe('오늘은 휴장일입니다')
+    expect(nextOrderBannerText(true, 'preview', true, null, [LEDGER])).toBe('오늘은 휴장일입니다')
   })
 
-  it.each(['preview', 'executed'] as const)('shows the ledger shortfall without a retry promise in %s mode', (mode) => {
-    const result = nextOrderBannerText(true, mode, false, null, readiness({ buy: BUY_DIRECTION, ledgerShortfall: SHORT }))
-
-    expect(result).toBe('전략 원장 예수금 부족(원장 $50.00 / 필요 $100.00)')
+  it.each(['preview', 'executed'] as const)('shows the server detail as-is for each shortfall in %s mode', (mode) => {
+    expect(nextOrderBannerText(true, mode, false, null, [LEDGER])).toBe(LEDGER.detail)
+    expect(nextOrderBannerText(true, mode, false, null, [CASH])).toBe(CASH.detail)
+    expect(nextOrderBannerText(true, mode, false, null, [CASH_PARTIAL])).toBe(CASH_PARTIAL.detail)
   })
 
-  it.each(['preview', 'executed'] as const)('shows the account cash shortfall with the account-wide requirement in %s mode', (mode) => {
-    const result = nextOrderBannerText(true, mode, false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: CASH_SHORT }))
-
-    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 접수 필요 $200.00)')
+  it('puts each warning on its own line in the server order and leaves unplaced warnings to the unplaced list', () => {
+    expect(nextOrderBannerText(true, 'executed', false, null, [CASH, HOLDINGS, BUY_UNPLACED])).toBe(`${CASH.detail}\n${HOLDINGS.detail}`)
   })
 
-  it('adds the amount excluding correction orders to the account cash shortfall', () => {
-    const cash = { availableUsd: 100, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false }
-
-    expect(nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: cash, correctionExcludedBuyUsd: 210.81 })))
-      .toBe('계좌 예수금 부족(주문가능 $100.00 / 계좌 전체 접수 필요 $326.41 · 보정 주문 제외 $210.81)')
-  })
-
-  it('softens to a partial rejection warning when excluding correction orders makes the cash sufficient', () => {
-    const cash = { availableUsd: 250, requiredBuyUsd: 326.41, correctionBuyUsd: 115.6, sufficient: false }
-
-    expect(nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: cash, accountCashPartial: true, correctionExcludedBuyUsd: 210.81 })))
-      .toBe('보정 주문 거절 가능(주문가능 $250.00 / 계좌 전체 접수 필요 $326.41 · 보정 주문 제외 $210.81)')
-  })
-
-  it('shows the holdings shortfall on its own line under a buy shortfall', () => {
-    const result = nextOrderBannerText(true, 'executed', false, null, readiness({ buy: BUY_DIRECTION, accountCashShortfall: CASH_SHORT, holdingsShortfall: HOLDINGS_SHORT }))
-
-    expect(result).toBe('계좌 예수금 부족(주문가능 $30.00 / 계좌 전체 접수 필요 $200.00)\n보유 수량 부족(판매가능 5주 / 종목 전체 필요 12주)')
-  })
-
-  it('returns null when the ledger is sufficient', () => {
-    expect(nextOrderBannerText(true, 'preview', false, null, readiness({ buy: BUY_DIRECTION }))).toBeNull()
+  it('returns null when there are no warnings or only unplaced warnings', () => {
+    expect(nextOrderBannerText(true, 'preview', false, null, [])).toBeNull()
+    expect(nextOrderBannerText(true, 'executed', false, null, [BUY_UNPLACED])).toBeNull()
   })
 })
 
 describe('directionUnplacedMessage', () => {
   it('explains the ledger rejection for BUY (no retry) and promises a retry otherwise', () => {
-    expect(directionUnplacedMessage('BUY', readiness({ ledgerShortfall: SHORT }))).toBe('전략 원장 예수금 부족으로 매수 미접수')
-    expect(directionUnplacedMessage('BUY', readiness({ accountCashShortfall: CASH_SHORT }))).toBe('계좌 예수금 부족으로 매수 거절 가능')
-    expect(directionUnplacedMessage('BUY', readiness({ accountCashShortfall: CASH_SHORT, accountCashPartial: true }))).toBe('계좌 예수금 부족으로 보정 주문 거절 가능')
-    expect(directionUnplacedMessage('BUY', readiness())).toBe('장 마감 시 매수 예정')
+    expect(directionUnplacedMessage('BUY', [LEDGER])).toBe('전략 원장 예수금 부족으로 매수 미접수')
+    expect(directionUnplacedMessage('BUY', [CASH])).toBe('계좌 예수금 부족으로 매수 거절 가능')
+    expect(directionUnplacedMessage('BUY', [CASH_PARTIAL])).toBe('계좌 예수금 부족으로 보정 주문 거절 가능')
+    expect(directionUnplacedMessage('BUY', [])).toBe('장 마감 시 매수 예정')
   })
 
-  it('always says SELL will be retried at market close', () => {
-    expect(directionUnplacedMessage('SELL', readiness({ ledgerShortfall: SHORT }))).toBe('장 마감 시 매도 재시도 예정')
-    expect(directionUnplacedMessage('SELL', readiness({ holdingsShortfall: HOLDINGS_SHORT }))).toBe('보유 수량 부족으로 매도 거절 가능')
+  it('says SELL will be retried at market close unless holdings are short', () => {
+    expect(directionUnplacedMessage('SELL', [LEDGER])).toBe('장 마감 시 매도 재시도 예정')
+    expect(directionUnplacedMessage('SELL', [HOLDINGS])).toBe('보유 수량 부족으로 매도 거절 가능')
   })
 })
 
