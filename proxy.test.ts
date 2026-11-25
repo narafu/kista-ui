@@ -160,7 +160,7 @@ describe('proxy', () => {
   })
 
   // ③ status/role 캐시 히트 fast path — /me 미호출
-  describe('만료 AT + refresh가 서버에 닿지 못함', () => {
+  describe('만료 AT + refresh 결과를 알 수 없음', () => {
     const down = () => new Response('down', { status: 503 })
 
     it('보호 경로는 쿠키를 지우지 않고 로그인으로 보낸다(/me 호출 없음)', async () => {

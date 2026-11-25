@@ -135,12 +135,12 @@ describe('clientFetch', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/auth/refresh', { method: 'POST' })
   })
 
-  it('refresh가 실패하면 로그아웃 요청 후 /dashboard로 이동한다', async () => {
+  it('refresh가 거절(401)되면 로그아웃 요청 후 /dashboard로 이동한다', async () => {
     Object.defineProperty(window, 'location', { value: { href: '' }, writable: true })
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(401, {})) // 원 요청
-      .mockResolvedValueOnce(jsonResponse(500, {})) // refresh 실패
+      .mockResolvedValueOnce(jsonResponse(401, {})) // refresh 거절
       .mockResolvedValueOnce(jsonResponse(200, {})) // logout
     vi.stubGlobal('fetch', fetchMock)
     const { clientFetch } = await import('./index')
@@ -155,6 +155,9 @@ describe('clientFetch', () => {
 
   it.each([
     ['503 응답', () => Promise.resolve(jsonResponse(503, {}))],
+    ['500 응답', () => Promise.resolve(jsonResponse(500, {}))],
+    ['504 응답(프록시 timeout)', () => Promise.resolve(jsonResponse(504, {}))],
+    ['429 응답(프록시)', () => Promise.resolve(jsonResponse(429, {}))],
     ['연결 실패', () => Promise.reject(new TypeError('Failed to fetch'))],
   ])('refresh가 %s이면 로그아웃하지 않고 503 ApiError를 던진다', async (_name, refresh) => {
     Object.defineProperty(window, 'location', { value: { href: '' }, writable: true })
@@ -174,7 +177,7 @@ describe('clientFetch', () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce(jsonResponse(401, { error: 'TOKEN_BLACKLISTED' })) // 원 요청
-      .mockResolvedValueOnce(jsonResponse(500, {})) // refresh 실패
+      .mockResolvedValueOnce(jsonResponse(401, {})) // refresh 거절
       .mockResolvedValueOnce(jsonResponse(200, {})) // logout
     vi.stubGlobal('fetch', fetchMock)
     const { clientFetch } = await import('./index')
@@ -223,7 +226,7 @@ describe('clientFetch', () => {
 
   it('동시에 401이 여러 건 나고 refresh가 실패해도 logout은 한 번만 호출한다', async () => {
     const fetchMock = vi.fn(async (url: string) => {
-      if (url === '/api/auth/refresh') return jsonResponse(500, {})
+      if (url === '/api/auth/refresh') return jsonResponse(401, {})
       if (url === '/api/auth/logout') return jsonResponse(200, {})
       return jsonResponse(401, {})
     })
@@ -241,5 +244,23 @@ describe('clientFetch', () => {
     const callsTo = (target: string) => fetchMock.mock.calls.filter(([url]) => url === target)
     expect(callsTo('/api/auth/refresh')).toHaveLength(1) // 세 요청 모두 같은 refresh 실패를 보고 doLogout에 도달
     expect(callsTo('/api/auth/logout')).toHaveLength(1)
+  })
+
+  it('동시에 401이 여러 건 나고 refresh 결과를 알 수 없으면 refresh 한 번, logout 없이 모두 503을 던진다', async () => {
+    Object.defineProperty(window, 'location', { value: { href: '' }, writable: true })
+    const fetchMock = vi.fn(async (url: string) => (url === '/api/auth/refresh' ? jsonResponse(504, {}) : jsonResponse(401, {})))
+    vi.stubGlobal('fetch', fetchMock)
+    const { ApiError, clientFetch } = await import('./index')
+
+    const errors = await Promise.all(['/api/a', '/api/b', '/api/c'].map((p) => clientFetch(p).catch((e: unknown) => e)))
+
+    for (const e of errors) {
+      expect(e).toBeInstanceOf(ApiError)
+      expect((e as InstanceType<typeof ApiError>).status).toBe(503)
+    }
+    const callsTo = (target: string) => fetchMock.mock.calls.filter(([url]) => url === target)
+    expect(callsTo('/api/auth/refresh')).toHaveLength(1)
+    expect(callsTo('/api/auth/logout')).toHaveLength(0)
+    expect(window.location.href).toBe('')
   })
 })

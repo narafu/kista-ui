@@ -86,7 +86,7 @@ describe('/api/auth/refresh POST', () => {
     expect(setCookies).toContain('kista-user-status=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
     expect(setCookies).toContain('kista-user-role=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
     // rt 는 refreshAccessToken 에 그대로 전달
-    expect(refreshAccessTokenMock).toHaveBeenCalledWith({ rt: 'rt1', userAgent: 'ua' })
+    expect(refreshAccessTokenMock).toHaveBeenCalledWith({ rt: 'rt1', userAgent: 'ua', timeoutMs: 5000 })
   })
 
   it('x-forwarded-proto=https 면 AT 쿠키에 Secure 부착', async () => {

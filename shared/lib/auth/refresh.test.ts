@@ -56,30 +56,37 @@ describe('refreshAccessToken', () => {
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
   })
 
-  it('서버에 닿지 못한 연결 실패는 UNAVAILABLE', async () => {
+  it.each([
+    ['연결 거부', new TypeError('fetch failed', { cause: { code: 'ECONNREFUSED' } })],
+    ['연결 끊김', new TypeError('fetch failed', { cause: { code: 'ECONNRESET' } })],
+    ['timeout', new DOMException('timed out', 'TimeoutError')],
+  ])('%s는 결과를 알 수 없어 UNAVAILABLE(재시도 안전)', async (_name, error) => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed', { cause: { code: 'ECONNREFUSED' } })))
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
   })
 
-  it.each([
-    ['연결 끊김', new TypeError('fetch failed', { cause: { code: 'ECONNRESET' } })],
-    ['timeout', new DOMException('timed out', 'TimeoutError')],
-  ])('회전이 커밋됐을 수 있는 %s는 null', async (_name, error) => {
+  it('200 응답 본문을 읽지 못하면 UNAVAILABLE', async () => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"accessTok', { status: 200 })))
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
+  })
+
+  it.each([408, 429, 500, 502, 503, 504])('%i 응답은 UNAVAILABLE', async (status) => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status })))
+    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
+  })
+
+  it('요청 전에 나는 TypeError(cause 없음 — 쿠키 값 이상)는 매번 반복되므로 null', async () => {
+    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Cannot convert argument to a ByteString')))
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
   })
 
-  it('503은 UNAVAILABLE', async () => {
+  it.each([400, 401, 403])('%i 응답은 거절로 보고 null', async (status) => {
     vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status: 503 })))
-    expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBe(REFRESH_UNAVAILABLE)
-  })
-
-  it.each([500, 502])('%i 응답은 회전 여부를 알 수 없어 null', async (status) => {
-    vi.stubEnv('API_BASE_URL', 'https://kista-api.test')
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('down', { status })))
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('no', { status })))
     expect(await refreshAccessToken({ rt: 'rt1', userAgent: 'ua' })).toBeNull()
   })
 

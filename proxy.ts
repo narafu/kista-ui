@@ -119,7 +119,7 @@ export async function proxy(request: NextRequest) {
         })
       : null
     if (refreshed === REFRESH_UNAVAILABLE) {
-      // 서버에 닿지 못했다. 세션 쿠키를 지우지 않는다. 상태·역할을 확인할 수 없어 보호 경로는 열지 않는다
+      // 갱신 결과를 알 수 없다(5xx·timeout·연결 실패). 세션 쿠키를 지우지 않고 이 요청에서 다시 갱신하지 않는다. 상태·역할을 확인할 수 없어 보호 경로는 열지 않는다
       return finalize(failDest())
     }
     if (refreshed) {

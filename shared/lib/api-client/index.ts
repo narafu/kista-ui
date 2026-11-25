@@ -54,13 +54,15 @@ export function apiErrorCode(err: unknown): ErrorCode | undefined {
 // 동시 다발 401 시 RT를 한 번만 사용하도록 in-flight refresh 단일화
 let refreshInFlight: Promise<RefreshOutcome> | null = null
 
-// unavailable: 갱신 요청이 서버에 닿지 못했다. 로그아웃하지 않고 503 ApiError로 알린다
+// unavailable: 갱신 결과를 알 수 없다(네트워크 실패, 401 외 상태 — Route Handler의 503, 그 사이 프록시의 502·504·408·429 등).
+// 로그아웃하지 않고 503 ApiError로 알린다. 응답만 잃었어도 kista-api가 같은 RT 재시도에 같은 후계를 주므로 다음 갱신이 안전하다.
+// rejected: Route Handler가 RT 없음·서버 거절에 내는 401만 해당하며 로그아웃한다
 type RefreshOutcome = 'ok' | 'rejected' | 'unavailable'
 
 function tryRefreshToken(): Promise<RefreshOutcome> {
   if (!refreshInFlight) {
     refreshInFlight = fetch('/api/auth/refresh', { method: 'POST' })
-      .then((r): RefreshOutcome => (r.ok ? 'ok' : r.status === 502 || r.status === 503 ? 'unavailable' : 'rejected'))
+      .then((r): RefreshOutcome => (r.ok ? 'ok' : r.status === 401 ? 'rejected' : 'unavailable'))
       .catch((): RefreshOutcome => 'unavailable')
       .finally(() => { refreshInFlight = null })
   }
@@ -103,7 +105,7 @@ async function parseApiResponse<T>(res: Response): Promise<T> {
 }
 
 // Client Component 전용 — Route Handler 경유 fetch.
-// 401 수신 시 RT로 AT 갱신 후 재시도. 갱신이 거절되면 로그아웃, 서버에 닿지 못했으면 503 ApiError.
+// 401 수신 시 RT로 AT 갱신 후 재시도. 갱신이 거절되면 로그아웃, 결과를 알 수 없으면 503 ApiError.
 export async function clientFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(path, options)
   if (res.status === 401) {

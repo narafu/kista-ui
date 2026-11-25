@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
   const refreshed = await refreshAccessToken({
     rt,
     userAgent: request.headers.get('user-agent') ?? 'unknown',
+    timeoutMs: 5000, // api가 멈추면 clientFetch가 기다리지 않고 503을 받도록(timeout은 재시도 안전)
   })
   if (refreshed === REFRESH_UNAVAILABLE) return NextResponse.json({ error: 'Refresh unavailable' }, { status: 503 })
   if (!refreshed) return NextResponse.json({ error: 'Refresh failed' }, { status: 401 })
