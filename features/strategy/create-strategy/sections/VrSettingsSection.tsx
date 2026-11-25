@@ -4,7 +4,7 @@ import { useId } from 'react'
 import { Label } from '@/components/ui/label'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import type { VrFields } from '../model/useStrategyForm'
-import type { RuntimeFieldSettings } from '@entities/runtime-config'
+import type { StrategyFieldSettings } from '@entities/meta'
 import { OptionChoiceGroup, RecurringModeField, VrRampFields, VR_FIELD_LABEL_CLASS } from '@entities/strategy'
 import { AmountInput } from '@shared/ui/AmountInput'
 
@@ -25,9 +25,9 @@ interface Props {
     poolLimitFloor: number
   }
   settings: {
-    recurringMode?: RuntimeFieldSettings<string>
-    bandWidth?: RuntimeFieldSettings<number>
-    intervalWeeks?: RuntimeFieldSettings<number>
+    recurringMode?: StrategyFieldSettings<string>
+    bandWidth?: StrategyFieldSettings<number>
+    intervalWeeks?: StrategyFieldSettings<number>
   }
   // 제출 불가 사유를 적립금 입력 아래에 표시
   recurringError?: string

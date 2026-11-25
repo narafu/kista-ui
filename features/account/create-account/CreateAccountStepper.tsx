@@ -3,8 +3,8 @@
 import { useEffect, useReducer } from 'react'
 import { Stepper } from '@shared/ui/stepper'
 import type { BrokerCode } from '@entities/account'
+import { useMeta } from '@entities/meta'
 import { isKeyOnlyBroker, isMockBroker } from '@shared/lib/api-schema'
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { BrokerStep } from './steps/BrokerStep'
 import { ApiStep } from './steps/ApiStep'
 import { AccountInfoStep } from './steps/AccountInfoStep'
@@ -71,13 +71,14 @@ const MOCK_FLOW: StepRenderer[] = [
 
 export function CreateAccountStepper() {
   const [{ step, data }, dispatch] = useReducer(reducer, initialState)
-  const { data: runtimeConfig } = useRuntimeConfigQuery()
+  const { findBroker } = useMeta()
   const isMock = isMockBroker(data.broker)
+  // 진행 중 관리자 설정으로 꺼진 증권사(router.refresh로 meta가 갱신된 경우)는 처음 단계로 되돌린다
+  const brokerDisabled = !!data.broker && findBroker(data.broker)?.enabled !== true
 
   useEffect(() => {
-    if (!data.broker || !runtimeConfig) return
-    if (runtimeConfig.brokers[data.broker]?.enabled !== true) dispatch({ type: 'RESET' })
-  }, [data.broker, runtimeConfig])
+    if (brokerDisabled) dispatch({ type: 'RESET' })
+  }, [brokerDisabled])
   const next = (payload: Partial<StepData>) => dispatch({ type: 'NEXT', payload })
   const back = () => dispatch({ type: 'BACK' })
 

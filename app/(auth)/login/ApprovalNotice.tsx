@@ -1,12 +1,5 @@
-'use client'
-
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
-
+// 가입 승인 필수(meta.approvalRequired)일 때만 LoginPageContent가 렌더한다
 export function ApprovalNotice() {
-  const { data } = useRuntimeConfigQuery()
-
-  if (data?.auth.approvalRequired !== true) return null
-
   return (
     <div
       className="flex items-center justify-center gap-2 mb-5 px-3.5 py-2.5 rounded-[10px] text-center text-sm font-medium"

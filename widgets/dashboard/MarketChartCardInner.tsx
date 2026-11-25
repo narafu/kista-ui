@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import { createChart, CandlestickSeries, ColorType, LineSeries, LineStyle, type IChartApi } from 'lightweight-charts'
 import { Info } from 'lucide-react'
 import { CHART_CANDLE_COUNT, useCandlesQuery } from '@entities/market'
-import { rsi, sma } from '@shared/lib/indicators'
 import { cn } from '@shared/lib/utils'
 import { AsyncSection } from '@shared/ui/AsyncSection'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
@@ -18,16 +17,15 @@ type CandleCount = (typeof CANDLE_OPTIONS)[number]
 
 const CHART_HEIGHT = 280
 const RSI_PANE_HEIGHT = 100
-const RSI_PERIOD = 14
 const RSI_OVERBOUGHT = 70
 const RSI_OVERSOLD = 30
 // 캔들이 상승 빨강(--pos)·하락 파랑(--neg)이라 겹치지 않는 금·초록·자주 계열 자산 팔레트를 쓰고(남색 4번은 RSI), 장기선 MA200은 회색으로 한 발 물린다
 const MA_LINES = [
-  { period: 20, colorVar: '--asset-series-3' },
-  { period: 50, colorVar: '--asset-series-5' },
-  { period: 120, colorVar: '--asset-series-6' },
-  { period: 200, colorVar: '--muted-foreground' },
-] as const
+  { period: 20, key: 'sma20', colorVar: '--asset-series-3' },
+  { period: 50, key: 'sma50', colorVar: '--asset-series-5' },
+  { period: 120, key: 'sma120', colorVar: '--asset-series-6' },
+  { period: 200, key: 'sma200', colorVar: '--muted-foreground' },
+] as const // key = 서버 캔들의 SMA 필드(RAW 종가 기준)
 const RSI_COLOR_VAR = '--asset-series-4'
 const LINE_OPTIONS = { lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false } as const
 
@@ -128,10 +126,13 @@ export default function MarketChartCardInner({ category }: Props) {
       sorted.map((c) => ({ time: c.date, open: c.open, high: c.high, low: c.low, close: c.close })),
     )
 
-    const closes = sorted.map((c) => c.close)
-    const toLineData = (values: (number | null)[]) =>
-      values.flatMap((value, index) => (value === null ? [] : [{ time: sorted[index].date, value }]))
-    const rsiValues = toLineData(showRsi ? rsi(closes, RSI_PERIOD) : [])
+    // 지표는 서버 계산값을 쓴다 — null/누락은 점을 뺀다
+    const toLineData = (pick: (c: (typeof sorted)[number]) => number | null | undefined) =>
+      sorted.flatMap((c) => {
+        const value = pick(c)
+        return value == null ? [] : [{ time: c.date, value }]
+      })
+    const rsiValues = toLineData((c) => (showRsi ? c.rsi14 : null))
     // 과매수(70 이상)는 상승색, 과매도(30 이하)는 하락색으로 점별 색을 입힌다 — 테마 전환 시 색을 다시 읽어 setData한다
     const colorRsi = (colors: { pos: string; neg: string; rsi: string }) =>
       rsiValues.map((point) => ({
@@ -139,9 +140,9 @@ export default function MarketChartCardInner({ category }: Props) {
         color: point.value >= RSI_OVERBOUGHT ? colors.pos : point.value <= RSI_OVERSOLD ? colors.neg : colors.rsi,
       }))
 
-    const maSeries = MA_LINES.map(({ period }, index) => {
+    const maSeries = MA_LINES.map(({ key }, index) => {
       const line = chart.addSeries(LineSeries, { ...LINE_OPTIONS, color: maLines[index] })
-      line.setData(toLineData(sma(closes, period)))
+      line.setData(toLineData((c) => c[key]))
       return line
     })
 

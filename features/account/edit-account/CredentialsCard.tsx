@@ -8,7 +8,7 @@ import { useAppForm, type AppForm } from '@shared/ui/form/useAppForm'
 import { Input } from '@/components/ui/input'
 import { useMeta } from '@entities/meta'
 import { Surface } from '@shared/ui/Surface'
-import { isEstimatedExpiry, kstToday, useUpdateCredentialsMutation, BROKER_CREDENTIAL, brokerErrorMessage } from '@entities/account'
+import { isEstimatedExpiry, kstTomorrow, useUpdateCredentialsMutation, BROKER_CREDENTIAL, brokerErrorMessage } from '@entities/account'
 import type { Account, CredentialBroker } from '@entities/account'
 
 interface Props {
@@ -49,7 +49,7 @@ export function CredentialsCard({ account }: Props) {
         </FormField>
         {showExpiry && (
           <FormField control={form.control} name="apiKeyExpiresOn" id="credential-expires-on" label="API 키 만료일" hint="증권사에서 확인한 실제 만료일을 입력하세요. 비우면 키를 바꾼 경우 오늘부터 1년으로 계산하고, 같은 키면 기존 만료일을 유지합니다">
-            {(f) => <Input {...f} type="date" min={kstToday()} className="h-12" disabled={form.isPending} />}
+            {(f) => <Input {...f} type="date" min={kstTomorrow()} className="h-12" disabled={form.isPending} />}
           </FormField>
         )}
         {mutation.isError && (

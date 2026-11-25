@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { useChangeUserRoleMutation } from '@entities/admin'
-import { USER_ROLE_LABEL } from '@entities/user'
+import { useMeta } from '@entities/meta'
 import type { UserRole } from '@entities/user'
 import { Button } from '@/components/ui/button'
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -25,7 +25,8 @@ export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false
   const [open, setOpen] = useState(false)
   const mutation = useChangeUserRoleMutation()
   const newRole: UserRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN'
-  const newRoleLabel = USER_ROLE_LABEL[newRole]
+  const { labelOf } = useMeta()
+  const newRoleLabel = labelOf('userRoles', newRole)
 
   if (isSelf) {
     return (
@@ -56,7 +57,7 @@ export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false
         title="역할을 변경하시겠습니까?"
         description={
           <>
-            {`${nickname} 님의 역할을 ${USER_ROLE_LABEL[currentRole]}에서 ${newRoleLabel}로 변경합니다.`}
+            {`${nickname} 님의 역할을 ${labelOf('userRoles', currentRole)}에서 ${newRoleLabel}로 변경합니다.`}
             {newRole === 'ADMIN' && ' 관리자는 모든 관리자 기능에 접근할 수 있습니다.'}
           </>
         }

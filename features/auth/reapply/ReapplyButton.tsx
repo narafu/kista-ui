@@ -3,21 +3,16 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { reapply } from '@entities/user'
-import { ApiError } from '@shared/lib/api-client'
-
-const STORAGE_KEY = 'reapply_last_requested_at'
-const COOLDOWN_MS = 60 * 60 * 1000
+import { useQueryClient } from '@tanstack/react-query'
+import { reapply, useMeQuery, userKeys } from '@entities/user'
+import { ApiError, apiMsg } from '@shared/lib/api-client'
+import { remainingCooldownMinutes } from './cooldown'
 
 export function ReapplyButton() {
   const [isLoading, setIsLoading] = useState(false)
-  const [cooldownMinutes, setCooldownMinutes] = useState(() => {
-    if (typeof window === 'undefined') return 0
-    const last = localStorage.getItem(STORAGE_KEY)
-    if (!last) return 0
-    const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - Number(last))) / 60000)
-    return remaining > 0 ? remaining : 0
-  })
+  const queryClient = useQueryClient()
+  const { data: me } = useMeQuery()
+  const cooldownMinutes = remainingCooldownMinutes(me?.reapplyAvailableAt)
 
   async function handleReapply() {
     if (cooldownMinutes > 0) {
@@ -27,11 +22,10 @@ export function ReapplyButton() {
     setIsLoading(true)
     try {
       await reapply()
-      localStorage.setItem(STORAGE_KEY, Date.now().toString())
-      setCooldownMinutes(60)
+      await queryClient.invalidateQueries({ queryKey: userKeys.me() })
       toast.success('승인 재신청을 완료했습니다')
     } catch (err) {
-      toast.error(err instanceof ApiError ? '재신청에 실패했습니다' : '오류가 발생했습니다')
+      toast.error(err instanceof ApiError ? apiMsg(err, '재신청에 실패했습니다') : '오류가 발생했습니다')
     } finally {
       setIsLoading(false)
     }

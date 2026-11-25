@@ -206,12 +206,14 @@ export function BacktestForm({ form }: Props) {
                   onSelect={form.setVrIntervalWeeks}
                 />
               </div>
-              <VrRampFields
-                fields={form.vrRamp}
-                setField={form.setVrRampField}
-                disabled={form.isLoading}
-                rampDefaults={form.rampDefaults}
-              />
+              {form.rampDefaults && (
+                <VrRampFields
+                  fields={form.vrRamp}
+                  setField={form.setVrRampField}
+                  disabled={form.isLoading}
+                  rampDefaults={form.rampDefaults}
+                />
+              )}
             </details>
           </div>
         )}

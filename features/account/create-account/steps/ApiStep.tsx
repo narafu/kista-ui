@@ -3,7 +3,7 @@
 import { useReducer, useState } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ApiKeyExpiryField, isEstimatedExpiry, kstToday, useTestBrokerConnectionMutation } from '@entities/account'
+import { ApiKeyExpiryField, isEstimatedExpiry, kstTomorrow, useTestBrokerConnectionMutation } from '@entities/account'
 import type { CredentialBroker } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import type { StepData } from '../CreateAccountStepper'
@@ -147,7 +147,7 @@ export function ApiStep({ data, onNext, onBack }: Props) {
           type="button"
           size="form"
           className="flex-1"
-          disabled={!canProceed || (showExpiry && apiKeyExpiresOn !== '' && apiKeyExpiresOn < kstToday())}
+          disabled={!canProceed || (showExpiry && apiKeyExpiresOn !== '' && apiKeyExpiresOn < kstTomorrow())}
           onClick={() => onNext({ apiKey, apiSecret, apiKeyExpiresOn: showExpiry ? apiKeyExpiresOn : '' })}
         >
           다음

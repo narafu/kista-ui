@@ -6,22 +6,23 @@ import { useStrategyFormData } from './useStrategyFormData'
 vi.mock('@entities/account', () => ({
   useAccountPricesQuery: vi.fn(() => ({ data: undefined, isError: false })),
 }))
-vi.mock('@entities/runtime-config', () => ({ useRuntimeConfigQuery: () => ({ data: { strategies: { INFINITE: { enabled: true }, DCA: { enabled: true }, VR: { enabled: true }, PRIVACY: { enabled: true } } } }) }))
 vi.mock('@entities/meta', async () => ({
   ...(await vi.importActual<typeof import('@entities/meta')>('@entities/meta')),
   useMeta: () => ({
     meta: {
       strategyTypes: [
-        { code: 'INFINITE', availableTickers: ['TQQQ', 'SOXL'] },
-        { code: 'DCA', availableTickers: ['TQQQ', 'XYZ'] },
-        { code: 'VR', availableTickers: ['NOPE'] },
-        { code: 'PRIVACY', availableTickers: ['SOXL'], supportedBrokers: ['MERITZ', 'MOCK'] },
+        { code: 'INFINITE', availableTickers: ['TQQQ', 'SOXL'], enabled: true },
+        { code: 'DCA', availableTickers: ['TQQQ', 'XYZ'], enabled: true },
+        { code: 'VR', availableTickers: ['NOPE'], enabled: true },
+        { code: 'PRIVACY', availableTickers: ['SOXL'], supportedBrokers: ['MERITZ', 'MOCK'], enabled: true },
+        { code: 'DISABLED', availableTickers: ['TQQQ'], enabled: false },
       ],
       tickers: [
         { code: 'TQQQ' },
         { code: 'SOXL' },
         { code: 'XYZ' },
       ],
+      brokers: [],
     },
     findStrategyType: vi.fn(),
     labelOf: (_category: string, code: string) => ({ PRIVACY: 'P', MERITZ: '메리츠증권' })[code] ?? code,

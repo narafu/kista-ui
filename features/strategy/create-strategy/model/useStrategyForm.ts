@@ -7,7 +7,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useStrategySeedPreviewQuery } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import type { BrokerCode, PriceMap } from '@entities/account'
-import type { RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import type { StrategyFieldSettings } from '@entities/meta'
+import type { RuntimeStrategyType } from '@entities/runtime-config'
 import { useStrategyFormData } from './useStrategyFormData'
 import { useSeedModel } from './useSeedModel'
 import { computeVrDerived } from './vrDerived'
@@ -74,13 +75,11 @@ export interface UseStrategyFormReturn {
 
   divisionCount: DivisionCount
   setDivisionCount: (n: DivisionCount) => void
-  divisionCountSettings?: RuntimeFieldSettings<number>
+  divisionCountSettings?: StrategyFieldSettings<number>
   tickerCustomizable: boolean
   enabledStrategyTypes: string[]
   brokerRestrictionNotes: string[]
   runtimeConfigUnavailable: boolean
-  runtimeConfigError: boolean
-  retryRuntimeConfig: () => void
 
   // VR 전략 전용
   isVr: boolean
@@ -96,9 +95,9 @@ export interface UseStrategyFormReturn {
     poolLimitFloor: number
   }
   vrSettings: {
-    recurringMode?: RuntimeFieldSettings<string>
-    bandWidth?: RuntimeFieldSettings<number>
-    intervalWeeks?: RuntimeFieldSettings<number>
+    recurringMode?: StrategyFieldSettings<string>
+    bandWidth?: StrategyFieldSettings<number>
+    intervalWeeks?: StrategyFieldSettings<number>
   }
 
   // 시작예정일 — 세 전략 공통, 등록 전용
@@ -121,7 +120,7 @@ export function useStrategyForm({
 }: UseStrategyFormOptions): UseStrategyFormReturn {
   const queryClient = useQueryClient()
   const {
-    isMock, meta, findStrategyType, runtimeQuery, runtimeConfig, enabledStrategyTypes, brokerRestrictionNotes,
+    isMock, meta, findStrategyType, runtimeConfig, enabledStrategyTypes, brokerRestrictionNotes,
     prices, pricesError,
   } = useStrategyFormData(accountId, broker)
 
@@ -174,7 +173,7 @@ export function useStrategyForm({
   const { basePrice, minSeed, seedUnavailableReason, availableCash } = deriveSeedPreview(isVr, seedPreview.data)
   const loadingBase = seedPreview.isLoading
 
-  const initializing = useInitializing(loadingBase, initial, runtimeQuery.isLoading)
+  const initializing = useInitializing(loadingBase)
 
   useLoadFailToast(isMock, pricesError)
 
@@ -203,7 +202,7 @@ export function useStrategyForm({
     initial, runtimeStrategy, ticker, divisionCountSettings, divisionCount, isVr, bandWidth, intervalWeeks, recurringMode,
   })
 
-  const runtimeConfigUnavailable = !initial && (!runtimeConfig || enabledStrategyTypes.length === 0)
+  const runtimeConfigUnavailable = !initial && enabledStrategyTypes.length === 0
   const cannotSubmit = computeCannotSubmit({
     initial, canEditSeed, runtimeConfigUnavailable,
     isRuntimeValueInvalid: runtimeValueInvalid,
@@ -251,9 +250,6 @@ export function useStrategyForm({
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, brokerRestrictionNotes, runtimeConfigUnavailable,
-    // 이미 받은 설정이 있으면 재조회(창 포커스마다 돈다) 실패로 폼을 오류 화면으로 바꾸지 않는다 — 입력이 통째로 사라진다
-    runtimeConfigError: runtimeQuery.isError && !runtimeQuery.data,
-    retryRuntimeConfig: () => { void runtimeQuery.refetch() },
     isVr, vrFields, recurringMode,
     vrRampDefaults: {
       initialGradient: vrDerived.effectiveInitialGradient,

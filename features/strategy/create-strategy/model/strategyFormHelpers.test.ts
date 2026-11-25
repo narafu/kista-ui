@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import type { RuntimeConfig } from '@entities/runtime-config'
 import type { Strategy } from '@entities/strategy'
 import { deriveRuntimeFields } from './strategyFormHelpers'
 
 const runtime = (defaultValue: string) => ({
+  enabled: true,
   fields: { ticker: { allowedValues: ['UPRO', 'QLD'], defaultValue, customizable: true } },
-}) as unknown as RuntimeConfig['strategies']['DCA']
+})
 
 describe('deriveRuntimeFields defaultTicker', () => {
   it('설정 기본값이 허용 목록에 있으면 그 값', () => {

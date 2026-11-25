@@ -7,7 +7,7 @@ import { createQueryClient } from '@shared/lib/query/createQueryClient'
 import { mockApi } from '@testing/mockApi'
 import { renderApp } from '@testing/renderApp'
 import { EditAccountForm } from './EditAccountForm'
-import type { Account } from '@entities/account'
+import { kstTomorrow, type Account } from '@entities/account'
 
 const account: Account = { id: 'acc-1', nickname: '메인 계좌', accountNoMasked: '131-**-****31', broker: 'TOSS' }
 const meritzAccount: Account = { id: 'm1', nickname: '메리츠', accountNoMasked: null, broker: 'MERITZ', apiKeyExpiresAt: null }
@@ -46,12 +46,12 @@ describe('EditAccountForm', () => {
     expect(requests.filter((r) => r.method === 'PUT')).toHaveLength(0)
   })
 
-  it('추정 만료일 broker(TOSS)는 만료일 입력란을 보여주고 오늘(KST)을 min으로 둔다', () => {
+  it('추정 만료일 broker(TOSS)는 만료일 입력란을 보여주고 내일(KST)을 min으로 둔다', () => {
     mockApi({})
     renderApp(<EditAccountForm account={account} />)
     const inputs = screen.getAllByLabelText(expiryLabel)
     expect(inputs).toHaveLength(2) // 계좌 정보 수정 + 키 재등록
-    expect(inputs[0]).toHaveAttribute('min', new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }))
+    expect(inputs[0]).toHaveAttribute('min', kstTomorrow())
     expect(inputs[0]).toHaveValue('')
   })
 

@@ -1,7 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 
-import { detailFromListQueryOptions } from '@shared/lib/query'
-import { getAccountLedgerTotals, listAccounts, type AccountLedgerTotals } from '../api'
+import { getAccount, getAccountLedgerTotals, listAccounts, type AccountLedgerTotals } from '../api'
 import { accountKeys } from './queryKeys'
 import type { Account } from './types'
 
@@ -13,11 +12,10 @@ export function accountListQueryOptions(token?: string) {
 }
 
 export function accountDetailQueryOptions(accountId: string, token?: string) {
-  return detailFromListQueryOptions<Account>(
-    accountKeys.detail(accountId),
-    () => listAccounts(token),
-    accountId,
-  )
+  return queryOptions<Account | null>({
+    queryKey: accountKeys.detail(accountId),
+    queryFn: () => getAccount(accountId, token),
+  })
 }
 
 export function accountLedgerTotalsQueryOptions(accountId: string, token?: string) {

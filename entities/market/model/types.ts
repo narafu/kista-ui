@@ -7,6 +7,12 @@ export interface Candle {
   low: number
   close: number
   volume: number
+  // 서버 계산 지표(RAW 종가 기준, 부족 시 null) — 차트 표시용
+  sma20?: number | null
+  sma50?: number | null
+  sma120?: number | null
+  sma200?: number | null
+  rsi14?: number | null
 }
 
 export interface FearGreedPoint {

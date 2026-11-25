@@ -22,13 +22,8 @@ const initial: Strategy = {
   currentHoldings: 0,
 }
 
-// 폼이 런타임 설정(전략 정책)과 시드 미리보기를 읽는다
+// 폼이 시드 미리보기를 읽는다(전략 정책은 renderApp의 meta)
 const formApi = {
-  'GET /api/runtime-config': {
-    auth: { approvalRequired: false },
-    brokers: {},
-    strategies: { INFINITE: { enabled: true, fields: { ticker: { customizable: true, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' } } } },
-  },
   'GET /api/accounts/{accountId}/trading-cycles': [initial],
   'GET /api/accounts/{accountId}/strategy-seed-preview': { ticker: 'TQQQ', basePrice: 50, minSeed: 100, availableCash: 5000 },
 } as never

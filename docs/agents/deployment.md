@@ -13,7 +13,7 @@
 - kista-api 로그에 요청이 없는데 403이면 CORS 필터 차단 가능성을 먼저 본다
 - `CORS_ALLOWED_ORIGINS`에 UI 도메인(`https://kista-app.com`)이 등록돼 있어야 한다 — SSOT는 `kista-infra` 레포의 `secrets/kista-api.env.gpg`(`scripts/env.sh edit kista-api`로 편집), kista-api 서버 `.env` 직접 수정은 다음 배포 때 덮어써져 무효
 - `kista-api` 연동 변경이 있으면 `../kista-api/CLAUDE.md`와 함께 확인한다.
-- `/api/meta` 계약이 바뀌는 배포(거래소·종목 메타 추가 등)는 kista-api를 먼저 배포하고 kista-ui를 나중에 배포한다 — UI 서버가 메타를 1시간 Data Cache(`getMetaBundle`, `revalidate: 3600`)에 담아, UI가 먼저 뜨면 구 메타가 최대 1시간 남는다. 이미 순서가 뒤집혔으면 kista-ui Server Deploy를 재실행해 새 컨테이너로 캐시를 비운다(`docker restart`는 컨테이너 파일시스템이 남아 무효).
+- `/api/meta` 계약이 바뀌는 배포(거래소·종목 메타 추가 등)는 kista-api를 먼저 배포하고 kista-ui를 나중에 배포한다 — UI가 새 필드(`enabled`·`fields`·`approvalRequired`·`benchmarkEtf` 등)를 필수로 읽어, 구 API에 새 UI가 붙으면 화면이 깨진다. UI 서버는 메타를 캐시하지 않으므로(`getMetaBundle`, `cache: 'no-store'`) API 배포 직후 바로 새 메타가 반영된다.
 ## Docker
 
 설정:

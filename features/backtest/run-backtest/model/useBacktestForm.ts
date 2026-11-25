@@ -5,16 +5,13 @@ import { apiMsg } from '@shared/lib/api-client'
 import { useMeta } from '@entities/meta'
 import { useBacktestMutation } from '@entities/backtest'
 import type { BacktestParams, BacktestType } from '@entities/backtest'
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
-import type { RuntimeStrategyType } from '@entities/runtime-config'
-import { EMPTY_VR_RAMP, RAMP_DEFAULTS_BY_MODE, vrRampInvalidReason } from '@entities/strategy'
+import { EMPTY_VR_RAMP, vrRampInvalidReason } from '@entities/strategy'
 import type { CycleSeedType, VrRampValues, VrRecurringMode } from '@entities/strategy'
 
-// 운영 전략 등록과 같은 범위로 백테스트한다 — 분할 수·밴드 폭·주기·적립 모드의 선택지와 기본값은 runtime-config가 SSOT.
-// 사용자가 고르지 않은 값은 state에 복사하지 않고(null) 읽는 시점에 runtime 기본값으로 파생한다(서버 상태를 useState에 미러링 금지)
+// 운영 전략 등록과 같은 범위로 백테스트한다 — 분할 수·밴드 폭·주기·적립 모드의 선택지·기본값과 VR 램프 기본값표는 meta가 SSOT.
+// 사용자가 고르지 않은 값은 state에 복사하지 않고(null) 읽는 시점에 meta 기본값으로 파생한다(서버 상태를 useState에 미러링 금지)
 export function useBacktestForm() {
   const { meta } = useMeta()
-  const { data: runtimeConfig, isError: runtimeConfigError } = useRuntimeConfigQuery()
   const mutation = useBacktestMutation()
 
   const [type, setTypeState] = useState<BacktestType>('INFINITE')
@@ -34,15 +31,15 @@ export function useBacktestForm() {
   const [vrRamp, setVrRamp] = useState<VrRampValues>(EMPTY_VR_RAMP)
 
   const typeMeta = meta.strategyTypes.find((t) => t.code === type)
-  const settings = runtimeConfig?.strategies[type as RuntimeStrategyType]?.fields
+  const settings = typeMeta?.fields
   const availableTickers = typeMeta?.availableTickers ?? []
-  const ticker = tickerOverride ?? settings?.ticker.defaultValue ?? availableTickers[0] ?? ''
+  const ticker = tickerOverride ?? settings?.ticker?.defaultValue ?? availableTickers[0] ?? ''
   const divisionCountOptions = settings?.divisionCount?.allowedValues ?? typeMeta?.divisionCounts ?? []
   const divisionCount = divisionCountOverride ?? settings?.divisionCount?.defaultValue ?? divisionCountOptions[0] ?? null
   const vrBandWidth = bandWidthOverride ?? settings?.bandWidth?.defaultValue ?? null
   const vrIntervalWeeks = intervalWeeksOverride ?? settings?.intervalWeeks?.defaultValue ?? null
   const vrRecurringMode: VrRecurringMode = recurringModeOverride ?? settings?.recurringMode?.defaultValue ?? 'HOLD'
-  const rampDefaults = RAMP_DEFAULTS_BY_MODE[vrRecurringMode]
+  const rampDefaults = typeMeta?.vrRampDefaults?.[vrRecurringMode]
 
   function setVrRampField(field: keyof VrRampValues, value: number | null) {
     setVrRamp((prev) => ({ ...prev, [field]: value }))
@@ -79,11 +76,9 @@ export function useBacktestForm() {
       return '분할 수를 선택하세요.'
     }
     if (type === 'VR') {
-      // VR 선택지(밴드 폭·주기·적립 모드)는 runtime-config에서만 온다 — 없으면 고를 수 없으니 원인을 안내
-      if (!settings) {
-        return runtimeConfigError
-          ? 'VR 설정값을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.'
-          : 'VR 설정값을 불러오는 중입니다.'
+      // VR 선택지(밴드 폭·주기·적립 모드)와 램프 기본값은 meta에서만 온다 — 없으면 고를 수 없으니 원인을 안내
+      if (!settings?.bandWidth || !settings.intervalWeeks || !rampDefaults) {
+        return 'VR 설정값을 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.'
       }
       if (vrBandWidth == null || vrBandWidth <= 0) return 'VR 밴드 폭을 선택하세요.'
       if (vrIntervalWeeks == null || vrIntervalWeeks <= 0) return 'VR 리밸런싱 주기를 선택하세요.'

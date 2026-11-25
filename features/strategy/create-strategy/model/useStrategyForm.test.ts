@@ -25,22 +25,6 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
 
-const runtimeQueryState = vi.hoisted(() => ({ isError: false }))
-
-vi.mock('@entities/runtime-config', () => ({
-  useRuntimeConfigQuery: () => ({
-    data: {
-      strategies: {
-        INFINITE: { enabled: true, fields: { ticker: { customizable: true, allowedValues: ['TSLA'], defaultValue: 'TSLA' }, divisionCount: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 20 } } },
-        PRIVACY: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } } },
-        VR: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }, recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: runtimeRecurringMode.defaultValue }, bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 }, intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 } } },
-      },
-    },
-    isLoading: false,
-    isError: runtimeQueryState.isError,
-  }),
-}))
-
 const mockCreateMutate = vi.fn()
 const mockUpdateMutate = vi.fn()
 const seedModelState = {
@@ -66,9 +50,15 @@ vi.mock('@entities/meta', async () => ({
   ...(await vi.importActual<typeof import('@entities/meta')>('@entities/meta')),
   useMeta: () => ({
     meta: {
-      strategyTypes: [{ code: 'INFINITE', availableTickers: ['TSLA'] }, { code: 'PRIVACY', availableTickers: ['SOXL'] }, { code: 'VR', availableTickers: ['TQQQ'] }],
+      // 전략별 enabled·fields(관리자 운영 설정) — 기존 runtime-config mock 값 그대로
+      strategyTypes: [
+        { code: 'INFINITE', availableTickers: ['TSLA'], enabled: true, fields: { ticker: { customizable: true, allowedValues: ['TSLA'], defaultValue: 'TSLA' }, divisionCount: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 20 } } },
+        { code: 'PRIVACY', availableTickers: ['SOXL'], enabled: true, fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } } },
+        { code: 'VR', availableTickers: ['TQQQ'], enabled: true, fields: { ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' }, recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: runtimeRecurringMode.defaultValue }, bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 }, intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 } } },
+      ],
       tickers: [{ code: 'TSLA' }, { code: 'SOXL' }, { code: 'TQQQ' }],
       brokers: [],
+      approvalRequired: false,
     },
     findStrategyType: (code: string) => code === 'VR'
       ? {
@@ -159,16 +149,6 @@ describe('useStrategyForm submit policy', () => {
     await act(async () => result.current.handleSubmit({ preventDefault() {} } as React.FormEvent))
     await waitFor(() => expect(mockCreateMutate).toHaveBeenCalled())
     expect(mockCreateMutate).toHaveBeenCalledWith(expect.objectContaining({ recurringAmount: serializedAmount }))
-  })
-
-  it('설정을 이미 받았으면 재조회가 실패해도 runtimeConfigError가 아니다', () => {
-    runtimeQueryState.isError = true
-    try {
-      const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
-      expect(result.current.runtimeConfigError).toBe(false)
-    } finally {
-      runtimeQueryState.isError = false
-    }
   })
 
   it('invalidates order previews after strategy configuration changes', () => {

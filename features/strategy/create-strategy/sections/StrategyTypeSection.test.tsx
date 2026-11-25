@@ -30,6 +30,8 @@ describe('StrategyTypeSection', () => {
           directions: [],
           frequencies: [],
           conditionIndicators: [],
+          enabled: true,
+          fields: { ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' } },
         }]}
       />,
     )

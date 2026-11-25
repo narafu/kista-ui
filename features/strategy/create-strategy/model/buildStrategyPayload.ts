@@ -1,10 +1,10 @@
 import type { CycleSeedType, Strategy, StrategyRequest } from '@entities/strategy'
-import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import type { StrategyFieldSettings, StrategyTypeMeta } from '@entities/meta'
 import type { DivisionCount } from './strategyFormSchema'
 import type { VrDerived } from './vrDerived'
 import type { VrFields } from './useStrategyForm'
 
-type RuntimeStrategySettings = RuntimeConfig['strategies'][RuntimeStrategyType]
+type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
 
 export interface BuildStrategyPayloadInput {
   initial?: Strategy
@@ -16,7 +16,7 @@ export interface BuildStrategyPayloadInput {
   isVr: boolean
   usesDivisionCount: boolean
   divisionCount: DivisionCount
-  divisionCountSettings?: RuntimeFieldSettings<number>
+  divisionCountSettings?: StrategyFieldSettings<number>
   runtimeStrategy?: RuntimeStrategySettings
   vrFields: VrFields
   vrDerived: VrDerived

@@ -1,4 +1,4 @@
-import { clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
+import { ApiError, clientFetch, fetchEither, jsonBody } from '@shared/lib/api-client'
 import { toNum } from '@shared/lib/utils'
 import type { Currency } from '@shared/lib/api-schema'
 import type { Account, AccountRequest, CredentialsRequest } from '../model/types'
@@ -14,6 +14,16 @@ export interface AccountLedgerTotals {
 
 export async function listAccounts(token?: string): Promise<Account[]> {
   return fetchEither<Account[]>('/api/accounts', { method: 'GET' }, token)
+}
+
+// 없는 계좌(404)는 null — 호출부가 notFound로 분기한다. 그 외 실패는 던진다
+export async function getAccount(id: string, token?: string): Promise<Account | null> {
+  try {
+    return await fetchEither<Account>(`/api/accounts/${id}`, { method: 'GET' }, token)
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null
+    throw e
+  }
 }
 
 export async function createAccount(data: AccountRequest, token?: string): Promise<Account> {

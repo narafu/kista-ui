@@ -152,8 +152,8 @@ describe('MarketChartCardInner', () => {
   })
 
   it('attaches a zone color to every RSI point in the overbought zone', () => {
-    // 종가가 계속 오르면 RSI가 100 → 과매수 구간
-    const data = Array.from({ length: 20 }, (_, i) => ({ date: `d${String(i).padStart(2, '0')}`, open: 1, high: 2, low: 1, close: 1 + i, volume: 0 }))
+    // 서버 rsi14를 그대로 쓴다 — null인 앞부분은 점에서 빠진다
+    const data = Array.from({ length: 20 }, (_, i) => ({ date: `d${String(i).padStart(2, '0')}`, open: 1, high: 2, low: 1, close: 1 + i, volume: 0, rsi14: i < 14 ? null : 100 }))
     useCandlesQueryMock.mockReturnValue({ data })
     addSeriesMock.mockClear()
     render(<MarketChartCardInner category={category} />)
@@ -161,7 +161,7 @@ describe('MarketChartCardInner', () => {
     const rsiCall = addSeriesMock.mock.calls.findIndex((call) => call[2] === 1)
     const rsiSeries = addSeriesMock.mock.results[rsiCall].value
     const points = rsiSeries.setData.mock.calls[0][0] as { value: number; color: string }[]
-    expect(points.length).toBeGreaterThan(0)
+    expect(points).toHaveLength(6)
     expect(points.every((p) => p.value >= 70 && p.color)).toBe(true)
   })
 

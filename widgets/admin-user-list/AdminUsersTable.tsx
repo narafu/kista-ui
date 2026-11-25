@@ -15,7 +15,8 @@ import { SectionError } from '@shared/ui/SectionError'
 import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { Badge } from '@shared/ui/Badge'
-import { ADMIN_USER_STATUS_LABEL, USER_ROLE_LABEL, USER_STATUS_TONE } from '@entities/user'
+import { ADMIN_USER_STATUS_LABEL, USER_STATUS_TONE } from '@entities/user'
+import { useMeta } from '@entities/meta'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import type { AdminUser } from '@entities/admin'
@@ -34,6 +35,7 @@ interface Props {
 
 export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props) {
   const { data, isError } = useAdminUsersQuery(undefined, queryParams)
+  const { labelOf } = useMeta()
   const users = data ?? EMPTY_USERS
   // 'default'는 헤더에 없는 키 — API 응답 순서 유지
   const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('default')
@@ -41,7 +43,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
     if (sortKey === 'default') return users
     const dir = sortDirection === 'asc' ? 1 : -1
     const text = (u: AdminUser): string | null => sortKey === 'status' ? ADMIN_USER_STATUS_LABEL[u.status]
-      : sortKey === 'role' ? USER_ROLE_LABEL[u.role] : u.nickname
+      : sortKey === 'role' ? labelOf('userRoles', u.role) : u.nickname
     return [...users].sort((a, b) => {
       if (sortKey === 'createdAt') return dir * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
       const av = text(a), bv = text(b)
@@ -49,7 +51,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
       if (bv == null) return -1
       return dir * av.localeCompare(bv, 'ko')
     })
-  }, [users, sortKey, sortDirection])
+  }, [users, sortKey, sortDirection, labelOf])
   const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
   const head = { activeKey: sortKey, direction: sortDirection, onSort: (k: SortKey) => { handleSort(k); setPage(1) } }
 
@@ -94,7 +96,7 @@ export function AdminUsersTable({ currentUserId, filterBar, queryParams }: Props
                   <Badge tone={USER_STATUS_TONE[user.status]}>{ADMIN_USER_STATUS_LABEL[user.status]}</Badge>
                 </TableDataCell>
                 <TableDataCell className="whitespace-nowrap">
-                  <Badge tone={user.role === 'ADMIN' ? 'admin' : 'neutral'}>{USER_ROLE_LABEL[user.role]}</Badge>
+                  <Badge tone={user.role === 'ADMIN' ? 'admin' : 'neutral'}>{labelOf('userRoles', user.role)}</Badge>
                 </TableDataCell>
                 <TableDataCell className="text-muted-foreground whitespace-nowrap">
                   {fmtDate(user.createdAt)}

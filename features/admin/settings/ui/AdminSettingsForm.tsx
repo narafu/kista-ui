@@ -4,6 +4,7 @@ import { type FormEvent, type ReactNode, useEffect, useMemo, useRef, useState } 
 import { Controller, useController, type Control, type Path } from 'react-hook-form'
 import { z } from 'zod'
 import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { AlertTriangle, ChevronDown, RotateCcw, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,6 @@ import { useMeta } from '@entities/meta'
 import { isMockBroker, type BrokerCode } from '@shared/lib/api-schema'
 import {
   DEFAULT_RUNTIME_BENCHMARKS,
-  runtimeConfigKeys,
   type RuntimeBenchmarkFieldSettings,
   type RuntimeConfig,
   type RuntimeStrategyType,
@@ -106,17 +106,15 @@ const END_ATTEMPT = { keepIsSubmitted: false, keepErrors: false }
 function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
   const { meta, labelOf } = useMeta()
   const queryClient = useQueryClient()
+  const router = useRouter()
   // 서버값이 바뀔 때만 복제한다 — RHF는 values를 매 렌더 깊은 비교하므로 새 객체여도 다시 반영하진 않지만, 복제·비교를 렌더마다 하지 않게 메모한다
   const serverSnapshot = useMemo(() => clone(settings), [settings])
   const activatesPendingUsersRef = useRef(false)
   const mutation = useUpdateAdminSettingsMutation({
     onSuccess: async () => {
-      const invalidations = [
-        queryClient.invalidateQueries(
-          { queryKey: runtimeConfigKeys.all, refetchType: 'all' },
-          { throwOnError: true },
-        ),
-      ]
+      // 운영 설정은 서버 컴포넌트가 받는 meta(getMetaBundle, no-store)로 소비된다 — 레이아웃을 다시 받아 즉시 반영한다
+      router.refresh()
+      const invalidations: Promise<void>[] = []
       if (activatesPendingUsersRef.current) {
         invalidations.push(
           queryClient.invalidateQueries(

@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { reapply } from '@entities/user'
+import { useQueryClient } from '@tanstack/react-query'
+import { reapply, useMeQuery, userKeys } from '@entities/user'
+import { apiMsg } from '@shared/lib/api-client'
 import { Spinner } from '@shared/ui/Spinner'
-
-const STORAGE_KEY = 'reapply_rejected_last_at'
-const COOLDOWN_MS = 24 * 60 * 60 * 1000
+import { remainingCooldownMinutes } from './cooldown'
 
 function formatCooldown(minutes: number): string {
   if (minutes > 60) {
@@ -22,13 +22,9 @@ export function RejectedReapplyButton() {
   const router = useRouter()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [cooldownMinutes] = useState(() => {
-    if (typeof window === 'undefined') return 0
-    const last = localStorage.getItem(STORAGE_KEY)
-    if (!last) return 0
-    const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - Number(last))) / 60000)
-    return remaining > 0 ? remaining : 0
-  })
+  const queryClient = useQueryClient()
+  const { data: me } = useMeQuery()
+  const cooldownMinutes = remainingCooldownMinutes(me?.reapplyAvailableAt)
 
   async function handleReapply() {
     if (cooldownMinutes > 0 || isLoading) return
@@ -36,10 +32,10 @@ export function RejectedReapplyButton() {
     setIsLoading(true)
     try {
       await reapply()
-      localStorage.setItem(STORAGE_KEY, Date.now().toString())
+      await queryClient.invalidateQueries({ queryKey: userKeys.me() })
       router.push('/pending')
-    } catch {
-      setErrorMessage('재신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+    } catch (err) {
+      setErrorMessage(apiMsg(err, '재신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'))
       setIsLoading(false)
     }
   }

@@ -3,10 +3,8 @@
 import { FlaskConical, Landmark, TrendingUp } from 'lucide-react'
 import { useMeta } from '@entities/meta'
 import type { BrokerCode } from '@entities/account'
-import { useRuntimeConfigQuery } from '@entities/runtime-config'
 import { isMockBroker } from '@shared/lib/api-schema'
 import type { StepData } from '../CreateAccountStepper'
-import { Button } from '@/components/ui/button'
 
 interface Props {
   onNext: (payload: Partial<StepData>) => void
@@ -21,9 +19,7 @@ const BROKER_UI: Record<string, { description: string; Icon: React.ComponentType
 
 export function BrokerStep({ onNext }: Props) {
   const { meta } = useMeta()
-  const { data: runtimeConfig, isLoading, isError, refetch } = useRuntimeConfigQuery()
-  const enabledBrokers = meta.brokers.filter(({ code }) =>
-    runtimeConfig?.brokers[code as keyof typeof runtimeConfig.brokers]?.enabled === true)
+  const enabledBrokers = meta.brokers.filter(({ enabled }) => enabled)
     .sort((a, b) => Number(isMockBroker(a.code)) - Number(isMockBroker(b.code)))
 
   return (
@@ -33,20 +29,7 @@ export function BrokerStep({ onNext }: Props) {
         <p className="text-sm text-muted-foreground">연결할 증권사를 선택하세요.</p>
       </div>
       <div className="flex flex-col gap-3">
-        {isLoading && (
-          <p className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            등록 가능한 증권사를 확인하고 있습니다.
-          </p>
-        )}
-        {isError && (
-          <div className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
-            <p>증권사 설정을 불러오지 못했습니다.</p>
-            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
-              다시 시도
-            </Button>
-          </div>
-        )}
-        {runtimeConfig && enabledBrokers.length === 0 && (
+        {enabledBrokers.length === 0 && (
           <p className="rounded-sm border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
             현재 등록 가능한 증권사가 없습니다.
           </p>

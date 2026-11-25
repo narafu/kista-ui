@@ -52,10 +52,10 @@ export function useStrategyMutations({
 }
 
 // 초기 로딩 완료 후엔 true로 고정 — 타입 전환 시 재스켈레톤 방지
-export function useInitializing(loadingBase: boolean, initial: Strategy | undefined, runtimeLoading: boolean) {
+export function useInitializing(loadingBase: boolean) {
   const [initialized, setInitialized] = useState(false)
   if (!loadingBase && !initialized) setInitialized(true)
-  return (!initialized && loadingBase) || (!initial && runtimeLoading)
+  return !initialized && loadingBase
 }
 
 // 실제 쿼리 실패만 알린다 — 값이 null인지로 판정하면 현재가 조회가 아직 진행 중인 경우(loadingBase에

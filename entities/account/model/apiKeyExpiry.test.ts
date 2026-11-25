@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { apiKeyExpiryState, isEstimatedExpiry, kstToday } from './apiKeyExpiry'
+import { apiKeyExpiryState, isEstimatedExpiry, kstToday, kstTomorrow } from './apiKeyExpiry'
 
 const now = new Date('2026-10-18T00:00:00+09:00')
 
@@ -33,5 +33,13 @@ describe('isEstimatedExpiry', () => {
     expect(isEstimatedExpiry('ESTIMATED')).toBe(true)
     expect(isEstimatedExpiry('NONE')).toBe(false)
     expect(isEstimatedExpiry(undefined)).toBe(false)
+  })
+})
+
+describe('kstTomorrow', () => {
+  it('KST 자정 직전/직후와 월말 경계에서 KST 기준 내일을 돌려준다', () => {
+    expect(kstTomorrow(new Date('2026-10-17T14:59:00Z'))).toBe('2026-10-18')
+    expect(kstTomorrow(new Date('2026-10-17T15:00:00Z'))).toBe('2026-10-19')
+    expect(kstTomorrow(new Date('2026-10-31T15:00:00Z'))).toBe('2026-11-02')
   })
 })

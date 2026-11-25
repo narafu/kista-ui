@@ -13,7 +13,7 @@ describe('getMetaBundle', () => {
     }
   })
 
-  it('fetches meta with 1-hour Data Cache', async () => {
+  it('fetches meta without Data Cache so admin settings apply immediately', async () => {
     process.env.API_BASE_URL = 'https://api.example.test'
     const { getMetaBundle } = await import('./index')
     const meta = {
@@ -28,7 +28,7 @@ describe('getMetaBundle', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://api.example.test/api/meta',
-      { next: { revalidate: 3600 } },
+      { cache: 'no-store' },
     )
   })
 

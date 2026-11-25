@@ -6,9 +6,9 @@ export const testMeta = {
   strategyTypes: [],
   tickers: [],
   brokers: [
-    { code: 'TOSS', label: '토스증권', description: '토스', apiKeyExpirySource: 'ESTIMATED' },
-    { code: 'MOCK', label: '모의계좌', description: '모의', apiKeyExpirySource: 'NONE' },
-    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', apiKeyExpirySource: 'ESTIMATED' },
+    { code: 'TOSS', label: '토스증권', description: '토스', apiKeyExpirySource: 'ESTIMATED', enabled: true },
+    { code: 'MOCK', label: '모의계좌', description: '모의', apiKeyExpirySource: 'NONE', enabled: true },
+    { code: 'MERITZ', label: '메리츠증권', description: '메리츠', apiKeyExpirySource: 'ESTIMATED', enabled: true },
   ],
   strategyStatuses: [
     { code: 'ACTIVE', label: '운영중' },
@@ -103,6 +103,78 @@ export const testMeta = {
     { code: 'ORDERED', label: '주문됨' },
     { code: 'SKIPPED', label: '건너뜀' },
   ],
+  // 이하 kista-api S7 MetaEnumRegistry 라벨 그대로
+  userStatuses: [
+    { code: 'PENDING', label: '승인 대기' },
+    { code: 'ACTIVE', label: '승인 완료' },
+    { code: 'REJECTED', label: '반려' },
+  ],
+  userRoles: [
+    { code: 'USER', label: '일반 사용자' },
+    { code: 'ADMIN', label: '관리자' },
+  ],
+  recurringModes: [
+    { code: 'DEPOSIT', label: '정기 적립' },
+    { code: 'HOLD', label: '입출금 없음' },
+    { code: 'WITHDRAW', label: '정기 인출' },
+  ],
+  currencies: [
+    { code: 'KRW', label: '원화' },
+    { code: 'USD', label: '미국 달러' },
+    { code: 'JPY', label: '일본 엔' },
+  ],
+  apiKeyExpirySources: [
+    { code: 'NONE', label: '만료 없음' },
+    { code: 'ESTIMATED', label: '추정 만료일' },
+  ],
+  notificationChannels: [
+    { code: 'NONE', label: '알림 없음' },
+    { code: 'TELEGRAM', label: '텔레그램' },
+    { code: 'FCM', label: '앱 푸시' },
+    { code: 'ALL', label: '텔레그램 + 앱 푸시' },
+  ],
+  notificationTypes: [
+    { code: 'TRADING_ALERT', label: '매매 알림' },
+    { code: 'MARKET_ALERT', label: '시장 알림' },
+    { code: 'FINANCE_REMINDER', label: '가계부 리마인더' },
+  ],
+  marketSessions: [
+    { code: 'DIRECT', label: '주문 가능' },
+    { code: 'BLOCKED', label: '주문 불가' },
+  ],
+  benchmarkAssetTypes: [
+    { code: 'HOUSING', label: '주택' },
+    { code: 'ETF', label: 'ETF' },
+  ],
+  etfBenchmarkSymbols: [
+    { code: 'SPY', label: 'SPY', description: 'SPDR S&P 500 ETF Trust' },
+    { code: 'QQQ', label: 'QQQ', description: 'Invesco QQQ Trust' },
+    { code: 'QLD', label: 'QLD', description: 'ProShares Ultra QQQ (2x 레버리지)' },
+    { code: 'IBIT', label: 'IBIT', description: 'iShares Bitcoin Trust' },
+    { code: 'ETHA', label: 'ETHA', description: 'iShares Ethereum Trust' },
+  ],
+  financeInvitationStatuses: [
+    { code: 'PENDING', label: '대기' },
+    { code: 'ACCEPTED', label: '수락' },
+    { code: 'DECLINED', label: '거절' },
+    { code: 'EXPIRED', label: '만료' },
+  ],
+  nextOrdersSkipReasons: [
+    { code: 'NO_CYCLE_HISTORY', label: '사이클 이력 없음' },
+    { code: 'NO_PRIVACY_BASE', label: '기준매매표 미수신' },
+    { code: 'SCHEDULED_START_NOT_REACHED', label: '시작예정일 미도래' },
+    { code: 'CYCLE_ENDED', label: '사이클 종료' },
+    { code: 'PRIVACY_BASE_BLOCKED', label: '기준매매표 점검 이슈로 차단' },
+    { code: 'MARKET_CLOSED', label: '휴장일' },
+  ],
+  // 라벨을 소비하는 테스트가 아직 없어 비워 둔다
+  strategyActions: [],
+  strategyActionBlockReasons: [],
+  apiKeyExpiryStatuses: [],
+  orderPreviewWarningCodes: [],
+  strategyValidationWarningCodes: [],
+  approvalRequired: false,
+  benchmarkEtf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'SPY' },
 } satisfies MetaBundle
 
 // MetaProvider.labelOf와 같은 순서(label → description → code)로 찾는다
@@ -113,5 +185,6 @@ export function testLabelOf(category: keyof MetaBundle, code: string): string {
 
 export const strategyTypeMeta = (over: Partial<StrategyTypeMeta> = {}): StrategyTypeMeta => ({
   code: 'INFINITE', availableTickers: [], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false, divisionCounts: [],
-  orderTypes: [], directions: [], frequencies: [], conditionIndicators: [], ...over,
+  orderTypes: [], directions: [], frequencies: [], conditionIndicators: [],
+  enabled: true, fields: { ticker: { customizable: true, allowedValues: [], defaultValue: '' } }, ...over,
 })

@@ -11,6 +11,7 @@ const meta = {
     code: 'DCA', availableTickers: ['UPRO'], requiresPrivacyBase: false, tickerFixed: false, supportsReverseMode: false,
     divisionCounts: [], orderTypes: ['MOO', 'MOC'], directions: ['BUY', 'SELL'],
     frequencies: ['DAILY', 'WEEKLY', 'MONTHLY'], conditionIndicators: ['AVG_PRICE', 'SMA', 'RSI', 'FEAR_GREED'],
+    enabled: true, fields: { ticker: { customizable: true, allowedValues: ['UPRO'], defaultValue: 'UPRO' } },
   }],
 }
 

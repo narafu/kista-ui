@@ -18,7 +18,7 @@ import { isMockBroker } from '@shared/lib/api-schema'
 import { FormActions } from '@shared/ui/FormActions'
 import { FormField } from '@shared/ui/form/FormField'
 import { useAppForm } from '@shared/ui/form/useAppForm'
-import { isEstimatedExpiry, kstToday, useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
+import { isEstimatedExpiry, kstTomorrow, useUpdateAccountMutation, useDeleteAccountMutation } from '@entities/account'
 import { useMeta } from '@entities/meta'
 import { strategyKeys } from '@entities/strategy'
 import { statsKeys } from '@entities/stats'
@@ -99,7 +99,7 @@ export function EditAccountForm({ account }: Props) {
 
           {showExpiry && (
             <FormField control={form.control} name="apiKeyExpiresOn" id="edit-expires-on" label="API 키 만료일" hint="증권사에서 확인한 실제 만료일을 입력하세요">
-              {(f) => <Input {...f} type="date" min={kstToday()} className="h-12" disabled={form.isPending} />}
+              {(f) => <Input {...f} type="date" min={kstTomorrow()} className="h-12" disabled={form.isPending} />}
             </FormField>
           )}
 

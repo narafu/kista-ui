@@ -1,18 +1,13 @@
 import { useMemo } from 'react'
-import { DEFAULT_RUNTIME_BENCHMARKS, useRuntimeConfigQuery } from '@entities/runtime-config'
+import { useMeta } from '@entities/meta'
 import { getEtfBenchmarkContent } from '../housingBenchmarkContent'
 import { uniqueSymbols } from './benchmarkPeriods'
 
+// ETF 비교 자산 허용값·기본값은 관리자 운영 설정 — meta.benchmarkEtf가 SSOT
 export function useEtfBenchmarkOptions() {
-  const runtimeConfigQuery = useRuntimeConfigQuery()
-  const runtimeEtfSettings = runtimeConfigQuery.data?.benchmarks?.etf ?? DEFAULT_RUNTIME_BENCHMARKS.etf
-  const etfSymbols = useMemo(() => {
-    const allowedValues = uniqueSymbols(runtimeEtfSettings.allowedValues)
-    return allowedValues.length > 0 ? allowedValues : DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues
-  }, [runtimeEtfSettings.allowedValues])
-  const defaultEtfSymbol = etfSymbols.includes(runtimeEtfSettings.defaultValue)
-    ? runtimeEtfSettings.defaultValue
-    : etfSymbols[0]
+  const { allowedValues, defaultValue } = useMeta().meta.benchmarkEtf
+  const etfSymbols = useMemo(() => uniqueSymbols(allowedValues), [allowedValues])
+  const defaultEtfSymbol = etfSymbols.includes(defaultValue) ? defaultValue : (etfSymbols[0] ?? defaultValue)
   const etfBenchmarks = useMemo(() => etfSymbols.map((symbol) => ({
     ...getEtfBenchmarkContent(symbol),
     symbol,

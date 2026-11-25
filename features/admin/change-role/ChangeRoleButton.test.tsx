@@ -12,6 +12,11 @@ vi.mock('@entities/admin', () => ({
   }),
 }))
 
+vi.mock('@entities/meta', async () => {
+  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  return { useMeta: () => ({ labelOf: testLabelOf }) }
+})
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }))

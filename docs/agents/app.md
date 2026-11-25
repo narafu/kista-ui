@@ -43,7 +43,7 @@ UI 캐시 소유권·hydration·mutation 동기화는 `docs/agents/entities.md`,
 ## 캐싱 (Server Component)
 
 - **가변 인증 데이터**: `accounts`·`strategies`·`me`는 Next.js persistent cache 없이 요청별 `createQueryClient()` + `prefetchQuery()` + `<HydrationBoundary>`로 넘기고 Client Content가 목록/빈 상태를 결정한다. 서버용 query options factory는 `'use client'` hook 파일이 아니라 `entities/*/model/queryOptions.ts`에 둔다
-- **Next.js persistent cache**: 비인증 public meta fallback에만 1시간 TTL. market holidays는 React Query 소유다. 세부 기준은 `docs/agents/entities.md`·`docs/agents/shared.md`
+- **Next.js persistent cache**: 쓰지 않는다 — meta(`getMetaBundle`)도 관리자 운영 설정이 실려 `cache: 'no-store'`다. market holidays는 React Query 소유다. 세부 기준은 `docs/agents/entities.md`·`docs/agents/shared.md`
 
 ## Toaster · UI 전역
 

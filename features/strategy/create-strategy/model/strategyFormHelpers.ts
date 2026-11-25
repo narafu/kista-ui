@@ -1,12 +1,12 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { todayKst } from '@shared/lib/format'
 import type { CycleSeedType, Strategy, StrategySeedPreview } from '@entities/strategy'
-import type { RuntimeConfig, RuntimeFieldSettings, RuntimeStrategyType } from '@entities/runtime-config'
+import type { StrategyFieldSettings, StrategyTypeMeta } from '@entities/meta'
 import type { VrFields } from './useStrategyForm'
 import type { VrRecurringMode } from './vrDerived'
 import type { DivisionCount, StrategyFormValues } from './strategyFormSchema'
 
-type RuntimeStrategySettings = RuntimeConfig['strategies'][RuntimeStrategyType]
+type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
 type StrategyVr = NonNullable<Strategy['vr']>
 
 const VR_FIELD_KEYS = [
@@ -81,7 +81,7 @@ export function deriveRuntimeFields(
     usesDivisionCount: initial ? typeUsesDivisionCount : !!divisionCountSettings,
     tickerCustomizable: initial ? false : runtimeStrategy?.fields.ticker.customizable ?? false,
     vrSettings: {
-      recurringMode: runtimeStrategy?.fields.recurringMode as RuntimeFieldSettings<string> | undefined,
+      recurringMode: runtimeStrategy?.fields.recurringMode as StrategyFieldSettings<string> | undefined,
       bandWidth: runtimeStrategy?.fields.bandWidth,
       intervalWeeks: runtimeStrategy?.fields.intervalWeeks,
     },

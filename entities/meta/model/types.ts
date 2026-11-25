@@ -1,14 +1,33 @@
-import type { ApiKeyExpirySource } from '@shared/lib/api-schema'
+import type { components } from '@shared/lib/api-types'
+import type { ApiKeyExpirySource, RecurringMode } from '@shared/lib/api-schema'
 
-export interface EnumMeta {
-  code: string
-  label: string
-  description?: string
+type Schemas = components['schemas']
+
+export type EnumMeta = Schemas['EnumMeta']
+
+// 전략 생성 필드 정책 — 생성 스키마(StrategyFieldSettingsObject)는 값이 unknown·전부 optional이라 필드별 값 타입으로 좁힌다.
+// 서버 record(StrategyFieldSettings)는 세 필드가 모두 non-null이다
+export interface StrategyFieldSettings<T> {
+  customizable: boolean
+  allowedValues: T[]
+  defaultValue: T
 }
+
+// 적용 안 되는 필드는 서버가 생략한다(NON_NULL). ticker는 모든 전략에 있다
+export interface StrategyFieldsMeta {
+  ticker: StrategyFieldSettings<string>
+  divisionCount?: StrategyFieldSettings<number>
+  recurringMode?: StrategyFieldSettings<RecurringMode>
+  bandWidth?: StrategyFieldSettings<number>
+  intervalWeeks?: StrategyFieldSettings<number>
+}
+
+// 서버 record 필드가 전부 primitive라 생성 스키마의 optional을 걷어낸다
+export type VrRampParams = Required<Schemas['VrRampParams']>
 
 export interface StrategyTypeMeta {
   code: string
-  label?: string                // 한국어 표시 이름 (kista-api a95ad797부터, 1h 메타 캐시 대비 optional — labelOf가 description으로 폴백)
+  label?: string                // 한국어 표시 이름 — labelOf가 없으면 description으로 폴백
   description?: string
   availableTickers: string[]
   requiresPrivacyBase: boolean  // basePrice 소스가 기준매매표인지 (true=기준매매표, false=실시간 현재가)
@@ -20,7 +39,10 @@ export interface StrategyTypeMeta {
   directions: string[]
   frequencies: string[]
   conditionIndicators: string[]
-  supportedBrokers?: string[]   // 등록 가능 증권사 code — 빈 배열이면 전체 허용(1h 메타 캐시 대비 optional)
+  supportedBrokers?: string[]   // 등록 가능 증권사 code — 빈 배열·누락이면 전체 허용
+  enabled: boolean              // 신규 전략 생성 허용 여부 (관리자 운영 설정)
+  fields: StrategyFieldsMeta    // 생성 필드별 허용값·기본값 (관리자 운영 설정)
+  vrRampDefaults?: Record<RecurringMode, VrRampParams> // VR 램프 기본값표(적립 모드별) — VR 외 전략은 생략
 }
 
 // DCA 조건 지표 메타 — SMA만 smaPeriods가 채워지고 나머지는 빈 배열
@@ -35,31 +57,15 @@ export interface TickerMeta {
   targetProfitRate: string
 }
 
-// 1h 메타 캐시로 새 필드가 빠질 수 있어 모두 optional
 export interface BrokerMeta extends EnumMeta {
   apiKeyExpirySource?: ApiKeyExpirySource // API 키 만료일 출처 — ESTIMATED(추정, 사용자 입력 가능)·NONE
+  enabled: boolean                        // 신규 계좌 등록 허용 여부 (관리자 운영 설정)
 }
 
-export interface MetaBundle {
+// 라벨 enum 목록·approvalRequired·benchmarkEtf는 생성 스키마를 그대로 쓰고, 소비처가 좁힌 타입을 쓰는 항목만 덮어쓴다
+export type MetaBundle = Omit<Schemas['MetaBundle'], 'strategyTypes' | 'tickers' | 'brokers' | 'dcaIndicators'> & {
   strategyTypes: StrategyTypeMeta[]
   tickers: TickerMeta[]
   brokers: BrokerMeta[]
-  strategyStatuses: EnumMeta[]
-  cycleSeedTypes: EnumMeta[]
-  assetClasses: EnumMeta[]
-  markets: EnumMeta[]
-  financeAccountTypes: EnumMeta[]
-  financeCategoryTypes: EnumMeta[]
-  orderTypes: EnumMeta[]
-  orderDirections: EnumMeta[]
-  dcaFrequencies: EnumMeta[]
-  dcaOperators: EnumMeta[]
-  dcaSkipReasons: EnumMeta[]
-  dcaSizingTypes: EnumMeta[]
-  dcaShortfallPolicies: EnumMeta[]
   dcaIndicators: DcaIndicatorMeta[]
-  // 1h 메타 캐시가 이 키보다 오래됐을 수 있어 optional — labelOf가 code로 폴백한다
-  orderStatuses?: EnumMeta[]
-  dcaExecutionStatuses?: EnumMeta[]
-  orderTimings?: EnumMeta[]
 }

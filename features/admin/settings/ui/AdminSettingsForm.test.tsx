@@ -20,6 +20,7 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 // testMeta.strategyTypes는 비어 있어 전략 유형 이름만 로컬로 둔다
 const STRATEGY_TYPE_LABELS: Record<string, string> = { DCA: '적립식 분할매매', VR: '밸류리밸런싱' }

@@ -258,7 +258,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * 내 계좌 단건 조회
+         * @description 계좌 ID로 내 계좌 1건 반환. 응답 형식은 목록 항목과 같다.
+         */
+        get: operations["get_1"];
         /**
          * 계좌 수정
          * @description 별명을 수정. 계좌번호 및 자격증명은 수정 불가.
@@ -309,6 +313,40 @@ export interface paths {
          * @description 텔레그램 서버에서 전송하는 Update(버튼 클릭, 메시지 등)를 수신하여 처리.
          */
         post: operations["handleWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trading-cycles/{id}/vr-config-validations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** VR 재설정 검증 */
+        post: operations["validateVrConfig"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/trading-cycles/{id}/update-validations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 거래 사이클 수정 검증 */
+        post: operations["validateUpdate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -711,120 +749,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/admin/scheduler/open": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 개장 스케쥴러 수동 트리거 */
-        post: operations["triggerOpen"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/market-index-prices": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * 벤치마크 ETF 지수 종가 동기화 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerMarketIndexPriceSync"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndex"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-price-index/full-refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주간 아파트 매매가격지수 월간 풀 리프레시 수동 트리거
-         * @description 20년 전체를 다시 받아 KB Land 과거 값 보정을 즉시 반영하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandPriceIndexFullRefresh"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/kbland-housing-benchmark": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
-         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
-         */
-        post: operations["triggerKbLandHousingBenchmark"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/admin/scheduler/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** 마감 스케쥴러 수동 트리거 */
-        post: operations["triggerClose"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/privacy-trade-bases": {
         parameters: {
             query?: never;
@@ -923,6 +847,26 @@ export interface paths {
         put?: never;
         /** 거래 사이클 등록 */
         post: operations["register_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/accounts/{accountId}/trading-cycle-validations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 거래 사이클 등록 검증
+         * @description 등록과 같은 해석·검증 경로를 저장 없이 태운다. 등록이 400·409로 거절할 입력은 fieldErrors로 돌려준다(소유권 실패는 403/404)
+         */
+        post: operations["validateRegistration"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2147,7 +2091,7 @@ export interface paths {
             cookie?: never;
         };
         /** 계좌 원장 합산 조회 */
-        get: operations["get_1"];
+        get: operations["get_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2282,6 +2226,120 @@ export interface paths {
          * @description 조치 완료 처리를 위해 오류 로그를 소프트 삭제합니다.
          */
         delete: operations["softDeleteErrorLog"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 개장 스케쥴러 수동 트리거 */
+        post: operations["triggerOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/market-index-prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 벤치마크 ETF 지수 종가 동기화 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerMarketIndexPriceSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-price-index": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndex"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-price-index/full-refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주간 아파트 매매가격지수 월간 풀 리프레시 수동 트리거
+         * @description 20년 전체를 다시 받아 KB Land 과거 값 보정을 즉시 반영하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandPriceIndexFullRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/kbland-housing-benchmark": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * KB Land 주택 벤치마크 스케쥴러 수동 트리거
+         * @description 운영 이슈 발생 시 다음 크론까지 기다리지 않고 즉시 실행하며, 202 반환 후 백그라운드에서 처리합니다.
+         */
+        post: operations["triggerKbLandHousingBenchmark"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/scheduler/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 마감 스케쥴러 수동 트리거 */
+        post: operations["triggerClose"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -2447,6 +2505,20 @@ export interface components {
             /** @description DCA 설정 (type=DCA일 때 필수, 그 외 무시) */
             dca?: components["schemas"]["DcaConfigRequest"] | null;
         };
+        BlockedAction: {
+            /**
+             * @description 막힌 행위
+             * @example ARCHIVE
+             * @enum {string}
+             */
+            action: "PAUSE" | "RESUME" | "ARCHIVE" | "DELETE" | "EDIT_SEED" | "INJECT_CAPITAL" | "WITHDRAW_CAPITAL" | "RESET_VR" | "EDIT_DCA_CONFIG";
+            /**
+             * @description 막힌 사유
+             * @example HAS_HOLDINGS
+             * @enum {string}
+             */
+            reasonCode: "ARCHIVED" | "ALREADY_PAUSED" | "ALREADY_ACTIVE" | "NO_ACTIVE_CYCLE" | "HAS_HOLDINGS" | "NO_WITHDRAWABLE_BALANCE";
+        };
         DcaConditionResponse: {
             /** @enum {string} */
             indicator: "AVG_PRICE" | "SMA" | "RSI" | "FEAR_GREED";
@@ -2579,6 +2651,10 @@ export interface components {
             ledgerDeposit?: number | null;
             /** @description 등록 응답 전용 — 오늘 시작인데 오늘 개장 배치(22:00 KST, 월~금) 이후 등록돼 오늘 밤 장 시작 주문(INFINITE 지정가 매도·VR 사다리)이 자동 생성되지 않으면 true(PRIVACY는 항상 false, 미국 휴장일엔 거짓 양성 가능). 등록 외 응답에선 생략 */
             todayOpenBatchMissed?: boolean | null;
+            /** @description 지금 가능한 전략 행위 (enum 선언순). allowedActions ∪ blockedActions[].action = 이 전략 종류가 지원하는 행위 전체 — 둘 다에 없으면 미지원. 마감 리포트 창·보관 전 당일 주문 마감 반영·재개 시 원장 부족은 판정하지 않아 요청 시 거절될 수 있다 */
+            allowedActions: ("PAUSE" | "RESUME" | "ARCHIVE" | "DELETE" | "EDIT_SEED" | "INJECT_CAPITAL" | "WITHDRAW_CAPITAL" | "RESET_VR" | "EDIT_DCA_CONFIG")[];
+            /** @description 지원하지만 지금 막힌 전략 행위와 사유 (사유 문구는 메타 strategyActionBlockReasons) */
+            blockedActions: components["schemas"]["BlockedAction"][];
         };
         VrSummary: {
             /** @description V값 (실력 기준선) */
@@ -3318,6 +3394,28 @@ export interface components {
              * @description 거래소 API 키 만료 시각 (토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
              */
             apiKeyExpiresAt?: string | null;
+            /** @description API 키 만료 판정 (KST 날짜 기준 — 남은 일수 0 이하 EXPIRED, 30일 이내 EXPIRING, 만료일 없음 NONE) */
+            apiKeyExpiry: components["schemas"]["ApiKeyExpiryResponse"];
+        };
+        ApiKeyExpiryResponse: {
+            /**
+             * @description 만료 상태
+             * @example EXPIRING
+             * @enum {string}
+             */
+            status: "OK" | "EXPIRING" | "EXPIRED" | "NONE";
+            /**
+             * Format: date
+             * @description 만료일 (KST, 만료일 없으면 null)
+             * @example 2026-12-01
+             */
+            expiresOn?: string | null;
+            /**
+             * Format: int32
+             * @description 오늘(KST)부터 만료일까지 남은 일수 (0=오늘 만료, 음수=지남, 만료일 없으면 null)
+             * @example 6
+             */
+            daysLeft?: number | null;
         };
         CredentialsRequest: {
             /** @description 새 API 앱 키 (Toss Client ID) */
@@ -3351,6 +3449,88 @@ export interface components {
             update_id?: number;
             message?: components["schemas"]["Message"];
             callback_query?: components["schemas"]["CallbackQuery"];
+        };
+        StrategyValidationDerived: {
+            /**
+             * @description 해석된 종목 (등록)
+             * @enum {string|null}
+             */
+            ticker?: "MAGX" | "USD" | "TQQQ" | "SOXL" | "UPRO" | "QLD" | "BITO" | "EETH" | null;
+            /**
+             * Format: int32
+             * @description 해석된 분할 수 (등록)
+             */
+            divisionCount?: number | null;
+            /**
+             * @description VR 해석된 적립 방향
+             * @enum {string|null}
+             */
+            recurringMode?: "DEPOSIT" | "HOLD" | "WITHDRAW" | null;
+            /** @description VR 해석된 밴드 폭 */
+            bandWidth?: number | null;
+            /**
+             * Format: int32
+             * @description VR 해석된 리밸런싱 주기
+             */
+            intervalWeeks?: number | null;
+            /** @description VR 램프 실효값 (등록=모드별 기본값, 재설정=현재 버전 상속 반영) */
+            ramp?: components["schemas"]["VrRampParams"] | null;
+            /** @description VR 인출식 필요 최소 자산 (인출식 아니면 null) */
+            requiredWithdrawalAssets?: number | null;
+            /** @description 시드 미리보기 기준가 (등록) */
+            basePrice?: number | null;
+            /** @description 최소 필요 투자금 (등록 시드 미리보기, 수정은 INFINITE 시드 수정 기준) */
+            minSeed?: number | null;
+            /**
+             * @description 시드 미리보기 계산 불가 사유
+             * @example NO_PRIVACY_BASE
+             */
+            skipReason?: string | null;
+            /** @description 가용 예수금(계좌 미배정 현금, 모의계좌·조회 실패면 null) */
+            availableCash?: number | null;
+        };
+        StrategyValidationFieldError: {
+            /**
+             * @description 요청 JSON 필드 이름 (여러 필드에 걸친 거절은 null)
+             * @example scheduledStartDate
+             */
+            field?: string | null;
+            /** @description 한국어 거절 문장 */
+            detail: string;
+        };
+        StrategyValidationResponse: {
+            /** @description 거절 사유 (통과면 빈 목록, 첫 거절에서 멈춰 최대 1개). 실제 요청이 400·409로 돌려주는 detail과 같은 문장 */
+            fieldErrors: components["schemas"]["StrategyValidationFieldError"][];
+            /** @description 저장은 되지만 알릴 경고 (없으면 빈 목록) */
+            warnings: components["schemas"]["StrategyValidationWarning"][];
+            /** @description 서버가 채우는 기본값·파생값 (알 수 없는 값은 null) */
+            derived: components["schemas"]["StrategyValidationDerived"];
+        };
+        StrategyValidationWarning: {
+            /**
+             * @description 경고 코드 (라벨은 메타 strategyValidationWarningCodes)
+             * @example AVAILABLE_CASH_EXCEEDED
+             * @enum {string}
+             */
+            code: "AVAILABLE_CASH_EXCEEDED";
+            /** @description 한국어 안내 문장 */
+            detail: string;
+        };
+        VrRampParams: {
+            /** Format: int32 */
+            initialGradient?: number;
+            /** Format: int32 */
+            gGraceWeeks?: number;
+            /** Format: int32 */
+            gStepWeeks?: number;
+            /** Format: int32 */
+            gMax?: number;
+            initialPoolLimitRate?: number;
+            /** Format: int32 */
+            pGraceWeeks?: number;
+            /** Format: int32 */
+            pStepWeeks?: number;
+            poolLimitFloor?: number;
         };
         CapitalWithdrawalRequest: {
             /**
@@ -3546,6 +3726,11 @@ export interface components {
             rejectReason?: string | null;
             /** @description 자산 등록 폼 운용전략 추천 목록 */
             strategySuggestions: string[];
+            /**
+             * Format: date-time
+             * @description 재신청 가능 시각 (쿨다운 중이면 해제 시각, 아니면 null)
+             */
+            reapplyAvailableAt?: string | null;
         };
         TokenResponse: {
             /**
@@ -3901,6 +4086,16 @@ export interface components {
              */
             timing: "AT_CLOSE" | "AT_OPEN";
         };
+        NextOrderWarning: {
+            /**
+             * @description 경고 코드
+             * @example LEDGER_SHORTFALL
+             * @enum {string}
+             */
+            code: "LEDGER_SHORTFALL" | "ACCOUNT_CASH_SHORTFALL" | "ACCOUNT_CASH_PARTIAL" | "HOLDINGS_SHORTFALL" | "BUY_UNPLACED" | "SELL_UNPLACED";
+            /** @description 한국어 안내 문장 */
+            detail: string;
+        };
         NextOrdersResponse: {
             /**
              * Format: date
@@ -3927,6 +4122,8 @@ export interface components {
             accountCashCheck?: components["schemas"]["AccountCashCheckSummary"] | null;
             /** @description 계좌 보유(판매 가능) 수량 대비 오늘 SELL 경고 — (계좌, 종목) 단위(같은 종목 전략 동일 값), 조회 시점 추정, 경고 전용. MOCK·필요 SELL 없음·증권사 조회 실패면 null */
             accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"] | null;
+            /** @description 서버 판정 경고 목록 (원장 부족·계좌 예수금 부족/부분 부족·보유 수량 부족·방향별 미접수 순, 없으면 빈 목록) — ledgerCheck·accountCashCheck·accountHoldingsCheck와 주문 목록에서 파생 */
+            warnings: components["schemas"]["NextOrderWarning"][];
         };
         PositionSnapshot: {
             /**
@@ -4259,6 +4456,12 @@ export interface components {
             /** Format: int32 */
             totalPages: number;
         };
+        BenchmarkEtfMeta: {
+            /** @description 허용 값 목록 */
+            allowedValues: string[];
+            /** @description 비교 기본값 */
+            defaultValue: string;
+        };
         BrokerMeta: {
             /**
              * @description enum name() 값
@@ -4279,6 +4482,8 @@ export interface components {
              * @example ESTIMATED
              */
             apiKeyExpirySource: string;
+            /** @description 신규 계좌 등록 허용 여부 (/api/runtime-config brokers[broker].enabled와 같은 값) */
+            enabled: boolean;
         };
         DcaIndicatorMeta: {
             /**
@@ -4345,6 +4550,56 @@ export interface components {
             dcaShortfallPolicies: components["schemas"]["EnumMeta"][];
             /** @description DCA 조건 지표 목록 */
             dcaIndicators: components["schemas"]["DcaIndicatorMeta"][];
+            /** @description 계정 상태 목록 */
+            userStatuses: components["schemas"]["EnumMeta"][];
+            /** @description 사용자 권한 목록 */
+            userRoles: components["schemas"]["EnumMeta"][];
+            /** @description VR 정기 입출금 방향 목록 */
+            recurringModes: components["schemas"]["EnumMeta"][];
+            /** @description 통화 목록 */
+            currencies: components["schemas"]["EnumMeta"][];
+            /** @description API 키 만료일 출처 목록 */
+            apiKeyExpirySources: components["schemas"]["EnumMeta"][];
+            /** @description 알림 채널 목록 */
+            notificationChannels: components["schemas"]["EnumMeta"][];
+            /** @description 알림 종류 목록 */
+            notificationTypes: components["schemas"]["EnumMeta"][];
+            /** @description 시장 주문 접수 세션 목록 */
+            marketSessions: components["schemas"]["EnumMeta"][];
+            /** @description 벤치마크 자산 종류 목록 */
+            benchmarkAssetTypes: components["schemas"]["EnumMeta"][];
+            /** @description ETF 벤치마크 심볼 목록 (description=ETF 정식 명칭) */
+            etfBenchmarkSymbols: components["schemas"]["EnumMeta"][];
+            /** @description 가계부 그룹 초대 상태 목록 */
+            financeInvitationStatuses: components["schemas"]["EnumMeta"][];
+            /** @description 다음 주문 미리보기 skip 사유 목록 */
+            nextOrdersSkipReasons: components["schemas"]["EnumMeta"][];
+            /** @description 전략 행위 목록 (전략 응답 allowedActions·blockedActions 코드값) */
+            strategyActions: components["schemas"]["EnumMeta"][];
+            /** @description 전략 행위 막힘 사유 목록 (blockedActions[].reasonCode 코드값) */
+            strategyActionBlockReasons: components["schemas"]["EnumMeta"][];
+            /** @description API 키 만료 상태 목록 (계좌 응답 apiKeyExpiry.status 코드값) */
+            apiKeyExpiryStatuses: components["schemas"]["EnumMeta"][];
+            /** @description 다음 주문 미리보기 경고 코드 목록 (미리보기 warnings[].code 코드값) */
+            orderPreviewWarningCodes: components["schemas"]["EnumMeta"][];
+            /** @description 전략 입력 검증 경고 코드 목록 (검증 전용 엔드포인트 warnings[].code 코드값) */
+            strategyValidationWarningCodes: components["schemas"]["EnumMeta"][];
+            /** @description 가입 승인 필수 여부 (/api/runtime-config auth.approvalRequired와 같은 값) */
+            approvalRequired: boolean;
+            /** @description ETF 벤치마크 비교 자산 허용값·기본값 */
+            benchmarkEtf: components["schemas"]["BenchmarkEtfMeta"];
+        };
+        StrategyFieldsMeta: {
+            /** @description 종목 생성 설정 (customizable/allowedValues/defaultValue) */
+            ticker?: components["schemas"]["StrategyFieldSettingsObject"] | null;
+            /** @description 무한매수 분할 수 생성 설정 */
+            divisionCount?: components["schemas"]["StrategyFieldSettingsObject"] | null;
+            /** @description VR 정기 입출금 방향 생성 설정 */
+            recurringMode?: components["schemas"]["StrategyFieldSettingsObject"] | null;
+            /** @description VR 밴드 폭 생성 설정 (%) */
+            bandWidth?: components["schemas"]["StrategyFieldSettingsObject"] | null;
+            /** @description VR 롤오버 주기 생성 설정 (주 단위) */
+            intervalWeeks?: components["schemas"]["StrategyFieldSettingsObject"] | null;
         };
         StrategyTypeMeta: {
             /**
@@ -4379,6 +4634,14 @@ export interface components {
             conditionIndicators: string[];
             /** @description 등록 가능 증권사 name() 목록 (빈 목록이면 전체 허용) */
             supportedBrokers: string[];
+            /** @description 신규 전략 생성 허용 여부 (/api/runtime-config strategies[type].enabled와 같은 값) */
+            enabled: boolean;
+            /** @description 생성 필드별 허용값·기본값 (/api/runtime-config strategies[type].fields와 같은 값) */
+            fields: components["schemas"]["StrategyFieldsMeta"];
+            /** @description VR 램프 기본값표 — 적립 모드(DEPOSIT·HOLD·WITHDRAW)별. VR 외 전략은 생략 */
+            vrRampDefaults?: {
+                [key: string]: components["schemas"]["VrRampParams"];
+            } | null;
         };
         TickerMeta: {
             /**
@@ -4447,6 +4710,16 @@ export interface components {
              * @description 거래량
              */
             volume: number;
+            /** @description 단순이동평균 20일 (해당 캔들까지 종가 평균, 부족 시 null, 소수 둘째 자리). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
+            sma20?: number | null;
+            /** @description 단순이동평균 50일 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
+            sma50?: number | null;
+            /** @description 단순이동평균 120일 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
+            sma120?: number | null;
+            /** @description 단순이동평균 200일 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
+            sma200?: number | null;
+            /** @description RSI(14, Wilder) — 해당 캔들 포함 최근 250개 종가 창 기준 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
+            rsi14?: number | null;
         };
         FinanceGroupMemberResponse: {
             /**
@@ -5652,6 +5925,50 @@ export interface operations {
             };
         };
     };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description 계좌 ID
+                 * @example a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                 */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 내 계좌가 아님 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+            /** @description 계좌를 찾을 수 없음 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AccountResponse"];
+                };
+            };
+        };
+    };
     update_7: {
         parameters: {
             query?: never;
@@ -5839,6 +6156,58 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    validateVrConfig: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VrConfigRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StrategyValidationResponse"];
+                };
+            };
+        };
+    };
+    validateUpdate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradingCycleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StrategyValidationResponse"];
+                };
             };
         };
     };
@@ -6529,114 +6898,6 @@ export interface operations {
             };
         };
     };
-    triggerOpen: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerMarketIndexPriceSync: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndex: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandPriceIndexFullRefresh: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerKbLandHousingBenchmark: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    triggerClose: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Accepted */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     listBases: {
         parameters: {
             query?: {
@@ -6888,6 +7149,32 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["TradingCycleResponse"];
+                };
+            };
+        };
+    };
+    validateRegistration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradingCycleRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["StrategyValidationResponse"];
                 };
             };
         };
@@ -8770,7 +9057,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -8980,6 +9267,114 @@ export interface operations {
         responses: {
             /** @description No Content */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerOpen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerMarketIndexPriceSync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandPriceIndex: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandPriceIndexFullRefresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerKbLandHousingBenchmark: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    triggerClose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
                 headers: {
                     [name: string]: unknown;
                 };

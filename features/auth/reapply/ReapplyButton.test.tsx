@@ -1,9 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ReapplyButton } from './ReapplyButton'
 
-const { reapplyMock, toastErrorMock, toastSuccessMock } = vi.hoisted(() => ({
+const { reapplyMock, toastErrorMock, toastSuccessMock, meMock } = vi.hoisted(() => ({
+  meMock: vi.fn(),
   reapplyMock: vi.fn(),
   toastErrorMock: vi.fn(),
   toastSuccessMock: vi.fn(),
@@ -15,47 +18,37 @@ vi.mock('sonner', () => ({
 
 vi.mock('@entities/user', () => ({
   reapply: reapplyMock,
+  useMeQuery: () => ({ data: meMock() }),
+  userKeys: { me: () => ['me'] },
 }))
 
-// jsdom 환경에 window.localStorage가 제공되지 않아 in-memory 구현으로 대체
-function createLocalStorageStub(): Storage {
-  const store = new Map<string, string>()
-  return {
-    getItem: (key: string) => store.get(key) ?? null,
-    setItem: (key: string, value: string) => void store.set(key, value),
-    removeItem: (key: string) => void store.delete(key),
-    clear: () => store.clear(),
-    key: (index: number) => Array.from(store.keys())[index] ?? null,
-    get length() {
-      return store.size
-    },
-  }
+function wrapper({ children }: { children: ReactNode }) {
+  return <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>
 }
 
 describe('ReapplyButton', () => {
   beforeEach(() => {
-    vi.stubGlobal('localStorage', createLocalStorageStub())
+    meMock.mockReset()
     reapplyMock.mockReset()
     toastErrorMock.mockReset()
     toastSuccessMock.mockReset()
   })
 
-  it('requests reapproval and records the cooldown timestamp', async () => {
+  it('requests reapproval', async () => {
     reapplyMock.mockResolvedValue(undefined)
     const user = userEvent.setup()
-    render(<ReapplyButton />)
+    render(<ReapplyButton />, { wrapper })
 
     await user.click(screen.getByRole('button', { name: '승인 재신청' }))
 
     expect(reapplyMock).toHaveBeenCalled()
     expect(toastSuccessMock).toHaveBeenCalledWith('승인 재신청을 완료했습니다')
-    expect(localStorage.getItem('reapply_last_requested_at')).not.toBeNull()
   })
 
-  it('blocks a repeat request during the cooldown window without calling reapply', async () => {
-    localStorage.setItem('reapply_last_requested_at', Date.now().toString())
+  it('blocks a repeat request while reapplyAvailableAt is in the future without calling reapply', async () => {
+    meMock.mockReturnValue({ reapplyAvailableAt: new Date(Date.now() + 30 * 60000).toISOString() })
     const user = userEvent.setup()
-    render(<ReapplyButton />)
+    render(<ReapplyButton />, { wrapper })
 
     const button = screen.getByRole('button', { name: /분 후 재신청 가능/ })
     await user.click(button)

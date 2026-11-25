@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { adminKeys } from '@entities/admin'
 import { adminSettingsKeys } from '@entities/admin-settings'
-import { runtimeConfigKeys, type RuntimeConfig } from '@entities/runtime-config'
+import type { RuntimeConfig } from '@entities/runtime-config'
 import { AdminSettingsForm } from './AdminSettingsForm'
 
 const {
@@ -12,7 +12,9 @@ const {
   updateAdminSettingsMock,
   toastErrorMock,
   toastSuccessMock,
+  routerRefreshMock,
 } = vi.hoisted(() => ({
+  routerRefreshMock: vi.fn(),
   getAdminSettingsMock: vi.fn(),
   updateAdminSettingsMock: vi.fn(),
   toastErrorMock: vi.fn(),
@@ -22,6 +24,10 @@ const {
 vi.mock('@entities/admin-settings/api', () => ({
   getAdminSettings: getAdminSettingsMock,
   updateAdminSettings: updateAdminSettingsMock,
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: routerRefreshMock }),
 }))
 
 vi.mock('sonner', () => ({
@@ -85,19 +91,16 @@ function createTestQueryClient() {
 }
 
 function prepareRequiredRefetches(queryClient: QueryClient) {
-  const runtime = deferred<RuntimeConfig>()
   const users = deferred<unknown[]>()
   const stats = deferred<Record<string, number>>()
   const usersKey = adminKeys.users()
 
-  queryClient.setQueryDefaults(runtimeConfigKeys.all, { queryFn: () => runtime.promise })
   queryClient.setQueryDefaults(usersKey, { queryFn: () => users.promise })
   queryClient.setQueryDefaults(adminKeys.stats(), { queryFn: () => stats.promise })
-  queryClient.setQueryData(runtimeConfigKeys.all, settings)
   queryClient.setQueryData(usersKey, [])
   queryClient.setQueryData(adminKeys.stats(), { pendingUsers: 1 })
 
-  return { runtime, stats, users }
+  return { stats, users }
 }
 
 async function renderLoadedForm(queryClient: QueryClient) {
@@ -116,6 +119,7 @@ describe('AdminSettingsForm mutation lifecycle', () => {
     updateAdminSettingsMock.mockReset().mockImplementation(async (next: RuntimeConfig) => structuredClone(next))
     toastErrorMock.mockReset()
     toastSuccessMock.mockReset()
+    routerRefreshMock.mockReset()
   })
 
   // 전체 스위트(1000+개 테스트) 동시 실행 시 CPU 경합으로 기본 5000ms를 넘겨 타임아웃되는 사례가
@@ -133,9 +137,9 @@ describe('AdminSettingsForm mutation lifecycle', () => {
       await user.click(screen.getByRole('switch', { name: '관리자 승인 필요' }))
       await user.click(screen.getByRole('button', { name: /변경 저장/ }))
 
-      await waitFor(() => expect(invalidateSpy).toHaveBeenCalledTimes(3))
+      await waitFor(() => expect(invalidateSpy).toHaveBeenCalledTimes(2))
+      expect(routerRefreshMock).toHaveBeenCalledTimes(1)
       expect(invalidateSpy.mock.calls).toEqual([
-        [{ queryKey: runtimeConfigKeys.all, refetchType: 'all' }, { throwOnError: true }],
         [{ queryKey: adminKeys.usersRoot(), refetchType: 'all' }, { throwOnError: true }],
         [{ queryKey: adminKeys.stats(), refetchType: 'all' }, { throwOnError: true }],
       ])
@@ -145,14 +149,6 @@ describe('AdminSettingsForm mutation lifecycle', () => {
       await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'xyz')
       await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
       expect(screen.getByRole('alert')).toHaveTextContent('지원하지 않는 ETF 심볼입니다: XYZ')
-
-      await act(async () => {
-        refetches.runtime.resolve({ ...settings, auth: { approvalRequired: false } })
-        await Promise.resolve()
-      })
-      expect(screen.getByRole('button', { name: /저장 중/ })).toBeDisabled()
-      expect(toastSuccessMock).not.toHaveBeenCalled()
-      expect(screen.getByRole('alert')).toBeInTheDocument()
 
       await act(async () => {
         refetches.users.resolve([])
@@ -176,17 +172,13 @@ describe('AdminSettingsForm mutation lifecycle', () => {
   // 저장 응답이 캐시에 들어가 서버값이 바뀌면 저장한 필드는 더 이상 "편집함"이 아니다 — 다음 서버값도 따라가야 한다
   it('clears dirty state after a successful save so saved fields follow later server data', async () => {
     const queryClient = createTestQueryClient()
-    const refetches = prepareRequiredRefetches(queryClient)
+    prepareRequiredRefetches(queryClient)
     const user = userEvent.setup()
 
     try {
       await renderLoadedForm(queryClient)
       await user.click(screen.getByRole('switch', { name: '토스증권' }))
       await user.click(screen.getByRole('button', { name: /변경 저장/ }))
-      await waitFor(() => expect(queryClient.isMutating()).toBe(1))
-      await act(async () => {
-        refetches.runtime.resolve(settings)
-      })
       await waitFor(() => expect(toastSuccessMock).toHaveBeenCalledWith('운영 설정을 저장했습니다'))
       expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /변경 저장/ })).toBeDisabled()
@@ -217,7 +209,6 @@ describe('AdminSettingsForm mutation lifecycle', () => {
 
       await waitFor(() => expect(queryClient.isMutating()).toBe(1))
       await act(async () => {
-        refetches.runtime.resolve({ ...settings, auth: { approvalRequired: false } })
         refetches.stats.reject(new Error('stats refetch failed'))
         await Promise.resolve()
       })

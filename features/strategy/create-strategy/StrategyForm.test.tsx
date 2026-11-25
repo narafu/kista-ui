@@ -104,8 +104,6 @@ const baseFormState = {
   tickerCustomizable: true,
   enabledStrategyTypes: ['INFINITE', 'VR'],
   runtimeConfigUnavailable: false,
-  runtimeConfigError: false,
-  retryRuntimeConfig: vi.fn(),
   isVr: false,
   vrFields: {
     avgPrice: null,
@@ -195,14 +193,6 @@ describe('StrategyForm scheduled start section', () => {
 })
 
 describe('StrategyForm seed section', () => {
-  it('shows a retry action when runtime config fails in create mode', () => {
-    const retryRuntimeConfig = vi.fn()
-    useStrategyFormMock.mockReturnValue({ ...baseFormState, runtimeConfigError: true, retryRuntimeConfig })
-    render(<StrategyForm accountId="account-1" />)
-    screen.getByRole('button', { name: '다시 시도' }).click()
-    expect(retryRuntimeConfig).toHaveBeenCalled()
-    expect(screen.queryByRole('button', { name: '등록' })).not.toBeInTheDocument()
-  })
   it('shows read-only starting amount instead of the editable seed section in edit mode', () => {
     useStrategyFormMock.mockReturnValue(baseFormState)
 

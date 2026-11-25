@@ -11,6 +11,7 @@ export interface User {
   notificationChannel?: NotificationChannel
   notificationPrefs?: Record<string, boolean>
   strategySuggestions: string[]
+  reapplyAvailableAt?: string | null
 }
 
 // kista-api UserSettings.DEFAULT_STRATEGY_SUGGESTIONS와 동일한 값 — 쿼리 로딩 전 폴백으로 쓴다.

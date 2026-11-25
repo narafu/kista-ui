@@ -12,12 +12,6 @@ vi.mock('@entities/meta', async () => {
   }) }
 })
 
-vi.mock('@entities/runtime-config', () => ({
-  useRuntimeConfigQuery: () => ({
-    data: { brokers: { TOSS: { enabled: true }, MOCK: { enabled: true }, MERITZ: { enabled: true } } },
-  }),
-}))
-
 vi.mock('@entities/account', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@entities/account')>()),
   useCreateAccountMutation: () => ({ mutate: vi.fn(), isPending: false, isError: false, error: null }),

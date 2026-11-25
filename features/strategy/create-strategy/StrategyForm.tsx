@@ -2,7 +2,6 @@
 
 import type { SubmitReasonField } from './model/strategyFormGuards'
 import { FormActions } from '@shared/ui/FormActions'
-import { Button } from '@/components/ui/button'
 import { useMeta } from '@entities/meta'
 import { useStrategyForm } from './model/useStrategyForm'
 import type { UseStrategyFormReturn } from './model/useStrategyForm'
@@ -37,17 +36,6 @@ function seedHint(isVr: boolean, initial?: Strategy) {
   return '첫 매매 전이라 예수금 수정이 가능합니다'
 }
 
-function RuntimeConfigError({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="rounded-sm border border-border bg-muted px-4 py-4 text-sm text-muted-foreground">
-      <p>전략 설정을 불러오지 못했습니다.</p>
-      <Button type="button" variant="outline" size="sm" onClick={onRetry} className="mt-3">
-        다시 시도
-      </Button>
-    </div>
-  )
-}
-
 function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?: Strategy }) {
   if (initial && !form.canEditSeed) {
     return <ReadOnlySeedSection initialDeposit={initial.initialDeposit} />
@@ -76,10 +64,6 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
 
   if (form.initializing) {
     return <StrategyFormSkeleton hasCancel={!!onCancel} />
-  }
-
-  if (!initial && form.runtimeConfigError) {
-    return <RuntimeConfigError onRetry={form.retryRuntimeConfig} />
   }
 
   // DCA는 시드·분할·VR과 무관한 별도 폼 — 유형 선택(등록)만 공유하고 나머지는 DcaStrategyForm이 렌더

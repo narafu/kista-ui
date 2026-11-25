@@ -12,39 +12,36 @@ vi.mock('@entities/backtest', () => ({
   }),
 }))
 
-vi.mock('@entities/runtime-config', () => ({
-  useRuntimeConfigQuery: () => ({
-    data: {
-      strategies: {
-        INFINITE: {
-          enabled: true,
+vi.mock('@entities/meta', () => ({
+  useMeta: () => ({
+    meta: {
+      strategyTypes: [
+        // enabled·fields·vrRampDefaults는 기존 runtime-config mock·RAMP_DEFAULTS_BY_MODE 값 그대로
+        {
+          code: 'INFINITE', availableTickers: ['MAGX', 'USD', 'TQQQ', 'SOXL'], divisionCounts: [20, 30, 40], enabled: true,
           fields: {
             ticker: { customizable: true, allowedValues: ['MAGX', 'TQQQ'], defaultValue: 'MAGX' },
             divisionCount: { customizable: true, allowedValues: [20, 30, 40], defaultValue: 20 },
           },
         },
-        PRIVACY: { enabled: true, fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } } },
-        VR: {
-          enabled: true,
+        {
+          code: 'PRIVACY', availableTickers: ['SOXL'], divisionCounts: [], enabled: true,
+          fields: { ticker: { customizable: false, allowedValues: ['SOXL'], defaultValue: 'SOXL' } },
+        },
+        {
+          code: 'VR', availableTickers: ['TQQQ'], divisionCounts: [], enabled: true,
           fields: {
             ticker: { customizable: false, allowedValues: ['TQQQ'], defaultValue: 'TQQQ' },
             recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
             bandWidth: { customizable: true, allowedValues: [10, 15, 20], defaultValue: 15 },
             intervalWeeks: { customizable: true, allowedValues: [1, 2, 4], defaultValue: 2 },
           },
+          vrRampDefaults: {
+            DEPOSIT: { initialGradient: 10, gGraceWeeks: 52, gStepWeeks: 26, gMax: 20, initialPoolLimitRate: 1.0, pGraceWeeks: 52, pStepWeeks: 26, poolLimitFloor: 0.5 },
+            HOLD: { initialGradient: 10, gGraceWeeks: 52, gStepWeeks: 26, gMax: 20, initialPoolLimitRate: 0.75, pGraceWeeks: 52, pStepWeeks: 26, poolLimitFloor: 0.5 },
+            WITHDRAW: { initialGradient: 40, gGraceWeeks: 52, gStepWeeks: 26, gMax: 50, initialPoolLimitRate: 0.1, pGraceWeeks: 52, pStepWeeks: 26, poolLimitFloor: 0.1 },
+          },
         },
-      },
-    },
-  }),
-}))
-
-vi.mock('@entities/meta', () => ({
-  useMeta: () => ({
-    meta: {
-      strategyTypes: [
-        { code: 'INFINITE', availableTickers: ['MAGX', 'USD', 'TQQQ', 'SOXL'], divisionCounts: [20, 30, 40] },
-        { code: 'PRIVACY', availableTickers: ['SOXL'], divisionCounts: [] },
-        { code: 'VR', availableTickers: ['TQQQ'], divisionCounts: [] },
       ],
       cycleSeedTypes: [
         { code: 'NONE', label: '연속 안 함' },
@@ -62,7 +59,7 @@ describe('useBacktestForm', () => {
     mutationVariables = undefined
   })
 
-  it('전략 타입 전환 시 종목·VR 필드가 새 타입의 runtime-config 기본값으로 초기화된다', async () => {
+  it('전략 타입 전환 시 종목·VR 필드가 새 타입의 meta 기본값으로 초기화된다', async () => {
     const { useBacktestForm } = await import('./useBacktestForm')
     const { result } = renderHook(() => useBacktestForm())
 
@@ -148,7 +145,7 @@ describe('useBacktestForm', () => {
     expect(result.current.submitDisabledReason).toBe('시작일이 종료일보다 늦을 수 없습니다.')
   })
 
-  it('VR은 밴드폭·주기를 runtime 기본값으로 채워 초기V값 없이도 제출 가능하다', async () => {
+  it('VR은 밴드폭·주기를 meta 기본값으로 채워 초기V값 없이도 제출 가능하다', async () => {
     const { useBacktestForm } = await import('./useBacktestForm')
     const { result } = renderHook(() => useBacktestForm())
 

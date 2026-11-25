@@ -5,14 +5,14 @@ import userEvent from '@testing-library/user-event'
 import type { HousingBenchmark, HousingBenchmarkComparison as HousingBenchmarkComparisonData } from '@entities/stats'
 import { HousingBenchmarkComparison } from './HousingBenchmarkComparison'
 
-const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useHousingPriceIndexSeriesQueryMock, useEtfPriceSeriesQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, useRuntimeConfigQueryMock, useStatsCurrencyMock } = vi.hoisted(() => ({
+const { useHousingBenchmarkQueryMock, useHousingBenchmarkRegionsQueryMock, useHousingPriceIndexSeriesQueryMock, useEtfPriceSeriesQueryMock, useAllStrategiesQueryMock, useAccountsQueryMock, metaState, useStatsCurrencyMock } = vi.hoisted(() => ({
   useHousingBenchmarkQueryMock: vi.fn(),
   useHousingBenchmarkRegionsQueryMock: vi.fn(),
   useHousingPriceIndexSeriesQueryMock: vi.fn(),
   useEtfPriceSeriesQueryMock: vi.fn(),
   useAllStrategiesQueryMock: vi.fn(),
   useAccountsQueryMock: vi.fn(),
-  useRuntimeConfigQueryMock: vi.fn(),
+  metaState: { benchmarkEtf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'SPY' } },
   useStatsCurrencyMock: vi.fn(),
 }))
 
@@ -26,7 +26,7 @@ const MOCK_REGIONS = [
 
 // 전략 타입 라벨은 메타(description)가 SSOT — 테스트에선 코드를 그대로 돌려준다
 vi.mock('@entities/meta', () => ({
-  useMeta: () => ({ labelOf: (_category: string, code: string) => code }),
+  useMeta: () => ({ meta: { benchmarkEtf: metaState.benchmarkEtf }, labelOf: (_category: string, code: string) => code }),
 }))
 
 vi.mock('@entities/stats', async (importOriginal) => {
@@ -49,11 +49,6 @@ vi.mock('@entities/strategy', async (importOriginal) => {
 vi.mock('@entities/account', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/account')>()
   return { ...actual, useAccountsQuery: useAccountsQueryMock }
-})
-
-vi.mock('@entities/runtime-config', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@entities/runtime-config')>()
-  return { ...actual, useRuntimeConfigQuery: useRuntimeConfigQueryMock }
 })
 
 vi.mock('recharts', () => ({
@@ -201,7 +196,7 @@ describe('HousingBenchmarkComparison', () => {
     useStatsCurrencyMock.mockReturnValue({ currency: 'USD', options: ['USD'], setCurrency: vi.fn() })
     useAllStrategiesQueryMock.mockReturnValue({ data: STRATEGIES, isLoading: false })
     useAccountsQueryMock.mockReturnValue({ data: ACCOUNTS, isLoading: false })
-    useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
+    metaState.benchmarkEtf = { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'SPY' }
     useHousingBenchmarkRegionsQueryMock.mockReturnValue({
       data: { regions: MOCK_REGIONS }, isLoading: false, isError: false,
     })
@@ -315,13 +310,9 @@ describe('HousingBenchmarkComparison', () => {
     }, true)
   })
 
-  it('runtime config의 ETF 기본값과 목록으로 벤치마크 자산을 렌더링한다', async () => {
+  it('meta의 ETF 기본값과 목록으로 벤치마크 자산을 렌더링한다', async () => {
     const user = userEvent.setup()
-    useRuntimeConfigQueryMock.mockReturnValue({
-      data: {
-        benchmarks: { etf: { allowedValues: ['QQQ', 'IBIT'], defaultValue: 'IBIT' } },
-      },
-    })
+    metaState.benchmarkEtf = { allowedValues: ['QQQ', 'IBIT'], defaultValue: 'IBIT' }
 
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
@@ -346,27 +337,18 @@ describe('HousingBenchmarkComparison', () => {
     }), true)
   })
 
-  it('runtime config가 로딩 후 새 ETF 기본값으로 응답하면 아직 직접 선택하지 않은 선택값을 갱신한다', () => {
-    useRuntimeConfigQueryMock.mockReturnValue({ data: undefined })
+  it('meta가 갱신돼(router.refresh) 새 ETF 기본값이 오면 아직 직접 선택하지 않은 선택값을 갱신한다', () => {
     const { rerender } = render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
     expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('SPY')
 
-    useRuntimeConfigQueryMock.mockReturnValue({
-      data: {
-        benchmarks: { etf: { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'QQQ' } },
-      },
-    })
+    metaState.benchmarkEtf = { allowedValues: ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'], defaultValue: 'QQQ' }
     rerender(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
     expect(screen.getByRole('combobox', { name: '벤치마크 자산' })).toHaveTextContent('QQQ')
   })
 
-  it('runtime config에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', async () => {
-    useRuntimeConfigQueryMock.mockReturnValue({
-      data: {
-        benchmarks: { etf: { allowedValues: ['VOO'], defaultValue: 'VOO' } },
-      },
-    })
+  it('meta에만 있는 ETF 심볼도 일반 ETF 옵션으로 표시한다', async () => {
+    metaState.benchmarkEtf = { allowedValues: ['VOO'], defaultValue: 'VOO' }
 
     render(<HousingBenchmarkComparison enabled defaultTo="2026-07-17" />)
 
