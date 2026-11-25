@@ -473,7 +473,7 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - `useAppForm`: `MAP_SERVER_FIELD_ERRORS`를 지우고 항상 켰다. `[0]`→`.0`으로 바꾼 이름이 등록된 필드(`control._names.mount`)면 그 칸에 붙이고 첫 칸 포커스, 아니면(field null·`buyQuantityValid`처럼 요청에만 있는 이름) `root.server`로 모아 `FormActions`(쓰지 않는 폼 4개는 `form/FormServerError`)가 버튼 위 한 줄로 그린다. root는 RHF `handleSubmit`이 다음 제출 때 지운다. 토스트는 hook `onError`의 요약 `detail` 그대로(PROGRESS 묶음 C의 "hook onError도 고친다"는 따르지 않음, 로드맵 3절).
 - 전략 폼: `validateStrategy`의 400은 `fieldErrors`가 있으면 그대로 쓴다(없으면 `detail`을 필드 없는 거절). 검증 실패·대기 중 제출해 받은 400의 필드 문장은 `StrategyForm`·`DcaStrategyForm`·`ReconfigureVrForm` 하단에 표시 전용으로 보인다(제출 차단에 넣지 않음).
 - 인라인 실패 문구(백테스트 `errorMessage`·계좌 등록 `ConfirmStep`·`brokerErrorMessage`)는 `apiInlineMsg`로 필드 문장을 우선한다. 백테스트 VR 주기 거절(`intervalWeeks`)은 이 한 줄로 보인다. `CredentialsCard`는 필드 거절이면 인라인 문구를 숨긴다(`useAppForm`이 칸에 붙여 중복).
-- 남긴 것: 05의 4(`BROKER_ERROR_MESSAGE`·mutation 폴백 문구 정리)는 02 선행이라 손대지 않았다 — 필드 거절과 무관한 `ErrorCode` → 문구 맵이고, 서버가 그 코드에 사용자 문장을 싣는지 확인하지 못했다.
+- 남긴 것: 05의 4(`BROKER_ERROR_MESSAGE`·mutation 폴백 문구 정리)는 02 선행이라 손대지 않았다 — 필드 거절과 무관한 `ErrorCode` → 문구 맵이고, api 확인(2026-11-25): 두 코드 모두 인자 없는 예외의 고정 한국어 detail이다 — `BROKER_PERMISSION_DENIED`(422) "거래소 API 키에 필요한 권한이 없습니다.", `BROKER_RATE_LIMITED`(429) "증권사 API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요."(trading-core `ExceptionResponseTableTest`가 고정). 05의 4에서 맵을 지우고 detail을 쓴다. "거래소"→"증권사"는 api가 고치면 알려 준다.
 - 검증: typecheck·lint·knip 통과, 관련 vitest 1032건 통과, 새 테스트 2곳 변이 확인(매핑·400 파싱을 되돌리면 실패). 실서버 확인은 로컬 api가 `490e8cf9b` 이전 빌드(`[type: 널이어서는 안됩니다]`)라 못 했다.
 
 ## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)
