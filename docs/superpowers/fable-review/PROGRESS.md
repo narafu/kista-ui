@@ -474,7 +474,8 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 전략 폼: `validateStrategy`의 400은 `fieldErrors`가 있으면 그대로 쓴다(없으면 `detail`을 필드 없는 거절). 검증 실패·대기 중 제출해 받은 400의 필드 문장은 `StrategyForm`·`DcaStrategyForm`·`ReconfigureVrForm` 하단에 표시 전용으로 보인다(제출 차단에 넣지 않음).
 - 인라인 실패 문구(백테스트 `errorMessage`·계좌 등록 `ConfirmStep`·`brokerErrorMessage`)는 `apiInlineMsg`로 필드 문장을 우선한다. 백테스트 VR 주기 거절(`intervalWeeks`)은 이 한 줄로 보인다. `CredentialsCard`는 필드 거절이면 인라인 문구를 숨긴다(`useAppForm`이 칸에 붙여 중복).
 - 남긴 것: 05의 4(`BROKER_ERROR_MESSAGE`·mutation 폴백 문구 정리)는 02 선행이라 손대지 않았다 — 필드 거절과 무관한 `ErrorCode` → 문구 맵이고, api 확인(2026-11-25): 두 코드 모두 인자 없는 예외의 고정 한국어 detail이다 — `BROKER_PERMISSION_DENIED`(422) "증권사 API 키에 필요한 권한이 없습니다."(api `388a39893`, T7과 같은 묶음 배포 — 예전 "거래소"), `BROKER_RATE_LIMITED`(429) "증권사 API 호출 한도를 초과했습니다. 잠시 후 다시 시도해주세요."(trading-core `ExceptionResponseTableTest`가 고정). 05의 4에서 맵을 지우고 detail을 쓴다.
-- 검증: typecheck·lint·knip 통과, 관련 vitest 1032건 통과, 새 테스트 2곳 변이 확인(매핑·400 파싱을 되돌리면 실패). 실서버 확인은 로컬 api가 `490e8cf9b` 이전 빌드(`[type: 널이어서는 안됩니다]`)라 못 했다.
+- 검증: typecheck·lint·knip 통과, vitest 전체 1884건 통과, 새 테스트 변이 확인 3곳(매핑·400 파싱·포커스). T7 빌드 로컬 api에서 400 `fieldErrors` 실응답 모양과 e2e 18건을 확인했다.
+- S7 후속 C visual-diff 재촬영(기준 `72ff7d9d~1`, 전략 등록·VR 재설정·DCA 16쌍): 차이 10건은 모두 의도한 것이다 — 하단 서버 거절 문장, "추가 입금 필요" 박스 삭제, 막힌 제출에도 버튼 활성, 가용 예수금·비율 채우기. `create-strategy-seed-fill`의 STEP ERR는 base가 stub 대상(검증 응답)을 부르지 않아 50% 버튼이 없는 도구 비대칭이다. 첫 실행의 TOSS 검증 `fetch failed`는 api 재기동과 겹친 일시 실패였다(재실행 0건).
 
 ## S7 후속 B 실행 기록 — T6 클라이언트 판정 삭제 (2026-11-25)
 
