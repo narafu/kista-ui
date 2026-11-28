@@ -6,12 +6,9 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
-import { PaginationBar } from '@shared/ui/PaginationBar'
 import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import { useMeta } from '@entities/meta'
 import {
@@ -42,7 +39,7 @@ interface Props {
 }
 
 export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: Props) {
-  const { data, isLoading, isError } = useAssetSnapshotsQuery()
+  const { data, isLoading, isError } = useAssetSnapshotsQuery(month)
   const snapshots = useMemo(() => data ?? [], [data])
   const { data: categories = [] } = useFinanceCategoriesQuery('ASSET')
   const { data: monthlyClosings = [] } = useMonthlyClosingsQuery()
@@ -65,6 +62,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
 
   const [assetClass, setAssetClass] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
   const [market, setMarket] = useState<AssetFilterValue>(ALL_FILTER_VALUE)
+  const [memoQuery, setMemoQuery] = useState('')
   const { sortKey, sortDirection, handleSort } = useTableSort<SortKey>('category', 'asc')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const deleteDialog = useConfirmDialog<string[]>()
@@ -75,12 +73,16 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     return new Set(collectSubtreeIds(categories, categoryPath[categoryPath.length - 1]))
   }, [categories, categoryPath])
 
-  const filtered = useMemo(() => snapshots.filter((snapshot) =>
-    snapshot.entryDate.startsWith(month) &&
-    (categorySubtreeIds === null || categorySubtreeIds.has(snapshot.categoryId)) &&
-    (assetClass === ALL_FILTER_VALUE || snapshot.assetClass === assetClass) &&
-    (market === ALL_FILTER_VALUE || snapshot.market === market),
-  ), [snapshots, month, categorySubtreeIds, assetClass, market])
+  // 서버가 선택한 달의 기록 전량만 준다 — 카테고리·자산군·시장·메모 필터와 정렬은 그 전량 안의 즉시 반응이라 클라이언트가 한다.
+  const filtered = useMemo(() => {
+    const q = memoQuery.trim().toLowerCase()
+    return snapshots.filter((snapshot) =>
+      (categorySubtreeIds === null || categorySubtreeIds.has(snapshot.categoryId)) &&
+      (assetClass === ALL_FILTER_VALUE || snapshot.assetClass === assetClass) &&
+      (market === ALL_FILTER_VALUE || snapshot.market === market) &&
+      (q === '' || (snapshot.memo?.toLowerCase().includes(q) ?? false)),
+    )
+  }, [snapshots, categorySubtreeIds, assetClass, market, memoQuery])
 
   const categoryIndex = useMemo(() => buildCategoryIndex({ ASSET: categories }), [categories])
 
@@ -116,21 +118,16 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     })
   }, [filtered, sortKey, sortDirection, categoryIndex, meta.assetClasses, meta.markets, labelOf])
 
-  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
-
-  // 필터 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋하고 선택도 초기화한다(선택 유지 시
-  // 필터를 바꾼 뒤 화면에 없는 레코드가 실수로 함께 삭제될 수 있다). 정렬·페이지 이동은 같은 결과
-  // 집합 안에서의 보기 방식만 바꿀 뿐이므로 선택을 유지한다 — 여러 페이지에 걸친 선택 삭제(다건
-  // 선택 후 페이지를 넘겨가며 추가 선택)를 의도적으로 허용한다. 페이지 크기 변경은 handlePageSizeChange가 처리한다.
+  // 필터 변경은 결과 집합 자체를 바꾸므로 선택을 초기화한다(선택 유지 시 필터를 바꾼 뒤 화면에 없는
+  // 레코드가 실수로 함께 삭제될 수 있다). 정렬은 같은 결과 집합 안에서의 보기 방식만 바꿀 뿐이라 선택을 유지한다.
   useEffect(() => {
-    setPage(1)
     // key 리마운트는 필터 상태까지 날려 의도와 다름, 1프레임 지연만 감수
     setSelectedIds(new Set())
-  }, [month, categoryPath, assetClass, market, setPage])
+  }, [month, categoryPath, assetClass, market, memoQuery])
 
-  const pagedIds = useMemo(() => paged.map((snapshot) => snapshot.id), [paged])
-  const allPagedSelected = pagedIds.length > 0 && pagedIds.every((id) => selectedIds.has(id))
-  const somePagedSelected = pagedIds.some((id) => selectedIds.has(id))
+  const visibleIds = useMemo(() => sorted.map((snapshot) => snapshot.id), [sorted])
+  const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id))
+  const someSelected = visibleIds.some((id) => selectedIds.has(id))
 
   function toggleRow(id: string) {
     setSelectedIds((prev) => {
@@ -141,13 +138,13 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     })
   }
 
-  function toggleAllOnPage() {
+  function toggleAll() {
     setSelectedIds((prev) => {
       const next = new Set(prev)
-      if (allPagedSelected) {
-        pagedIds.forEach((id) => next.delete(id))
+      if (allSelected) {
+        visibleIds.forEach((id) => next.delete(id))
       } else {
-        pagedIds.forEach((id) => next.add(id))
+        visibleIds.forEach((id) => next.add(id))
       }
       return next
     })
@@ -197,7 +194,7 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
     return <SectionError message="자산 기록을 불러오지 못했습니다." />
   }
   if (snapshots.length === 0) {
-    return <EmptyState message="등록된 자산 기록이 없습니다. 자산 등록 버튼으로 첫 기록을 추가해보세요." />
+    return <EmptyState message="선택한 달에 자산 기록이 없습니다. 자산 등록 버튼으로 기록을 추가해보세요." />
   }
 
   return (
@@ -208,13 +205,14 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
           categoryPath={categoryPath}
           assetClass={assetClass}
           market={market}
+          memoQuery={memoQuery}
           assetClasses={meta.assetClasses}
           markets={meta.markets}
           onCategoryPathChange={onCategoryPathChange}
           onAssetClassChange={setAssetClass}
           onMarketChange={setMarket}
+          onMemoQueryChange={setMemoQuery}
         />
-        <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
       </div>
 
       {selectedIds.size > 0 && (
@@ -227,32 +225,21 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
       )}
 
       {sorted.length === 0 ? (
-        <EmptyState
-          variant="text"
-          message={
-            categoryPath.length === 0 && assetClass === ALL_FILTER_VALUE && market === ALL_FILTER_VALUE
-              ? '선택한 달에 자산 기록이 없습니다.'
-              : '조건에 맞는 자산 기록이 없습니다.'
-          }
-        />
+        <EmptyState variant="text" message="조건에 맞는 자산 기록이 없습니다." />
       ) : (
         <>
           <AssetRecordTable
-            paged={paged}
+            rows={sorted}
             row={rowCtx}
             sortKey={sortKey}
             sortDirection={sortDirection}
             onSort={handleSort}
-            allPagedSelected={allPagedSelected}
-            somePagedSelected={somePagedSelected}
-            onToggleAll={toggleAllOnPage}
+            allSelected={allSelected}
+            someSelected={someSelected}
+            onToggleAll={toggleAll}
           />
           <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
-          <AssetRecordMobileList paged={paged} row={rowCtx} />
-
-          {totalPages > 1 && (
-            <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />
-          )}
+          <AssetRecordMobileList rows={sorted} row={rowCtx} />
         </>
       )}
 

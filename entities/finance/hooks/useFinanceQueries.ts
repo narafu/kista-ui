@@ -16,15 +16,14 @@ import {
   flowSummaryQueryOptions,
   flowTrendQueryOptions,
   monthlyClosingListQueryOptions,
-  transactionListQueryOptions,
 } from '../model/queryOptions'
-import { listFinanceGroupMembers, listSystemFinanceCategories } from '../api'
+import { listFinanceGroupMembers, listFinanceTransactions, listSystemFinanceCategories } from '../api'
 import { financeKeys } from '../model/queryKeys'
 import type { AssetCompositionBasis, FinanceCategoryType } from '../model/types'
 import type { Period, TrendRange } from '../lib/period'
 
-export function useAssetSnapshotsQuery() {
-  return useQuery(assetSnapshotListQueryOptions())
+export function useAssetSnapshotsQuery(month: string) {
+  return useQuery(assetSnapshotListQueryOptions(month))
 }
 
 export function useFinanceCategoriesQuery(type: FinanceCategoryType) {
@@ -39,9 +38,14 @@ export function useMonthlyClosingsQuery() {
   return useQuery(monthlyClosingListQueryOptions())
 }
 
-// from/to는 조회 범위(from 생략 = 하한 없음). enabled: 조건부로만 실행해야 하는 호출부를 위한 옵션(기본 true).
-export function useFinanceTransactionsQuery(from: string | undefined, to: string, options?: { enabled?: boolean }) {
-  return useQuery({ ...transactionListQueryOptions(from, to), enabled: options?.enabled ?? true })
+// 자동 월 보정용 — 범위(from/to) 안 최신 거래일 1건만 조회한다(type 없음 = 세 타입 전체). 없으면 null.
+export function useLatestTransactionDateQuery({ from, to, enabled = true }: { from: string; to: string; enabled?: boolean }) {
+  return useQuery({
+    queryKey: financeKeys.latestTransaction(from, to),
+    queryFn: async () =>
+      (await listFinanceTransactions({ from, to, sort: 'transactionDate,desc', size: 1 })).items[0]?.transactionDate ?? null,
+    enabled,
+  })
 }
 
 export function useFinanceBudgetsQuery() {

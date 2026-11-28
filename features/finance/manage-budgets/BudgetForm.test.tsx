@@ -16,8 +16,8 @@ const source: FinanceBudget = { id: 'b1', categoryId: 'cat-food', applyStartDate
 
 function setup(handlers: Parameters<typeof mockApi>[0] = {}) {
   return mockApi({
-    'GET /api/finance/categories': categoryTree,
-    'GET /api/finance/groups': [],
+    'GET /api/finance/categories': { items: categoryTree },
+    'GET /api/finance/groups': { items: [] },
     ...handlers,
   })
 }
@@ -58,7 +58,7 @@ describe('BudgetForm', () => {
 
   it('그룹 소속이면 생성 제출에 shareToGroup=true 쿼리가 붙는다', async () => {
     const user = userEvent.setup()
-    const { requests } = setup({ 'GET /api/finance/groups': [{ id: 'g1', name: '우리집' }], 'POST /api/finance/budgets': source })
+    const { requests } = setup({ 'GET /api/finance/groups': { items: [{ id: 'g1', name: '우리집' }] }, 'POST /api/finance/budgets': source })
     renderApp(<BudgetForm type="EXPENSE" duplicateFrom={source} onDone={vi.fn()} />)
     await categoryLabel('식비')
     await screen.findByRole('switch', { name: '그룹으로 저장' })

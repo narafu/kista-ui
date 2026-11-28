@@ -107,7 +107,11 @@ export const stubSeedCash = (p) => p.route(`**/api/accounts/${seed.toss.accountI
 
 /** 시나리오·화면 경로에 필요한 실데이터 id — 8080 직접 GET. 못 찾으면 assetSnapshotId는 undefined */
 export async function resolveContext(token) {
-  const r = await fetch(`${API_BASE}/api/finance/asset-snapshots`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) }).catch(() => null)
-  const list = r?.ok ? await r.json() : []
-  return { assetSnapshotId: seed.assetSnapshotId ?? (Array.isArray(list) ? list[0]?.id : undefined) }
+  const get = (path) => fetch(`${API_BASE}${path}`, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(10_000) })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+  // 자산 기록 목록은 월 필수 — 최근 기록 월(없으면 현재 월)의 목록에서 고른다. 수정·복제 화면도 ?month=가 있어야 그 기록을 찾는다.
+  // 시드 id를 override하면 그 기록의 월은 seed.assetSnapshotMonth로 같이 준다.
+  const month = seed.assetSnapshotMonth ?? (await get('/api/finance/asset-snapshots/summary'))?.month ?? new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }).slice(0, 7)
+  const list = (await get(`/api/finance/asset-snapshots?month=${month}`))?.items
+  return { assetSnapshotId: seed.assetSnapshotId ?? (Array.isArray(list) ? list[0]?.id : undefined), assetSnapshotMonth: month }
 }

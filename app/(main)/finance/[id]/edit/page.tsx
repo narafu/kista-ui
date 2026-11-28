@@ -6,21 +6,29 @@ import { getAuthToken } from '@shared/lib/auth/token'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ month?: string }>
 }
+
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
 
 export const metadata: Metadata = {
   title: '자산 기록 수정',
   description: '자산·부채 기록을 수정합니다',
 }
 
-export default async function EditAssetPage({ params }: Props) {
-  const [{ id }, token] = await Promise.all([params, getAuthToken()])
+export default async function EditAssetPage({ params, searchParams }: Props) {
+  const [{ id }, { month }, token] = await Promise.all([params, searchParams, getAuthToken()])
 
   if (!token) {
     return notFound()
   }
 
-  const asset = await loadAssetSnapshotById(id, token)
+  // month가 형식에 안 맞으면 서버 400이 에러 바운더리로 가기 전에 not-found로 돌린다
+  if (!month || !MONTH_PATTERN.test(month)) {
+    return notFound()
+  }
+
+  const asset = await loadAssetSnapshotById(id, month, token).catch(() => null)
   if (!asset) {
     return notFound()
   }

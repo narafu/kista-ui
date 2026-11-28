@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ALL_FILTER_VALUE, CascadingCategorySelect } from '@shared/ui/CascadingCategorySelect'
 import type { EnumMeta } from '@entities/meta'
@@ -15,11 +16,13 @@ interface Props {
   categoryPath: string[]
   assetClass: AssetFilterValue
   market: AssetFilterValue
+  memoQuery: string
   assetClasses: EnumMeta[]
   markets: EnumMeta[]
   onCategoryPathChange: (path: string[]) => void
   onAssetClassChange: (value: AssetFilterValue) => void
   onMarketChange: (value: AssetFilterValue) => void
+  onMemoQueryChange: (value: string) => void
 }
 
 // 기준월은 페이지 상단 AssetOverview의 select와 통일돼 여기 자체 필터로는 없다 — 카테고리·자산군·시장
@@ -29,11 +32,13 @@ export function AssetRecordFilters({
   categoryPath,
   assetClass,
   market,
+  memoQuery,
   assetClasses,
   markets,
   onCategoryPathChange,
   onAssetClassChange,
   onMarketChange,
+  onMemoQueryChange,
 }: Props) {
   const assetClassOptions = [[ALL_FILTER_VALUE, '전체'], ...assetClasses.map((c) => [c.code, c.label] as const)] as const
   const marketOptions = [[ALL_FILTER_VALUE, '전체'], ...markets.map((m) => [m.code, m.label] as const)] as const
@@ -60,6 +65,15 @@ export function AssetRecordFilters({
           {marketOptions.map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
         </SelectContent>
       </Select>
+      {/* 메모 검색은 서버 파라미터가 없어 클라이언트에서 거른다(한 달 전량을 받아 둔 상태). 마크업은 거래 목록과 같다 */}
+      <Input
+        type="search"
+        value={memoQuery}
+        onChange={(e) => onMemoQueryChange(e.target.value)}
+        placeholder="메모 검색"
+        aria-label="메모 검색"
+        className="col-span-2 w-full lg:col-span-1 lg:w-48"
+      />
     </div>
   )
 }

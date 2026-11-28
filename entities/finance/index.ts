@@ -51,11 +51,12 @@ export {
   useFinanceCategoriesQuery,
   useFinanceGroupMembersQuery,
   useFinanceGroupsQuery,
-  useFinanceTransactionsQuery,
+  useLatestTransactionDateQuery,
   useMonthlyClosingsQuery,
   useSystemFinanceCategoriesQuery,
 } from './hooks/useFinanceQueries'
 export { useCategoryPathState } from './hooks/useCategoryPathState'
+export { useFinanceTransactionsInfiniteQuery } from './hooks/useFinanceTransactionsInfiniteQuery'
 export {
   useBulkRegisterFinanceMutation,
   useCreateAssetSnapshotMutation,
@@ -109,7 +110,6 @@ export type { FlowType } from './lib/budgetRoutes'
 export { FLOW_TYPE_LABEL, budgetListHref, flowTypeFromSlug } from './lib/budgetRoutes'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
 export { compareAssetDetail, compareCategoryPath } from './lib/assetSort'
-export { autoAdjustedMonth, displayWindow, monthEndDate, monthStartDate, periodRange, registerWindowUpperBound, shiftMonth, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
+export { autoAdjustedMonth, monthEndDate, monthStartDate, periodRange, registerWindowUpperBound, shiftMonth, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
 export type { Period, PeriodMode, TrendRange } from './lib/period'
-export { filterByType, unclassifiedTransactions } from './lib/flowAggregate'
 export { flowCategoryColor } from './lib/colors'

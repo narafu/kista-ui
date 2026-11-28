@@ -177,8 +177,8 @@ describe('FinanceBudgetProgress 예산 미설정 빠른 등록', () => {
     const user = userEvent.setup()
     const food: FinanceCategory = cat('food', '식비')
     const { requests } = mockApi({
-      'GET /api/finance/categories': [food, cat('transit', '교통')],
-      'GET /api/finance/groups': [],
+      'GET /api/finance/categories': { items: [food, cat('transit', '교통')] },
+      'GET /api/finance/groups': { items: [] },
       'POST /api/finance/budgets': budget('b-new', 'food', 80_000),
     })
     mockProgress([], [{ categoryId: 'food', categoryName: '식비', amount: 30_000 }])

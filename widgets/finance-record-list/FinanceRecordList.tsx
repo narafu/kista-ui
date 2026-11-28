@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { EmptyState } from '@shared/ui/EmptyState'
@@ -13,24 +13,21 @@ import { TableHeadCell, evenColumnsClass } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
 import { MobileSortControl } from '@shared/ui/MobileSortControl'
-import { PageSizeSelector } from '@shared/ui/PageSizeSelector'
-import { PaginationBar } from '@shared/ui/PaginationBar'
+import { LoadMoreButton } from '@shared/ui/data-list/LoadMoreButton'
 import { ConfirmDialog } from '@shared/ui/ConfirmDialog'
 import { cn } from '@shared/lib/utils'
 import { fmtDate, fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useConfirmDialog } from '@shared/lib/hooks/use-confirm-dialog'
-import { useClientPagination } from '@shared/lib/hooks/use-client-pagination'
+import { useDebouncedValue } from '@shared/lib/hooks/use-debounced-value'
 import { useTableSort } from '@shared/lib/hooks/use-table-sort'
 import {
-  collectSubtreeIds,
-  filterByType,
   flowCategoryColor,
   getCascadeLevels,
   isMonthClosed,
   periodRange,
   sortCategoryTree,
-  unclassifiedTransactions,
+  useFinanceTransactionsInfiniteQuery,
   useMonthlyClosingScopeGroupId,
   useCanShareToGroup,
   useDeleteFinanceTransactionMutation,
@@ -52,10 +49,10 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 interface Props {
   type: FinanceCategoryType
-  transactions: FinanceTransaction[]
   categoryTree: FinanceCategory[]
   index: CategoryIndex
   period: Period
+  // 카테고리 트리 로딩·실패(+자동 월 보정 대기) — 거래 목록의 로딩·실패는 위젯이 직접 조회해 판정한다.
   isLoading: boolean
   isError: boolean
   // 복제 시 새로 등록될 거래의 날짜 제약(하한 없음, 상한은 이번 달 말일 — "오늘 기준" 독립 창) —
@@ -69,7 +66,7 @@ interface Props {
   onCategoryPathChange: (path: string[]) => void
 }
 
-export function FinanceRecordList({ type, transactions, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo, today, categoryPath, onCategoryPathChange }: Props) {
+export function FinanceRecordList({ type, categoryTree, index, period, isLoading, isError, registerWindowFrom, registerWindowTo, today, categoryPath, onCategoryPathChange }: Props) {
   const deleteMutation = useDeleteFinanceTransactionMutation()
   const shareMutation = useShareFinanceTransactionMutation()
   const unshareMutation = useUnshareFinanceTransactionMutation()
@@ -99,55 +96,31 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   const { from, to } = periodRange(period, today)
-  const typed = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
-  const inPeriod = useMemo(
-    () => typed.filter((t) => t.transactionDate >= from && t.transactionDate <= to),
-    [typed, from, to],
+  const trimmedMemo = memoQuery.trim()
+  // 필터·정렬은 전부 서버 파라미터다(카테고리는 서버가 하위 트리까지 포함). 메모는 타이핑마다 재조회하지 않게 디바운스한다.
+  const memo = useDebouncedValue(trimmedMemo, 300)
+  const categoryId = categoryPath.at(-1)
+  const {
+    transactions,
+    isLoading: isTransactionsLoading,
+    isError: isTransactionsError,
+    isPlaceholderData,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetchNextPageError,
+    fetchNextPage,
+  } = useFinanceTransactionsInfiniteQuery(
+    { from, to, type, categoryId, memo: memo || undefined, sort: `${sortKey},${sortDirection}` },
+    { enabled: !isLoading && !isError },
   )
-
-  const categorySubtreeIds = useMemo(() => {
-    if (categoryPath.length === 0) return null
-    return new Set(collectSubtreeIds(categoryTree, categoryPath[categoryPath.length - 1]))
-  }, [categoryTree, categoryPath])
 
   const cascadeLevels = useMemo(() => getCascadeLevels(categoryTree, categoryPath), [categoryTree, categoryPath])
 
-  const filtered = useMemo(() => {
-    const q = memoQuery.trim().toLowerCase()
-    return inPeriod.filter(
-      (t) =>
-        (categorySubtreeIds === null || categorySubtreeIds.has(t.categoryId)) &&
-        (q === '' || (t.memo?.toLowerCase().includes(q) ?? false)),
-    )
-  }, [inPeriod, categorySubtreeIds, memoQuery])
-
-  const sorted = useMemo(() => {
-    const copy = [...filtered]
-    copy.sort((a, b) => {
-      // 메모가 없는 행은 방향과 무관하게 맨 아래
-      if (sortKey === 'memo' && (!a.memo || !b.memo)) return !a.memo === !b.memo ? 0 : !a.memo ? 1 : -1
-      let diff = 0
-      if (sortKey === 'transactionDate') diff = a.transactionDate.localeCompare(b.transactionDate)
-      else if (sortKey === 'category') diff = (index.get(a.categoryId)?.name ?? '').localeCompare(index.get(b.categoryId)?.name ?? '')
-      else if (sortKey === 'memo') diff = (a.memo ?? '').localeCompare(b.memo ?? '', 'ko')
-      else diff = a.amount - b.amount
-      return sortDirection === 'asc' ? diff : -diff
-    })
-    return copy
-  }, [filtered, sortKey, sortDirection, index])
-
-  const { page: currentPage, setPage, size, totalPages, paged, handlePageSizeChange } = useClientPagination(sorted)
-
-  // 카테고리 필터·기간 변경은 결과 집합 자체를 바꾸므로 페이지를 1로 리셋한다(AssetRecordList와 동일 이유).
-  useEffect(() => {
-    setPage(1)
-  }, [categoryPath, memoQuery, period.month, period.mode, setPage])
-
-  // 카테고리가 삭제돼 이 타입 어디에도 속하지 못하는 거래 — 필터링해 숨기지 않고 존재만 알린다.
-  const unclassifiedCount = useMemo(() => {
-    const uc = unclassifiedTransactions(transactions, index)
-    return uc.filter((t) => t.transactionDate >= from && t.transactionDate <= to).length
-  }, [transactions, index, from, to])
+  // 정렬·필터가 바뀐 새 키의 첫 응답 전엔 이전 목록을 보이고(placeholder), 커서는 다른 sort와 섞이면 서버가 400이라
+  // 그동안 "더 보기"를 막는다.
+  const hasMore = hasNextPage && !isPlaceholderData
+  // 필터 입력창이 타이핑 중 사라지면 포커스를 잃으므로, 필터가 하나라도 걸려 있거나 걸리는 중이면 빈 결과에도 필터 UI를 유지한다.
+  const hasFilter = categoryPath.length > 0 || memo !== '' || trimmedMemo !== '' || isPlaceholderData
 
   function handleDelete() {
     if (!deleteDialog.target) return
@@ -159,16 +132,16 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
     })
   }
 
-  if (isLoading) {
+  if (isLoading || isTransactionsLoading) {
     return <LoadingRow />
   }
-  if (isError) {
+  if (isError || isTransactionsError) {
     return <SectionError message="거래내역을 불러오지 못했습니다." />
   }
 
   return (
     <div className="space-y-4">
-      {inPeriod.length === 0 ? (
+      {transactions.length === 0 && !hasFilter ? (
         <EmptyState message="이 기간에 등록된 거래내역이 없습니다. 거래내역 등록 버튼으로 내역을 추가해보세요." />
       ) : (
         <>
@@ -184,13 +157,12 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                 className="w-full lg:w-48"
               />
             </div>
-            <PageSizeSelector value={String(size)} onChange={handlePageSizeChange} />
           </div>
 
-          {sorted.length === 0 ? (
+          {transactions.length === 0 ? (
             <EmptyState variant="text" message="조건에 맞는 거래내역이 없습니다." />
           ) : (
-            <>
+            <div className="space-y-4" aria-busy={isPlaceholderData || undefined}>
               <div className="hidden overflow-x-auto lg:block rounded-xl border border-border" role="region" aria-label="거래내역 표" tabIndex={0}>
                 <table className={cn('w-full min-w-[720px] text-sm', evenColumnsClass(4))} aria-label="거래내역">
                   <thead className="bg-muted/50">
@@ -203,7 +175,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                     </tr>
                   </thead>
                   <tbody>
-                    {paged.map((t) => {
+                    {transactions.map((t) => {
                       const entry = index.get(t.categoryId)
                       const closed = isClosed(t.transactionDate)
                       return (
@@ -248,7 +220,7 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
 
               <MobileSortControl options={SORT_OPTIONS} activeKey={sortKey} direction={sortDirection} onSort={handleSort} />
               <ul className="m-0 list-none divide-y rounded-xl border border-border p-0 lg:hidden" aria-label="거래내역">
-                {paged.map((t) => {
+                {transactions.map((t) => {
                   const entry = index.get(t.categoryId)
                   const closed = isClosed(t.transactionDate)
                   return (
@@ -289,14 +261,10 @@ export function FinanceRecordList({ type, transactions, categoryTree, index, per
                 })}
               </ul>
 
-              {totalPages > 1 && <PaginationBar page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
-            </>
+              <LoadMoreButton hasMore={hasMore} isFetching={isFetchingNextPage} isError={isFetchNextPageError} onLoadMore={fetchNextPage} />
+            </div>
           )}
         </>
-      )}
-
-      {unclassifiedCount > 0 && (
-        <p className="text-xs text-muted-foreground">분류할 수 없는 내역 {unclassifiedCount}건 (카테고리가 삭제됨)</p>
       )}
 
       {editDialog.target && (

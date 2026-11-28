@@ -58,21 +58,7 @@ import type {
   MonthlyClosing,
 } from '../model/types'
 import { financeKeys } from '../model/queryKeys'
-import { assetSnapshotListQueryOptions, financeAccountListQueryOptions, monthlyClosingListQueryOptions } from '../model/queryOptions'
-
-async function synchronizeAssetSnapshotList(
-  queryClient: QueryClient,
-  update: (snapshots: AssetSnapshot[]) => AssetSnapshot[],
-) {
-  await synchronizeListQueries(
-    queryClient,
-    [{
-      queryKey: financeKeys.assetSnapshots(),
-      fetchCompleteList: () => queryClient.fetchQuery(assetSnapshotListQueryOptions()),
-    }],
-    update,
-  )
-}
+import { financeAccountListQueryOptions, monthlyClosingListQueryOptions } from '../model/queryOptions'
 
 // shareToGroup:true면 서버가 그룹 소유로 원자적으로 생성한다(kista-api AssetSnapshotService.create —
 // ?shareToGroup=true, 대상 그룹은 서버가 userId로 해석). 생성이 성공하면 요청한 소유 형태 그대로다 —
@@ -107,16 +93,13 @@ export function useUnshareAssetSnapshotMutation() {
   )
 }
 
+// 수정으로 기준일이 다른 달로 옮겨질 수 있고 목록이 월별 캐시라 upsert가 틀린다 — root invalidate.
 export function useUpdateAssetSnapshotMutation(snapshotId: string) {
-  const queryClient = useQueryClient()
-  return useMutation<AssetSnapshot, Error, AssetSnapshotRequest>({
-    mutationFn: (data) => updateAssetSnapshot(snapshotId, data),
-    onSuccess: async (saved) => {
-      await synchronizeAssetSnapshotList(queryClient, (snapshots) => upsertById(snapshots, saved))
-      await queryClient.invalidateQueries({ queryKey: financeKeys.aggregatesRoot() })
-    },
-    onError: (err) => toast.error(apiMsg(err, '자산 기록을 수정하지 못했습니다.')),
-  })
+  return useInvalidateFinanceMutation<AssetSnapshot, AssetSnapshotRequest>(
+    (data) => updateAssetSnapshot(snapshotId, data),
+    [financeKeys.assetSnapshotsRoot(), financeKeys.aggregatesRoot()],
+    '자산 기록을 수정하지 못했습니다.',
+  )
 }
 
 interface DeleteManyAssetSnapshotsResult {
@@ -145,10 +128,10 @@ export function useDeleteManyAssetSnapshotsMutation() {
         }
         return
       }
-      const succeededSet = new Set(succeededIds)
-      await synchronizeAssetSnapshotList(queryClient, (snapshots) =>
-        snapshots.filter((snapshot) => !succeededSet.has(snapshot.id)))
-      await queryClient.invalidateQueries({ queryKey: financeKeys.aggregatesRoot() })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: financeKeys.assetSnapshotsRoot() }),
+        queryClient.invalidateQueries({ queryKey: financeKeys.aggregatesRoot() }),
+      ])
     },
   })
 }

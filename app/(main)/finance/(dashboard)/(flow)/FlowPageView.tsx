@@ -14,7 +14,6 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     period,
     setPeriod,
     today,
-    transactions,
     trendRange,
     setTrendRange,
     categoryIndex,
@@ -66,11 +65,10 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
       <div ref={recordListRef} className="scroll-mt-20">
         <FinanceRecordList
           type={type}
-          transactions={transactions}
           categoryTree={categoryTree}
           index={categoryIndex}
           period={period}
-          isLoading={isFlowLoading}
+          isLoading={isPeriodPending || isFlowLoading}
           today={today}
           isError={isFlowError}
           registerWindowFrom={registerWindow.from}

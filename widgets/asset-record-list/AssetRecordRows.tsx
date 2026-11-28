@@ -52,10 +52,12 @@ export interface AssetRowContext {
 }
 
 function RowActions({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowContext }) {
+  const month = snapshot.entryDate.slice(0, 7)
   return (
     <ShareableRowActions
-      duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}`}
-      editHref={`/finance/${snapshot.id}/edit`}
+      // 단건 GET이 없어 수정·복제 페이지가 그 달 목록에서 기록을 찾는다 — 기준일의 월을 함께 싣는다.
+      duplicateHref={`/finance/new?duplicateFrom=${snapshot.id}&month=${month}`}
+      editHref={`/finance/${snapshot.id}/edit?month=${month}`}
       onShare={() => row.onShare(snapshot.id)}
       onUnshare={() => row.onUnshare(snapshot.id)}
       onDelete={() => row.onDelete(snapshot.id)}
@@ -119,17 +121,17 @@ function DesktopRow({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
 }
 
 interface TableProps {
-  paged: AssetSnapshot[]
+  rows: AssetSnapshot[]
   row: AssetRowContext
   sortKey: SortKey
   sortDirection: 'asc' | 'desc'
   onSort: (key: SortKey) => void
-  allPagedSelected: boolean
-  somePagedSelected: boolean
+  allSelected: boolean
+  someSelected: boolean
   onToggleAll: () => void
 }
 
-export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, allPagedSelected, somePagedSelected, onToggleAll }: TableProps) {
+export function AssetRecordTable({ rows, row, sortKey, sortDirection, onSort, allSelected, someSelected, onToggleAll }: TableProps) {
   return (
     <div className="hidden overflow-x-auto lg:block rounded-xl border border-border" role="region" aria-label="자산 기록 표" tabIndex={0}>
       <table className={cn('w-full min-w-[1200px] text-sm', evenColumnsClass(10))} aria-label="자산 기록">
@@ -137,9 +139,9 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
           <tr>
             <TableHeadCell className="w-px">
               <Checkbox
-                aria-label="현재 페이지 전체 선택"
-                checked={allPagedSelected}
-                indeterminate={somePagedSelected && !allPagedSelected}
+                aria-label="전체 선택"
+                checked={allSelected}
+                indeterminate={someSelected && !allSelected}
                 onCheckedChange={onToggleAll}
                 disabled={row.monthClosed}
                 title={row.monthClosed ? row.closedMonthTitle : undefined}
@@ -159,7 +161,7 @@ export function AssetRecordTable({ paged, row, sortKey, sortDirection, onSort, a
           </tr>
         </thead>
         <tbody>
-          {paged.map((snapshot) => (
+          {rows.map((snapshot) => (
             <DesktopRow key={snapshot.id} snapshot={snapshot} row={row} />
           ))}
         </tbody>
@@ -203,10 +205,10 @@ function MobileItem({ snapshot, row }: { snapshot: AssetSnapshot; row: AssetRowC
   )
 }
 
-export function AssetRecordMobileList({ paged, row }: { paged: AssetSnapshot[]; row: AssetRowContext }) {
+export function AssetRecordMobileList({ rows, row }: { rows: AssetSnapshot[]; row: AssetRowContext }) {
   return (
     <ul className="m-0 list-none divide-y rounded-xl border border-border p-0 lg:hidden" aria-label="자산 기록">
-      {paged.map((snapshot) => (
+      {rows.map((snapshot) => (
         <MobileItem key={snapshot.id} snapshot={snapshot} row={row} />
       ))}
     </ul>

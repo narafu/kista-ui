@@ -32,7 +32,7 @@ const { positionals, values: opts } = parseArgs({
 })
 
 if (opts.list) {
-  for (const s of allScenarios) console.log(s.name.padEnd(36), typeof s.path === 'function' ? s.path({ assetSnapshotId: '<조회>' }) : s.path)
+  for (const s of allScenarios) console.log(s.name.padEnd(36), typeof s.path === 'function' ? s.path({ assetSnapshotId: '<조회>', assetSnapshotMonth: '<월>' }) : s.path)
   process.exit(0)
 }
 if (positionals.length !== 1) {
@@ -187,7 +187,8 @@ try {
     if (await portInUse(port)) throw new Error(`포트 ${port}(${name}) 사용 중 — 다른 세션이 이 도구를 돌리는 중일 수 있다. 종료하지 않고 중단`)
   }
   const tokens = { user: await devToken('user'), admin: await devToken('admin') }
-  const ctx = { assetSnapshotId: (await resolveContext(tokens.user)).assetSnapshotId ?? 'missing-asset-snapshot' }
+  const resolved = await resolveContext(tokens.user)
+  const ctx = { assetSnapshotId: resolved.assetSnapshotId ?? 'missing-asset-snapshot', assetSnapshotMonth: resolved.assetSnapshotMonth }
   const scenarios = selected.map((s) => ({ ...s, path: typeof s.path === 'function' ? s.path(ctx) : s.path }))
 
   proxies.push(await startProxy({ name: 'apiproxy', port: PORTS.api, upstream: UPSTREAM.api, route: apiFixture.route, log: plog }))

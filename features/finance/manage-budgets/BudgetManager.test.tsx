@@ -27,9 +27,9 @@ function budget(overrides: Partial<FinanceBudget>): FinanceBudget {
 // 전역 useSearchParams 대역은 URL을 구독하지 않아 replaceState만으로는 다시 그려지지 않는다 — 실제 Next처럼 갱신되게 replaceState 뒤에 rerender한다. 같은 element 참조는 React가 건너뛰므로 매번 새로 만든다.
 async function renderManager(budgets: FinanceBudget[], { groups = [], handlers = {} }: { groups?: { id: string; name: string }[]; handlers?: ApiHandlers } = {}) {
   const api = mockApi({
-    'GET /api/finance/categories': categoryTree,
-    'GET /api/finance/budgets': budgets,
-    'GET /api/finance/groups': groups,
+    'GET /api/finance/categories': { items: categoryTree },
+    'GET /api/finance/budgets': { items: budgets },
+    'GET /api/finance/groups': { items: groups },
     ...handlers,
   })
   const ui = () => <BudgetManager type="EXPENSE" />

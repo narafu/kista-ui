@@ -10,7 +10,7 @@ import type { FinanceAccount } from '@entities/finance'
 const saved: FinanceAccount = { id: 'acc-1', accountType: 'SECURITIES', name: '새 계좌' }
 
 function setup(handlers: Parameters<typeof mockApi>[0] = {}, groups = true) {
-  return mockApi({ 'GET /api/finance/accounts': [], 'GET /api/finance/groups': groups ? [{ id: 'g1', name: '우리집' }] : [], ...handlers })
+  return mockApi({ 'GET /api/finance/accounts': { items: [] }, 'GET /api/finance/groups': { items: groups ? [{ id: 'g1', name: '우리집' }] : [] }, ...handlers })
 }
 
 describe('AccountFormDialog 제출 요청', () => {

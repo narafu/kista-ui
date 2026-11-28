@@ -6,6 +6,7 @@ import {
   useAssetSnapshotsQuery,
   useFinanceAccountsQuery,
   useFinanceCategoriesQuery,
+  useLatestTransactionDateQuery,
   useMonthlyClosingsQuery,
 } from './useFinanceQueries'
 
@@ -28,14 +29,26 @@ vi.mock('../api', () => ({
   listFinanceGroupMembers: vi.fn(),
   listFinanceGroups: vi.fn(),
   listMonthlyClosings: vi.fn(),
+  listFinanceTransactions: vi.fn(),
 }))
 
 describe('useAssetSnapshotsQuery', () => {
   it('uses the canonical asset-snapshots list key', () => {
-    renderHook(() => useAssetSnapshotsQuery())
+    renderHook(() => useAssetSnapshotsQuery('2026-08'))
 
     expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
-      queryKey: financeKeys.assetSnapshots(),
+      queryKey: financeKeys.assetSnapshots('2026-08'),
+    }))
+  })
+})
+
+describe('useLatestTransactionDateQuery', () => {
+  it('범위 키로 조회하고 enabled를 그대로 넘긴다', () => {
+    renderHook(() => useLatestTransactionDateQuery({ from: '2025-09-01', to: '2026-08-31', enabled: false }))
+
+    expect(useQueryMock).toHaveBeenCalledWith(expect.objectContaining({
+      queryKey: financeKeys.latestTransaction('2025-09-01', '2026-08-31'),
+      enabled: false,
     }))
   })
 })

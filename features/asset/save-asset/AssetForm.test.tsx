@@ -46,11 +46,11 @@ interface SetupOptions { closings?: MonthlyClosing[]; groups?: { id: string }[];
 
 function setup({ closings = [], groups = [], handlers = {} }: SetupOptions = {}) {
   return mockApi({
-    'GET /api/finance/categories': categories,
-    'GET /api/finance/accounts': accounts as never,
-    'GET /api/finance/monthly-closings': closings as never,
-    'GET /api/finance/asset-snapshots': [] as never,
-    'GET /api/finance/groups': groups as never,
+    'GET /api/finance/categories': { items: categories },
+    'GET /api/finance/accounts': { items: accounts } as never,
+    'GET /api/finance/monthly-closings': { items: closings } as never,
+    'GET /api/finance/asset-snapshots': { items: [] } as never,
+    'GET /api/finance/groups': { items: groups } as never,
     'GET /api/auth/me': {} as never,
     ...handlers,
   })

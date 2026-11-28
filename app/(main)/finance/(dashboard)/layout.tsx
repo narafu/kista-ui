@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { dehydrate } from '@tanstack/react-query'
 import { getAuthToken } from '@shared/lib/auth/token'
-import { assetSnapshotListQueryOptions, financeGroupListQueryOptions, monthlyClosingListQueryOptions } from '@entities/finance'
+import { financeGroupListQueryOptions, monthlyClosingListQueryOptions } from '@entities/finance'
 import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
 import { TITLE_TEMPLATE } from '@shared/lib/metadata'
 import { FinanceHeader } from './FinanceHeader'
@@ -22,8 +22,6 @@ export default async function FinanceDashboardLayout({ children }: { children: R
   const queryClient = createQueryClient()
   if (token) {
     await Promise.all([
-      // 자산 기록 목록(AssetRecordList)용 원본 — 집계는 서버 집계 쿼리가 한다.
-      queryClient.prefetchQuery(assetSnapshotListQueryOptions(token)).catch(() => undefined),
       queryClient.prefetchQuery(monthlyClosingListQueryOptions(token)).catch(() => undefined),
       // 월 마감 판정 스코프(useMonthlyClosingScopeGroupId)가 그룹 목록에서 나온다 — 프리페치 없으면
       // 첫 렌더에 개인 스코프로 판정했다가 목록 로드 후 그룹 스코프로 뒤집혀 잠김 표시가 깜빡인다.

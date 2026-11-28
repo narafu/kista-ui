@@ -1,13 +1,13 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Button } from '@/components/ui/button'
 import { useTableSort, type SortDirection } from '@shared/lib/hooks/use-table-sort'
 import { cn, groupConsecutiveBy } from '@shared/lib/utils'
 import { Badge } from '@shared/ui/Badge'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
 import { asyncFallback } from '@shared/ui/AsyncSection'
 import { SortableHeadCell } from '@shared/ui/SortableHeadCell'
+import { LoadMoreButton, type LoadMore } from './LoadMoreButton'
 import { TableDataCell } from '@shared/ui/TableDataCell'
 import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
 
@@ -30,13 +30,6 @@ export interface DataListSort {
   activeKey: string
   direction: SortDirection
   onSort: (key: string) => void
-}
-
-interface LoadMore {
-  hasMore?: boolean
-  isFetching?: boolean
-  isError?: boolean
-  onLoadMore: () => void
 }
 
 interface Props<T> {
@@ -183,16 +176,7 @@ export function DataList<T>({ label, rows, columns, rowKey, isLoading, isError, 
           ))}
         </table>
       </div>
-      {loadMore && (loadMore.hasMore || loadMore.isFetching) && (
-        <div className="flex flex-col items-center gap-1 border-t py-4">
-          {loadMore.isError && !loadMore.isFetching && (
-            <p role="alert" className="text-sm text-status-error">다음 내역을 불러오지 못했습니다. 다시 시도해주세요.</p>
-          )}
-          <Button type="button" variant="outline" onClick={() => loadMore.onLoadMore()} disabled={loadMore.isFetching}>
-            {loadMore.isFetching ? '불러오는 중…' : '더 보기'}
-          </Button>
-        </div>
-      )}
+      {loadMore && <LoadMoreButton {...loadMore} />}
     </>
   )
 }

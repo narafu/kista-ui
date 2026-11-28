@@ -1,7 +1,7 @@
 // 화면 경로 표 — a11y-check가 전부 돌고, visual-diff 시나리오가 경로를 여기서 가져간다. 앱 화면과의 일치는 check-routes.mjs가 lint에서 검사한다.
 // 이 파일은 import가 없다(seed.mjs를 읽지 않는다 — 정적 검사가 네트워크를 타면 안 된다). 시드 값 해석은 fill()을 부르는 쪽이 한다.
 // 행: { path(앱 라우트 모양), role('guest'|'user'|'admin'), seed?(시드 키 — [id]=accountId, [sid]=strategyId),
-//       params?({ 세그먼트: 값 또는 ctx => 값 }), cookies?(추가 쿠키), setup?(page => 준비), redirect?(항상 다른 화면으로 가 점검 대상 아님),
+//       params?({ 세그먼트: 값 또는 ctx => 값 }), query?(ctx => 'k=v' 쿼리스트링, 없으면 행 제외), cookies?(추가 쿠키), setup?(page => 준비), redirect?(항상 다른 화면으로 가 점검 대상 아님),
 //       dialogs?(트리거 다이얼로그 점검), formDialog?([이름, 트리거 셀렉터] — 열림 상태를 부모가 쥐는 FormDialog) }
 
 // 사용자 상태는 proxy.ts가 상태·역할 쿠키가 있으면 /me 대신 그 값을 쓴다 — dev 사용자(ACTIVE)로 대기·반려 화면을 연다
@@ -11,7 +11,7 @@ const stubStatusStream = (p) => p.route('**/api/auth/status-stream', (r) => r.fu
 
 const ACCT = '/accounts/[id]'
 const STRATEGY = `${ACCT}/strategies/[sid]`
-const snapshot = { id: (ctx) => ctx.assetSnapshotId } // 가계부 자산 스냅샷 id는 월이 바뀌면 달라져 실행 시 조회한다
+const snapshot = { id: (ctx) => ctx.assetSnapshotId } // 가계부 자산 스냅샷 id는 월이 바뀌면 달라져 실행 시 조회한다(수정·복제 화면은 그 기록의 월도 query로 실어야 한다)
 
 export const ROUTES = [
   { path: '/', role: 'guest', redirect: true },
@@ -41,7 +41,7 @@ export const ROUTES = [
   { path: '/finance/expense', role: 'user' },
   { path: '/finance/saving', role: 'user' },
   { path: '/finance/new', role: 'user' },
-  { path: '/finance/[id]/edit', role: 'user', params: snapshot },
+  { path: '/finance/[id]/edit', role: 'user', params: snapshot, query: (ctx) => ctx.assetSnapshotMonth && `month=${ctx.assetSnapshotMonth}` },
   { path: '/finance/bulk-register', role: 'user' },
   { path: '/finance/budgets/[type]', role: 'user', params: { type: 'expense' }, formDialog: ['예산 추가', 'button:has-text("예산 추가"):visible'] },
   { path: '/finance/settings', role: 'user', dialogs: true },
@@ -57,7 +57,7 @@ export const findRow = (path, seed, role) => {
   return row
 }
 
-/** 행의 경로 틀을 실제 경로로. 채울 값이 없으면 null(시드·데이터 없음). ctx: { seed, assetSnapshotId } */
+/** 행의 경로 틀을 실제 경로로. 채울 값이 없으면 null(시드·데이터 없음). ctx: { seed, assetSnapshotId, assetSnapshotMonth } */
 export function fill(row, ctx, overrides = {}) {
   const s = row.seed && ctx.seed[row.seed]
   const values = { ...(s && { id: s.accountId, sid: s.strategyId }), ...row.params, ...overrides }
@@ -67,5 +67,7 @@ export function fill(row, ctx, overrides = {}) {
     missing ||= v == null
     return v
   })
-  return missing ? null : path
+  const query = row.query?.(ctx) // 경로 틀에 없는 쿼리스트링(예: 자산 수정 화면의 ?month=)
+  missing ||= row.query && !query
+  return missing ? null : query ? `${path}?${query}` : path
 }

@@ -14,7 +14,6 @@ import {
   listFinanceBudgets,
   listFinanceCategories,
   listFinanceGroups,
-  listFinanceTransactions,
   listMonthlyClosings,
 } from '../api'
 import { financeKeys } from './queryKeys'
@@ -33,16 +32,15 @@ import type {
   FinanceCategory,
   FinanceCategoryType,
   FinanceGroup,
-  FinanceTransaction,
   FlowSummary,
   FlowTrend,
   MonthlyClosing,
 } from './types'
 
-export function assetSnapshotListQueryOptions(token?: string) {
+export function assetSnapshotListQueryOptions(month: string, token?: string) {
   return queryOptions<AssetSnapshot[]>({
-    queryKey: financeKeys.assetSnapshots(),
-    queryFn: () => listAssetSnapshots(token),
+    queryKey: financeKeys.assetSnapshots(month),
+    queryFn: () => listAssetSnapshots({ month, token }),
   })
 }
 
@@ -71,15 +69,6 @@ export function financeGroupListQueryOptions(token?: string) {
   return queryOptions<FinanceGroup[]>({
     queryKey: financeKeys.groups(),
     queryFn: () => listFinanceGroups(token),
-  })
-}
-
-// 거래 원본 목록 — 집계는 서버 엔드포인트(아래 서버 집계 queryOptions)가 하고, 이 목록은 내역 리스트·
-// 자동 월 보정처럼 원본이 필요한 곳만 쓴다.
-export function transactionListQueryOptions(from: string | undefined, to: string, token?: string) {
-  return queryOptions<FinanceTransaction[]>({
-    queryKey: financeKeys.transactions(from, to),
-    queryFn: () => listFinanceTransactions({ from, to, token }),
   })
 }
 

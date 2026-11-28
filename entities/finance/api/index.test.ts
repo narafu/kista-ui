@@ -28,24 +28,70 @@ describe('listAssetSnapshots', () => {
       market: 'GLOBAL',
       amount: 1000000,
     }]
-    apiFetchMock.mockResolvedValueOnce(snapshots)
+    apiFetchMock.mockResolvedValueOnce({ items: snapshots })
 
     const { listAssetSnapshots } = await import('./index')
-    const result = await listAssetSnapshots('token-abc')
+    const result = await listAssetSnapshots({ month: '2026-08', token: 'token-abc' })
 
-    expect(apiFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' }, 'token-abc')
+    expect(apiFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots?month=2026-08', { method: 'GET' }, 'token-abc')
     expect(clientFetchMock).not.toHaveBeenCalled()
     expect(result).toBe(snapshots)
   })
 
   it('routes through the client proxy when no token is given (Client Component)', async () => {
-    clientFetchMock.mockResolvedValueOnce([])
+    clientFetchMock.mockResolvedValueOnce({ items: [] })
 
     const { listAssetSnapshots } = await import('./index')
-    await listAssetSnapshots()
+    await listAssetSnapshots({ month: '2026-08' })
 
-    expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots', { method: 'GET' })
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/asset-snapshots?month=2026-08', { method: 'GET' })
     expect(apiFetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('listFinanceTransactions', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+    apiFetchMock.mockReset()
+  })
+
+  it('필터·정렬·커서를 쿼리로 보내고 items에 amount 기본값을 채운다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ items: [{ id: 't1', categoryId: 'c1', transactionDate: '2026-08-01' }], nextCursor: 'cur', hasMore: true })
+
+    const { listFinanceTransactions } = await import('./index')
+    const page = await listFinanceTransactions({
+      from: '2026-08-01',
+      to: '2026-08-31',
+      type: 'EXPENSE',
+      categoryId: 'c1',
+      memo: '점심',
+      sort: 'amount,desc',
+      cursor: 'prev',
+      size: 50,
+    })
+
+    const [url] = clientFetchMock.mock.calls[0] as [string]
+    const params = new URL(url, 'http://x').searchParams
+    expect(url.startsWith('/api/finance/transactions?')).toBe(true)
+    expect(Object.fromEntries(params)).toEqual({
+      from: '2026-08-01', to: '2026-08-31', type: 'EXPENSE', categoryId: 'c1', memo: '점심', sort: 'amount,desc', cursor: 'prev', size: '50',
+    })
+    expect(page).toEqual({ items: [{ id: 't1', categoryId: 'c1', transactionDate: '2026-08-01', amount: 0 }], nextCursor: 'cur', hasMore: true })
+  })
+})
+
+describe('listFinanceCategories', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+  })
+
+  it('items 봉투를 풀어 배열을 돌려준다', async () => {
+    clientFetchMock.mockResolvedValueOnce({ items: [{ id: 'c1' }] })
+
+    const { listFinanceCategories } = await import('./index')
+
+    expect(await listFinanceCategories('INCOME')).toEqual([{ id: 'c1' }])
+    expect(clientFetchMock).toHaveBeenCalledWith('/api/finance/categories?type=INCOME', { method: 'GET' })
   })
 })
 

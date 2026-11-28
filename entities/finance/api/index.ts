@@ -27,6 +27,7 @@ import type {
   FinanceGroupInvitation,
   FinanceGroupMember,
   FinanceTransaction,
+  FinanceTransactionPage,
   FinanceTransactionRequest,
   FlowSummary,
   FlowTrend,
@@ -40,7 +41,14 @@ function withDefaultAmount<T extends { amount: number }>(x: T): T {
   return { ...x, amount: x.amount ?? 0 }
 }
 
-function withQuery(path: string, params: Record<string, string | undefined>) {
+// 목록 응답 봉투 — 생성 스키마(Items*Response)는 nullable이 null이라 손으로 둔 도메인 타입으로 푼다.
+type Items<T> = { items: T[] }
+
+async function listItems<T>(path: string, token?: string): Promise<T[]> {
+  return (await fetchEither<Items<T>>(path, { method: 'GET' }, token)).items
+}
+
+function withQuery(path: string, params: Record<string, string | number | undefined>) {
   return path + buildQueryString(params)
 }
 
@@ -55,8 +63,9 @@ function shareToggle<T>(basePath: string, action: 'share' | 'unshare', id: strin
 }
 
 // 목록 조회는 그룹을 지정하지 않는다 — 서버가 호출자의 실제 소속 그룹(없으면 개인)으로 스코프한다.
-export async function listAssetSnapshots(token?: string): Promise<AssetSnapshot[]> {
-  return fetchEither<AssetSnapshot[]>('/api/finance/asset-snapshots', { method: 'GET' }, token)
+// month('YYYY-MM') 필수 — 서버가 그 달 기록 전량만 준다(월 없이 호출하면 400).
+export async function listAssetSnapshots({ month, token }: { month: string; token?: string }): Promise<AssetSnapshot[]> {
+  return listItems<AssetSnapshot>(withQuery('/api/finance/asset-snapshots', { month }), token)
 }
 
 // shareToGroup:true면 서버가 호출자의 현재 그룹 소유로 원자적으로 생성한다(budget/transaction/account/
@@ -114,11 +123,7 @@ export async function listFinanceCategories(
   type: FinanceCategoryType,
   token?: string,
 ): Promise<FinanceCategory[]> {
-  return fetchEither<FinanceCategory[]>(
-    withQuery('/api/finance/categories', { type }),
-    { method: 'GET' },
-    token,
-  )
+  return listItems<FinanceCategory>(withQuery('/api/finance/categories', { type }), token)
 }
 
 // shareToGroup:true면 그룹 소유로 생성한다 — 단 부모가 개인 소유면 서버가 400(개인 부모 아래
@@ -160,7 +165,7 @@ export async function unshareFinanceCategory(id: string, token?: string): Promis
 // 관리자 전용 시스템(공통) 카테고리 CRUD — groupId 없이 항상 system:true로 생성된다.
 // /api/admin/** 는 app/api/admin/[[...path]]/route.ts가 그대로 프록시하며 kista-api가 서버에서 ADMIN role을 검증한다.
 export async function listSystemFinanceCategories(type: FinanceCategoryType, token?: string): Promise<FinanceCategory[]> {
-  return fetchEither<FinanceCategory[]>(withQuery('/api/admin/finance/categories', { type }), { method: 'GET' }, token)
+  return listItems<FinanceCategory>(withQuery('/api/admin/finance/categories', { type }), token)
 }
 
 export async function createSystemFinanceCategory(data: FinanceCategoryRequest, token?: string): Promise<FinanceCategory> {
@@ -181,7 +186,7 @@ export async function deleteSystemFinanceCategory(id: string, token?: string): P
 }
 
 export async function listFinanceAccounts(token?: string): Promise<FinanceAccount[]> {
-  return fetchEither<FinanceAccount[]>('/api/finance/accounts', { method: 'GET' }, token)
+  return listItems<FinanceAccount>('/api/finance/accounts', token)
 }
 
 export async function createFinanceAccount(
@@ -214,7 +219,7 @@ export async function unshareFinanceAccount(id: string, token?: string): Promise
 }
 
 export async function listMonthlyClosings(token?: string): Promise<MonthlyClosing[]> {
-  return fetchEither<MonthlyClosing[]>('/api/finance/monthly-closings', { method: 'GET' }, token)
+  return listItems<MonthlyClosing>('/api/finance/monthly-closings', token)
 }
 
 export async function setMonthlyClosing(month: string, completed: boolean, token?: string): Promise<MonthlyClosing> {
@@ -226,11 +231,11 @@ export async function setMonthlyClosing(month: string, completed: boolean, token
 }
 
 export async function listFinanceGroups(token?: string): Promise<FinanceGroup[]> {
-  return fetchEither<FinanceGroup[]>('/api/finance/groups', { method: 'GET' }, token)
+  return listItems<FinanceGroup>('/api/finance/groups', token)
 }
 
 export async function listFinanceGroupMembers(groupId: string, token?: string): Promise<FinanceGroupMember[]> {
-  return fetchEither<FinanceGroupMember[]>(`/api/finance/groups/${encodeURIComponent(groupId)}/members`, { method: 'GET' }, token)
+  return listItems<FinanceGroupMember>(`/api/finance/groups/${encodeURIComponent(groupId)}/members`, token)
 }
 
 export async function removeFinanceGroupMember(groupId: string, userId: string, token?: string): Promise<void> {
@@ -257,23 +262,23 @@ interface TransactionListOptions {
   token?: string
   from?: string
   to?: string
+  type?: FinanceCategoryType
+  // 서버가 이 카테고리의 하위 트리까지 포함해 거른다.
   categoryId?: string
-  userId?: string
+  memo?: string
+  // `${key},${dir}` — key: transactionDate|category|memo|amount, dir: asc|desc. 커서는 같은 sort에서만 유효(다르면 400).
+  sort?: string
+  cursor?: string
+  size?: number
 }
 
-export async function listFinanceTransactions({
-  token,
-  from,
-  to,
-  categoryId,
-  userId,
-}: TransactionListOptions = {}): Promise<FinanceTransaction[]> {
-  const list = await fetchEither<FinanceTransaction[]>(
-    withQuery('/api/finance/transactions', { from, to, categoryId, userId }),
+export async function listFinanceTransactions({ token, ...params }: TransactionListOptions = {}): Promise<FinanceTransactionPage> {
+  const page = await fetchEither<FinanceTransactionPage>(
+    withQuery('/api/finance/transactions', params),
     { method: 'GET' },
     token,
   )
-  return list.map(withDefaultAmount)
+  return { ...page, items: page.items.map(withDefaultAmount) }
 }
 
 export async function createFinanceTransaction(
@@ -322,11 +327,7 @@ interface BudgetListOptions {
 }
 
 export async function listFinanceBudgets({ token, categoryId, date }: BudgetListOptions = {}): Promise<FinanceBudget[]> {
-  const list = await fetchEither<FinanceBudget[]>(
-    withQuery('/api/finance/budgets', { categoryId, date }),
-    { method: 'GET' },
-    token,
-  )
+  const list = await listItems<FinanceBudget>(withQuery('/api/finance/budgets', { categoryId, date }), token)
   return list.map(withDefaultAmount)
 }
 

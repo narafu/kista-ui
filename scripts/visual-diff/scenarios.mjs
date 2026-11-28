@@ -81,7 +81,7 @@ export const scenarios = [
   { name: 'finance-new', path: at('/finance/new') },
   // 시드 자산 스냅샷 id는 월이 바뀌면 달라져 실행 시 조회한다(run.mjs)
   { name: 'finance-asset-edit', ...screenWith('/finance/[id]/edit') },
-  { name: 'finance-asset-dup', path: (ctx) => `${at('/finance/new')}?duplicateFrom=${ctx.assetSnapshotId}` },
+  { name: 'finance-asset-dup', path: (ctx) => `${at('/finance/new')}?duplicateFrom=${ctx.assetSnapshotId}&month=${ctx.assetSnapshotMonth}` },
   { name: 'finance-settings', path: at('/finance/settings') },
   { name: 'finance-settings-category-dialog', path: at('/finance/settings'), steps: [clickText('카테고리 추가')] },
   { name: 'stats', path: at('/stats') },

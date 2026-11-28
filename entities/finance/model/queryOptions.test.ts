@@ -22,13 +22,13 @@ describe('finance query options', () => {
   it('forwards the server token and uses the canonical asset-snapshots list key', async () => {
     listAssetSnapshotsMock.mockResolvedValue([])
 
-    const options = assetSnapshotListQueryOptions('server-token')
+    const options = assetSnapshotListQueryOptions('2026-08', 'server-token')
     if (!options.queryFn) throw new Error('asset snapshot query options require a query function')
 
     await options.queryFn({} as never)
 
-    expect(options.queryKey).toEqual(financeKeys.assetSnapshots())
-    expect(listAssetSnapshotsMock).toHaveBeenCalledWith('server-token')
+    expect(options.queryKey).toEqual(financeKeys.assetSnapshots('2026-08'))
+    expect(listAssetSnapshotsMock).toHaveBeenCalledWith({ month: '2026-08', token: 'server-token' })
   })
 
   it('forwards the server token for monthly closings and uses the canonical key', async () => {

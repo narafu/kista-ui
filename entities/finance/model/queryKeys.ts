@@ -1,13 +1,24 @@
 import type { Period } from '../lib/period'
 import type { AssetCompositionBasis, FinanceCategoryType } from './types'
 
+// 거래 목록 조회 조건(서버 필터·정렬). size는 키에 넣지 않는다(페이지 크기일 뿐 결과 집합이 같다).
+export interface TransactionListKeyParams {
+  from?: string
+  to?: string
+  type?: FinanceCategoryType
+  categoryId?: string
+  memo?: string
+  sort?: string
+}
+
 // 목록 키에 그룹 세그먼트가 없다 — kista-api가 그룹 스코프를 호출자의 실제 소속(1인 1그룹)으로
 // 판정해 클라이언트가 그룹을 고를 수 없다. 소속이 바뀌면(초대 수락·탈퇴·추방) financeKeys.all을
 // 무효화해 새 스코프로 재조회한다.
 export const financeKeys = {
   all: ['finance'] as const,
   assetSnapshotsRoot: () => [...financeKeys.all, 'asset-snapshots'] as const,
-  assetSnapshots: () => [...financeKeys.assetSnapshotsRoot(), 'list'] as const,
+  // 자산 목록은 월 필수(서버가 그 달 전량만 준다).
+  assetSnapshots: (month: string) => [...financeKeys.assetSnapshotsRoot(), 'list', month] as const,
   categoriesRoot: () => [...financeKeys.all, 'categories'] as const,
   categories: (type: FinanceCategoryType) => [...financeKeys.categoriesRoot(), type, 'list'] as const,
   // 관리자 시스템 카테고리 — 그룹과 무관한 별도 네임스페이스.
@@ -19,10 +30,11 @@ export const financeKeys = {
   monthlyClosings: () => [...financeKeys.monthlyClosingsRoot(), 'list'] as const,
   groups: () => [...financeKeys.all, 'groups', 'list'] as const,
   groupMembers: (groupId: string) => [...financeKeys.all, 'groups', groupId, 'members'] as const,
-  // from/to는 조회 범위('YYYY-MM-DD', from 생략 = 하한 없음). 월을 옮길 때마다 새 키로 재조회되지만
-  // gcTime(10분) 안이면 캐시 히트다.
+  // 거래 목록은 커서 페이지형 무한 쿼리 — 키에 from/to('YYYY-MM-DD')·type·categoryId·memo·sort가 섞인다.
+  // latestTransaction은 자동 월 보정용 최신 거래 1건 조회(범위 from/to)로, 같은 루트 아래라 거래 mutation 무효화에 함께 걸린다.
   transactionsRoot: () => [...financeKeys.all, 'transactions'] as const,
-  transactions: (from: string | undefined, to: string) => [...financeKeys.transactionsRoot(), from, to, 'list'] as const,
+  transactions: (params: TransactionListKeyParams) => [...financeKeys.transactionsRoot(), 'list', params] as const,
+  latestTransaction: (from: string, to: string) => [...financeKeys.transactionsRoot(), 'latest', from, to] as const,
   budgetsRoot: () => [...financeKeys.all, 'budgets'] as const,
   budgets: () => [...financeKeys.budgetsRoot(), 'list'] as const,
   // 서버 집계 — 원본 리소스별 루트 아래에 두지 않고 하나의 루트로 모은다. 집계 하나가 여러 원본에 걸려

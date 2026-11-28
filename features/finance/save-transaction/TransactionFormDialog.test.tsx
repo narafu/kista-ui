@@ -14,9 +14,9 @@ const source: FinanceTransaction = { id: 't1', categoryId: 'cat-food', transacti
 
 function setup(handlers: Parameters<typeof mockApi>[0] = {}, { groups = false }: { groups?: boolean } = {}) {
   return mockApi({
-    'GET /api/finance/categories': categoryTree,
-    'GET /api/finance/groups': groups ? [{ id: 'g1', name: '우리집' }] : [],
-    'GET /api/finance/monthly-closings': [],
+    'GET /api/finance/categories': { items: categoryTree },
+    'GET /api/finance/groups': { items: groups ? [{ id: 'g1', name: '우리집' }] : [] },
+    'GET /api/finance/monthly-closings': { items: [] },
     ...handlers,
   })
 }
@@ -91,7 +91,7 @@ describe('TransactionFormDialog 제출 요청', () => {
   })
 
   it('마감된 달이면 안내를 보이고 저장 버튼이 잠긴다', async () => {
-    setup({ 'GET /api/finance/monthly-closings': [{ month: '2026-03', completed: true, groupId: undefined }] })
+    setup({ 'GET /api/finance/monthly-closings': { items: [{ month: '2026-03', completed: true, groupId: undefined }] } })
     renderApp(<TransactionFormDialog open onClose={() => {}} type="EXPENSE" initial={source} />)
 
     expect(await screen.findByText(/기록 점검이 완료되어 잠겨 있습니다/)).toBeInTheDocument()

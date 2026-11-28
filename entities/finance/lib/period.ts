@@ -1,4 +1,4 @@
-// 수입·소비·저축 탭의 기간 상태와 원본 거래 조회 범위. 집계(요약·추이·예산 대비)의 기간 규칙은
+// 수입·소비·저축 탭의 기간 상태와 내역 목록 조회 범위. 집계(요약·추이·예산 대비)의 기간 규칙은
 // 서버(kista-api FlowPeriod)가 소유한다 — 여기는 내역 리스트·자동 월 보정·등록 폼이 쓰는 것만 남는다.
 
 export type PeriodMode = 'monthly' | 'yearly'
@@ -38,21 +38,7 @@ export function periodRange({ month, mode }: Period, today: string): { from: str
   return { from: `${year}-01-01`, to: year === today.slice(0, 4) ? today : monthEndDate(`${year}-12`) }
 }
 
-// 선택 월을 포함해 과거 11개월 전까지의 12개월 윈도우 — 월간 모드 원본 조회 범위(displayWindow).
-// 자동 월 보정(autoAdjustedMonth)이 "최근 12개월 중 거래가 있는 가장 최근 달"을 이 목록에서 고른다.
-function windowRange(month: string): { from: string; to: string } {
-  return { from: monthStartDate(shiftMonth(month, -11)), to: monthEndDate(month) }
-}
-
-// 수입/소비/저축 탭의 원본 거래 조회 범위 — 월간은 12개월 슬라이딩 윈도우(자동 월 보정용), 연간은
-// periodRange와 동일한 정확한 범위(올해는 1월~오늘, 과거 연도는 1월~12월). windowRange(month)는
-// period.month의 mm(연간 모드엔 없는 개념)에 걸려 있어 연간 모드에 쓰면 안 된다. 내역 리스트는
-// 이 결과를 periodRange로 다시 잘라 쓴다.
-export function displayWindow(period: Period, today: string): { from: string; to: string } {
-  return period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
-}
-
-// 조회된 거래 날짜 목록을 보고 "지금 보여줄 월"을 옮겨야 하는지 판정한다 — 현재 선택월에 거래가
+// 최신 거래일(오늘 기준 12개월 안, 없으면 빈 목록)을 보고 "지금 보여줄 월"을 옮겨야 하는지 판정한다 — 현재 선택월에 거래가
 // 하나라도 있으면 그대로(null), 없으면 목록 중 가장 최근 월을 반환한다. 최근 월이 현재 선택월과
 // 같으면(목록이 비었거나 전부 그 달이면) 조정 불필요라 null. 반환·selectedMonth는 'YYYY-MM',
 // transactionDates 원소는 'YYYY-MM-DD'. useFinanceFlowData가 매 마운트마다 오늘 기준으로 호출해

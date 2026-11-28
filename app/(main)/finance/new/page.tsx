@@ -5,8 +5,10 @@ import { AssetFormPage, loadAssetSnapshotById } from '@features/asset/save-asset
 import { getAuthToken } from '@shared/lib/auth/token'
 
 interface Props {
-  searchParams: Promise<{ duplicateFrom?: string }>
+  searchParams: Promise<{ duplicateFrom?: string; month?: string }>
 }
+
+const MONTH_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/
 
 export const metadata: Metadata = {
   title: '자산 기록 등록',
@@ -14,14 +16,15 @@ export const metadata: Metadata = {
 }
 
 export default async function NewAssetPage({ searchParams }: Props) {
-  const [{ duplicateFrom }, token] = await Promise.all([searchParams, getAuthToken()])
+  const [{ duplicateFrom, month }, token] = await Promise.all([searchParams, getAuthToken()])
 
   if (!token) {
     return notFound()
   }
 
   // 복제 대상 조회 실패는 등록 자체를 막지 않는다 — 빈 등록 폼으로 그레이스풀 폴백한다
-  const initial = duplicateFrom ? await loadAssetSnapshotById(duplicateFrom, token).catch(() => null) : null
+  const validMonth = month && MONTH_PATTERN.test(month) ? month : undefined
+  const initial = duplicateFrom && validMonth ? await loadAssetSnapshotById(duplicateFrom, validMonth, token).catch(() => null) : null
 
   return (
     <div className="max-w-lg mx-auto">

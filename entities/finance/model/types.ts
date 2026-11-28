@@ -105,6 +105,13 @@ export interface FinanceTransaction {
   memo?: string
 }
 
+// 거래 목록은 커서 페이지형 — hasMore가 false면 nextCursor는 무시한다.
+export interface FinanceTransactionPage {
+  items: FinanceTransaction[]
+  nextCursor?: string | null
+  hasMore: boolean
+}
+
 export interface FinanceTransactionRequest {
   categoryId: string
   transactionDate: string

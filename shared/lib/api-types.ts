@@ -396,7 +396,7 @@ export interface paths {
         };
         /**
          * 거래내역 목록 조회
-         * @description userId=본인UUID로 필터링하면 개인 탭(내가 입력한 내역만)입니다.
+         * @description [페이지형] sort=<field>,<asc|desc>(field는 transactionDate|category|memo|amount, 방향 필수, 생략 시 transactionDate,desc, 동순위는 id 같은 방향). category 정렬은 카테고리 이름, memo·category 정렬에서 값 없는 행은 방향과 무관하게 맨 뒤. categoryId는 하위 카테고리 포함, type은 카테고리 유형(INCOME·EXPENSE·SAVING). 커서는 불투명 문자열이며 같은 sort로만 이어 받을 수 있습니다. 운영 거래가 수백 건 규모라 별도 인덱스 없이 조회합니다.
          */
         get: operations["list"];
         put?: never;
@@ -437,7 +437,7 @@ export interface paths {
         };
         /**
          * 카테고리 목록 조회
-         * @description 카테고리를 중첩된 트리로 반환합니다.
+         * @description [전량형: 카테고리 트리] 카테고리를 중첩된 트리로 반환합니다.
          */
         get: operations["list_1"];
         put?: never;
@@ -478,7 +478,7 @@ export interface paths {
         };
         /**
          * 예산 목록 조회
-         * @description date를 지정하면 그 날짜에 유효한 예산만 반환합니다.
+         * @description [전량형: 예산 규칙 수] date를 지정하면 그 날짜에 유효한 예산만 반환합니다.
          */
         get: operations["list_2"];
         put?: never;
@@ -499,7 +499,7 @@ export interface paths {
         };
         /**
          * 자산 기록 목록 조회
-         * @description 기준 날짜 최신순으로 반환합니다.
+         * @description [전량형: 한 달치 — month 필수] 기준 날짜 최신순(동일하면 id 역순). categoryId는 하위 카테고리를 포함합니다.
          */
         get: operations["list_3"];
         put?: never;
@@ -518,7 +518,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 계좌 목록 조회 */
+        /**
+         * 계좌 목록 조회
+         * @description [전량형: 사용자 가계부 계좌 수]
+         */
         get: operations["list_4"];
         put?: never;
         /**
@@ -913,7 +916,7 @@ export interface paths {
         };
         /**
          * 시스템 카테고리 목록 조회
-         * @description 그룹 공용 시스템 카테고리를 중첩된 트리로 반환합니다.
+         * @description [전량형: 시스템 카테고리 트리] 그룹 공용 시스템 카테고리를 중첩된 트리로 반환합니다.
          */
         get: operations["list_5"];
         put?: never;
@@ -1511,7 +1514,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 전략 거래 이력 조회 */
+        /**
+         * 전략 거래 이력 조회
+         * @description [페이지형] 전략(사이클) 기준 거래 이력, 최신순.
+         */
         get: operations["getStrategyHistory"];
         put?: never;
         post?: never;
@@ -1878,7 +1884,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 월별 마감 상태 목록 조회 */
+        /**
+         * 월별 마감 상태 목록 조회
+         * @description [전량형: 월 1건]
+         */
         get: operations["list_8"];
         put?: never;
         post?: never;
@@ -1897,7 +1906,7 @@ export interface paths {
         };
         /**
          * 내 그룹 목록 조회
-         * @description 내가 속한 그룹 목록(한 사용자는 최대 1개 그룹).
+         * @description [전량형: 소속 그룹 수] 내가 속한 그룹 목록(한 사용자는 최대 1개 그룹).
          */
         get: operations["listMyGroups"];
         put?: never;
@@ -1915,7 +1924,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** 그룹 멤버 목록 조회 */
+        /**
+         * 그룹 멤버 목록 조회
+         * @description [전량형: 그룹 멤버 수]
+         */
         get: operations["listMembers"];
         put?: never;
         post?: never;
@@ -2363,7 +2375,7 @@ export interface paths {
         };
         /**
          * 사이클 이력 조회
-         * @description DB의 strategy_cycle 기반 계좌 거래 이력 조회.
+         * @description [페이지형] DB의 strategy_cycle 기반 계좌 거래 이력 조회.
          */
         get: operations["getCycleHistory"];
         put?: never;
@@ -4385,12 +4397,9 @@ export interface components {
             /** @description 전략의 주문 목록 */
             orders: components["schemas"]["StrategyOrderItem"][];
         };
-        CycleHistoryPageResponse: {
-            /** @description 거래내역 항목 목록 */
+        CursorPageCycleHistoryResponse: {
             items: components["schemas"]["CycleHistoryResponse"][];
-            /** @description 다음 페이지 조회용 커서 (마지막 페이지면 null) */
             nextCursor?: string | null;
-            /** @description 다음 페이지 존재 여부 */
             hasMore: boolean;
         };
         CycleHistoryResponse: {
@@ -4887,6 +4896,11 @@ export interface components {
             /** @description RSI(14, Wilder) — 해당 캔들 포함 최근 250개 종가 창 기준 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
             rsi14?: number | null;
         };
+        CursorPageFinanceTransactionResponse: {
+            items: components["schemas"]["FinanceTransactionResponse"][];
+            nextCursor?: string | null;
+            hasMore: boolean;
+        };
         FlowTrendPoint: {
             /**
              * @description 월간 yyyy-MM, 연간 yyyy
@@ -5006,6 +5020,12 @@ export interface components {
             /** Format: int64 */
             amount: number;
         };
+        ItemsMonthlyClosingResponse: {
+            items: components["schemas"]["MonthlyClosingResponse"][];
+        };
+        ItemsFinanceGroupResponse: {
+            items: components["schemas"]["FinanceGroupResponse"][];
+        };
         FinanceGroupMemberResponse: {
             /**
              * Format: uuid
@@ -5019,6 +5039,12 @@ export interface components {
              * @example OWNER
              */
             role: string;
+        };
+        ItemsFinanceGroupMemberResponse: {
+            items: components["schemas"]["FinanceGroupMemberResponse"][];
+        };
+        ItemsFinanceCategoryResponse: {
+            items: components["schemas"]["FinanceCategoryResponse"][];
         };
         BulkRegisterPreviewResponse: {
             asset: components["schemas"]["Node"][];
@@ -5060,6 +5086,12 @@ export interface components {
             name: string;
             /** Format: int32 */
             sortOrder: number;
+        };
+        ItemsFinanceBudgetResponse: {
+            items: components["schemas"]["FinanceBudgetResponse"][];
+        };
+        ItemsAssetSnapshotResponse: {
+            items: components["schemas"]["AssetSnapshotResponse"][];
         };
         AssetClassAmount: {
             /** @enum {string} */
@@ -5138,6 +5170,9 @@ export interface components {
             categoryName: string;
             /** @enum {string} */
             assetClass: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
+        };
+        ItemsFinanceAccountResponse: {
+            items: components["schemas"]["FinanceAccountResponse"][];
         };
         CurrencyDto: {
             /** @enum {string} */
@@ -6696,8 +6731,13 @@ export interface operations {
             query?: {
                 from?: string;
                 to?: string;
+                type?: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
                 categoryId?: string;
+                memo?: string;
                 userId?: string;
+                sort?: string;
+                cursor?: string;
+                size?: number;
             };
             header?: never;
             path?: never;
@@ -6711,7 +6751,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceTransactionResponse"][];
+                    "*/*": components["schemas"]["CursorPageFinanceTransactionResponse"];
+                };
+            };
+            /** @description 잘못된 파라미터(sort·cursor 형식, type=ASSET) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["CursorPageFinanceTransactionResponse"];
                 };
             };
         };
@@ -6804,7 +6853,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceCategoryResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceCategoryResponse"];
                 };
             };
         };
@@ -6907,7 +6956,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceBudgetResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceBudgetResponse"];
                 };
             };
         };
@@ -6959,9 +7008,11 @@ export interface operations {
     };
     list_3: {
         parameters: {
-            query?: {
-                from?: string;
-                to?: string;
+            query: {
+                month: string;
+                categoryId?: string;
+                assetClass?: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
+                market?: "DOMESTIC" | "GLOBAL";
                 userId?: string;
             };
             header?: never;
@@ -6976,7 +7027,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["AssetSnapshotResponse"][];
+                    "*/*": components["schemas"]["ItemsAssetSnapshotResponse"];
+                };
+            };
+            /** @description month 누락 또는 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ItemsAssetSnapshotResponse"];
                 };
             };
         };
@@ -7031,7 +7091,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceAccountResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceAccountResponse"];
                 };
             };
         };
@@ -7541,7 +7601,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceCategoryResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceCategoryResponse"];
                 };
             };
         };
@@ -8629,7 +8689,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                    "*/*": components["schemas"]["CursorPageCycleHistoryResponse"];
                 };
             };
         };
@@ -9131,7 +9191,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["MonthlyClosingResponse"][];
+                    "*/*": components["schemas"]["ItemsMonthlyClosingResponse"];
                 };
             };
         };
@@ -9151,7 +9211,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceGroupResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceGroupResponse"];
                 };
             };
         };
@@ -9174,7 +9234,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceGroupMemberResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceGroupMemberResponse"];
                 };
             };
             /** @description 그룹 멤버가 아님 */
@@ -9183,7 +9243,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["FinanceGroupMemberResponse"][];
+                    "*/*": components["schemas"]["ItemsFinanceGroupMemberResponse"];
                 };
             };
         };
@@ -9879,7 +9939,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                    "*/*": components["schemas"]["CursorPageCycleHistoryResponse"];
                 };
             };
             /** @description 내 계좌가 아님 */
@@ -9888,7 +9948,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                    "*/*": components["schemas"]["CursorPageCycleHistoryResponse"];
                 };
             };
             /** @description 계좌를 찾을 수 없음 */
@@ -9897,7 +9957,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["CycleHistoryPageResponse"];
+                    "*/*": components["schemas"]["CursorPageCycleHistoryResponse"];
                 };
             };
         };

@@ -99,10 +99,30 @@ describe('AssetRecordList', () => {
     expect(screen.queryByText('계좌B')).not.toBeInTheDocument()
   })
 
-  it('필터 없이 선택한 달에 기록이 없으면 필터 조건이 아닌 월 기준 빈 상태 문구를 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ entryDate: '2026-07-01' })], isLoading: false, isError: false })
+  it('선택한 달(month)을 조회 훅에 넘긴다 — 월 필터는 서버가 한다', () => {
+    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
     render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
-    expect(screen.getByText('선택한 달에 자산 기록이 없습니다.')).toBeInTheDocument()
+    expect(useAssetSnapshotsQueryMock).toHaveBeenCalledWith('2026-08')
+  })
+
+  it('메모 검색은 대소문자를 무시한 부분 일치로 거르고, 일치하는 행이 없으면 입력창을 유지한 채 조건 빈 상태를 보인다', async () => {
+    const user = userEvent.setup()
+    useAssetSnapshotsQueryMock.mockReturnValue({
+      data: [snapshot({ id: 'a1', memo: 'Global ETF', accountName: '계좌A' }), snapshot({ id: 'a2', memo: '예금', accountName: '계좌B' })],
+      isLoading: false,
+      isError: false,
+    })
+    render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
+
+    const input = screen.getByRole('searchbox', { name: '메모 검색' })
+    await user.type(input, 'etf')
+    expect(screen.getAllByText('계좌A').length).toBeGreaterThan(0)
+    expect(screen.queryByText('계좌B')).not.toBeInTheDocument()
+
+    await user.clear(input)
+    await user.type(input, '없는메모')
+    expect(screen.getByText('조건에 맞는 자산 기록이 없습니다.')).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: '메모 검색' })).toBeInTheDocument()
   })
 
   it('데스크탑 표 스크롤 컨테이너는 키보드로 스크롤할 수 있는 region이다', () => {
@@ -138,7 +158,7 @@ describe('AssetRecordList', () => {
   it('기록이 없으면 빈 상태를 표시한다', () => {
     useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
     render(<AssetRecordList month="2026-08" categoryPath={[]} onCategoryPathChange={vi.fn()} />)
-    expect(screen.getByText(/등록된 자산 기록이 없습니다/)).toBeInTheDocument()
+    expect(screen.getByText(/선택한 달에 자산 기록이 없습니다/)).toBeInTheDocument()
   })
 
   it('금액과 카테고리를 포맷팅해 표시하고 수정·복제 링크를 연결한다', () => {
@@ -147,8 +167,8 @@ describe('AssetRecordList', () => {
 
     expect(screen.getAllByText('1,000,000원').length).toBeGreaterThan(0)
     expect(screen.getAllByText('투자').length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: '수정' })[0]).toHaveAttribute('href', '/finance/a1/edit')
-    expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/finance/new?duplicateFrom=a1')
+    expect(screen.getAllByRole('link', { name: '수정' })[0]).toHaveAttribute('href', '/finance/a1/edit?month=2026-08')
+    expect(screen.getAllByRole('link', { name: '복제' })[0]).toHaveAttribute('href', '/finance/new?duplicateFrom=a1&month=2026-08')
   })
 
   it('그룹 소유 기록에만 데스크톱·모바일 모두 공유 배지를 붙인다', () => {

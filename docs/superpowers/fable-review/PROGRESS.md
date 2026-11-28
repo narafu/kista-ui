@@ -682,3 +682,14 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 사용자 결정 유지 → 대장 등록: `strategyFormGuards` 서버 중복 규칙.
 - api 반영(`739b755ff`): `vr.nextRolloverDate`, `ledgerDeposit` 계좌 통화 자릿수 내림(전에는 HALF_UP, `NO_WITHDRAWABLE_BALANCE`도 절사값 기준). ui는 `gen:types` 재생성 후 `vr-rollover.ts`·`capitalAdjustment.ts`(`floorToCents`)를 지웠다. 다음 사이클 시작은 서버 값이 null(보관·종료 사이클)이면 대시. 배포 순서: api 먼저. `vr-rollover`는 S7 후속 B(T6)에서 기록 없이 빠져 있던 항목이다.
 - 05 본문 정정: 4절 `isScheduledStart`, 7절 롤오버·시작예정, 태스크 3 대상.
+
+## 05 태스크 5 묶음 ① 가계부 목록 규약 (2026-11-29)
+
+api `003051a53`(cross-repo N절, 미배포)과 짝. **같은 날 배포** — api만 먼저 나가면 가계부 화면이 깨진다.
+
+- `gen:types` 재생성. 전량형 7개(`accounts`·`categories`·`budgets`·`monthly-closings`·`groups`·`members`·관리자 `categories`)는 API 함수가 `{items}`를 풀어 배열을 돌려준다(캐시·mutation 불변).
+- 거래 목록: 커서 무한 쿼리(`useFinanceTransactionsInfiniteQuery`), 서버 `from/to`·`type`·`categoryId`(하위 트리)·`memo`(디바운스)·`sort`. 번호 페이지 → "더 보기"(`LoadMoreButton`, DataList에서 추출). 조건 변경 첫 응답 전(placeholder)엔 더 보기를 막는다(커서는 같은 sort에서만 유효). 자동 월 보정은 오늘 기준 12개월 최신 거래 1건 조회. `windowRange`·`displayWindow`·`flowAggregate.ts` 삭제.
+- 자산 기록: 월 필수 전량형. 카테고리·자산군·시장·메모 필터와 9키 정렬은 UI(한 달 최대 89행), 페이지네이션 삭제. 메모 검색 추가(10의 7 — 서버 `memo` 없음, 10의 판정 문장 정정). 편집·복제 링크가 `?month=`를 싣는다(단건 GET 없음, month 없는 옛 링크는 404·복제 빈 폼).
+- 사라진 표시: 거래 탭의 "분류할 수 없는 내역 N건". 서버 `type` 필터가 삭제된 카테고리의 거래를 빼므로 어느 탭에도 안 보이는 것은 같다.
+- 확인: typecheck·lint·knip, 가계부 vitest, 로컬 api(`003051a53`) 화면 확인(정렬·메모 검색 시 입력창 유지·연간·편집 링크·route 가로채기로 더 보기 커서 전달). 가계부 e2e 스펙은 없다.
+- 남은 것: 묶음 ②(전략 주문·체결·이력)·③(관리자 — `useClientPagination` 3곳)은 api 다음 세션 뒤.

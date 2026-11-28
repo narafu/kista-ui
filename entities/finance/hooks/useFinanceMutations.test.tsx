@@ -152,16 +152,16 @@ describe('집계 원본 mutation의 aggregatesRoot 무효화', () => {
 })
 
 describe('useUpdateAssetSnapshotMutation', () => {
-  it('upserts the updated snapshot into the list cache and invalidates the server aggregates', async () => {
+  it('기준일이 다른 달로 옮겨질 수 있어 월별 목록 캐시를 upsert하지 않고 루트를 무효화한다', async () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
     const mutation = renderMutation(() => useUpdateAssetSnapshotMutation('s1'))
-    const saved = { id: 's1', amount: 9 }
 
-    await mutation.onSuccess(saved)
+    await mutation.onSuccess({ id: 's1', amount: 9 })
 
-    expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [saved])
+    expect(queryClient.setQueryData).not.toHaveBeenCalled()
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
   })
 })
@@ -180,7 +180,8 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
     expect(deleteAssetSnapshotMock).toHaveBeenCalledTimes(2)
 
     await mutation.onSuccess(outcome, ['s1', 'bad'])
-    expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [{ id: 'bad' }])
+    expect(queryClient.setQueryData).not.toHaveBeenCalled()
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
   })
 

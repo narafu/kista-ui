@@ -16,7 +16,7 @@ export type CategoryIndex = Map<string, CategoryIndexEntry>
 //
 // 삭제된 카테고리를 가리키는 거래는 이 인덱스에 없다 — GET /categories가 deleted_at IS NULL만
 // 반환하기 때문(kista-api FinanceCategoryJpaRepository.findSelectableByGroup). 그런 거래는
-// 어느 탭 내역에도 넣지 말고 "분류할 수 없는 내역"으로 별도 표시한다(lib/flowAggregate.ts 참고).
+// 서버가 `type` 필터에서 제외하므로 어느 탭 내역에도 나오지 않는다.
 export function buildCategoryIndex(trees: Partial<Record<FinanceCategoryType, FinanceCategory[]>>): CategoryIndex {
   const index: CategoryIndex = new Map()
   for (const [type, roots] of Object.entries(trees) as [FinanceCategoryType, FinanceCategory[] | undefined][]) {

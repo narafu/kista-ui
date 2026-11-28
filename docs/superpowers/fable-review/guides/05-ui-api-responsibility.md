@@ -165,7 +165,7 @@ PRIVACY `days` 파라미터(2026-11-12 정리): 코드를 다시 확인하니 `l
 | 2 | runtime-config를 메타로 합침 | T5 | `entities/runtime-config/**`, `features/strategy/create-strategy/model/{useTypeDefaults,strategyFormHelpers}.ts`, `features/admin/settings/**` | Opus | `ls entities/runtime-config`가 없음 |
 | 3 | 상태 플래그 소비 | T6 | `entities/order/model/order-readiness.ts`, `entities/strategy/model/{capitalAdjustment,vr-rollover}.ts`, `entities/account/model/apiKeyExpiry.ts`, 소비 위젯 | Opus | 선행 테스트 2 통과, 판정 함수 삭제(2026-11-28 잔존 판정 참고) |
 | 4 | 오류 문구 정리 | T7 | mutation 폴백 문구, `entities/account/model/brokerCredentials.ts` | Sonnet | `grep -rn "apiMsg(" --include='*.ts*' . \| grep -v test \| wc -l`이 전역 처리 1곳 |
-| 5 | 목록 페이지형 전환(가계부 → 전략 주문·체결·이력 → 관리자), 서버와 같은 날 배포 | T3·T4 | 목록 10개 화면, `shared/lib/hooks/use-client-pagination.ts`, `entities/finance/lib/period.ts` | Sonnet(묶음별) | `grep -rn "useClientPagination" .` 0건 |
+| 5 | 목록 페이지형 전환(가계부 → 전략 주문·체결·이력 → 관리자), 서버와 같은 날 배포 | T3·T4 | 목록 10개 화면, `shared/lib/hooks/use-client-pagination.ts`, `entities/finance/lib/period.ts` | Sonnet(묶음별) | `grep -rn "useClientPagination" .` 0건(묶음 ① 가계부 완료 2026-11-29 — 남은 사용처는 관리자 3곳, 묶음 ③) |
 | 6 | 가계부 집계 이전 | T8 | `entities/finance/lib/{aggregate,flowAggregate,bulkRegisterPreview,period}.ts`, 소비 위젯 | Opus | 선행 테스트 1 차이 0, 파일 삭제 |
 | 7 | 그 외 집계 필드 소비(일별 체결, 통계 합, CAGR, PRIVACY) | 응답 필드 추가 | `entities/trade/hooks/useDailyTradesRangeQuery.ts`, `widgets/stats-overview/**`, `widgets/benchmark-comparison/**`, `widgets/admin-privacy-trade-list/**` | Sonnet | 해당 `reduce(` 집계 코드 삭제 |
 | 8 | 업무 규칙 사본 삭제, 검증 전용 엔드포인트 연결 | T10, T7 | `features/strategy/**/model/{strategyFormGuards,vrDerived}.ts`, `dcaFormSchema.ts`의 업무 규칙 | Opus | 선행 테스트 3 통과. 04 태스크 6과 한 묶음 |
