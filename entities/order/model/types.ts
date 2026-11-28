@@ -56,7 +56,8 @@ export interface OrderWarning {
 }
 
 export interface NextOrderPreview {
-  tradeDate: string
+  tradeDate: string // 이 미리보기의 기준 거래일(KST) — 휴장이면 그다음 개장일
+  marketClosedToday?: boolean // 다음 거래일 휴장 여부(서버 판정) — 필드가 없는 구서버 응답이면 undefined
   position: NextOrderPositionSnapshot | null
   orders: NextOrderItem[]
   skipReason: SkipReason | null

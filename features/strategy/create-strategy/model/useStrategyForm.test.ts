@@ -20,6 +20,7 @@ const vrRampMeta = vi.hoisted(() => ({ value: undefined as Record<string, Record
 const invalidateQueriesMock = vi.hoisted(() => vi.fn(() => Promise.resolve()))
 let createSuccessHandler: ((saved?: { todayOpenBatchMissed?: boolean }) => void) | undefined
 const toastInfoMock = vi.hoisted(() => vi.fn())
+const pricesQueryMock = vi.hoisted(() => vi.fn((_accountId: string, _tickers: string[]) => ({ data: { TSLA: 100 } })))
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), info: toastInfoMock } }))
 
@@ -32,7 +33,6 @@ const mockUpdateMutate = vi.fn()
 const seedModelState = {
   seedUsdInput: 1200,
   setSeedUsdInput: vi.fn(),
-  resetSeed: vi.fn(),
   seedUsd: 1200,
   isBelowMinSeed: false,
   isInvalidSeed: false,
@@ -98,14 +98,13 @@ vi.mock('@entities/meta', async () => ({
 
 vi.mock('@entities/account', () => ({
   invalidateLedgerTotals: (qc: { invalidateQueries: (o: unknown) => unknown }, id?: string) => Promise.resolve(qc.invalidateQueries({ queryKey: ['ledger', id] })).catch(() => null),
-  useAccountPricesQuery: () => ({
-    data: { TSLA: 100 },
-  }),
+  useAccountPricesQuery: pricesQueryMock,
 }))
 
 vi.mock('@entities/strategy', async () => ({
   ...(await import('@entities/strategy/model/vrRamp')),
   ...(await import('@entities/strategy/model/poolLimitRamp')),
+  ...(await import('@entities/strategy/model/actionState')),
   useCreateStrategyMutation: (_accountId: string, onSuccess?: (saved?: { todayOpenBatchMissed?: boolean }) => void) => {
     createSuccessHandler = onSuccess
     return {
@@ -148,7 +147,8 @@ describe('useStrategyForm submit policy', () => {
     createSuccessHandler = undefined
     seedModelState.seedUsdInput = 1200
     seedModelState.seedUsd = 1200
-    seedModelState.resetSeed.mockClear()
+    seedModelState.setSeedUsdInput.mockClear()
+    pricesQueryMock.mockClear()
     seedModelState.isBelowMinSeed = false
     seedModelState.isInvalidSeed = false
     seedPreviewState.data.basePrice = 100
@@ -317,7 +317,7 @@ describe('useStrategyForm submit policy', () => {
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
-          allowedActions: [],
+          allowedActions: ['EDIT_SEED'],
           blockedActions: [],
           currentHoldings: 0,
         },
@@ -423,7 +423,7 @@ describe('useStrategyForm submit policy', () => {
           divisionCount: 20,
           isReverseMode: false,
           cycleInProgress: true,
-          allowedActions: [],
+          allowedActions: ['EDIT_SEED'],
           blockedActions: [],
           currentHoldings: 0,
         },
@@ -431,35 +431,6 @@ describe('useStrategyForm submit policy', () => {
     )
 
     expect(result.current.cannotSubmit).toBe(true)
-  })
-
-  it('edit mode with currentHoldings zero keeps existing seed instead of resetting to minSeed', async () => {
-    // 회귀 테스트: canEditSeed(holdings=0 수정)일 때 minSeed 도착 effect가 initialDeposit을
-    // Math.ceil(minSeed)로 덮어쓰던 버그 — "신규 등록 한정" 주석과 달리 initial 존재 시에도 실행됐음
-    seedPreviewState.data.minSeed = 500
-
-    renderHook(() =>
-      useStrategyForm({
-        accountId: 'account-1',
-        initial: {
-          id: 'strategy-1',
-          accountId: 'account-1',
-          type: 'INFINITE',
-          status: 'ACTIVE',
-          ticker: 'TSLA',
-          cycleSeedType: 'MAX',
-          initialDeposit: 1200,
-          divisionCount: 20,
-          isReverseMode: false,
-          cycleInProgress: true,
-          allowedActions: [],
-          blockedActions: [],
-          currentHoldings: 0,
-        },
-      }),
-    )
-
-    expect(seedModelState.resetSeed).not.toHaveBeenCalled()
   })
 
   it('VR create payload includes VR fields and forces cycleSeedType NONE', async () => {
@@ -800,22 +771,46 @@ describe('useStrategyForm submit policy', () => {
     expect(result.current.vrFields.recurringAmount).toBe(0)
   })
 
-  it('VR create resets initial seed input to 0', async () => {
-    const { result } = renderHook(() =>
-      useStrategyForm({
-        accountId: 'account-1',
-      }),
-    )
+  it.each(['VR', 'PRIVACY'])('%s로 유형을 바꾸면 예수금을 0으로 되돌리고, 같은 유형을 다시 고르면 두지 않는다', (next) => {
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('INFINITE'))
+    expect(seedModelState.setSeedUsdInput).not.toHaveBeenCalled()
 
-    act(() => {
-      result.current.setType('VR')
-    })
+    act(() => result.current.setType(next))
+    expect(seedModelState.setSeedUsdInput).toHaveBeenCalledWith(0)
+  })
 
-    await waitFor(() => {
-      expect(seedModelState.resetSeed).toHaveBeenCalledWith(expect.objectContaining({
-        seedUsdInput: 0,
-      }))
-    })
+  it('최소 시드 응답이 와도 예수금을 채우지 않는다', () => {
+    renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(seedModelState.setSeedUsdInput).not.toHaveBeenCalled()
+  })
+
+  it('현재가는 선택 가능한 종목(현재 유형·수정 중 종목)만 조회한다', () => {
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(pricesQueryMock).toHaveBeenLastCalledWith('account-1', ['TSLA'])
+    act(() => result.current.setType('VR'))
+    expect(pricesQueryMock).toHaveBeenLastCalledWith('account-1', ['TQQQ'])
+
+    renderHook(() => useStrategyForm({
+      accountId: 'account-1',
+      initial: { id: 's', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'SOXL', cycleSeedType: 'MAX', isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [] },
+    }))
+    expect(pricesQueryMock).toHaveBeenLastCalledWith('account-1', ['SOXL'])
+  })
+
+  it.each([
+    ['서버가 허용', ['EDIT_SEED'], [], true],
+    ['서버가 차단(종료 사이클·보관·보유)', [], [{ action: 'EDIT_SEED', reasonCode: 'NO_ACTIVE_CYCLE' }], false],
+    ['미지원(VR)', [], [], false],
+  ] as const)('시드 수정은 보유 0이 아니라 서버 판정을 따른다 — %s', async (_name, allowed, blocked, editable) => {
+    const { result } = renderHook(() => useStrategyForm({
+      accountId: 'account-1',
+      initial: { id: 's', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TSLA', cycleSeedType: 'MAX', initialDeposit: 1200, isReverseMode: false, cycleInProgress: true, allowedActions: [...allowed], blockedActions: [...blocked], currentHoldings: 0 },
+    }))
+    expect(result.current.canEditSeed).toBe(editable)
+    await act(async () => { result.current.handleSubmit({ preventDefault() {} } as React.FormEvent) })
+    await waitFor(() => expect(mockUpdateMutate).toHaveBeenCalled())
+    expect('initialDeposit' in mockUpdateMutate.mock.calls[0][0]).toBe(editable)
   })
 
   it('VR hold and withdrawal create are blocked when initial value and seed are both zero', () => {
@@ -1205,7 +1200,8 @@ describe('useStrategyForm 서버 검증 연결', () => {
     mockUpdateMutate.mockClear()
     seedModelState.seedUsdInput = 1200
     seedModelState.seedUsd = 1200
-    seedModelState.resetSeed.mockClear()
+    seedModelState.setSeedUsdInput.mockClear()
+    pricesQueryMock.mockClear()
     seedModelState.isBelowMinSeed = false
     seedModelState.isInvalidSeed = false
     seedPreviewState.data.basePrice = 100
@@ -1238,7 +1234,7 @@ describe('useStrategyForm 서버 검증 연결', () => {
   it('수정 검증은 수정 대상 경로로 제출 바디와 같은 바디를 보낸다', async () => {
     const initial = {
       id: 'strategy-1', accountId: 'account-1', type: 'INFINITE', status: 'ACTIVE', ticker: 'TSLA', cycleSeedType: 'MAX' as const,
-      initialDeposit: 1200, divisionCount: 20, isReverseMode: false, cycleInProgress: true, allowedActions: [], blockedActions: [], currentHoldings: 0,
+      initialDeposit: 1200, divisionCount: 20, isReverseMode: false, cycleInProgress: true, allowedActions: ['EDIT_SEED' as const], blockedActions: [], currentHoldings: 0,
     }
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1', initial }))
     expect(lastValidation()[0]).toEqual({ kind: 'update', strategyId: 'strategy-1' })
@@ -1343,7 +1339,7 @@ describe('useStrategyForm 서버 검증 연결', () => {
   describe('PRIVACY 수정(보유 0, 시드 수정)은 등록과 같이 서버 파생값으로 판정한다', () => {
     const privacyInitial = (currentHoldings: number) => ({
       id: 'strategy-1', accountId: 'account-1', type: 'PRIVACY' as const, status: 'ACTIVE' as const, ticker: 'SOXL', cycleSeedType: 'MAX' as const,
-      initialDeposit: 1200, isReverseMode: false, cycleInProgress: false, allowedActions: [], blockedActions: [], currentHoldings,
+      initialDeposit: 1200, isReverseMode: false, cycleInProgress: true, allowedActions: currentHoldings === 0 ? ['EDIT_SEED' as const] : [], blockedActions: [], currentHoldings,
     })
 
     it('시드를 바꿨는데 파생값이 없으면 막는다', async () => {
@@ -1427,26 +1423,6 @@ describe('useStrategyForm 서버 검증 연결', () => {
     expect(result.current.seedCheck).toBe('ok')
     expect(result.current.cannotSubmit).toBe(false)
     expect(result.current.validationUnavailable).toBe(true)
-  })
-
-  it('최소 시드로 시드를 채우는 것은 범위(유형·종목·분할 수)마다 지금 입력의 응답이 처음 올 때 한 번이다', () => {
-    validationState.pending = true
-    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
-    expect(seedModelState.resetSeed).not.toHaveBeenCalled()
-
-    validationState.pending = false
-    rerender()
-    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(1)
-    expect(seedModelState.resetSeed).toHaveBeenCalledWith({ seedUsdInput: 500 })
-
-    // 같은 범위에서 시세가 바뀌어 최소 시드가 달라져도 사용자가 고친 시드를 덮지 않는다
-    seedPreviewState.data.minSeed = 650
-    rerender()
-    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(1)
-
-    act(() => result.current.setDivisionCount(30))
-    expect(seedModelState.resetSeed).toHaveBeenCalledTimes(2)
-    expect(seedModelState.resetSeed).toHaveBeenLastCalledWith({ seedUsdInput: 650 })
   })
 
   it('경고는 지금 입력의 결과만 내보낸다', () => {

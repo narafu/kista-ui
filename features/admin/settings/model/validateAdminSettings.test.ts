@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RuntimeConfig } from '@entities/runtime-config'
-import { validateAdminSettings } from './validateAdminSettings'
+import { validateAdminSettings as validate } from './validateAdminSettings'
 
 const valid: RuntimeConfig = {
   auth: { approvalRequired: true },
@@ -25,6 +25,8 @@ const valid: RuntimeConfig = {
     DCA: { enabled: false, fields: { ticker: { customizable: true, allowedValues: ['UPRO', 'QLD'], defaultValue: 'UPRO' } } },
   },
 }
+
+const validateAdminSettings = (value: RuntimeConfig) => validate(value, ['SPY', 'QQQ', 'QLD'])
 
 describe('validateAdminSettings', () => {
   it('accepts a complete valid document', () => expect(validateAdminSettings(valid)).toEqual({}))
@@ -57,5 +59,10 @@ describe('validateAdminSettings', () => {
     const value = structuredClone(valid)
     value.benchmarks!.etf.allowedValues.push('VOO')
     expect(validateAdminSettings(value)).toMatchObject({ 'benchmarks.etf': expect.stringContaining('VOO') })
+  })
+  it('accepts an ETF benchmark symbol the server newly supports', () => {
+    const value = structuredClone(valid)
+    value.benchmarks!.etf.allowedValues.push('VOO')
+    expect(validate(value, ['SPY', 'QQQ', 'VOO'])).toEqual({})
   })
 })

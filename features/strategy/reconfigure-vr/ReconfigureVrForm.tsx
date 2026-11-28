@@ -55,10 +55,10 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
   const backHref = `/accounts/${accountId}/strategies/${strategy.id}`
   const handleDone = () => router.push(backHref)
-  // 사이클이 통째로 교체되므로 다음 주문 미리보기도 반드시 무효화 — 다른 도메인(order) 무효화이므로 feature가 소유한다
+  // 사이클 교체와 미체결 취소로 주문 미리보기·내역이 모두 낡는다 — 다른 도메인(order) 무효화이므로 feature가 소유한다
   const handleReconfigureSuccess = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: orderKeys.preview(strategy.id) }).catch(() => null),
+      queryClient.invalidateQueries({ queryKey: orderKeys.all }).catch(() => null),
       // 잔고 이력(cycle-history)·성과에 추가·인출 결과가 바로 보이도록 함께 무효화한다
       queryClient.invalidateQueries({ queryKey: tradeKeys.all }).catch(() => null),
       queryClient.invalidateQueries({ queryKey: statsKeys.all }).catch(() => null),
@@ -77,8 +77,8 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
       initialPoolLimitRate: vr.initialPoolLimitRate,
       pStepWeeks: vr.pStepWeeks,
       poolLimitFloor: vr.poolLimitFloor,
-    }),
-    [vr.initialGradient, vr.gStepWeeks, vr.gMax, vr.initialPoolLimitRate, vr.pStepWeeks, vr.poolLimitFloor],
+    }, strategy.ledgerDeposit),
+    [vr.initialGradient, vr.gStepWeeks, vr.gMax, vr.initialPoolLimitRate, vr.pStepWeeks, vr.poolLimitFloor, strategy.ledgerDeposit],
   )
 
   const form = useForm<ReconfigureVrFormValues>({
@@ -113,21 +113,26 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
     toReconfigureVrRequest(form.watch()),
     { enabled: true },
   )
-  // 제출 400의 필드 문장 — 표시 전용(제출 차단에 넣지 않는다), 지금 입력의 검증 결과가 오면 숨기고 지금 입력의 검증 결과가 오면 숨기고 다음 제출이 지운다
+  // 제출 400의 필드 문장 — 표시 전용(제출 차단에 넣지 않는다), 지금 입력의 검증 결과가 오면 숨기고 다음 제출이 지운다
   const submitError = validation.current ? null : apiFieldMsg(mutation.error)
-  const serverError = validation.current?.fieldErrors[0]
+  // 같은 칸에 화면 검증 오류가 있으면 서버의 같은 지적은 겹쳐 보이지 않게 숨긴다
+  const rejected = validation.current?.fieldErrors[0]
+  const serverError = rejected?.field && rejected.field in form.formState.errors ? undefined : rejected
   const serverErrorRef = useRef<HTMLParagraphElement>(null)
 
   // zodResolver는 항상 Promise를 반환하므로 form.handleSubmit()을 거치는 이상
   // 이 콜백은 비동기일 수밖에 없다. 대신 여기서 명시적으로 form.trigger()를 await해
   // createReconfigureVrFormSchema의 superRefine 교차 검증(gMax>=initialGradient,
-  // poolLimitFloor<=initialPoolLimitRate, 적립·인출 금액>0, injectShares>0이면 injectSharePrice 필수)을
+  // poolLimitFloor<=initialPoolLimitRate, 적립·인출 금액>0, injectShares>0이면 injectSharePrice 필수, 인출 예수금<=장부 예수금)을
   // 통과했을 때만 확인 다이얼로그를 연다 — 검증 실패 시 다이얼로그 자체가 뜨지 않는다.
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const formEl = e.currentTarget
     const valid = await form.trigger()
-    if (valid && serverError) serverErrorRef.current?.focus()
-    else if (valid) setConfirmOpen(true)
+    // 오류 칸의 aria-invalid는 렌더 뒤에 붙는다 — 다음 프레임에 첫 칸을 찾는다
+    if (!valid) requestAnimationFrame(() => formEl.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+    else if (serverError) serverErrorRef.current?.focus()
+    else setConfirmOpen(true)
   }
 
   function handleConfirm() {
@@ -147,7 +152,7 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
       <InjectSection form={form} disabled={disabled} />
 
-      <WithdrawSection form={form} disabled={disabled} />
+      <WithdrawSection form={form} disabled={disabled} ledgerDeposit={strategy.ledgerDeposit} />
 
       <div aria-live="polite">{serverError && <p ref={serverErrorRef} tabIndex={-1} className="text-sm font-semibold text-warn">{serverError.detail}</p>}</div>
       <StrategyValidationWarnings warnings={validation.current?.warnings ?? []} unavailable={validation.isError} />

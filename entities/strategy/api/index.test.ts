@@ -262,6 +262,15 @@ describe('reconfigureVr', () => {
     expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/trading-cycles/s1/vr-config-validations', expect.anything())
   })
 
+  it('getDcaAvailableCash는 시드 미리보기에서 가용 예수금만 숫자로 받고 없으면 null이다', async () => {
+    const { getDcaAvailableCash } = await import('./index')
+    fetchEitherMock.mockResolvedValueOnce({ ticker: 'QLD', availableCash: '1234.5' })
+    expect(await getDcaAvailableCash('a1', 'QLD')).toBe(1234.5)
+    expect(fetchEitherMock).toHaveBeenLastCalledWith('/api/accounts/a1/strategy-seed-preview?type=DCA&ticker=QLD', { method: 'GET' })
+    fetchEitherMock.mockResolvedValueOnce({ ticker: 'QLD', availableCash: null })
+    expect(await getDcaAvailableCash('a1', 'QLD')).toBeNull()
+  })
+
   it('validateStrategy는 Bean Validation 400을 필드 없는 거절로 받고 그 밖의 오류는 던진다', async () => {
     const { validateStrategy } = await import('./index')
     const { ApiError } = await import('@shared/lib/api-client')

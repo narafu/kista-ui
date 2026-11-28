@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@shared/lib/api-client'
 import type { OrderWarning } from '@entities/order'
-import { directionUnplacedMessage, nextOrderBannerText, pausedSkipReasonLabel, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
+import { directionUnplacedMessage, estimateSubtitle, nextOrderBannerText, pausedSkipReasonLabel, previewErrorMsg, recurringModeLabel } from './orderBannerCopy'
 
 // 서버 OrderPreviewWarning이 만든 문장 그대로 — 클라는 다시 조립하지 않는다
 const LEDGER: OrderWarning = { code: 'LEDGER_SHORTFALL', detail: '전략 원장 예수금이 부족해 매수가 접수되지 않습니다(원장 $50.00 / 필요 $100.00).' }
@@ -101,5 +101,16 @@ describe('pausedSkipReasonLabel', () => {
   it('사이클 종료만 일시중지용 문구로 바꾼다', () => {
     expect(pausedSkipReasonLabel('CYCLE_ENDED')).toBe('사이클이 종료되었습니다.\n재개하면 새 사이클이 시작됩니다.')
     expect(pausedSkipReasonLabel('NO_PRIVACY_BASE')).toBe('P 매매표가 없습니다.')
+  })
+})
+
+describe('휴장 표시 — 서버 marketClosedToday', () => {
+  it.each([true, false])('서버 값(%s)이 있으면 클라 휴장 판정 배너를 쓰지 않고 경고만 남긴다', (closed) => {
+    expect(nextOrderBannerText(true, 'preview', true, '미국 증시 휴장 여부를 확인하는 중입니다', [], closed)).toBeNull()
+    expect(nextOrderBannerText(true, 'preview', true, null, [{ code: 'HOLDINGS_SHORTFALL', detail: '보유 부족' }], closed)).toBe('보유 부족')
+  })
+
+  it('부제는 거래일을 M/D(요일)로 쓴다', () => {
+    expect(estimateSubtitle('2026-12-01')).toBe('12/1(화) 거래일 예상 주문')
   })
 })

@@ -65,6 +65,25 @@ describe('reconfigureVrFormSchema', () => {
     expect(schema.safeParse({ injectDeposit: -1 }).success).toBe(false)
   })
 
+  it.each([
+    ['bandWidth', 0], ['intervalWeeks', 0], ['intervalWeeks', 1.5], ['recurringAmount', 1e20], ['initialGradient', 0],
+    ['gGraceWeeks', -1], ['gStepWeeks', -1], ['gMax', -1], ['initialPoolLimitRate', 0], ['initialPoolLimitRate', 1.5],
+    ['pGraceWeeks', -1], ['pStepWeeks', 1e20], ['poolLimitFloor', -0.1], ['poolLimitFloor', 1.5], ['injectShares', -1],
+    ['injectSharePrice', 0], ['injectDeposit', -1], ['withdrawShares', -1], ['withdrawDeposit', -1],
+  ])('%s=%s의 오류 문구는 한글이다', (field, value) => {
+    const r = schema.safeParse({ [field]: value })
+    const messages = r.success ? [] : r.error.issues.filter((i) => i.path[0] === field).map((i) => i.message)
+    expect(messages.length).toBeGreaterThan(0)
+    for (const m of messages) expect(m).toMatch(/^[^a-z]*[가-힣].*(하세요|합니다)\./)
+  })
+
+  it('인출 예수금은 센트 아래를 버린 장부 예수금까지만 통과하고, 장부 예수금을 모르면 검사하지 않는다', () => {
+    const limited = createReconfigureVrFormSchema(undefined, 100.009)
+    expect(limited.safeParse({ withdrawDeposit: 100 }).success).toBe(true)
+    expect(limited.safeParse({ withdrawDeposit: 100.001 }).error?.issues[0].path).toEqual(['withdrawDeposit'])
+    expect(schema.safeParse({ withdrawDeposit: 1e9 }).success).toBe(true)
+  })
+
   it('gStepWeeks 0 + gMax 0은 통과', () => {
     expect(schema.safeParse({ gStepWeeks: 0, gMax: 0 }).success).toBe(true)
   })

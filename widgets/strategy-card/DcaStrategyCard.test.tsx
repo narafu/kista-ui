@@ -47,6 +47,12 @@ describe('DcaStrategyCard', () => {
     expect(screen.getByText('다음 판정')).toBeInTheDocument()
     expect(screen.getByText(fmtDate('2026-10-21'))).toBeInTheDocument()
   })
+  it('일시중지면 다음 판정 날짜 대신 일시중지 중을 보여준다', () => {
+    render(<DcaStrategyCard accountId="a1" strategy={{ ...threeRules(), status: 'PAUSED' }} />)
+    expect(screen.queryByText(/^다음 판정 /)).not.toBeInTheDocument() // 모바일 배지는 상태 배지와 겹쳐 숨긴다
+    expect(screen.getByText('일시중지 중')).toBeInTheDocument() // PC 정보 행
+    expect(screen.queryByText(fmtDate('2026-10-21'))).not.toBeInTheDocument()
+  })
   it('최근 결과는 가장 최근 lastExecution 기준이다', () => {
     render(<DcaStrategyCard accountId="a1" strategy={threeRules()} />)
     expect(screen.getAllByText('최근 건너뜀 · 조건 미충족')).toHaveLength(2) // 모바일·PC 배지 행

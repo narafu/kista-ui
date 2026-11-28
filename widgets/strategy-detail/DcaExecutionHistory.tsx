@@ -15,13 +15,14 @@ import { cn, groupConsecutiveBy } from '@shared/lib/utils'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
 import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
 import { TableDataCell } from '@shared/ui/TableDataCell'
-import { fmtDate, fmtMoney, fmtShares } from '@shared/lib/format'
+import { fmtDate, fmtMoney } from '@shared/lib/format'
 import { SectionError } from '@shared/ui/SectionError'
 import { RangeFilterControls } from '@shared/ui/range-filter/RangeFilterControls'
 import { resolveRangeStrict } from '@shared/lib/date-range'
 import { useRangeFilterState } from '@shared/lib/hooks/use-range-filter-state'
 import { DcaExecutionFilters } from './DcaExecutionFilters'
 import { ALL_FILTER_VALUE } from './OrderHistoryFilters'
+import { OrderQuantity } from './StrategyOrderHistory'
 
 type ExecutionItem = NonNullable<ReturnType<typeof useDcaExecutionsQuery>['data']>['content'][number]
 
@@ -47,7 +48,10 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
     { from: range?.from, to: range?.to, direction: direction === ALL_FILTER_VALUE ? undefined : direction, ruleKey: ruleKey === ALL_FILTER_VALUE ? undefined : ruleKey },
     { enabled: range !== null },
   )
-  const filtered = rangeType !== 'all' || direction !== ALL_FILTER_VALUE || ruleKey !== ALL_FILTER_VALUE
+  // 서버 필터라 원본 유무는 모른다 — 걸린 조건(방향·규칙 → 기간) 순으로 빈 결과를 설명한다
+  const emptyMessage = direction !== ALL_FILTER_VALUE || ruleKey !== ALL_FILTER_VALUE
+    ? '조건에 맞는 실행 이력이 없습니다.'
+    : rangeType !== 'all' ? '해당 기간에 실행 이력이 없습니다.' : '아직 실행된 회차가 없습니다.'
   // API는 같은 거래일 안에서 기록 역순으로 준다 — 날짜 내림차순은 유지하고 같은 날 안에서는 규칙 카드 순서로, 삭제된 규칙은 맨 뒤로
   // ponytail: 페이지 단위 정렬 — 한 거래일이 페이지 경계에 걸치면 경계 너머 순서는 못 맞춘다(같은 날 행 수 ≤ 규칙 수라 드묾). 필요해지면 API 정렬 키로 이관
   const ruleRank = (key: string) => {
@@ -77,8 +81,8 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
   const statusBadge = (r: ExecutionItem) => (
     <Badge tone={r.status === 'ORDERED' ? 'none' : 'neutral'} size="sm" className={r.status === 'ORDERED' ? 'bg-info-bg text-info' : undefined}>{labelOf('dcaExecutionStatuses', r.status)}</Badge>
   )
-  const quantityText = (r: ExecutionItem) => (r.quantity != null ? fmtShares(r.quantity) : '-')
-  // 칸 이름이 '체결가'(모바일)·'체결'(PC)이라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
+  const quantityText = (r: ExecutionItem) => (r.quantity != null ? <OrderQuantity o={{ quantity: r.quantity, filledQuantity: r.order?.filledQuantity }} /> : '-')
+  // 칸 이름이 '체결가'라 상태 라벨을 반복하지 않는다 — 체결가가 없을 때만 주문 상태를 보여 준다
   const fillPriceText = (r: ExecutionItem) => (!r.order ? '-' : r.order.filledPrice != null ? fmtMoney(r.order.filledPrice, 'USD') : labelOf('orderStatuses', r.order.status))
   // 날짜(fmtDate 결과)별 그룹 — 입력 순서 유지
   const groups = groupConsecutiveBy(rows, (r) => fmtDate(r.kstTradeDate))
@@ -110,7 +114,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
         ) : isError && !data ? (
           <div className="px-6 pb-6"><SectionError message="실행 이력을 불러오지 못했습니다." /></div>
         ) : rows.length === 0 ? (
-          <EmptyState variant="text" message={filtered ? '조건에 맞는 실행 이력이 없습니다.' : '아직 실행된 회차가 없습니다.'} />
+          <EmptyState variant="text" message={emptyMessage} />
         ) : (
           <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
             {/* 모바일: 카드 리스트 */}
@@ -150,7 +154,8 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
             </div>
             {/* 데스크탑: 테이블 */}
             <div role="region" aria-label="회차별 실행 이력" tabIndex={0} className="hidden overflow-x-auto lg:block">
-              <table className={cn('w-full text-sm', evenColumnsClass(7))}>
+              {/* PC 2단(xl)에서는 반 폭에 7열이 들어가도록 셀 여백·머리글 자간을 줄인다 */}
+              <table className={cn('w-full text-sm xl:[&_td]:px-1.5 xl:[&_th]:px-1.5 xl:[&_th]:tracking-normal', evenColumnsClass(7))}>
                 <thead className="bg-muted/50">
                   <tr>
                     <TableHeadCell className="whitespace-nowrap">날짜</TableHeadCell>
@@ -158,7 +163,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
                     <TableHeadCell className="whitespace-nowrap">주기</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">규칙</TableHeadCell>
                     <TableHeadCell numeric className="whitespace-nowrap">수량</TableHeadCell>
-                    <TableHeadCell className="whitespace-nowrap">체결</TableHeadCell>
+                    <TableHeadCell numeric className="whitespace-nowrap">체결가</TableHeadCell>
                     <TableHeadCell className="whitespace-nowrap">사유</TableHeadCell>
                   </tr>
                 </thead>
@@ -175,7 +180,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
                         <TableDataCell className="whitespace-nowrap">{scheduleCell(r)}</TableDataCell>
                         <TableDataCell className="whitespace-nowrap">{conditionCell(r)}</TableDataCell>
                         <TableDataCell className="tabular-nums whitespace-nowrap">{quantityText(r)}</TableDataCell>
-                        <TableDataCell className="whitespace-nowrap">{fillPriceText(r)}</TableDataCell>
+                        <TableDataCell className="tabular-nums whitespace-nowrap">{fillPriceText(r)}</TableDataCell>
                         {/* detail은 가변 길이 자유 텍스트라 nowrap 대신 최소 너비로 글자 단위 줄바꿈만 막는다 */}
                         <TableDataCell className="min-w-32">
                           {r.skipReason && <div>{labelOf('dcaSkipReasons', r.skipReason)}</div>}

@@ -5,7 +5,8 @@ import type { RuntimeConfig } from '@entities/runtime-config'
 import type { MetaBundle } from '@entities/meta'
 import { AdminSettingsForm } from './AdminSettingsForm'
 
-const { invalidateQueriesMock, mutateMock, queryState } = vi.hoisted(() => ({
+const { invalidateQueriesMock, mutateMock, queryState, tickerState } = vi.hoisted(() => ({
+  tickerState: { INFINITE: [] as string[], DCA: [] as string[], ETF: [] as string[] },
   invalidateQueriesMock: vi.fn(),
   mutateMock: vi.fn(),
   queryState: { data: undefined as RuntimeConfig | undefined },
@@ -25,15 +26,11 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 // testMeta.strategyTypes는 비어 있어 전략 유형 이름만 로컬로 둔다
 const STRATEGY_TYPE_LABELS: Record<string, string> = { DCA: '적립식 분할매매', VR: '밸류리밸런싱' }
 vi.mock('@entities/meta', async () => {
-  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  const { testLabelOf, strategyTypeMeta } = await import('@entities/meta/__fixtures__/testMeta')
   return { useMeta: () => ({
     meta: {
-      tickers: [
-        { code: 'SOXL', name: 'Direxion Daily Semiconductor Bull 3X Shares' },
-        { code: 'TQQQ', name: 'ProShares UltraPro QQQ' },
-        { code: 'QLD', name: 'ProShares Ultra QQQ' },
-        { code: 'IBIT', name: 'iShares Bitcoin Trust' },
-      ],
+      strategyTypes: (['INFINITE', 'DCA'] as const).map((code) => strategyTypeMeta({ code, availableTickers: tickerState[code] })),
+      etfBenchmarkSymbols: tickerState.ETF.map((code) => ({ code, label: code })),
     },
     labelOf: (g: string, code: string) => (g === 'strategyTypes' ? STRATEGY_TYPE_LABELS[code] ?? code : testLabelOf(g as keyof MetaBundle, code)),
   }) }
@@ -67,6 +64,60 @@ describe('AdminSettingsForm', () => {
     invalidateQueriesMock.mockResolvedValue(undefined)
     mutateMock.mockReset()
     queryState.data = settings
+    tickerState.INFINITE = ['SOXL', 'TQQQ', 'USD']
+    tickerState.DCA = ['UPRO', 'QLD', 'BITO', 'EETH']
+    tickerState.ETF = ['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA']
+  })
+
+  const suggestionsOf = (id: string) =>
+    Array.from(document.querySelectorAll(`#${id}-suggestions option`), (option) => option.getAttribute('value'))
+
+  it('종목 후보는 그 전략이 지원하는 종목이다 — INFINITE에 DCA 전용 종목이 없다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('button', { name: /설정 펼치기/ }))
+
+    expect(suggestionsOf('infinite-ticker')).toEqual(['SOXL', 'TQQQ', 'USD'])
+    expect(suggestionsOf('dca-ticker')).toEqual(['UPRO', 'QLD', 'BITO', 'EETH'])
+    expect(suggestionsOf('benchmark-etf')).toEqual(['SPY', 'QQQ', 'QLD', 'IBIT', 'ETHA'])
+  })
+
+  it('메타에 새 종목이 생기면 코드 변경 없이 후보에 뜨고 추가할 수 있다', async () => {
+    const user = userEvent.setup()
+    tickerState.DCA = [...tickerState.DCA, 'NEWT']
+    render(<AdminSettingsForm />)
+    await user.click(screen.getByRole('button', { name: /설정 펼치기/ }))
+    expect(suggestionsOf('dca-ticker')).toContain('NEWT')
+
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[1], 'newt{Enter}')
+    expect(screen.getByRole('radio', { name: 'NEWT 기본값' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('메타에 새 ETF 종목이 생기면 추가해 저장할 수 있다', async () => {
+    const user = userEvent.setup()
+    tickerState.ETF = [...tickerState.ETF, 'NEWT']
+    render(<AdminSettingsForm />)
+    expect(suggestionsOf('benchmark-etf')).toContain('NEWT')
+
+    await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'newt{Enter}')
+    await user.click(screen.getByRole('button', { name: /변경 저장/ }))
+
+    expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
+      benchmarks: { etf: { allowedValues: ['SPY', 'QQQ', 'NEWT'], defaultValue: 'SPY' } },
+    }), expect.anything())
+  })
+
+  it('지원 목록 밖 종목은 추가하지 않고 추가할 수 있는 종목을 알려준다', async () => {
+    const user = userEvent.setup()
+    render(<AdminSettingsForm />)
+
+    const input = screen.getAllByRole('combobox', { name: '종목 추가' })[0]
+    await user.type(input, 'qld{Enter}')
+    expect(screen.getByRole('alert')).toHaveTextContent('지원하지 않는 종목입니다. 추가할 수 있는 종목: USD')
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.queryByRole('radio', { name: 'QLD 기본값' })).not.toBeInTheDocument()
+    expect(screen.getByText('변경 사항이 없습니다.')).toBeInTheDocument()
   })
 
   it('warns about and submits the approval side effect without optimistic changes', async () => {
@@ -209,7 +260,7 @@ describe('AdminSettingsForm', () => {
     const user = userEvent.setup()
     render(<AdminSettingsForm />)
 
-    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'qld')
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'usd')
     await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
     await user.type(screen.getByRole('textbox', { name: '분할 수 추가' }), '40')
     await user.click(screen.getByRole('button', { name: '분할 수 추가 확정' }))
@@ -218,7 +269,7 @@ describe('AdminSettingsForm', () => {
     expect(mutateMock).toHaveBeenCalledWith(expect.objectContaining({
       strategies: expect.objectContaining({ INFINITE: expect.objectContaining({
         fields: expect.objectContaining({
-          ticker: expect.objectContaining({ allowedValues: ['SOXL', 'TQQQ', 'QLD'] }),
+          ticker: expect.objectContaining({ allowedValues: ['SOXL', 'TQQQ', 'USD'] }),
           divisionCount: expect.objectContaining({ allowedValues: [20, 30, 40] }),
         }),
       }) }),
@@ -334,7 +385,7 @@ describe('AdminSettingsForm', () => {
   it('keeps an edited allowed-values list whole while other fields follow incoming server data', async () => {
     const user = userEvent.setup()
     const { rerender } = render(<AdminSettingsForm />)
-    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'qld')
+    await user.type(screen.getAllByRole('combobox', { name: '종목 추가' })[0], 'usd')
     await user.click(screen.getAllByRole('button', { name: '종목 추가 확정' })[0])
 
     const latest = structuredClone(settings)
@@ -347,7 +398,7 @@ describe('AdminSettingsForm', () => {
 
     await user.click(screen.getByRole('button', { name: /변경 저장/ }))
     const body = mutateMock.mock.calls[0][0] as RuntimeConfig
-    expect(body.strategies.INFINITE.fields.ticker.allowedValues).toEqual(['SOXL', 'TQQQ', 'QLD'])
+    expect(body.strategies.INFINITE.fields.ticker.allowedValues).toEqual(['SOXL', 'TQQQ', 'USD'])
     expect(body.strategies.INFINITE.fields.divisionCount!.allowedValues).toEqual([20, 30, 50])
   })
 

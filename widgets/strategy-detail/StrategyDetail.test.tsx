@@ -871,4 +871,96 @@ describe('StrategyDetail ledger check', () => {
 
     expect(screen.getByText('장 마감 시 매도 재시도 예정')).toBeInTheDocument()
   })
+
+  describe('휴장 표시', () => {
+    const SUBTITLE = '12/1(화) 거래일 예상 주문'
+    const DEFAULT_SUBTITLE = '매 거래일 개장 시 자동실행'
+    const BANNER = '오늘은 휴장일입니다'
+
+    beforeEach(() => {
+      sessionQueryResult = { session: { tradeDateKst: '2026-07-21', tradingDay: false } }
+    })
+    afterEach(() => {
+      sessionQueryResult = {}
+    })
+
+    function renderClosed(overrides: Record<string, unknown>, status = 'ACTIVE') {
+      mockPreview({ tradeDate: '2026-12-01', marketClosedToday: true, ...overrides })
+      render(<StrategyDetail accountId="account-1" strategy={{ ...baseStrategy, status }} />)
+    }
+
+    it('휴장이면 배지·거래일 부제·점선 예상 주문을 보이고 휴장 배너는 겹치지 않는다', () => {
+      renderClosed({ warnings: [LEDGER_WARNING], position: { currentRound: 3, unitAmount: '100', referencePrice: '24.1', targetPrice: '26' } })
+
+      expect(screen.getByText('휴장')).toBeInTheDocument()
+      expect(screen.getByText(SUBTITLE)).toBeInTheDocument()
+      expect(screen.getByTestId('estimated-orders')).toHaveClass('border-dashed')
+      expect(screen.getByTestId('estimated-orders')).toHaveTextContent('BUY-TSLA')
+      expect(screen.getByText(LEDGER_WARNING.detail)).toBeInTheDocument()
+      expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+      expect(screen.getByText(/3\.0회차/)).toBeInTheDocument()
+    })
+
+    it('거래일(false)이면 클라 판정이 휴장이어도 지금 모습 그대로다', () => {
+      renderClosed({ marketClosedToday: false })
+
+      expect(screen.queryByText('휴장')).not.toBeInTheDocument()
+      expect(screen.queryByText(BANNER)).not.toBeInTheDocument()
+      expect(screen.getByText(DEFAULT_SUBTITLE)).toBeInTheDocument()
+      expect(screen.queryByTestId('estimated-orders')).not.toBeInTheDocument()
+    })
+
+    it('필드가 없는 구서버 응답이면 기존 휴장 배너만 보인다', () => {
+      renderClosed({ marketClosedToday: undefined })
+
+      expect(screen.getByText(BANNER)).toBeInTheDocument()
+      expect(screen.queryByText('휴장')).not.toBeInTheDocument()
+      expect(screen.getByText(DEFAULT_SUBTITLE)).toBeInTheDocument()
+      expect(screen.queryByTestId('estimated-orders')).not.toBeInTheDocument()
+    })
+
+    it('NO_PRIVACY_BASE면 매매표 발행 안내를 보인다', () => {
+      renderClosed({ orders: [], skipReason: 'NO_PRIVACY_BASE' })
+
+      expect(screen.getByText(/거래일 P 매매표가 아직 없습니다/)).toHaveTextContent('거래일 전날 발행되면 예상 주문이 보입니다.')
+      expect(screen.getByText('휴장')).toBeInTheDocument()
+    })
+
+    it('주문이 없고 사유도 없으면 기존 빈 상태 문구다', () => {
+      renderClosed({ orders: [] })
+
+      expect(screen.getByText('예정된 주문이 없습니다.')).toBeInTheDocument()
+      expect(screen.queryByTestId('estimated-orders')).not.toBeInTheDocument()
+    })
+
+    it('개장일을 못 찾은 MARKET_CLOSED는 기존 문구이고 예상 주문 부제를 쓰지 않는다', () => {
+      renderClosed({ orders: [], skipReason: 'MARKET_CLOSED' })
+
+      expect(screen.getByText(/다음 거래일이 미국 증시 휴장일입니다/)).toBeInTheDocument()
+      expect(screen.getByText(DEFAULT_SUBTITLE)).toBeInTheDocument()
+      expect(screen.queryByText(SUBTITLE)).not.toBeInTheDocument()
+    })
+
+    it('일시중지 + PRIVACY_BASE_BLOCKED는 "오늘은"이라 하지 않는다', () => {
+      renderClosed({ orders: [], skipReason: 'PRIVACY_BASE_BLOCKED' }, 'PAUSED')
+
+      expect(screen.getByText('P 매매표 점검 이슈로 해당 거래일은 주문하지 않습니다.')).toBeInTheDocument()
+    })
+
+    it('사이클 종료는 거래일 예상 주문 부제를 쓰지 않는다', () => {
+      renderClosed({ orders: [], skipReason: 'CYCLE_ENDED' })
+
+      expect(screen.getByText(DEFAULT_SUBTITLE)).toBeInTheDocument()
+      expect(screen.queryByText(SUBTITLE)).not.toBeInTheDocument()
+    })
+
+    it('일시중지면 주문을 숨기고 일시중지 부제를 쓴다', () => {
+      renderClosed({}, 'PAUSED')
+
+      expect(screen.getByText('휴장')).toBeInTheDocument()
+      expect(screen.getByText('일시중지 중, 자동실행 되지 않음')).toBeInTheDocument()
+      expect(screen.queryByText(SUBTITLE)).not.toBeInTheDocument()
+      expect(screen.queryByTestId('order-rows')).not.toBeInTheDocument()
+    })
+  })
 })

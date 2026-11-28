@@ -1,10 +1,8 @@
-import { useMemo } from 'react'
 import { isMockBroker } from '@shared/lib/api-schema'
 import { useMeta } from '@entities/meta'
-import { useAccountPricesQuery } from '@entities/account'
 import type { BrokerCode } from '@entities/account'
 
-export function useStrategyFormData(accountId: string, broker: BrokerCode | undefined) {
+export function useStrategyFormData(broker: BrokerCode | undefined) {
   const isMock = isMockBroker(broker)
   const { meta, findStrategyType, labelOf } = useMeta()
   // 메타에 있는 티커를 쓸 수 있는 유형만 — 유형별 availableTickers가 SSOT.
@@ -18,16 +16,10 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
   const enabledStrategyTypes = usableTypes.filter(brokerAllows).map(({ code }) => code)
   const brokerRestrictionNotes = usableTypes.filter((t) => !brokerAllows(t)).map(({ code, supportedBrokers = [] }) => {
     const brokers = supportedBrokers.filter((b) => !isMockBroker(b)).map((b) => labelOf('brokers', b)).join('·')
-    return `${labelOf('strategyTypes', code)} 전략은 ${brokers} 계좌에서만 등록할 수 있습니다.`
+    const label = labelOf('strategyTypes', code)
+    // 라벨이 이미 "…전략"인 유형(P전략)은 "전략"을 덧붙이지 않는다
+    return `${label.endsWith('전략') ? label : `${label} 전략`}은 ${brokers} 계좌에서만 등록할 수 있습니다.`
   })
-
-  // 티커 선택 버튼의 가격 표시용(api 상한 10개). basePrice 계산엔 미사용
-  const allTickerCodes = useMemo(
-    () => meta.tickers.map((t) => t.code),
-    [meta.tickers],
-  )
-  const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, allTickerCodes)
-  const prices = pricesData ?? null
 
   return {
     isMock,
@@ -35,7 +27,5 @@ export function useStrategyFormData(accountId: string, broker: BrokerCode | unde
     findStrategyType,
     enabledStrategyTypes,
     brokerRestrictionNotes,
-    prices,
-    pricesError,
   }
 }

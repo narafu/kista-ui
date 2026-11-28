@@ -4,16 +4,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
-import { RAMP_DEFAULTS_BY_MODE, useStrategyValidationQuery } from '@entities/strategy'
+import { RAMP_DEFAULTS_BY_MODE, actionState, useStrategyValidationQuery } from '@entities/strategy'
 import type { Strategy, StrategyRequest, StrategyValidation, VrRecurringMode } from '@entities/strategy'
-import type { BrokerCode, PriceMap } from '@entities/account'
+import { useAccountPricesQuery, type BrokerCode, type PriceMap } from '@entities/account'
 import type { StrategyFieldSettings } from '@entities/meta'
 import { useStrategyFormData } from './useStrategyFormData'
 import { isBelowMinSeed as belowMinSeed, useSeedModel } from './useSeedModel'
-import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabled, computeVrAssets, type SeedCheck, type SubmitDisabled, type SubmitReasonField } from './strategyFormGuards'
+import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabled, computeVrAssets, SERVER_FIELD_SLOT, type SeedCheck, type SubmitDisabled, type SubmitReasonField } from './strategyFormGuards'
 import { buildStrategyPayload } from './buildStrategyPayload'
 import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
-import { useInitialSeedReset, useInitializing, useLoadFailToast, useStrategyMutations } from './useStrategyFormEffects'
+import { useInitializing, useLoadFailToast, useStrategyMutations } from './useStrategyFormEffects'
 import { strategyFormSchema, type DivisionCount, type StrategyFormValues } from './strategyFormSchema'
 
 interface UseStrategyFormOptions {
@@ -49,13 +49,8 @@ export interface VrRampDefaults {
   poolLimitFloor: number
 }
 
-// 서버 검증 거절의 요청 필드 → 사유를 붙일 입력칸. 나머지는 폼 하단
-const SERVER_FIELD_SLOT: Record<string, SubmitReasonField> = {
-  initialHoldings: 'holdings',
-  initialAvgPrice: 'holdings',
-  scheduledStartDate: 'scheduledStart',
-  recurringAmount: 'recurring',
-}
+// 현재가 조회의 서버 상한(종목 수) — 넘으면 400
+const MAX_PRICE_TICKERS = 10
 
 // 검증 결과를 유지해도 되는 범위 — 시드 미리보기(최소 시드·기준가)는 유형·종목·분할 수로만 바뀐다
 const sameSeedScope = (a: StrategyRequest, b: StrategyRequest) =>
@@ -142,8 +137,7 @@ export function useStrategyForm({
   const queryClient = useQueryClient()
   const {
     isMock, meta, findStrategyType, enabledStrategyTypes, brokerRestrictionNotes,
-    prices, pricesError,
-  } = useStrategyFormData(accountId, broker)
+  } = useStrategyFormData(broker)
   // 유형별 운영 설정(enabled·fields) — 메타가 SSOT
   const settingsOf = (code: string) => meta.strategyTypes.find((t) => t.code === code)
   const defaultType = enabledStrategyTypes[0] ?? ''
@@ -167,7 +161,8 @@ export function useStrategyForm({
   const autoStart = form.watch('autoStart')
   const seedMode = form.watch('seedMode')
   const divisionCount = form.watch('divisionCount')
-  const canEditSeed = !!initial && (initial.currentHoldings ?? 0) === 0
+  // 지원 종류·보유·종료 사이클·보관 판정은 서버가 한다
+  const canEditSeed = !!initial && actionState(initial, 'EDIT_SEED').kind === 'allowed'
 
   const vrFields = watchVrFields(form)
   const {
@@ -186,6 +181,10 @@ export function useStrategyForm({
     (code) => meta.tickers.some((t) => t.code === code),
     (typeMeta?.divisionCounts.length ?? 0) > 0,
   )
+  // 선택 가능한 종목의 현재가만 조회한다(종목 카드 표시용, basePrice 계산엔 미사용)
+  // ponytail: 한 유형의 허용 종목이 상한을 넘으면 뒤 종목은 가격 없이 보인다 — 그때 나눠 조회
+  const { data: pricesData, isError: pricesError } = useAccountPricesQuery(accountId, availableTickers.slice(0, MAX_PRICE_TICKERS))
+  const prices = pricesData ?? null
   const requiresPrivacyBase = typeMeta?.requiresPrivacyBase ?? false
   // 메타가 없으면(구버전 api) 같은 값의 고정표 — 서버 VrRampInput.withDefaults와 같은 표
   const rampDefaults: VrRampDefaults = typeMeta?.vrRampDefaults?.[recurringMode] ?? RAMP_DEFAULTS_BY_MODE[recurringMode]
@@ -193,7 +192,6 @@ export function useStrategyForm({
   // 시드는 검증 바디(=제출 바디)에 들어가므로 검증보다 먼저 둔다
   const {
     seedUsdInput, setSeedUsdInput,
-    resetSeed,
     seedUsd,
     isInvalidSeed,
   } = useSeedModel({ initial, avgPrice, quantity })
@@ -218,13 +216,6 @@ export function useStrategyForm({
   const initializing = useInitializing(loadingBase)
 
   useLoadFailToast(isMock, pricesError)
-
-  // 최소 시드는 지금 입력의 결과로만 시드를 채운다 — 이전 유형·종목의 응답으로 채우지 않게
-  useInitialSeedReset({
-    initial, isVr, resetSeed,
-    minSeed: validation.current ? deriveSeedPreview(isVr, validation.current.derived).minSeed : null,
-    scope: `${type}|${ticker}|${divisionCount}`,
-  })
 
   // 서버가 검증하지 않는 PRIVACY 최소 시드·NO_PRIVACY_BASE는 서버 파생값이 있어야 판정한다. 수정은 시드를 실제로 바꿀 때만 판정한다 —
   // 자동 시작 등 다른 설정만 바꾸는 저장을 검증 실패·기준표 없음으로 막지 않게(서버는 시드 수정(보유 0)일 때만 값을 준다)
@@ -296,6 +287,11 @@ export function useStrategyForm({
 
   return {
     ...setters,
+    // 예수금도 유형별 값이다 — 다른 유형으로 바꾸면 0부터 다시 입력한다(DCA 폼은 다시 마운트되며 0)
+    setType: (t: string) => {
+      if (t !== type) setSeedUsdInput(0)
+      setters.setType(t)
+    },
     type, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
     ticker, availableTickers, defaultTicker, basePrice, prices,
     seedUsdInput, setSeedUsdInput, availableCash, minSeed, isBelowMinSeed, loadingBase,

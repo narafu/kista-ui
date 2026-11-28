@@ -11,6 +11,18 @@ export const SKIP_REASON_LABELS: Record<SkipReason, string> = {
   MARKET_CLOSED: '다음 거래일이 미국 증시 휴장일입니다.\n개장일에 주문이 생성됩니다.',
 }
 
+// 휴장 중 개장일 매매표는 그 거래일 전날 발행분만 쓴다(kista-api PrivacyDates.releaseDateFor)
+export const CLOSED_NO_PRIVACY_BASE_MESSAGE = '거래일 P 매매표가 아직 없습니다.\n거래일 전날 발행되면 예상 주문이 보입니다.'
+
+// 휴장 중에는 SKIP_REASON_LABELS의 "오늘은"이 어긋난다
+export const CLOSED_PRIVACY_BASE_BLOCKED_MESSAGE = 'P 매매표 점검 이슈로 해당 거래일은 주문하지 않습니다.'
+
+// 휴장 중 다음 주문 카드 부제 — tradeDate('yyyy-MM-dd')는 UTC 자정으로 파싱되므로 요일도 UTC로 읽는다
+export function estimateSubtitle(tradeDate: string): string {
+  const date = new Date(tradeDate)
+  return `${date.getUTCMonth() + 1}/${date.getUTCDate()}(${'일월화수목금토'[date.getUTCDay()]}) 거래일 예상 주문`
+}
+
 // 일시중지 중에는 "일시중지 후 재개" 안내가 어긋나므로 사이클 종료 문구만 바꾼다
 export function pausedSkipReasonLabel(reason: SkipReason): string {
   if (reason === 'CYCLE_ENDED') return '사이클이 종료되었습니다.\n재개하면 새 사이클이 시작됩니다.'
@@ -31,12 +43,15 @@ export function directionUnplacedMessage(direction: 'BUY' | 'SELL', warnings: Or
 // 방향별 미접수 경고는 배너가 아니라 "미접수" 목록이 보여준다
 const UNPLACED_CODES: readonly OrderWarningCode[] = ['BUY_UNPLACED', 'SELL_UNPLACED']
 
-// 카드 상단 배너 문구 — 휴장일이면 휴장 안내, 아니면 서버 경고(원장·계좌 예수금·보유 수량 부족)의 detail을 그대로 이어 붙인다.
+// 카드 상단 배너 문구 — 서버가 marketClosedToday를 주면 휴장 표시는 카드 배지가 맡는다.
+// 필드가 없는 구서버 응답만 클라 판정 휴장일이면 휴장 안내, 아니면 서버 경고(원장·계좌 예수금·보유 수량 부족)의 detail을 그대로 이어 붙인다.
 // 원장 거절은 재시도가 없어 preview·executed 모두 "장 마감 시 매수 예정" 같은 약속 문구를 붙이지 않는다
-export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, warnings: OrderWarning[]): string | null {
+export function nextOrderBannerText(canExecute: boolean, mode: 'preview' | 'executed', isHoliday: boolean, marketStatusMessage: string | null, warnings: OrderWarning[], marketClosedToday?: boolean): string | null {
   if (!canExecute) return null
-  if (mode === 'preview' && marketStatusMessage) return marketStatusMessage
-  if (mode === 'preview' && isHoliday) return '오늘은 휴장일입니다'
+  if (mode === 'preview' && marketClosedToday === undefined) {
+    if (marketStatusMessage) return marketStatusMessage
+    if (isHoliday) return '오늘은 휴장일입니다'
+  }
 
   return warnings.filter((w) => !UNPLACED_CODES.includes(w.code)).map((w) => w.detail).filter(Boolean).join('\n') || null
 }

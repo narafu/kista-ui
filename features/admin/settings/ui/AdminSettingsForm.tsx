@@ -31,9 +31,6 @@ import { RecurringModeEditor } from './RecurringModeEditor'
 import { FieldEditor } from './FieldEditor'
 import { normalizeNumber, normalizeSymbol } from '../model/normalizers'
 
-// kista-api StrategyTicker의 DCA 전용 종목. 메타 availableTickers는 지금 편집 중인 허용값 자체라 후보 목록으로 쓸 수 없다
-const DCA_TICKER_SUGGESTIONS = ['UPRO', 'QLD', 'BITO', 'EETH']
-
 // 전략 토글 아래에 그 전략의 생성 설정을 붙인다. 꺼진 전략은 요약 한 줄로 접되, 켜기 전에 미리 맞출 수 있게 펼칠 수 있다.
 // 저장 시도 후 오류가 있으면 접힌 상태라도 펼친다 — 보이지 않는 오류로 저장만 막히지 않게
 function StrategyBlock({ control, strategy, label, summary, hasError, children }: {
@@ -93,8 +90,8 @@ const errorPath = (key: string) => {
   const [head, name] = key.split('.')
   return head === 'benchmarks' ? ['benchmarks', name] : ['strategies', head, 'fields', name]
 }
-const schema = z.custom<RuntimeConfig>().superRefine((settings, ctx) => {
-  for (const [key, message] of Object.entries(validateAdminSettings(settings))) {
+const createSchema = (etfSymbols: string[]) => z.custom<RuntimeConfig>().superRefine((settings, ctx) => {
+  for (const [key, message] of Object.entries(validateAdminSettings(settings, etfSymbols))) {
     ctx.addIssue({ code: 'custom', path: errorPath(key), message })
   }
 })
@@ -136,7 +133,8 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
       form.reset(undefined, { keepValues: true, keepDefaultValues: true, ...END_ATTEMPT })
     },
   })
-  const form = useAppForm({ schema, values: serverSnapshot, resetOptions: RESET_OPTIONS, mutation })
+  const etfSymbols = meta.etfBenchmarkSymbols.map((symbol) => symbol.code)
+  const form = useAppForm({ schema: createSchema(etfSymbols), values: serverSnapshot, resetOptions: RESET_OPTIONS, mutation })
   const { control, register, reset } = form
   const { errors, isDirty, isSubmitted } = form.formState
   const draft = form.watch()
@@ -151,7 +149,8 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
     reset(undefined, { keepValues: true, keepDefaultValues: true, keepErrors: true, keepIsSubmitted: true })
   }, [settings, reset])
 
-  const tickerSuggestions = useMemo(() => meta.tickers.map((ticker) => ticker.code), [meta.tickers])
+  // 후보는 서버가 지원하는 종목(availableTickers)이다 — 관리자 허용값은 fields.ticker.allowedValues
+  const tickersOf = (strategy: RuntimeStrategyType) => meta.strategyTypes.find((type) => type.code === strategy)?.availableTickers
   // 배포 직후 낡은 응답엔 DCA 키가 없다 — 그대로 저장하면 kista-api가 400을 낸다
   const dca = draft.strategies.DCA
   const hasError = (strategy: RuntimeStrategyType) => isSubmitted && !!errors.strategies?.[strategy]
@@ -213,7 +212,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
                   label="종목"
                   field={field.value}
                   error={fieldState.error?.message} inputRef={field.ref}
-                  suggestions={tickerSuggestions}
+                  suggestions={tickersOf('INFINITE')}
                   normalize={normalizeSymbol}
                   onChange={field.onChange}
                 />
@@ -280,7 +279,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
                     label="종목"
                     field={field.value}
                     error={fieldState.error?.message} inputRef={field.ref}
-                    suggestions={DCA_TICKER_SUGGESTIONS}
+                    suggestions={tickersOf('DCA')}
                     normalize={normalizeSymbol}
                     onChange={field.onChange}
                   />
@@ -307,7 +306,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
                 label="ETF 벤치마크 자산"
                 field={field.value ?? DEFAULT_RUNTIME_BENCHMARKS.etf}
                 error={fieldState.error?.message} inputRef={field.ref}
-                suggestions={DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues}
+                suggestions={etfSymbols}
                 normalize={normalizeSymbol}
                 onChange={(value) => field.onChange(value as RuntimeBenchmarkFieldSettings<string>)}
               />

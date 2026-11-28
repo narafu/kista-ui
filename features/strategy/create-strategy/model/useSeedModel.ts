@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { Strategy } from '@entities/strategy'
 
 interface UseSeedModelOptions {
@@ -13,7 +13,6 @@ interface UseSeedModelOptions {
 interface UseSeedModelReturn {
   seedUsdInput: number | null
   setSeedUsdInput: (v: number | null) => void
-  resetSeed: (opts: { seedUsdInput?: number | null }) => void
   seedUsd: number | null
   isInvalidSeed: boolean
 }
@@ -22,25 +21,16 @@ interface UseSeedModelReturn {
  * 시드 결정 모델 훅
  *
  * - seedUsdInput(USD 직접 입력) → seedUsd = seedUsdInput
- * - resetSeed: 타입/종목 변경 등 시스템 초기화
+ * - 등록은 0에서 시작(네 유형 공통), 수정은 저장값
  */
 export function useSeedModel({
   initial,
   avgPrice = null,
   quantity = null,
 }: UseSeedModelOptions): UseSeedModelReturn {
-  const [seedUsdInput, setSeedUsdInputInternal] = useState<number | null>(
-    initial?.initialDeposit ?? null,
+  const [seedUsdInput, setSeedUsdInput] = useState<number | null>(
+    initial ? initial.initialDeposit ?? null : 0,
   )
-
-  function setSeedUsdInput(v: number | null) {
-    setSeedUsdInputInternal(v)
-  }
-
-  // 호출부 effect deps에 넣을 수 있도록 참조를 고정한다 — state setter만 쓰므로 deps가 비어도 안전하다
-  const resetSeed = useCallback(({ seedUsdInput: newSeedUsd }: { seedUsdInput?: number | null }) => {
-    if (newSeedUsd !== undefined) setSeedUsdInputInternal(newSeedUsd)
-  }, [])
 
   const seedUsd = seedUsdInput
 
@@ -53,7 +43,6 @@ export function useSeedModel({
   return {
     seedUsdInput,
     setSeedUsdInput,
-    resetSeed,
     seedUsd,
     isInvalidSeed,
   }

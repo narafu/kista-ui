@@ -11,6 +11,7 @@ export const strategyKeys = {
   detail: (id: string) => [...strategyKeys.details(), id] as const,
   dcaExecutionsAll: () => [...strategyKeys.all, 'dca-executions'] as const,
   dcaExecutions: (id: string, page: number, size: number, filters?: DcaExecutionFilters) => [...strategyKeys.dcaExecutionsAll(), id, page, size, filters ?? {}] as const,
+  dcaAvailableCash: (accountId: string, ticker: string) => [...strategyKeys.all, 'dca-available-cash', accountId, ticker] as const,
   // body는 JSON 문자열 — 같은 입력이면 같은 키. 체결 무효화(TradeNotificationBridge) 대상이 아니다
   validation: (target: string, body: string) => [...strategyKeys.all, 'validation', target, body] as const,
 }

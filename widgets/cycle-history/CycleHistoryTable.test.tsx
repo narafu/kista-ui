@@ -136,27 +136,13 @@ describe('CycleHistoryTable', () => {
     expect(screen.queryByRole('button', { name: /더 보기|불러오는 중/ })).not.toBeInTheDocument()
   })
 
-  it('DCA 행은 예수금을 표시하지 않고, INFINITE·알 수 없음(null) 행은 그대로 표시한다', () => {
-    const base = { avgPrice: null, holdings: 0, deposit: 0 }
-    const items: CycleHistoryItem[] = [
-      { ...base, createdAt: '2026-07-01T09:00:00Z', ticker: 'DCAT', strategyType: 'DCA' },
-      { ...base, createdAt: '2026-07-01T10:00:00Z', ticker: 'INFT', strategyType: 'INFINITE' },
-      { ...base, createdAt: '2026-07-01T11:00:00Z', ticker: 'NULT', strategyType: null },
-    ]
-    render(<CycleHistoryTable title="잔고 이력" id="a1" useHistoryQuery={makeHook({ cycleHistory: items })} />)
+  it('DCA 행도 서버 원장 예수금을 모바일·PC에 그대로 표시한다', () => {
+    const item: CycleHistoryItem = { createdAt: '2026-07-01T09:00:00Z', ticker: 'DCAT', strategyType: 'DCA', avgPrice: null, holdings: 0, deposit: 1500 }
+    render(<CycleHistoryTable title="잔고 이력" id="a1" useHistoryQuery={makeHook({ cycleHistory: [item] })} />)
 
-    const rows = (ticker: string) => {
-      const [mobileBadge, desktopCell] = screen.getAllByText(ticker)
-      return { mobile: mobileBadge.closest('li')!, desktop: desktopCell.closest('tr')! }
-    }
-    const dca = rows('DCAT')
-    expect(dca.mobile).not.toHaveTextContent('예수금')
+    const [mobileBadge, desktopCell] = screen.getAllByText('DCAT')
+    expect(mobileBadge.closest('li')).toHaveTextContent('예수금 $1,500.00')
     // 날짜 rowSpan 셀이 있는 그룹 첫 행이라 예수금이 한 칸 뒤다
-    expect(dca.desktop.cells[4]).toHaveTextContent(/^-$/)
-    for (const ticker of ['INFT', 'NULT']) {
-      const row = rows(ticker)
-      expect(row.mobile).toHaveTextContent('예수금 $0.00')
-      expect(row.desktop.cells[3]).toHaveTextContent('$0.00')
-    }
+    expect(desktopCell.closest('tr')!.cells[4]).toHaveTextContent('$1,500.00')
   })
 })

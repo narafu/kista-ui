@@ -154,7 +154,7 @@ describe('buildDcaFormDefaults', () => {
 
   it('등록 기본값은 규칙 없음', () => {
     expect(buildDcaFormDefaults(undefined, 'UPRO')).toEqual({
-      ticker: 'UPRO', scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
+      ticker: 'UPRO', scheduledStartDate: todayKst(), initialDeposit: 0, initialHoldings: null, initialAvgPrice: null, rules: [],
     })
   })
   it('dca가 없는 initial도 기본값', () => {

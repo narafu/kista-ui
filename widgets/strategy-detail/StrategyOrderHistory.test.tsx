@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { StrategyOrder } from '@entities/order'
 import { StrategyOrderHistory } from './StrategyOrderHistory'
 
@@ -25,12 +26,13 @@ const ORDERS: StrategyOrder[] = [
 ]
 
 let currentOrders = ORDERS
+let failed = false
 
 const mockOrdersQuery = vi.fn(() => ({
-  data: currentOrders,
+  data: failed ? undefined : currentOrders,
   isLoading: false,
-  isError: false,
-  error: null,
+  isError: failed,
+  error: failed ? new Error('서버 원문') : null,
 }))
 
 vi.mock('@entities/order', async () => {
@@ -40,6 +42,7 @@ vi.mock('@entities/order', async () => {
 
 afterEach(() => {
   currentOrders = ORDERS
+  failed = false
   mockOrdersQuery.mockClear()
 })
 
@@ -156,6 +159,24 @@ describe('StrategyOrderHistory filters', () => {
 
     expect(inTable().getByText('$101.00')).toBeInTheDocument()
     expect(inTable().queryByText('$111.00')).not.toBeInTheDocument()
+  })
+
+  it('조회 실패는 서버 원문 없이 안내 문구와 다시 시도를 보여 준다', () => {
+    failed = true
+    render(<QueryClientProvider client={new QueryClient()}><StrategyOrderHistory strategyId="strategy-1" /></QueryClientProvider>)
+
+    expect(screen.getByText('주문 내역을 불러오지 못했습니다.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument()
+    expect(screen.queryByText(/서버 원문/)).not.toBeInTheDocument()
+  })
+
+  it('빈 결과는 기본 7일 창이면 기간을, 전체면 내역 없음을 말한다', async () => {
+    mockOrders([])
+    render(<StrategyOrderHistory strategyId="strategy-1" />)
+    expect(screen.getByText('해당 기간에 주문 내역이 없습니다.')).toBeInTheDocument()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: '전체' }))
+    expect(screen.getByText('주문 내역이 없습니다.')).toBeInTheDocument()
   })
 
   it('체결 0건으로 취소된 주문은 주문 수량만, 부분 체결 후 취소는 체결/주문 수량을 표시한다', async () => {

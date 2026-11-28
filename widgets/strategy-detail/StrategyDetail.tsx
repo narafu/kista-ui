@@ -34,7 +34,10 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
 
   const { marketStatusMessage, isConfirmedHoliday } = useTodayMarketStatus()
   const canExecute = strategy.status === 'ACTIVE'
-  const bannerText = nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, preview?.warnings ?? [])
+  // 로딩 중에는 구서버인지 알 수 없어 클라 휴장 배너를 띄우지 않는다
+  const bannerText = isLoadingPreview
+    ? null
+    : nextOrderBannerText(canExecute, mode, isConfirmedHoliday, marketStatusMessage, preview?.warnings ?? [], preview?.marketClosedToday)
 
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({
     onDeleted: () => push(`/accounts/${accountId}`),

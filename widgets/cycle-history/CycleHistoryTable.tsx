@@ -40,15 +40,7 @@ const COLUMNS: DataListColumn<CycleHistoryItem>[] = [
   { key: 'ticker', header: '티커', mobile: 'titleBadge', className: 'font-medium', cell: (e) => e.ticker ?? '-' },
   { key: 'holdings', header: '수량', mobile: 'badge', numeric: true, cell: (e) => fmtShares(e.holdings) },
   { key: 'avgPrice', header: '평단가', numeric: true, cell: (e) => usd(e.avgPrice) },
-  // DCA는 시드를 두지 않아 예수금이 항상 0 — PC는 '-', 모바일은 항목을 뺀다
-  {
-    key: 'deposit',
-    header: '예수금',
-    numeric: true,
-    className: 'font-medium',
-    mobileHiddenWhen: (e) => e.strategyType === 'DCA',
-    cell: (e) => (e.strategyType === 'DCA' ? '-' : usd(e.deposit ?? 0)),
-  },
+  { key: 'deposit', header: '예수금', numeric: true, className: 'font-medium', cell: (e) => usd(e.deposit ?? 0) },
   {
     key: 'evalAmount',
     header: '평가금액',

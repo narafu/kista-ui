@@ -112,7 +112,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
             setting={settings.recurringMode}
             errorId={recurringErrorId}
           />
-          {recurringError && <p id={recurringErrorId} className="mt-1 text-sm text-status-error">{recurringError}</p>}
+          {recurringError && <p id={recurringErrorId} role="alert" className="mt-1 text-sm text-status-error">{recurringError}</p>}
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import { VR_RECURRING_MODE_LABEL } from '@entities/strategy'
-import { DEFAULT_RUNTIME_BENCHMARKS, type RuntimeConfig, type RuntimeFieldSettings } from '@entities/runtime-config'
+import type { RuntimeConfig, RuntimeFieldSettings } from '@entities/runtime-config'
 
 type AdminSettingsErrors = Record<string, string>
 
@@ -27,7 +27,7 @@ function validateValueSet<T>(key: string, allowedValues: T[], defaultValue: T, e
   }
 }
 
-export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErrors {
+export function validateAdminSettings(settings: RuntimeConfig, etfSymbols: string[]): AdminSettingsErrors {
   const errors: AdminSettingsErrors = {}
   for (const [strategy, config] of Object.entries(settings.strategies)) {
     for (const [name, field] of Object.entries(config.fields)) {
@@ -41,10 +41,10 @@ export function validateAdminSettings(settings: RuntimeConfig): AdminSettingsErr
   }
   if (settings.benchmarks?.etf) {
     validateValueSet('benchmarks.etf', settings.benchmarks.etf.allowedValues, settings.benchmarks.etf.defaultValue, errors)
-    const supportedSymbols = new Set<string>(DEFAULT_RUNTIME_BENCHMARKS.etf.allowedValues)
+    const supportedSymbols = new Set(etfSymbols)
     const unsupported = settings.benchmarks.etf.allowedValues.filter((symbol) => !supportedSymbols.has(symbol))
     if (unsupported.length > 0) {
-      errors['benchmarks.etf'] = `지원하지 않는 ETF 심볼입니다: ${unsupported.join(', ')}`
+      errors['benchmarks.etf'] = `지원하지 않는 종목입니다: ${unsupported.join(', ')}`
     }
   }
   return errors

@@ -36,13 +36,13 @@ describe('DcaExecutionHistory', () => {
     expect(queryMock).toHaveBeenLastCalledWith('d1', 1, 10, expect.any(Object), { enabled: true })
   })
 
-  it('PC 표는 결과·기준가 열 없이 수량·체결 뒤 맨 오른쪽에 사유를 둔다', () => {
+  it('PC 표는 결과·기준가 열 없이 수량·체결가 뒤 맨 오른쪽에 사유를 둔다', () => {
     queryMock.mockReturnValue({
       data: { content: [row], page: 0, size: 20, totalElements: 1 }, isLoading: false, isError: false,
     })
     render(<DcaExecutionHistory strategyId="d1" rules={[rule]} />)
     const heads = table().getAllByRole('columnheader').map((h) => h.textContent)
-    expect(heads).toEqual(['날짜', '방향', '주기', '규칙', '수량', '체결', '사유'])
+    expect(heads).toEqual(['날짜', '방향', '주기', '규칙', '수량', '체결가', '사유'])
   })
 
   it('같은 날 규칙별 행을 모두 보여주고 삭제된 규칙은 방향 배지와 함께 표시한다', () => {
@@ -114,10 +114,16 @@ describe('DcaExecutionHistory', () => {
     await waitFor(() => expect(queryMock).toHaveBeenLastCalledWith('d1', 0, 10, expect.objectContaining({ direction: 'SELL', ruleKey: 'a' }), { enabled: true }))
   }, 15000)
 
-  it('필터 적용 중 빈 결과는 조건 문구, 기본(전체)은 기존 문구를 보여 준다', async () => {
+  it('부분 체결은 체결/주문 수량을 함께 보여 준다', () => {
+    queryMock.mockReturnValue({ data: { content: [{ ...row, order: { id: 'o1', status: 'PARTIALLY_FILLED', filledQuantity: 1, filledPrice: 87.4 } }], page: 0, size: 10, totalElements: 1 }, isLoading: false, isError: false })
+    render(<DcaExecutionHistory strategyId="d1" rules={[rule]} />)
+    expect(table().getByText('/3주')).toBeInTheDocument()
+  })
+
+  it('빈 결과 문구: 기본 7일 창은 기간, 전체는 회차 없음, 방향·규칙 필터는 조건', async () => {
     queryMock.mockReturnValue({ data: { content: [], page: 0, size: 10, totalElements: 0 }, isLoading: false, isError: false })
     render(<DcaExecutionHistory strategyId="d1" rules={[rule]} />)
-    expect(screen.getByText('조건에 맞는 실행 이력이 없습니다.')).toBeInTheDocument() // 기본 기간은 7일
+    expect(screen.getByText('해당 기간에 실행 이력이 없습니다.')).toBeInTheDocument() // 기본 기간은 7일
     fireEvent.click(screen.getByRole('button', { name: '전체' }))
     expect(screen.getByText('아직 실행된 회차가 없습니다.')).toBeInTheDocument()
     await selectOption('방향', '매수')

@@ -156,6 +156,14 @@ export interface SubmitDisabled {
   field: SubmitReasonField | null
 }
 
+// 서버 검증 거절의 요청 필드 → 사유를 붙일 입력칸. 나머지는 폼 하단
+export const SERVER_FIELD_SLOT: Record<string, SubmitReasonField> = {
+  initialHoldings: 'holdings',
+  initialAvgPrice: 'holdings',
+  scheduledStartDate: 'scheduledStart',
+  recurringAmount: 'recurring',
+}
+
 const reason = (message: string, field: SubmitReasonField | null = null): SubmitDisabled => ({ message, field })
 
 // submitDisabledReason의 사전 사유(resolver 거부 사유는 호출부에서 ?? 로 이어붙임).

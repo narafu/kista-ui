@@ -3,6 +3,7 @@
 import { SelectionCard } from '@shared/ui/selection-card'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 import { fmtUsd } from '@shared/lib/format'
+import { cn } from '@shared/lib/utils'
 import type { Strategy } from '@entities/strategy'
 import type { PriceMap } from '@entities/account'
 
@@ -20,22 +21,18 @@ interface Props {
 export function StrategyTickerSection({
   initial, ticker, availableTickers, prices, basePrice, loading, onTickerChange, customizable,
 }: Props) {
+  // 고를 수 없는 경우(수정·허용 종목 1개·관리자 고정)는 읽기전용 카드 — 고정이면 선택값(설정 기본값)
+  const fixedCode = initial?.ticker
+    ?? (availableTickers.length === 1 ? availableTickers[0] : !customizable && availableTickers.length > 1 ? ticker : null)
+  const fixedPrice = initial ? basePrice : fixedCode ? prices?.[fixedCode] ?? null : null
+  // 5개부터는 한 줄에 가격이 들어가지 않아 4열로 줄을 바꾼다
+  const wraps = availableTickers.length > 4
+
   return (
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>종목</StrategyFieldLabel>
-      {initial ? (
-        <div className="flex items-center justify-between px-[14px] py-3 rounded-sm border border-border bg-muted">
-          <div className="flex items-center gap-2.5">
-            <span className="text-sm font-[800]">{initial.ticker}</span>
-          </div>
-          {basePrice !== null && (
-            <span className="text-sm text-muted-foreground tabular-nums">
-              ${fmtUsd(basePrice)}
-            </span>
-          )}
-        </div>
-      ) : customizable && availableTickers.length > 1 ? (
-        <div className="flex gap-2 py-0.5">
+      {!initial && customizable && availableTickers.length > 1 ? (
+        <div className={cn('gap-2 py-0.5', wraps ? 'grid grid-cols-4' : 'flex')}>
           {availableTickers.map((code) => {
             const sel = ticker === code
             const price = prices?.[code]
@@ -45,7 +42,7 @@ export function StrategyTickerSection({
                 selected={sel}
                 onClick={() => onTickerChange(code)}
                 disabled={loading}
-                className="min-w-0 flex-1 px-3 py-2 text-center"
+                className={cn('min-w-0 flex-1 py-2 text-center', wraps ? 'px-1' : 'px-3')}
               >
                 <div className="text-sm font-[800]">
                   {code}
@@ -59,14 +56,14 @@ export function StrategyTickerSection({
             )
           })}
         </div>
-      ) : availableTickers.length === 1 ? (
+      ) : fixedCode ? (
         <div className="flex items-center justify-between px-[14px] py-3 rounded-sm border border-border bg-muted">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-[800]">{availableTickers[0]}</span>
+            <span className="text-sm font-[800]">{fixedCode}</span>
           </div>
-          {prices?.[availableTickers[0]] !== undefined && (
+          {fixedPrice !== null && (
             <span className="text-sm text-muted-foreground tabular-nums">
-              ${fmtUsd(prices![availableTickers[0]])}
+              ${fmtUsd(fixedPrice)}
             </span>
           )}
         </div>

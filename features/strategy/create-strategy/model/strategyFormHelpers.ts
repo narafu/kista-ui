@@ -37,7 +37,7 @@ function buildVrDefaults(vr?: StrategyVr) {
   }
 }
 
-// 유형별 등록 기본값(관리자 운영 설정) — 첫 화면과 유형 변경이 같은 값을 쓴다. 시드는 최소 시드 도착 때(useInitialSeedReset) 채운다
+// 유형별 등록 기본값(관리자 운영 설정) — 첫 화면과 유형 변경이 같은 값을 쓴다. 시드는 유형과 무관하게 0에서 시작한다(useSeedModel)
 export function typeDefaultValues(settings: RuntimeStrategySettings | undefined): Partial<StrategyFormValues> {
   if (!settings) return {}
   const { ticker, divisionCount, bandWidth, intervalWeeks, recurringMode } = settings.fields

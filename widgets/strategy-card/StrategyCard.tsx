@@ -209,7 +209,7 @@ function CycleStrategyCard({ accountId, strategy, accountLabel }: Props) {
   )
 }
 
-// DCA는 단건 미리보기를 지원하지 않아(409) 미리보기 훅이 실행되기 전에 래퍼에서 분기한다
+// DCA 카드는 주문 신호 없이 다음 판정일만 보인다(제품 결정 D10, 서버 미리보기는 DCA도 지원) — 미리보기 훅이 실행되기 전에 래퍼에서 분기한다
 export function StrategyCard(props: Props) {
   const { strategy } = props
   if (strategy.type === 'DCA') {

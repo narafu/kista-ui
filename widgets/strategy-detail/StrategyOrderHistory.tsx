@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
-import { useStrategyOrdersQuery, orderStatusBadgeClass, type StrategyOrder } from '@entities/order'
+import { useStrategyOrdersQuery, orderStatusBadgeClass } from '@entities/order'
 import { directionBadgeClass } from '@entities/trade'
 import { useMeta } from '@entities/meta'
 import { PaginationBar } from '@shared/ui/PaginationBar'
 import { EmptyState } from '@shared/ui/EmptyState'
 import { LoadingRow } from '@shared/ui/LoadingRow'
+import { SectionError } from '@shared/ui/SectionError'
 import { Badge } from '@shared/ui/Badge'
 import { DATE_GROUP_LABEL_CLASS } from '@shared/ui/dateGroup'
 import { evenColumnsClass, TableHeadCell } from '@shared/ui/TableHeadCell'
@@ -25,7 +26,7 @@ interface Props {
 }
 
 // 체결 수량이 있으면 체결/주문 수량, 없거나 0이면(장중 취소 후 미체결 포함) 주문 수량
-function OrderQuantity({ o }: { o: StrategyOrder }) {
+export function OrderQuantity({ o }: { o: { quantity: number; filledQuantity?: number | null } }) {
   if (!o.filledQuantity) return <>{fmtShares(o.quantity)}</>
   return (
     <span>
@@ -102,9 +103,9 @@ export function StrategyOrderHistory({ strategyId }: Props) {
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (
-          <p className="text-sm text-destructive text-center py-8 px-6">주문 내역 조회 실패: {error instanceof Error ? error.message : String(error)}</p>
+          <div className="px-6 pb-6"><SectionError message="주문 내역을 불러오지 못했습니다." error={error} /></div>
         ) : orders.length === 0 ? (
-          <EmptyState variant="text" message="주문 내역이 없습니다." />
+          <EmptyState variant="text" message={rangeType === 'all' ? '주문 내역이 없습니다.' : '해당 기간에 주문 내역이 없습니다.'} />
         ) : filteredOrders.length === 0 ? (
           <EmptyState variant="text" message="조건에 맞는 주문이 없습니다." />
         ) : (

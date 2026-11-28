@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import type { Strategy } from '@entities/strategy'
 import { isBelowMinSeed, useSeedModel } from './useSeedModel'
 
 describe('isBelowMinSeed', () => {
@@ -22,6 +23,13 @@ describe('isBelowMinSeed', () => {
 })
 
 describe('useSeedModel', () => {
+  it('등록은 0에서 시작하고 수정은 저장값을 유지한다', () => {
+    expect(renderHook(() => useSeedModel({})).result.current.seedUsdInput).toBe(0)
+    const initial = { initialDeposit: 1200 } as Strategy
+    expect(renderHook(() => useSeedModel({ initial })).result.current.seedUsdInput).toBe(1200)
+    expect(renderHook(() => useSeedModel({ initial: {} as Strategy })).result.current.seedUsdInput).toBeNull()
+  })
+
   it('allows zero deposit when there are existing holdings', () => {
     const { result } = renderHook(() => useSeedModel({ avgPrice: 100, quantity: 31 }))
 

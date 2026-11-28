@@ -32,18 +32,13 @@ function divisionCountOptions(form: UseStrategyFormReturn, initial?: Strategy): 
   return form.divisionCountSettings?.allowedValues ?? (initial?.divisionCount ? [initial.divisionCount] : [])
 }
 
-function seedHint(isVr: boolean, initial?: Strategy) {
-  if (isVr || !initial) return undefined
-  return '첫 매매 전이라 예수금 수정이 가능합니다'
-}
-
 function SeedSection({ form, initial }: { form: UseStrategyFormReturn; initial?: Strategy }) {
   if (initial && !form.canEditSeed) {
-    return <ReadOnlySeedSection initialDeposit={initial.initialDeposit} />
+    return <ReadOnlySeedSection type={initial.type} initialDeposit={initial.initialDeposit} />
   }
   return (
     <SeedInputSection
-      hint={seedHint(form.isVr, initial)}
+      hint={initial ? '첫 매매 전이라 예수금 수정이 가능합니다' : undefined}
       seedUsdInput={form.seedUsdInput}
       setSeedUsdInput={form.setSeedUsdInput}
       availableCash={form.availableCash}
@@ -76,12 +71,12 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         initial={initial}
         availableTickers={initial ? [initial.ticker] : form.availableTickers}
         defaultTicker={form.defaultTicker}
+        tickerCustomizable={form.tickerCustomizable}
+        prices={form.prices}
         isMock={form.isMock}
         onSuccess={onSuccess}
         onCancel={onCancel}
-        header={!initial && (
-          <StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} restrictionNotes={form.brokerRestrictionNotes} />
-        )}
+        header={<StrategyTypeSection initial={initial} type={form.type} setType={form.setType} loading={form.loading} strategyTypes={strategyTypes} restrictionNotes={form.brokerRestrictionNotes} />}
       />
     )
   }
@@ -170,16 +165,18 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
         />
       )}
 
-      {form.submitDisabledReason && !form.submitDisabledField && (
-        <div className="flex items-center gap-3 py-3">
-          <p data-submit-reason tabIndex={-1} className="text-sm font-semibold text-warn">
-            {form.submitDisabledReason}
-          </p>
-          {form.seedCheck === 'failed' && (
-            <Button type="button" variant="outline" size="sm" onClick={form.retryValidation}>다시 시도</Button>
-          )}
-        </div>
-      )}
+      <div aria-live="polite">
+        {form.submitDisabledReason && !form.submitDisabledField && (
+          <div className="flex items-center gap-3 py-3">
+            <p data-submit-reason tabIndex={-1} className="text-sm font-semibold text-warn">
+              {form.submitDisabledReason}
+            </p>
+            {form.seedCheck === 'failed' && (
+              <Button type="button" variant="outline" size="sm" onClick={form.retryValidation}>다시 시도</Button>
+            )}
+          </div>
+        )}
+      </div>
 
       {form.submitError && <p role="alert" className="text-sm font-semibold text-status-error py-3">{form.submitError}</p>}
 

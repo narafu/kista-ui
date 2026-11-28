@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
+import { fmtMoney } from '@shared/lib/format'
+import { floorToCents, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
 
 // 서버는 빈 필드를 현재 값으로 이어받으므로 교차검증은 "입력값 ?? 현재값"(유효값)으로 계산한다
 type CurrentVrRamp = {
@@ -11,28 +12,39 @@ type CurrentVrRamp = {
   poolLimitFloor: number
 }
 
-export function createReconfigureVrFormSchema(current?: CurrentVrRamp) {
+// 칸 아래에 그대로 보이는 문구 — zod 기본 영문이 새지 않게 모든 검사에 붙인다. 비율은 화면 단위(%)로 적는다
+const POSITIVE = '0보다 크게 입력하세요.'
+const NONNEGATIVE = '0 이상으로 입력하세요.'
+const INTEGER = '올바른 정수를 입력하세요.'
+
+const positiveInt = () => z.number().int(INTEGER).positive(POSITIVE).nullable().optional()
+const nonnegativeInt = () => z.number().int(INTEGER).nonnegative(NONNEGATIVE).nullable().optional()
+const nonnegativeAmount = () => z.number().nonnegative(NONNEGATIVE).nullable().optional()
+
+export function createReconfigureVrFormSchema(current?: CurrentVrRamp, ledgerDeposit?: number) {
+  // 인출 한도는 현재 장부 예수금 — 서버는 같은 요청의 추가 예수금을 합치지 않는다(validateCapitalAdjustment). 모르면 서버에 맡긴다
+  const limit = ledgerDeposit == null ? undefined : floorToCents(ledgerDeposit)
   return z
   .object({
-    bandWidth: z.number().positive().nullable().optional(),
-    intervalWeeks: z.number().int().positive().nullable().optional(),
-    recurringAmount: z.number().int().nullable().optional(),
+    bandWidth: z.number().positive(POSITIVE).nullable().optional(),
+    intervalWeeks: positiveInt(),
+    recurringAmount: z.number().int(INTEGER).nullable().optional(),
     // 요청 바디에는 없는 화면 상태 — 부호만으로는 "적립을 골랐는데 금액 0"을 거치와 구분할 수 없어 함께 검증한다
     recurringMode: z.enum(['DEPOSIT', 'HOLD', 'WITHDRAW']).optional(),
-    initialGradient: z.number().int().positive().nullable().optional(),
-    gGraceWeeks: z.number().int().nonnegative().nullable().optional(),
-    gStepWeeks: z.number().int().nonnegative().nullable().optional(),
-    gMax: z.number().int().nonnegative().nullable().optional(),
-    initialPoolLimitRate: z.number().positive().max(1).nullable().optional(),
-    pGraceWeeks: z.number().int().nonnegative().nullable().optional(),
+    initialGradient: positiveInt(),
+    gGraceWeeks: nonnegativeInt(),
+    gStepWeeks: nonnegativeInt(),
+    gMax: nonnegativeInt(),
+    initialPoolLimitRate: z.number().positive('0 초과 100 이하로 입력하세요.').max(1, '0 초과 100 이하로 입력하세요.').nullable().optional(),
+    pGraceWeeks: nonnegativeInt(),
     // pStepWeeks=0은 poolLimitRate 램프 비활성화(하한/유예 무관) — nonnegative로 0 허용, "0이 아니면 하한>0 필수"는 아래 superRefine에서 검증
-    pStepWeeks: z.number().int().nonnegative().nullable().optional(),
-    poolLimitFloor: z.number().nonnegative().max(1).nullable().optional(),
-    injectShares: z.number().int().nonnegative().nullable().optional(),
-    injectSharePrice: z.number().positive().nullable().optional(),
-    injectDeposit: z.number().nonnegative().nullable().optional(),
-    withdrawShares: z.number().int().nonnegative().nullable().optional(),
-    withdrawDeposit: z.number().nonnegative().nullable().optional(),
+    pStepWeeks: nonnegativeInt(),
+    poolLimitFloor: z.number().nonnegative('0~100 사이로 입력하세요.').max(1, '0~100 사이로 입력하세요.').nullable().optional(),
+    injectShares: nonnegativeInt(),
+    injectSharePrice: z.number().positive(POSITIVE).nullable().optional(),
+    injectDeposit: nonnegativeAmount(),
+    withdrawShares: nonnegativeInt(),
+    withdrawDeposit: nonnegativeAmount(),
   })
   .superRefine((data, ctx) => {
     const initialGradient = data.initialGradient ?? current?.initialGradient
@@ -59,6 +71,9 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp) {
     }
     if (data.injectShares != null && data.injectShares > 0 && (data.injectSharePrice == null || data.injectSharePrice <= 0)) {
       ctx.addIssue({ code: 'custom', path: ['injectSharePrice'], message: '주식을 편입하려면 매수단가를 입력하세요.' })
+    }
+    if (limit != null && data.withdrawDeposit != null && data.withdrawDeposit > limit) {
+      ctx.addIssue({ code: 'custom', path: ['withdrawDeposit'], message: `장부 예수금 ${fmtMoney(limit, 'USD')} 이하로 입력하세요.` })
     }
   })
 }

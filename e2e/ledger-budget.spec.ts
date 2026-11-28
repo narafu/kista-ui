@@ -27,7 +27,8 @@ test.describe('시드 폼 가용 예수금 (USER)', () => {
     })
 
     await page.goto(`/accounts/${accountId}/strategies/new`)
-    await expect(page.getByText('가용 예수금 $5,000.00')).toBeVisible()
+    // 예수금이 0에서 시작해 첫 검증의 경고(같은 금액이 든 문장)가 힌트와 함께 보인다 — 힌트만 고른다
+    await expect(page.getByText('가용 예수금 $5,000.00', { exact: true })).toBeVisible()
 
     const seed = page.getByLabel('예수금 (USD)')
     await seed.fill('8000')

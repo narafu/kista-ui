@@ -35,16 +35,9 @@ vi.mock('sonner', () => ({
 }))
 
 vi.mock('@entities/meta', async () => {
-  const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
+  const { testLabelOf, testMeta } = await import('@entities/meta/__fixtures__/testMeta')
   return { useMeta: () => ({
-    meta: {
-      tickers: [
-        { code: 'SOXL', name: 'Direxion Daily Semiconductor Bull 3X Shares' },
-        { code: 'TQQQ', name: 'ProShares UltraPro QQQ' },
-        { code: 'QLD', name: 'ProShares Ultra QQQ' },
-        { code: 'IBIT', name: 'iShares Bitcoin Trust' },
-      ],
-    },
+    meta: { strategyTypes: [], etfBenchmarkSymbols: testMeta.etfBenchmarkSymbols },
     labelOf: testLabelOf,
   }) }
 })
@@ -146,9 +139,13 @@ describe('AdminSettingsForm mutation lifecycle', () => {
       expect(screen.getByRole('button', { name: /저장 중/ })).toBeDisabled()
       expect(toastSuccessMock).not.toHaveBeenCalled()
 
-      await user.type(screen.getByRole('combobox', { name: 'ETF 벤치마크 자산 추가' }), 'xyz')
-      await user.click(screen.getByRole('button', { name: 'ETF 벤치마크 자산 추가 확정' }))
-      expect(screen.getByRole('alert')).toHaveTextContent('지원하지 않는 ETF 심볼입니다: XYZ')
+      // 목록 밖 값은 입력칸에서 막히므로 검증 오류는 서버값으로 만든다 — 값을 한 번 바꿔 재검증시킨다
+      const unsupported = structuredClone(settings)
+      unsupported.auth.approvalRequired = false
+      unsupported.benchmarks!.etf.allowedValues = ['SPY', 'QQQ', 'XYZ']
+      act(() => { queryClient.setQueryData(adminSettingsKeys.all, unsupported) })
+      await user.click(await screen.findByRole('radio', { name: 'QQQ 기본값' }))
+      expect(await screen.findByRole('alert')).toHaveTextContent('지원하지 않는 종목입니다: XYZ')
 
       await act(async () => {
         refetches.users.resolve([])

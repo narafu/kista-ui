@@ -162,7 +162,7 @@ describe('ReconfigureVrForm', () => {
     fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
 
     await waitFor(() => expect(useRouter().push).toHaveBeenCalledWith(`/accounts/account-1/strategies/${strategy.id}`))
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderKeys.preview(strategy.id) })
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: orderKeys.all })
     expect(invalidate).toHaveBeenCalledWith({ queryKey: tradeKeys.all })
     expect(invalidate).toHaveBeenCalledWith({ queryKey: statsKeys.all })
     expect(invalidate).toHaveBeenCalledWith({ queryKey: accountKeys.ledgerTotals('account-1') })
@@ -248,6 +248,7 @@ describe('ReconfigureVrForm', () => {
 
     // form.trigger()가 실제로 끝났다는 확실한 신호 — 인라인 에러 메시지가 뜰 때까지 기다린다
     await screen.findByText('gradient 상한은 초기값 이상이어야 합니다.')
+    await waitFor(() => expect(screen.getByLabelText('gradient 상한')).toHaveFocus())
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(submitted()).toBeUndefined()
@@ -312,7 +313,7 @@ describe('ReconfigureVrForm', () => {
     expect(input.value).toBe('-50')
 
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    await screen.findByText('Too small: expected number to be >=0')
+    await screen.findByText('0 이상으로 입력하세요.')
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(submitted()).toBeUndefined()
@@ -352,6 +353,154 @@ describe('ReconfigureVrForm', () => {
     const body = await submittedAfterSend()
     expect(body.withdrawShares).toBeUndefined()
     expect(body.withdrawDeposit).toBeUndefined()
+  })
+
+  it.each([
+    ['밴드 폭', '0'],
+    ['리밸런싱 주기', '0'],
+    ['초기 gradient(G)', '0'],
+    ['gradient 유예', '-1'],
+    ['gradient 단계주기', '-1'],
+    ['초기 poolLimitRate', '150'],
+    ['poolLimitRate 유예', '-1'],
+    ['poolLimitRate 단계주기', '-1'],
+    ['편입 주식 수', '-1'],
+    ['인출 주식 수', '-1'],
+    ['추가 예수금', '-1'],
+    ['인출 예수금', '-1'],
+  ])('%s 칸의 오류를 표시하고 막힌 제출은 그 칸으로 포커스를 옮긴다', async (label, value) => {
+    renderForm(strategy)
+    const input = screen.getByLabelText(label)
+    fireEvent.change(input, { target: { value } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+
+    await waitFor(() => expect(input).toHaveFocus())
+    expect(input).toHaveAttribute('aria-invalid', 'true')
+    expect(input).toHaveAccessibleDescription(/입력하세요/)
+    expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
+  })
+
+  it('오류가 여럿이면 화면에서 첫 오류 칸으로 포커스를 옮긴다', async () => {
+    renderForm(strategy)
+    fireEvent.change(screen.getByLabelText('인출 예수금'), { target: { value: '-1' } })
+    fireEvent.change(screen.getByLabelText('밴드 폭'), { target: { value: '0' } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+
+    await waitFor(() => expect(screen.getByLabelText('밴드 폭')).toHaveFocus())
+  })
+
+  it('매수단가 오류가 남은 채 편입 주식 수를 지워도 칸을 숨기지 않는다', async () => {
+    renderForm(strategy)
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '0' } })
+    await waitFor(() => expect(screen.getByLabelText('매수단가')).toHaveAttribute('aria-invalid', 'true'))
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '' } })
+
+    expect(screen.getByLabelText('매수단가')).toBeInTheDocument()
+  })
+
+  it('매수단가 누락 오류는 편입 주식 수를 지우면 바로 사라진다', async () => {
+    renderForm(strategy)
+    const shares = screen.getByLabelText('편입 주식 수')
+    fireEvent.change(shares, { target: { value: '10' } })
+    // 한 번 입력했다가 지운 칸은 주식 수를 지워도 남으므로, 남은 오류가 화면에 보인다
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '5' } })
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '' } })
+    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+    await screen.findByText('주식을 편입하려면 매수단가를 입력하세요.')
+
+    fireEvent.change(shares, { target: { value: '' } })
+
+    await waitFor(() => expect(screen.queryByText('주식을 편입하려면 매수단가를 입력하세요.')).not.toBeInTheDocument())
+    expect(screen.getByLabelText('매수단가')).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('제출 전에는 편입 주식 수를 바꿔도 매수단가 오류를 띄우지 않는다', async () => {
+    renderForm(strategy)
+    const shares = screen.getByLabelText('편입 주식 수')
+    fireEvent.change(shares, { target: { value: '1' } })
+    fireEvent.change(shares, { target: { value: '10' } })
+    await act(() => new Promise((r) => setTimeout(r, 50)))
+
+    expect(screen.getByLabelText('매수단가')).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('편입 주식 수를 지운 채 매수단가를 고쳐도 입력 중인 칸이 사라지지 않는다', async () => {
+    renderForm(strategy)
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '10' } })
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '0' } })
+    await waitFor(() => expect(screen.getByLabelText('매수단가')).toHaveAttribute('aria-invalid', 'true'))
+    fireEvent.change(screen.getByLabelText('편입 주식 수'), { target: { value: '' } })
+
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '5' } })
+    await waitFor(() => expect(screen.getByLabelText('매수단가')).not.toHaveAttribute('aria-invalid'))
+    fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '' } })
+    await act(() => new Promise((r) => setTimeout(r, 50)))
+    expect(screen.getByLabelText('매수단가')).toBeInTheDocument()
+  })
+
+  it('주식 수 칸은 소수를 받지 않는다', () => {
+    renderForm(strategy)
+    for (const label of ['편입 주식 수', '인출 주식 수']) {
+      const input = screen.getByLabelText(label)
+      fireEvent.change(input, { target: { value: '1.5' } })
+      expect(input).toHaveValue('')
+    }
+  })
+
+  describe('인출 예수금 장부 한도', () => {
+    const withLedger: ReconfigureVrStrategy = { ...strategy, ledgerDeposit: 100.009 }
+    const message = '장부 예수금 $100.00 이하로 입력하세요.'
+    const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
+    const submit = () => fireEvent.click(screen.getByRole('button', { name: '재설정' }))
+
+    it('장부 예수금을 센트 아래 버림으로 보여준다', () => {
+      renderForm({ ...strategy, ledgerDeposit: 100.009 })
+      expect(screen.getByText('현재 장부 예수금 $100.00')).toBeInTheDocument()
+    })
+
+    it('장부 예수금이 없으면 표시하지 않는다', () => {
+      renderForm(strategy)
+      expect(screen.queryByText(/현재 장부 예수금/)).not.toBeInTheDocument()
+    })
+
+    it('한도를 넘으면 칸 오류를 띄우고 포커스를 옮기며 확인 다이얼로그를 열지 않는다', async () => {
+      renderForm(withLedger)
+      type('인출 예수금', '100.01')
+      submit()
+
+      await waitFor(() => expect(screen.getByLabelText('인출 예수금')).toHaveFocus())
+      expect(screen.getByText(message)).toBeInTheDocument()
+      expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
+    })
+
+    it('같은 요청의 추가 예수금은 한도에 합치지 않는다(서버 기준)', async () => {
+      renderForm(withLedger)
+      type('추가 예수금', '50')
+      type('인출 예수금', '120')
+      submit()
+
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
+    })
+
+    it('같은 칸에 화면 오류가 있으면 서버의 같은 지적은 겹쳐 보이지 않는다', async () => {
+      renderForm(withLedger, { fieldErrors: [{ field: 'withdrawDeposit', detail: '보유 예수금을 초과할 수 없습니다.' }], warnings: [], derived: {} })
+      expect(await screen.findByText('보유 예수금을 초과할 수 없습니다.')).toBeInTheDocument()
+      type('인출 예수금', '120')
+
+      expect(await screen.findByText(message)).toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByText('보유 예수금을 초과할 수 없습니다.')).not.toBeInTheDocument())
+    })
+
+    it('한도와 같은 금액은 제출한다', async () => {
+      renderForm(withLedger)
+      type('인출 예수금', '100')
+      submit()
+      fireEvent.click(await screen.findByRole('button', { name: '재설정 확정' }))
+
+      expect((await submittedAfterSend()).withdrawDeposit).toBe(100)
+    })
   })
 
   it('취소를 누르면 상세 페이지로 이동한다', () => {

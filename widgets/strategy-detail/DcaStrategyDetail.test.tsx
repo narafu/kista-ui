@@ -78,10 +78,10 @@ describe('DcaStrategyDetail', () => {
     expect(screen.getByText('+25.0%')).toBeInTheDocument()
     expect(screen.queryByText('이 전략 체결 기준')).not.toBeInTheDocument()
   })
-  it('currentHoldings가 null이면 보유 수량 0, 나머지는 -', () => {
+  it('currentHoldings·평단가가 null이면 보유 타일은 모두 -', () => {
     renderDetail({ ...strategy, dca: { rules: [rule], currentHoldings: null, avgPrice: null } })
-    expect(tile('보유 수량')).toHaveTextContent('0주')
-    for (const l of ['평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
+    expect(tile('보유 수량')).not.toHaveTextContent('0주')
+    for (const l of ['보유 수량', '평단가', '평가금액', '수익률']) expect(tile(l)).toHaveTextContent('-')
   })
   it('규칙 카드: 요약·조건·부족 정책·다음 판정, 옛 방향 타일·설정 그리드·추가 조건 카드는 없다', () => {
     renderDetail()
@@ -117,6 +117,11 @@ describe('DcaStrategyDetail', () => {
   it('nextExecution이 null이면 미정', () => {
     renderDetail({ ...strategy, dca: { ...strategy.dca!, rules: [{ ...rule, nextExecution: null }] } })
     expect(ruleFooter()).toHaveTextContent('다음 판정 미정')
+  })
+  it('일시중지면 다음 판정 날짜 대신 일시중지 중을 보여 준다', () => {
+    renderDetail({ ...strategy, status: 'PAUSED' })
+    expect(ruleFooter()).toHaveTextContent('다음 판정 일시중지 중 · 최근 -')
+    expect(ruleFooter()).not.toHaveTextContent(fmtDate('2026-10-31'))
   })
   it('공포탐욕지수 조건은 (CNN) 출처를 붙인다', () => {
     const fg = { indicator: 'FEAR_GREED' as const, operator: 'LTE' as const, threshold: 20 }

@@ -19,6 +19,7 @@ import {
   pauseStrategy,
   resumeStrategy,
   validateStrategy,
+  getDcaAvailableCash,
 } from '../api'
 import type { CapitalInjectionRequest, CapitalWithdrawalRequest, DcaConfigRequest, DcaExecutionFilters, DcaExecutionPage, ReconfigureVrRequest, Strategy, StrategyRequest, StrategyValidation, StrategyValidationTarget } from '../model/types'
 import { strategyKeys } from '../model/queryKeys'
@@ -113,6 +114,18 @@ export function useStrategyValidationQuery<TBody>(
     isError: query.isError && settled,
     refetch: query.refetch,
   }
+}
+
+// 실패(전일종가 조회 실패 등)는 참고값이 없을 뿐이라 알리지도 재시도하지도 않는다.
+// 추가·인출·등록으로 바뀌는 값이라 캐시를 믿지 않고 마운트마다 다시 읽는다(별도 무효화 없음)
+export function useDcaAvailableCashQuery(accountId: string, ticker: string, options: { enabled: boolean }) {
+  return useQuery({
+    queryKey: strategyKeys.dcaAvailableCash(accountId, ticker),
+    queryFn: () => getDcaAvailableCash(accountId, ticker),
+    enabled: options.enabled,
+    staleTime: 0,
+    retry: false,
+  })
 }
 
 export function useAllStrategiesQuery(options?: { enabled?: boolean }) {

@@ -14,6 +14,7 @@ export {
 } from './api'
 export {
   useStrategyValidationQuery,
+  useDcaAvailableCashQuery,
   useStrategyDetailQuery,
   useAllStrategiesQuery,
   useStrategiesQuery,

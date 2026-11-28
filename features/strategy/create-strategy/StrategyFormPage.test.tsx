@@ -19,7 +19,7 @@ const initial: Strategy = {
   divisionCount: 20,
   isReverseMode: false,
   cycleInProgress: true,
-  allowedActions: [],
+  allowedActions: ['EDIT_SEED'],
   blockedActions: [],
   currentHoldings: 0,
 }
@@ -27,10 +27,11 @@ const initial: Strategy = {
 // 폼이 시드 미리보기를 읽는다(전략 정책은 renderApp의 meta)
 const formApi = {
   'GET /api/accounts/{accountId}/trading-cycles': [initial],
+  'GET /api/accounts/{accountId}/prices': { prices: [] },
   'POST /api/trading-cycles/{id}/update-validations': { fieldErrors: [], warnings: [], derived: { minSeed: 100 } },
 } as never
 
-const SEED_LOCKED = '예수금은 전략 등록 후 수정할 수 없습니다'
+const SEED_LOCKED = '예수금은 투자금 추가·인출로 바꿉니다'
 
 describe('StrategyFormPage', () => {
   it('수정 폼에서 취소하면 상세 페이지로 이동한다', async () => {
@@ -48,7 +49,7 @@ describe('StrategyFormPage', () => {
     expect(screen.queryByText(SEED_LOCKED)).not.toBeInTheDocument()
 
     act(() => {
-      queryClient.setQueryData(strategyKeys.detail(initial.id), { ...initial, currentHoldings: 3 })
+      queryClient.setQueryData(strategyKeys.detail(initial.id), { ...initial, currentHoldings: 3, allowedActions: [], blockedActions: [{ action: 'EDIT_SEED', reasonCode: 'HAS_HOLDINGS' }] })
     })
 
     expect(await screen.findByText(SEED_LOCKED)).toBeInTheDocument()

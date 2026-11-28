@@ -79,7 +79,7 @@ export const dcaRuleSchema = z.object({
 export const dcaFormSchema = z.object({
   ticker: z.string().min(1, '종목을 선택하세요'),
   scheduledStartDate: z.string().nullable(),
-  initialDeposit: z.number().nullable(), // 등록 시 시작 원장 예수금(계좌 통화) — 비우면 0, 수정 모드는 항상 null
+  initialDeposit: z.number().nullable(), // 등록 시 시작 원장 예수금(계좌 통화) — 0에서 시작, 비워도 0. 수정 모드는 항상 null
   initialHoldings: z.number().nullable(), // 등록 시 보유 시작값 — 수정 모드는 항상 null(payload에 안 쓴다)
   initialAvgPrice: z.number().nullable(),
   rules: z.array(dcaRuleSchema)
@@ -140,7 +140,7 @@ export function buildDcaFormDefaults(initial: Strategy | undefined, defaultTicke
   const d = initial?.dca
   if (!initial || !d) {
     return {
-      ticker: defaultTicker, scheduledStartDate: todayKst(), initialDeposit: null, initialHoldings: null, initialAvgPrice: null, rules: [],
+      ticker: defaultTicker, scheduledStartDate: todayKst(), initialDeposit: 0, initialHoldings: null, initialAvgPrice: null, rules: [],
     }
   }
   return {

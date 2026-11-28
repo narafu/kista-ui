@@ -79,7 +79,8 @@ function normalizePreview(raw: unknown): NextOrderPreview {
   const ledgerCheck = normalizeLedgerCheck(r.ledgerCheck)
   const accountCashCheck = normalizeAccountCashCheck(r.accountCashCheck)
   const accountHoldingsCheck = normalizeAccountHoldingsCheck(r.accountHoldingsCheck)
-  return { tradeDate: String(r.tradeDate), position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck, accountCashCheck, accountHoldingsCheck, warnings: normalizeWarnings(r.warnings) }
+  const marketClosedToday = typeof r.marketClosedToday === 'boolean' ? r.marketClosedToday : undefined
+  return { tradeDate: String(r.tradeDate), marketClosedToday, position, orders, skipReason, todayOrders, otherStrategiesPlannedBuyUsd, ledgerCheck, accountCashCheck, accountHoldingsCheck, warnings: normalizeWarnings(r.warnings) }
 }
 
 // token 있으면 Server Component에서 kista-api 직접 호출, 없으면 Client Component에서 Route Handler 경유

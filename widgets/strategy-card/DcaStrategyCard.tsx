@@ -34,14 +34,17 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
     : null
   const next = earliestNextExecution(rules)
   const nextLabel = '다음 판정'
-  const nextValue = !next?.nextExecution ? '미정' : fmtDate(next.nextExecution.kstTradeDate)
+  // 배치는 운영중 전략만 주문한다 — 일시중지 중에는 날짜를 보이지 않는다
+  const nextValue = strategy.status === 'PAUSED' ? '일시중지 중' : !next?.nextExecution ? '미정' : fmtDate(next.nextExecution.kstTradeDate)
   const scheduledStart = isScheduledStart(strategy)
   const statusLabel = strategy.status === 'ACTIVE' ? null : labelOf('strategyStatuses', strategy.status)
   const statusAccent = strategyStatusAccent(strategy.status)
 
-  const badges = (badgeCls?: string) => (
+  const typeLabel = labelOf('strategyTypes', strategy.type)
+  // 유형 배지 크기는 사이클 카드(StrategyCard)와 같다 — 모바일 sm, PC md
+  const badges = (typeBadge: ReactNode, badgeCls?: string) => (
     <>
-      <Badge tone="brand" size="sm" className={badgeCls}>DCA</Badge>
+      {typeBadge}
       {statusLabel && <Badge tone="neutral" size="sm" className={badgeCls}>{statusLabel}</Badge>}
       {lastLabel && <Badge tone="neutral" size="sm" className={badgeCls}>{lastLabel}</Badge>}
       {scheduledStart && (
@@ -63,9 +66,10 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
       {/* 모바일: 2행 레이아웃 */}
       <div className="flex flex-col gap-1.5 pl-5 pr-4 py-3 lg:hidden">
         <div className="flex flex-wrap items-center gap-1.5">
-          {badges()}
+          {badges(<Badge tone="brand" size="sm" className="px-2.5">{typeLabel}</Badge>)}
           {/* PC는 정보 행에 따로 두지만 모바일은 2행 골격이라 배지 행에 둔다 */}
-          {dca && <Badge tone="neutral" size="sm">{nextLabel} {nextValue}</Badge>}
+          {/* 일시중지는 상태 배지가 이미 말한다 */}
+          {dca && strategy.status !== 'PAUSED' && <Badge tone="neutral" size="sm">{nextLabel} {nextValue}</Badge>}
           {accountLabel && <span className="ml-auto min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>}
         </div>
         <div className="flex items-center gap-2">
@@ -79,7 +83,7 @@ export function DcaStrategyCard({ accountId, strategy, accountLabel }: Props) {
       <div className="hidden lg:flex flex-col">
         <div className="pl-5 pr-4 pt-4 pb-3">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex flex-wrap items-center gap-1.5">{badges('h-[22px]')}</div>
+            <div className="flex flex-wrap items-center gap-1.5">{badges(<Badge tone="brand" size="md" className="h-[22px]">{typeLabel}</Badge>, 'h-[22px]')}</div>
             {accountLabel && <span className="ml-3 min-w-0 truncate text-xs font-semibold text-muted-foreground">{accountLabel}</span>}
           </div>
           <div className="flex items-center gap-2">

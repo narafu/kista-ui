@@ -196,6 +196,13 @@ export async function resumeStrategy(id: string, token?: string): Promise<void> 
   return fetchEither<void>(`/api/trading-cycles/${id}/resume`, { method: 'PATCH' }, token)
 }
 
+// DCA 등록의 가용 예수금(계좌 통화) — 규칙이 없으면 검증 POST가 400이라 규칙 없이 주는 시드 미리보기를 쓴다. 검증 derived.availableCash와 같은 계산
+export async function getDcaAvailableCash(accountId: string, ticker: string): Promise<number | null> {
+  const query = buildQueryString({ type: 'DCA', ticker })
+  const raw = await fetchEither<{ availableCash?: unknown }>(`/api/accounts/${accountId}/strategy-seed-preview${query}`, { method: 'GET' })
+  return optMoney(raw.availableCash)
+}
+
 function validationPath(target: StrategyValidationTarget): string {
   switch (target.kind) {
     case 'create': return `/api/accounts/${target.accountId}/trading-cycle-validations`

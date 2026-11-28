@@ -13,6 +13,7 @@ type ValueSet<T extends string | number> = {
   defaultValue: T
 }
 
+// suggestions: 서버가 받는 종목 전체 — 있으면 목록 밖 값은 추가하지 않는다(저장 때 400)
 // inputRef: 폼이 제출 시 첫 오류 필드로 포커스를 옮길 때 쓰는 주 입력(추가 입력칸)
 export function ValueListEditor<T extends string | number>({ id, label, field, error, inputType = 'text', suggestions, unit, normalize, onChange, inputRef }: {
   id: string
@@ -49,6 +50,11 @@ export function ValueListEditor<T extends string | number>({ id, label, field, e
     }
     if (field.allowedValues.includes(parsed)) {
       setInputError('이미 추가된 값입니다.')
+      return
+    }
+    if (suggestions?.length && !suggestions.includes(String(parsed))) {
+      const addable = suggestions.filter((item) => !field.allowedValues.some((value) => String(value) === item))
+      setInputError(`지원하지 않는 종목입니다. ${addable.length ? `추가할 수 있는 종목: ${addable.join(', ')}` : '추가할 수 있는 종목이 없습니다.'}`)
       return
     }
     setInputError(undefined)

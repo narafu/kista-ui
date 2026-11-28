@@ -276,6 +276,15 @@ describe('order api', () => {
     expect((await getStrategyOrdersPreview('strategy-1')).warnings).toEqual([{ code: 'LEDGER_SHORTFALL', detail: '원장 부족' }])
   })
 
+  it('keeps marketClosedToday as a boolean and leaves it undefined for older responses', async () => {
+    const { getStrategyOrdersPreview } = await import('./index')
+    const base = { tradeDate: '2026-07-18', position: null, orders: [], skipReason: null, todayOrders: [], otherStrategiesPlannedBuyUsd: '0' }
+    for (const [marketClosedToday, expected] of [[true, true], [false, false], [undefined, undefined], [null, undefined]]) {
+      clientFetchMock.mockResolvedValueOnce({ ...base, marketClosedToday })
+      expect((await getStrategyOrdersPreview('strategy-1')).marketClosedToday).toBe(expected)
+    }
+  })
+
   it('normalizes a populated ledgerCheck', async () => {
     const { getStrategyOrdersPreview } = await import('./index')
     clientFetchMock.mockResolvedValueOnce({

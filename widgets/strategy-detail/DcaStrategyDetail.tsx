@@ -49,7 +49,7 @@ function DcaHoldingGrid({ accountId, strategy }: { accountId: string; strategy: 
   const evalText = fmtMoneyOrDash(evalAmount, 'USD')
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <KpiCard label="보유 수량" value={fmtShares(holdings ?? 0)} {...TILE} />
+      <KpiCard label="보유 수량" value={holdings != null ? fmtShares(holdings) : '-'} {...TILE} />
       <KpiCard label="평단가" value={avgText} {...TILE} />
       <KpiCard label="평가금액" value={unavailable ? UNAVAILABLE : evalText} skeleton={loading} {...TILE} />
       <KpiCard
@@ -71,7 +71,8 @@ function RuleField({ label, className, inline, children }: { label: string; clas
   )
 }
 
-// DCA 상세 — 미리보기 미지원(409)이라 NextOrderCard 대신 보유 현황·규칙 카드·회차 이력을 표시.
+// DCA 상세 — NextOrderCard(다음 주문)를 두지 않고 보유 현황·규칙 카드(다음 판정일)·회차 이력을 표시한다.
+// 서버 미리보기는 DCA도 지원하지만 DCA는 다음 실행일만 보이기로 한 제품 결정(D10)이다.
 // 구성은 주식 전략 상세(전략 정보 카드 + KpiCard 그리드 → 이력 → 제어 카드)를 따른다
 // dca가 없어도(응답 누락) 보유 수량·이력·중지/삭제는 그대로 노출한다
 export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
@@ -127,7 +128,8 @@ export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
                     </dl>
                     <p data-testid="rule-footer" className="mt-2.5 text-xs text-muted-foreground">
                       다음 판정{' '}
-                      {!r.nextExecution ? '미정' : fmtDate(r.nextExecution.kstTradeDate)}
+                      {/* 배치는 운영중 전략만 주문한다 — 일시중지 중에는 날짜를 보이지 않는다 */}
+                      {strategy.status === 'PAUSED' ? '일시중지 중' : !r.nextExecution ? '미정' : fmtDate(r.nextExecution.kstTradeDate)}
                       {' · 최근 '}
                       {/* 건너뛴 회차는 사유만으로 충분하다 — "건너뜀 · 조건 미충족" 대신 "조건 미충족" */}
                       {!r.lastExecution ? '-' : r.lastExecution.skipReason ? labelOf('dcaSkipReasons', r.lastExecution.skipReason) : labelOf('dcaExecutionStatuses', r.lastExecution.status)}

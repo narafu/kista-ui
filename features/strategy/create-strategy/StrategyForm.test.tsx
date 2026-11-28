@@ -206,7 +206,7 @@ describe('StrategyForm seed section', () => {
 
     expect(screen.queryByTestId('seed-input-section')).not.toBeInTheDocument()
     expect(screen.getByText('예수금')).toBeInTheDocument()
-    expect(screen.getByText('예수금은 전략 등록 후 수정할 수 없습니다')).toBeInTheDocument()
+    expect(screen.getByText('예수금은 투자금 추가·인출로 바꿉니다')).toBeInTheDocument()
     expect(screen.getByText('$1,200.00')).toBeInTheDocument()
   })
 
@@ -421,12 +421,12 @@ describe('StrategyForm DCA 수정 모드', () => {
     expect(screen.queryByText('division-count-section')).not.toBeInTheDocument()
   })
 
-  it('수정 모드에서는 종목을 initial.ticker 하나로 고정하고 유형 선택은 숨긴다', () => {
+  it('수정 모드에서는 종목을 initial.ticker 하나로 고정하고 유형은 읽기전용 섹션으로 넘긴다', () => {
     useStrategyFormMock.mockReturnValue({ ...baseFormState, availableTickers: ['UPRO', 'QLD'] })
 
     render(<StrategyForm accountId="account-1" initial={dcaInitial} />)
 
     expect(screen.getByTestId('dca-strategy-form')).toHaveTextContent(/^QLD$/)
-    expect(screen.queryByText('type-section')).not.toBeInTheDocument()
+    expect(screen.getByText('type-section')).toBeInTheDocument()
   })
 })

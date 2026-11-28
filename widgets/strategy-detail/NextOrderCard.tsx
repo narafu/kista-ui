@@ -5,13 +5,14 @@ import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
+import { Badge } from '@shared/ui/Badge'
 import { useCancelAllOrdersMutation, useCancelOneOrderMutation } from '@entities/order'
 import { asyncFallback } from '@shared/ui/AsyncSection'
 import { EmptyState } from '@shared/ui/EmptyState'
 import type { Strategy } from '@entities/strategy'
 import { hasWarning } from '@entities/order'
 import type { NextOrderPreview, OrderWarning } from '@entities/order'
-import { directionUnplacedMessage, pausedSkipReasonLabel, previewErrorMsg, SKIP_REASON_LABELS } from './orderBannerCopy'
+import { CLOSED_NO_PRIVACY_BASE_MESSAGE, CLOSED_PRIVACY_BASE_BLOCKED_MESSAGE, directionUnplacedMessage, estimateSubtitle, pausedSkipReasonLabel, previewErrorMsg, SKIP_REASON_LABELS } from './orderBannerCopy'
 import { OrderRows } from './OrderRows'
 import { Button } from '@/components/ui/button'
 import { isMockBroker } from '@shared/lib/api-schema'
@@ -116,10 +117,23 @@ function PreviewBody({ preview, orders, isLoadingPreview, isPreviewError, previe
   // 일시중지 중에도 값이 나온다 — 그대로 노출하면 오늘 배치에서 실행될 주문처럼 오해할 수 있어 숨긴다
   // 사유가 있으면 "계획대로 진행" 안내가 사실과 어긋난다 — 예: 사이클 종료
   if (!canExecute) {
-    return <EmptyState variant="text" message={preview?.skipReason ? pausedSkipReasonLabel(preview.skipReason) : '일시중지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
+    const reason = preview?.marketClosedToday && preview.skipReason === 'PRIVACY_BASE_BLOCKED'
+      ? CLOSED_PRIVACY_BASE_BLOCKED_MESSAGE
+      : preview?.skipReason && pausedSkipReasonLabel(preview.skipReason)
+    return <EmptyState variant="text" message={reason || '일시중지 중입니다\n재개하면 이 계획대로 매매가 진행됩니다'} />
   }
-  if (orders.length === 0) return <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
-  return <OrderRows orders={orders} />
+  if (orders.length === 0) {
+    if (preview?.marketClosedToday && preview.skipReason === 'NO_PRIVACY_BASE') return <EmptyState variant="text" message={CLOSED_NO_PRIVACY_BASE_MESSAGE} />
+    if (preview?.marketClosedToday && preview.skipReason === 'PRIVACY_BASE_BLOCKED') return <EmptyState variant="text" message={CLOSED_PRIVACY_BASE_BLOCKED_MESSAGE} />
+    return <EmptyState variant="text" message={preview?.skipReason ? SKIP_REASON_LABELS[preview.skipReason] : '예정된 주문이 없습니다.'} />
+  }
+  if (!preview?.marketClosedToday) return <OrderRows orders={orders} />
+  // 점선 테두리 = 아직 확정 전인 예상 주문. overflow-clip은 둥근 모서리를 자르되 표 헤더 sticky를 깨지 않는다
+  return (
+    <div data-testid="estimated-orders" className="mx-1 lg:mx-4 overflow-clip rounded-lg border border-dashed border-muted-foreground">
+      <OrderRows orders={orders} />
+    </div>
+  )
 }
 
 // 상태별 플래그를 부모(StrategyDetail)가 계산해 내려주는 표시 전용 카드, props 리팩토링은 범위 밖
@@ -144,6 +158,13 @@ export function NextOrderCard({
   const orders = preview?.orders ?? []
 
   const unplacedDirections = getUnplacedDirections(mode, preview)
+  const marketClosed = preview?.marketClosedToday === true
+  // 부제의 거래일은 그 날짜를 말하는 본문(예상 주문·P 매매표 안내)에만 붙인다 — MARKET_CLOSED(개장일 못 찾음)·사이클 종료 등은 기존 부제
+  const isEstimate = marketClosed && mode === 'preview'
+    && (!preview.skipReason || preview.skipReason === 'NO_PRIVACY_BASE' || preview.skipReason === 'PRIVACY_BASE_BLOCKED')
+  const subtitle = !canExecute
+    ? '일시중지 중, 자동실행 되지 않음'
+    : isEstimate ? estimateSubtitle(preview.tradeDate) : '매 거래일 개장 시 자동실행'
 
   const cancelAllMutation = useCancelAllOrdersMutation(strategy.id)
   const cancelOneMutation = useCancelOneOrderMutation(strategy.id)
@@ -165,10 +186,9 @@ export function NextOrderCard({
           <div className="flex items-center justify-between gap-2">
             <div>
               <SectionTitle>다음 주문</SectionTitle>
-              <p className="text-base text-muted-foreground mt-0.5">
-                {canExecute ? '매 거래일 개장 시 자동실행' : '일시중지 중, 자동실행 되지 않음'}
-              </p>
+              <p className="text-base text-muted-foreground mt-0.5">{subtitle}</p>
             </div>
+            {marketClosed && <Badge tone="none" size="md" className="self-start bg-gold/15 text-gold">휴장</Badge>}
           </div>
         </div>
         <div

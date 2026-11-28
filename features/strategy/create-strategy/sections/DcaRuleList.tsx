@@ -35,7 +35,9 @@ export function DcaRuleList({ rules, onSelect, onAdd, registerRowRef, error }: P
     <div className="py-[18px] border-b border-border">
       <StrategyFieldLabel>규칙 ({rules.length}/{MAX_DCA_RULES})</StrategyFieldLabel>
       {(rules.length === 0 || error) && (
-        <p className={cn('py-2 text-sm', error ? 'text-status-error' : 'text-muted-foreground')}>{error ?? '규칙을 추가하세요.'}</p>
+        // 오류는 막힌 제출이 포커스를 옮기는 대상(data-submit-reason)
+        <p {...(error ? { role: 'alert', tabIndex: -1, 'data-submit-reason': true } : {})}
+          className={cn('py-2 text-sm', error ? 'text-status-error' : 'text-muted-foreground')}>{error ?? '규칙을 추가하세요.'}</p>
       )}
       <ul className="space-y-2">
         {rules.map((r, i) => {
