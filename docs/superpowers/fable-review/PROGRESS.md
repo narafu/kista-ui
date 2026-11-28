@@ -672,3 +672,13 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - 설정·가계부 설정 카드의 모바일 여백이 24px에서 16px로 준다(`default`). `BulkRegisterForm`의 `px-6 py-4` 박스는 `compact`로 옮겼다. 계좌 수정 폼 제목 둘의 글자가 커진다. 관리자 개요·관리자 설정 페이지·`AdminTradesWorkbench`의 `h2`가 bold·semibold에서 medium이 된다. `StrategyMetaSection`의 `CardAction` 배치는 visual-diff로 확인한다.
   - 같은 화면 안의 불일치(리뷰 1·3·4): **해소(2026-11-25)** — 아래 "S4 3차 후속 — 카드·제목 통일".
 - **visual-diff·a11y-check·e2e는 못 돌렸다.** 로컬 api(:8080)가 리슨은 하지만 응답하지 않는다(`/api/accounts` 15초 시간 초과). 아래 "e2e 대기"에 적었다. 다크 모드 visual-diff는 도구에 옵션이 없다.
+
+## 05 잔존 항목 판정 (2026-11-28)
+
+05가 지우라던 UI 판정 코드 중 남은 것을 판정했다. 미실행 태스크는 없다.
+
+- 이미 처리(삭제 대상은 지워짐, 남은 함수는 05 대상 아님): `apiKeyExpiry.ts`(`kstTomorrow`·`isEstimatedExpiry`).
+- 서버 필드 없음 → 유지, 05 예외 대장 등록: `isScheduledStart`, `getDcaAvailableCash`(seed-preview), `strategyFormGuards` 서버 미검증 4건, 만료일 입력 `min`.
+- 사용자 결정 유지 → 대장 등록: `strategyFormGuards` 서버 중복 규칙.
+- api 요청(대기): `vr.nextRolloverDate`, `ledgerDeposit` 계좌 통화 자릿수 내림. 반영 뒤 `vr-rollover.ts`·`capitalAdjustment.ts`(`floorToCents`) 삭제. `vr-rollover`는 S7 후속 B(T6)에서 기록 없이 빠져 있던 항목이다.
+- 05 본문 정정: 4절 `isScheduledStart`, 7절 롤오버·시작예정, 태스크 3 대상.

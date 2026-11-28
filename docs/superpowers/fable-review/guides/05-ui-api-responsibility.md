@@ -55,7 +55,7 @@ UI가 맡는 일을 원칙의 "UI 소유 목록"으로 줄인다. 영역별 목�
 
 ### 4. 상태 판정 (T6)
 
-- 전략: `allowedActions`와 `blockedActions[{action, reasonCode}]`를 읽어 버튼을 노출·비활성화한다. `supportsCapitalAdjustment`·`canWithdrawCapital`·`isScheduledStart`와 여러 필드를 조합한 버튼 조건을 지운다.
+- 전략: `allowedActions`와 `blockedActions[{action, reasonCode}]`를 읽어 버튼을 노출·비활성화한다. `supportsCapitalAdjustment`·`canWithdrawCapital`와 여러 필드를 조합한 버튼 조건을 지운다. (`isScheduledStart`는 버튼 조건이 아니라 시작예정 배지 판정이고 서버 필드가 없어 남긴다 — 2026-11-28 정정)
 - 주문 미리보기: `warnings[{code, detail}]`를 그대로 보여준다. `computeOrderReadiness`를 지운다.
 - 계좌: `apiKeyExpiry{status, expiresOn, daysLeft}`를 읽는다. `apiKeyExpiryState`와 D-30 상수를 지운다.
 - 가계부: 예산 `status`, 월 마감 여부를 응답에서 읽는다. `budgetStatus(b, today)`, `isMonthClosed`의 스코프 판정을 지운다.
@@ -76,7 +76,7 @@ UI가 맡는 일을 원칙의 "UI 소유 목록"으로 줄인다. 영역별 목�
 
 ### 7. 날짜·금액
 
-- 다음 롤오버일, 다음·마지막 실행일, 예정 시작 여부는 응답 필드로 받는다. `vr-rollover.ts`, `dcaFormat.ts:73-93`, `scheduled-start.ts`를 지운다.
+- 다음 롤오버일은 응답 필드로 받는다. `vr-rollover.ts`를 지운다(api에 `vr.nextRolloverDate` 요청, 2026-11-28). 예정 시작 여부(`scheduled-start.ts`)는 서버에 대응 필드가 없어 남긴다(2026-11-25 api 확인, 아래 예외 대장). `dcaFormat.ts:73-93`은 실행 전 보정에서 철회했다.
 - UI의 날짜 코드는 표시 형식과 상대 표시, 그리고 화면 상태로서의 기간 선택(이번 달, 최근 30일 프리셋 → 쿼리 파라미터)만 남는다.
 - 금액을 UI에서 다시 반올림하지 않는다. 입력 자릿수 제한은 입력 마스크라 UI에 남고(06의 `AmountInput`), 자릿수 값은 메타 `amountScale`에서 받는다.
 
@@ -114,6 +114,12 @@ KIS·업비트는 삭제가 결정됐다(사용자 결정, fable-api 전달). UI
 | 제출 가능 여부 계산, VR 파생값 placeholder | 예외 아님(T10) | 3절대로 삭제 |
 | 재신청 쿨다운 | 서버에 이미 있다(REJECTED 24시간 / PENDING 1시간, 429 `COOLDOWN_ACTIVE` + `retryAfter`). 사용자 상태 응답에 `reapplyAvailableAt`이 추가된다(T12) | `localStorage` 판정 삭제(`ReapplyButton.tsx`, `RejectedReapplyButton.tsx`). `reapplyAvailableAt`만 본다 |
 | 낙관적 갱신·캐시 동기화, 비회원 접근 게이팅 | UI 소유 | 유지 |
+| 시작예정 배지 판정 `isScheduledStart` (2026-11-28 등록) | 서버에 대응 필드 없음(`TradingCycleResponse.startDate`뿐, 2026-11-25 api 확인) | 유지. 라벨 `scheduledStartBadgeLabel`은 표시 형식 |
+| `strategyFormGuards`의 서버 중복 규칙 (2026-11-28 등록) | 2026-11-25 사용자 결정으로 유지(S7 후속 C): 보유 평단가·수량, 시작예정일, VR 주기·밴드·적립금 정수, 거치·인출 자산, 램프 교차 3건, `isRuntimeValueInvalid`. 검증 엔드포인트 디바운스 전 즉시 피드백용이며 최종 판정은 서버 | 유지. 지우려면 선행 테스트 3부터 |
+| `strategyFormGuards`의 서버 미검증 4건 (2026-11-28 등록) | 서버가 검증하지 않는다(cross-repo T10 행): 비VR 예수금>0·PRIVACY 최소 시드(Q-35), NO_PRIVACY_BASE, VR 금액 0 | 유지 |
+| DCA 규칙 0개일 때의 `strategy-seed-preview` 호출 `getDcaAvailableCash` (2026-11-28 등록) | 검증 POST가 규칙 없으면 400이라 `derived`를 못 받는다(`DcaConfigRequest`). 값은 서버 계산이라 UI 재계산이 아니다 | 유지 |
+| 만료일 입력 `min={kstTomorrow()}` (2026-11-28 등록) | 입력 제약(네이티브 date `min`). 서버가 오늘 이하 만료일을 400으로 최종 거절 | 유지 |
+| 장부 예수금 센트 절사 `floorToCents` (2026-11-28 등록, 임시) | 서버 `ledgerDeposit`이 원값이라 표시·인출 한도용으로 절사. api에 응답 절사 요청 | api 반영 뒤 삭제(`capitalAdjustment.ts` 파일째) |
 
 목록 규약 보충(같은 회신): 페이지형에서 사용자가 고르는 정렬·필터·검색은 전부 서버 파라미터다(`sort=<필드>,<asc|desc>`, 필터는 필드명 그대로). 커서는 정렬 키를 포함한 불투명 문자열이다. 가계부 거래 목록의 유형·메모 검색·카테고리·정렬·페이지 5가지가 전부 서버로 간다. 06의 `DataList` 페이지형 모드는 정렬 헤더를 클릭하면 `sort` 파라미터를 바꾸고 첫 페이지부터 다시 받는다.
 
@@ -158,7 +164,7 @@ PRIVACY `days` 파라미터(2026-11-12 정리): 코드를 다시 확인하니 `l
 |---|---|---|---|---|---|
 | 1 | 메타 확장 소비: 라벨 맵·옵션 배열·수기 union 삭제, 증권사 정적 맵 삭제, 서버 컴포넌트 메타 프리페치 | T5 | `entities/user/model/{status,role}.ts`, `shared/lib/api-schema.ts`, `entities/strategy/model/{vrRamp,dcaFormat,badges}.ts`, `widgets/strategy-detail/orderBannerCopy.ts`, 옵션 배열 사용처 | Sonnet | `grep -rnE "_LABEL\b" --include='*.ts*' . \| grep -v test`가 표시 형식 맵만 남음 |
 | 2 | runtime-config를 메타로 합침 | T5 | `entities/runtime-config/**`, `features/strategy/create-strategy/model/{useTypeDefaults,strategyFormHelpers}.ts`, `features/admin/settings/**` | Opus | `ls entities/runtime-config`가 없음 |
-| 3 | 상태 플래그 소비 | T6 | `entities/order/model/order-readiness.ts`, `entities/strategy/model/{capitalAdjustment,scheduled-start,vr-rollover}.ts`, `entities/account/model/apiKeyExpiry.ts`, 소비 위젯 | Opus | 선행 테스트 2 통과, 위 파일 삭제 |
+| 3 | 상태 플래그 소비 | T6 | `entities/order/model/order-readiness.ts`, `entities/strategy/model/{capitalAdjustment,vr-rollover}.ts`, `entities/account/model/apiKeyExpiry.ts`, 소비 위젯 | Opus | 선행 테스트 2 통과, 판정 함수 삭제(2026-11-28 잔존 판정 참고) |
 | 4 | 오류 문구 정리 | T7 | mutation 폴백 문구, `entities/account/model/brokerCredentials.ts` | Sonnet | `grep -rn "apiMsg(" --include='*.ts*' . \| grep -v test \| wc -l`이 전역 처리 1곳 |
 | 5 | 목록 페이지형 전환(가계부 → 전략 주문·체결·이력 → 관리자), 서버와 같은 날 배포 | T3·T4 | 목록 10개 화면, `shared/lib/hooks/use-client-pagination.ts`, `entities/finance/lib/period.ts` | Sonnet(묶음별) | `grep -rn "useClientPagination" .` 0건 |
 | 6 | 가계부 집계 이전 | T8 | `entities/finance/lib/{aggregate,flowAggregate,bulkRegisterPreview,period}.ts`, 소비 위젯 | Opus | 선행 테스트 1 차이 0, 파일 삭제 |
