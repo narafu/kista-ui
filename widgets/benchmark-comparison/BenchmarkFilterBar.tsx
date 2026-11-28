@@ -3,6 +3,7 @@
 import type { Account } from '@entities/account'
 import type { EtfBenchmarkSymbol, HousingBenchmarkRegion } from '@entities/stats'
 import type { Strategy } from '@entities/strategy'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import type { Period } from './model/benchmarkPeriods'
 import {
@@ -141,16 +142,7 @@ export function BenchmarkFilterBar({
             ) : null}
           </div>
         </div>
-        {showRefetchingStatus ? (
-          <p
-            role="status"
-            aria-live="polite"
-            aria-label="갱신 중"
-            className="mt-3 text-right text-xs text-muted-foreground"
-          >
-            갱신 중
-          </p>
-        ) : null}
+        <RefreshingStatus active={showRefetchingStatus} className="mt-3 block text-right" />
       </section>
     </>
   )

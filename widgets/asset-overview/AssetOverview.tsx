@@ -2,8 +2,8 @@
 
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { SectionError } from '@shared/ui/SectionError'
-import { cn } from '@shared/lib/utils'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { maskAmount } from '@shared/lib/format'
@@ -52,10 +52,10 @@ export function AssetOverview({ month, summaryMonth, onMonthChange, today, selec
   return (
     <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
       <div className="flex flex-row items-center justify-between gap-3 pb-3">
-        <SectionTitle>자산 요약</SectionTitle>
+        <div className="flex items-center gap-2"><SectionTitle>자산 요약</SectionTitle><RefreshingStatus active={isPlaceholderData} /></div>
         <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
       </div>
-      <div aria-busy={isPlaceholderData} className={cn('transition-opacity', isPlaceholderData && 'opacity-60')}>
+      <div aria-busy={isPlaceholderData}>
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (

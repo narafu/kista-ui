@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
-import { cn } from '@shared/lib/utils'
 import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
@@ -155,7 +154,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
         )}
       </div>
 
-      <div aria-busy={isPlaceholderData} className={cn('flex flex-1 flex-col transition-opacity', isPlaceholderData && 'opacity-60')}>
+      <div aria-busy={isPlaceholderData} className="flex flex-1 flex-col">
       {trend.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다.</p>

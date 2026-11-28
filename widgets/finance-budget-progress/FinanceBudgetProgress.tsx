@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { Button } from '@/components/ui/button'
 import { BudgetFormDialog } from '@features/finance/manage-budgets'
 import { SectionError } from '@shared/ui/SectionError'
@@ -134,8 +135,8 @@ export function FinanceBudgetProgress({ type, categoryTree, index, period, isLoa
 
   return (
     <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
-      <SectionTitle className="pb-3">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</SectionTitle>
-      <div aria-busy={progressQuery.isPlaceholderData} className={cn('transition-opacity', progressQuery.isPlaceholderData && 'opacity-60')}>
+      <div className="flex items-center gap-2 pb-3"><SectionTitle>{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</SectionTitle><RefreshingStatus active={progressQuery.isPlaceholderData} /></div>
+      <div aria-busy={progressQuery.isPlaceholderData}>
         {isLoading || progressQuery.isLoading ? (
           <LoadingRow />
         ) : isError || !progressQuery.data ? (
@@ -174,6 +175,9 @@ export function FinanceBudgetProgress({ type, categoryTree, index, period, isLoa
                         size="sm"
                         aria-label={`${entry.categoryName} 예산 추가`}
                         className="shrink-0"
+                        // 갱신 중엔 이전 기간의 예산 미설정 목록이라 막는다 — 다이얼로그 트리거라 native disabled 대신 focusableWhenDisabled
+                        disabled={progressQuery.isPlaceholderData}
+                        focusableWhenDisabled
                         onClick={() => { setAddCategoryId(entry.categoryId); setAddOpen(true) }}
                       >
                         예산 추가

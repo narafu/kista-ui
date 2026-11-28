@@ -2,7 +2,7 @@
 
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
-import { cn } from '@shared/lib/utils'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { EquityLineChart } from '@shared/ui/EquityLineChart'
 import type { StrategyTypeStats } from '@entities/stats'
@@ -42,7 +42,7 @@ export function EquityCurveChart({
     <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
       <div className="px-4 pb-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <SectionTitle>누적 자산 추이</SectionTitle>
+          <div className="flex items-center gap-2"><SectionTitle>누적 자산 추이</SectionTitle><RefreshingStatus active={stale} /></div>
           <StrategyTypeFilterToggle
             strategyTypes={strategyTypes}
             strategyTypeFilter={strategyTypeFilter}
@@ -57,7 +57,7 @@ export function EquityCurveChart({
           className="grid w-full grid-cols-5 sm:w-auto sm:max-w-sm"
         />
       </div>
-      <div aria-busy={stale} className={cn('px-2 pb-4 transition-opacity sm:px-6 sm:pb-6', stale && 'opacity-60')}>
+      <div aria-busy={stale} className="px-2 pb-4 sm:px-6 sm:pb-6">
         <EquityLineChart rows={rows} title="누적 자산 추이" />
         <p className="mt-2 text-xs text-muted-foreground">
           전략에 배정된 예수금 기준 근사치입니다. 수수료는 반영되지 않습니다. 끝난 전략은 자산에서 빠지고, 그 손익은 투입 원금에서 계속 뺍니다.

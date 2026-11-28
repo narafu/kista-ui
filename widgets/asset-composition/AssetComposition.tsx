@@ -4,8 +4,9 @@ import dynamic from 'next/dynamic'
 import { asyncFallback } from '@shared/ui/AsyncSection'
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { cn } from '@shared/lib/utils'
-import { MONTHLY_TREND_RANGE_OPTIONS } from '@entities/finance'
+import { MONTHLY_TREND_RANGE_OPTIONS, useAssetCompositionQuery } from '@entities/finance'
 import type { TrendRange } from '@entities/finance'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 
@@ -22,10 +23,13 @@ interface Props {
 }
 
 export function AssetComposition({ className, month, range, onRangeChange }: Props) {
+  // 제목 옆 갱신 중 표시용 — Inner와 같은 키라 요청은 한 번이다
+  const categoryRefreshing = useAssetCompositionQuery('CATEGORY', range, month).isPlaceholderData
+  const assetClassRefreshing = useAssetCompositionQuery('ASSET_CLASS', range, month).isPlaceholderData
   return (
     <Surface size="flush" className={cn('flex flex-col gap-4 overflow-hidden py-4 text-sm', className)}>
       <div className="flex items-center justify-between gap-1 px-4 pb-3">
-        <SectionTitle>월별 구성비</SectionTitle>
+        <div className="flex items-center gap-2"><SectionTitle>월별 구성비</SectionTitle><RefreshingStatus active={categoryRefreshing || assetClassRefreshing} /></div>
         <div>
           <SegmentedToggle aria-label="구성비 기간" options={MONTHLY_TREND_RANGE_OPTIONS} value={range} onChange={onRangeChange} />
         </div>

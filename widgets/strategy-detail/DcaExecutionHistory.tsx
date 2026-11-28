@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
+import { RefreshingStatus } from '@shared/ui/RefreshingStatus'
 import { useMeta } from '@entities/meta'
 import { dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, useDcaExecutionsQuery } from '@entities/strategy'
 import type { DcaRule } from '@entities/strategy'
@@ -91,7 +92,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
     <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
       <div className="px-4 pb-3">
         <div className="space-y-2">
-          <SectionTitle>회차별 실행 이력</SectionTitle>
+          <div className="flex items-center gap-2"><SectionTitle>회차별 실행 이력</SectionTitle><RefreshingStatus active={isPlaceholderData} /></div>
           <RangeFilterControls
             rangeType={rangeType}
             onRangeChange={setRangeType}
@@ -116,7 +117,7 @@ export function DcaExecutionHistory({ strategyId, rules }: { strategyId: string;
         ) : rows.length === 0 ? (
           <EmptyState variant="text" message={emptyMessage} />
         ) : (
-          <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
+          <div aria-busy={isPlaceholderData}>
             {/* 모바일: 카드 리스트 */}
             <div className="space-y-2 p-4 lg:hidden">
               {groups.map((g, i) => (
