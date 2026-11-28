@@ -7,11 +7,12 @@ import {
 } from '../index'
 import { tradeKeys } from '../model/queryKeys'
 
-const { useInfiniteQueryMock, useQueryMock, getAccountCycleHistoryMock, getStrategyCycleHistoryMock } = vi.hoisted(() => ({
+const { useInfiniteQueryMock, useQueryMock, getAccountCycleHistoryMock, getStrategyCycleHistoryMock, getDailyTransactionsBatchMock } = vi.hoisted(() => ({
   useInfiniteQueryMock: vi.fn(),
   useQueryMock: vi.fn(),
   getAccountCycleHistoryMock: vi.fn(),
   getStrategyCycleHistoryMock: vi.fn(),
+  getDailyTransactionsBatchMock: vi.fn(),
 }))
 
 vi.mock('@tanstack/react-query', () => ({
@@ -22,7 +23,7 @@ vi.mock('@tanstack/react-query', () => ({
 vi.mock('../api', () => ({
   getAccountCycleHistory: getAccountCycleHistoryMock,
   getStrategyCycleHistory: getStrategyCycleHistoryMock,
-  getDailyTransactionsBatch: vi.fn(),
+  getDailyTransactionsBatch: getDailyTransactionsBatchMock,
 }))
 
 const emptyInfiniteResult = {
@@ -47,6 +48,20 @@ describe('trade query freshness and error handling', () => {
       queryKey: tradeKeys.dailyRange(['account-1', 'account-2'], '2026-07-01', '2026-07-07'),
       staleTime: 300_000,
     }))
+  })
+
+  it('maps server byDate rows to a date-keyed map', async () => {
+    const day1 = { date: '2026-07-01', tradeCount: 2, byCurrency: [{ currency: 'USD', buyAmount: 100, sellAmount: 0, buyCount: 2, sellCount: 0 }] }
+    const day2 = { date: '2026-07-03', tradeCount: 1, byCurrency: [{ currency: 'USD', buyAmount: 0, sellAmount: 50, buyCount: 0, sellCount: 1 }] }
+    getDailyTransactionsBatchMock.mockResolvedValueOnce({ byDate: [day1, day2] })
+    useQueryMock.mockReturnValue({ data: undefined })
+
+    renderHook(() => useDailyTradesRangeQuery(['account-1'], new Date('2026-07-01T00:00:00'), new Date('2026-07-07T00:00:00')))
+
+    const map = await useQueryMock.mock.calls.at(-1)?.[0].queryFn()
+    expect(getDailyTransactionsBatchMock).toHaveBeenCalledWith({ from: '2026-07-01', to: '2026-07-07' })
+    expect([...map.keys()]).toEqual(['2026-07-01', '2026-07-03'])
+    expect(map.get('2026-07-03')).toBe(day2)
   })
 
   it('keeps account cycle history fresh for five minutes and propagates request failures', async () => {

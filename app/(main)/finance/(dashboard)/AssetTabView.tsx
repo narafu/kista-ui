@@ -20,6 +20,8 @@ export function AssetTabView() {
   // 아예 없으면 이번 달로 기본값을 잡는다.
   const { userMonth, setMonth, trendMonths, setTrendMonths } = useFinancePeriod()
   const selectedMonth = userMonth ?? latestSummary?.month ?? today.slice(0, 7)
+  // 최근 기록 월을 직접 골라도 월 없는 키(프리페치분)를 그대로 쓴다 — 같은 응답을 두 키로 두 번 받지 않게
+  const summaryMonth = userMonth && userMonth !== latestSummary?.month ? userMonth : undefined
 
   // 자산 요약의 카테고리 행 클릭 → 자산 기록 카테고리 필터. 두 위젯이 공유하는 상태라 여기(app)가 소유한다.
   // 행이 최상위(L1) 카테고리라 경로는 그 id 하나다.
@@ -44,7 +46,7 @@ export function AssetTabView() {
 
   return (
     <div className="space-y-6">
-      <AssetOverview month={selectedMonth} summaryMonth={userMonth ?? undefined} onMonthChange={handleMonthChange} today={today} selectedCategoryId={categoryPath[0]} onCategorySelect={handleCategorySelect} />
+      <AssetOverview month={selectedMonth} summaryMonth={summaryMonth} onMonthChange={handleMonthChange} today={today} selectedCategoryId={categoryPath[0]} onCategorySelect={handleCategorySelect} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AssetTrend month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
         <AssetComposition month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
