@@ -10,8 +10,6 @@ interface Props {
 }
 
 export function StatsKpiRow({ summary, currency }: Props) {
-  const activeCount = summary.byType.reduce((sum, t) => sum + t.activeCycleCount, 0)
-
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
       <KpiCard
@@ -24,7 +22,7 @@ export function StatsKpiRow({ summary, currency }: Props) {
       <KpiCard
         label="미실현 평가손익"
         value={fmtSignedMoney(summary.totalUnrealizedPnl, currency)}
-        sub={`진행 중 사이클 ${activeCount}개`}
+        sub={`진행 중 사이클 ${summary.totalActiveCycleCount}개`}
         className="col-span-2 min-w-0 p-4 sm:col-span-1 sm:p-5"
         valueClassName={cn('text-lg sm:text-xl lg:text-2xl tabular-nums break-keep', pnlTextClass(roundMoney(summary.totalUnrealizedPnl, currency)))}
       />

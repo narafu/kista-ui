@@ -35,6 +35,7 @@ vi.mock('recharts', async (importOriginal) => {
 
 const SUMMARY: StatsSummary = {
   totalRealizedPnl: 150.5,
+  totalActiveCycleCount: 1,
   totalUnrealizedPnl: -20,
   activePrincipal: 3000,
   byType: [
@@ -192,7 +193,7 @@ describe('StatsOverview', () => {
       <StatsOverview defaultFrom="2026-04-17" defaultTo="2026-07-17" />,
       (client) => {
         client.setQueryData(statsKeys.summary(), {
-          totalRealizedPnl: 0, totalUnrealizedPnl: 0, activePrincipal: 0, byType: [],
+          totalRealizedPnl: 0, totalUnrealizedPnl: 0, activePrincipal: 0, totalActiveCycleCount: 0, byType: [],
         })
         client.setQueryData(statsKeys.equityCurve('2026-04-17', '2026-07-17', 'ALL'), { points: [] })
       },

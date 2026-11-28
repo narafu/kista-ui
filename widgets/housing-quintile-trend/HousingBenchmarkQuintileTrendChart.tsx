@@ -20,7 +20,6 @@ import { SectionError } from '@shared/ui/SectionError'
 import { fmtDate, fmtKrwEok, pnlTextClass } from '@shared/lib/format'
 import { cn, toSelectValue } from '@shared/lib/utils'
 import {
-  calculateQuintileCagr,
   formatHousingBenchmarkAxisMonth,
   formatHousingBenchmarkMonth,
   formatCagr,
@@ -43,11 +42,11 @@ const ALLOWED_REGION_NAMES = ['서울', '수도권', '전국'] as const
 // 색상은 순서 표현보다 인접한 5개 선을 서로 뚜렷이 구분하는 역할에 집중한다.
 // 웜톤 그러데이션(--quintile-1~5, globals.css)이되 인접 색상 CVD 대비(ΔE)를 검증해 선정했다
 const QUINTILE_SERIES = [
-  { dataKey: 'firstQuintilePrice', color: 'var(--quintile-1)', label: '1분위' },
-  { dataKey: 'secondQuintilePrice', color: 'var(--quintile-2)', label: '2분위' },
-  { dataKey: 'thirdQuintilePrice', color: 'var(--quintile-3)', label: '3분위' },
-  { dataKey: 'fourthQuintilePrice', color: 'var(--quintile-4)', label: '4분위' },
-  { dataKey: 'fifthQuintilePrice', color: 'var(--quintile-5)', label: '5분위' },
+  { dataKey: 'firstQuintilePrice', cagrKey: 'firstQuintile', color: 'var(--quintile-1)', label: '1분위' },
+  { dataKey: 'secondQuintilePrice', cagrKey: 'secondQuintile', color: 'var(--quintile-2)', label: '2분위' },
+  { dataKey: 'thirdQuintilePrice', cagrKey: 'thirdQuintile', color: 'var(--quintile-3)', label: '3분위' },
+  { dataKey: 'fourthQuintilePrice', cagrKey: 'fourthQuintile', color: 'var(--quintile-4)', label: '4분위' },
+  { dataKey: 'fifthQuintilePrice', cagrKey: 'fifthQuintile', color: 'var(--quintile-5)', label: '5분위' },
 ] as const
 
 function TrendLoading() {
@@ -82,12 +81,6 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
   const data = query.data
   const points = useMemo(() => data?.points ?? [], [data])
 
-  // 현재 조회 기간(상단 "비교 기간" 토글) 첫·마지막 시점 기준 연평균 상승률(CAGR) — 범례 배지용
-  const quintileCagrs = useMemo(
-    () => new Map(QUINTILE_SERIES.map((series) => [series.dataKey, calculateQuintileCagr(points, series.dataKey)])),
-    [points],
-  )
-
   return (
     <Surface size="flush" className="flex flex-col gap-4 overflow-hidden py-4 text-sm">
       <div className="px-4 pb-3">
@@ -120,7 +113,8 @@ export function HousingBenchmarkQuintileTrendChart({ enabled, from, to, onRegion
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
             {[...QUINTILE_SERIES].reverse().map((series) => {
-              const cagr = quintileCagrs.get(series.dataKey) ?? null
+              // 현재 조회 기간(상단 "비교 기간" 토글) 첫·마지막 시점 기준 연평균 상승률(CAGR, 서버 계산) — 범례 배지용
+              const cagr = data?.quintileCagr[series.cagrKey] ?? null
               return (
                 <span key={series.dataKey} className="flex items-center gap-1.5">
                   <span

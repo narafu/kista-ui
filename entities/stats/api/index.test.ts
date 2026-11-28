@@ -15,6 +15,7 @@ describe('stats api', () => {
     const { getStatsSummary } = await import('./index')
     fetchEitherMock.mockResolvedValueOnce({
       totalRealizedPnl: 0,
+      totalActiveCycleCount: 0,
       totalUnrealizedPnl: 0,
       activePrincipal: 0,
       byType: [],

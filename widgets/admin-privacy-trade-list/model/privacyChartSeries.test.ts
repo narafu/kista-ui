@@ -24,7 +24,7 @@ function candle(date: string, close: number): Candle {
 describe('buildPrivacyChartSeries', () => {
   it('발표일 이전 가장 최근 종가로 현금비중을 계산한다 (같은 날 종가는 쓰지 않음)', () => {
     const { rows } = buildPrivacyChartSeries(
-      [base({ releaseDate: '2026-07-02', currentCycleRealizedPnl: 100 })],
+      [base({ releaseDate: '2026-07-02', currentCycleRealizedPnl: 100, cash: 600 })],
       [candle('2026-07-02', 999), candle('2026-06-30', 8), candle('2026-07-01', 12)],
     )
     // 현금 = 1000 + 100 − 10×50 = 600, 평가 = 600 + 50×12 = 1200
@@ -36,19 +36,19 @@ describe('buildPrivacyChartSeries', () => {
   it('종가가 없거나 보유 중인데 평단가가 없으면 현금비중은 null, 무보유면 평단가 없어도 100%', () => {
     const { rows } = buildPrivacyChartSeries(
       [
-        base({ id: '1', releaseDate: '2026-07-01' }),
-        base({ id: '2', releaseDate: '2026-07-03', avgPrice: null }),
-        base({ id: '3', releaseDate: '2026-07-04', avgPrice: null, holdings: 0 }),
+        base({ id: '1', releaseDate: '2026-07-01', cash: 500 }),
+        base({ id: '2', releaseDate: '2026-07-03', avgPrice: null, cash: null }),
+        base({ id: '3', releaseDate: '2026-07-04', avgPrice: null, holdings: 0, cash: 1000 }),
       ],
       [candle('2026-07-02', 10)],
     )
     expect(rows.map((r) => r.cashRatio)).toEqual([null, null, 1])
   })
 
-  it('발표일 오름차순 정렬, 사이클 시작금액 변경일을 경계로 표시한다', () => {
+  it('발표일 오름차순 정렬, 서버 cycleBoundary를 경계로 표시한다', () => {
     const { rows } = buildPrivacyChartSeries(
       [
-        base({ id: '3', releaseDate: '2026-07-03', currentCycleStart: 1200 }),
+        base({ id: '3', releaseDate: '2026-07-03', currentCycleStart: 1200, cycleBoundary: true }),
         base({ id: '1', releaseDate: '2026-07-01' }),
         base({ id: '2', releaseDate: '2026-07-02' }),
       ],
@@ -97,7 +97,7 @@ describe('누적 실현손익', () => {
         base({ id: '1', releaseDate: '2025-12-30', currentCycleStart: 10000, currentCycleRealizedPnl: 0 }),
         base({ id: '2', releaseDate: '2025-12-31', currentCycleStart: 12000, currentCycleRealizedPnl: 200 }),
         base({ id: '3', releaseDate: '2026-01-02', currentCycleStart: 12000, currentCycleRealizedPnl: 300 }),
-        base({ id: '4', releaseDate: '2026-01-08', currentCycleStart: 10000, currentCycleRealizedPnl: 0 }),
+        base({ id: '4', releaseDate: '2026-01-08', currentCycleStart: 10000, currentCycleRealizedPnl: 0, yearlyReset: true }),
         base({ id: '5', releaseDate: '2026-01-20', currentCycleStart: 10300, currentCycleRealizedPnl: 50 }),
       ],
       [],
@@ -112,7 +112,7 @@ describe('연초 재설정 최종 손익 추정·기간 자르기', () => {
   const history = [
     base({ id: '1', releaseDate: '2026-01-02', currentCycleStart: 14883.96, currentCycleRealizedPnl: 300, avgPrice: 43.36, holdings: 73 }),
     base({ id: '2', releaseDate: '2026-01-05', currentCycleStart: 14883.96, currentCycleRealizedPnl: 321.08, avgPrice: 43.36, holdings: 73 }),
-    base({ id: '3', releaseDate: '2026-01-06', currentCycleStart: 10000, currentCycleRealizedPnl: 0, avgPrice: null, holdings: 0 }),
+    base({ id: '3', releaseDate: '2026-01-06', currentCycleStart: 10000, currentCycleRealizedPnl: 0, avgPrice: null, holdings: 0, yearlyReset: true }),
     base({ id: '4', releaseDate: '2026-01-07', currentCycleStart: 10000, currentCycleRealizedPnl: 20, avgPrice: 50, holdings: 10 }),
   ]
   const candles = [candle('2026-01-02', 47.24), candle('2026-01-05', 49.22), candle('2026-01-06', 54.01)]
@@ -154,12 +154,12 @@ describe('latestYearlyResetByTicker', () => {
   it('종목별 가장 최근 연초 재설정일 — 해가 바뀌어도 재설정 전이면 직전 재설정일을 유지한다', () => {
     const resets = latestYearlyResetByTicker([
       base({ id: '1', releaseDate: '2025-12-30', currentCycleStart: 12000 }),
-      base({ id: '2', releaseDate: '2026-01-06', currentCycleStart: 10000 }),
+      base({ id: '2', releaseDate: '2026-01-06', currentCycleStart: 10000, yearlyReset: true }),
       base({ id: '3', releaseDate: '2026-03-02', currentCycleStart: 10500 }),
       // 2027년이 됐지만 사이클이 이어지는 중 — 재설정 아님
       base({ id: '4', releaseDate: '2027-01-04', currentCycleStart: 10500 }),
       base({ id: '5', releaseDate: '2026-01-09', ticker: 'TQQQ', currentCycleStart: 11000 }),
-      base({ id: '6', releaseDate: '2026-01-12', ticker: 'TQQQ', currentCycleStart: 10000 }),
+      base({ id: '6', releaseDate: '2026-01-12', ticker: 'TQQQ', currentCycleStart: 10000, yearlyReset: true }),
       // 재설정 이력이 없는 종목은 맵에 없다
       base({ id: '7', releaseDate: '2026-01-05', ticker: 'UPRO', currentCycleStart: 10000 }),
     ])

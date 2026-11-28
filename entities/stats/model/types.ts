@@ -19,6 +19,7 @@ export interface StatsSummary {
   totalRealizedPnl: number
   totalUnrealizedPnl: number
   activePrincipal: number
+  totalActiveCycleCount: number // 전 전략 유형 합 — 서버 계산
   byType: StrategyTypeStats[]
   availableCurrencies?: string[] // 사이클이 있는 실계좌 통화 — 서버 enum 순서, 요청 통화와 무관
 }
@@ -104,7 +105,6 @@ export type HousingBenchmarkPoint = HousingBenchmarkSchemas['HousingBenchmarkPoi
 export type HousingBenchmarkQuality = HousingBenchmarkSchemas['HousingBenchmarkQuality']
 export type HousingBenchmarkComparison = HousingBenchmarkSchemas['HousingBenchmarkComparisonResponse']
 
-export type HousingBenchmarkSeriesPoint = HousingBenchmarkSchemas['HousingBenchmarkSeriesPoint']
 export type HousingBenchmarkSeries = HousingBenchmarkSchemas['HousingBenchmarkSeriesResponse']
 export type HousingBenchmarkRegion = HousingBenchmarkSchemas['HousingBenchmarkRegionItem']
 export type HousingBenchmarkRegionsList = HousingBenchmarkSchemas['HousingBenchmarkRegionsResponse']

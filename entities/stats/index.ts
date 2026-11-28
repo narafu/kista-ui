@@ -36,8 +36,6 @@ export {
   formatHousingBenchmarkDate,
   formatHousingBenchmarkAxisDate,
   formatHousingBenchmarkAxisWeek,
-  calculateQuintileCagr,
-  calculateSeriesCagr,
   formatCagr,
   formatHousingIndexValue,
   formatHousingBenchmarkTooltipValue,

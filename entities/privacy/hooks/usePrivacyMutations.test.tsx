@@ -40,7 +40,7 @@ function createWrapper(queryClient: QueryClient) {
 }
 
 describe('useCreateAdminPrivacyBaseMutation', () => {
-  it('keeps the list cache sorted by releaseDate DESC after inserting a new base', async () => {
+  it('does not write the single response into the list cache and invalidates the list instead', async () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
     const older = base({ id: 'older', releaseDate: '2026-06-01' })
     const newer = base({ id: 'newer', releaseDate: '2026-08-01' })
@@ -65,7 +65,9 @@ describe('useCreateAdminPrivacyBaseMutation', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
+    // 단건 응답은 cycleBoundary·yearlyReset이 null이라 목록에 넣으면 경계 표시가 사라진다
     const cached = queryClient.getQueryData<AdminPrivacyBase[]>(privacyKeys.list())
-    expect(cached?.map((b) => b.id)).toEqual(['newer', 'created', 'older'])
+    expect(cached?.map((b) => b.id)).toEqual(['newer', 'older'])
+    expect(queryClient.getQueryState(privacyKeys.list())?.isInvalidated).toBe(true)
   })
 })

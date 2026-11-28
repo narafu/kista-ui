@@ -15,6 +15,9 @@ export interface AdminPrivacyBase {
   avgPrice: number | null
   holdings: number
   orders: AdminPrivacyOrder[]
+  cash?: number | null // 서버 추정 현금(USD) — 보유 중인데 평단가가 없으면 null
+  cycleBoundary?: boolean | null // 목록 조회에서만 값이 있다(단건 응답은 null)
+  yearlyReset?: boolean | null // 목록 조회에서만 값이 있다(단건 응답은 null)
 }
 
 export interface AdminPrivacyOrderRequest {

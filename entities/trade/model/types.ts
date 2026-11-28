@@ -62,6 +62,21 @@ export interface DailyTransaction {
   currency: Currency // 계좌 통화
 }
 
+/** 하루·한 통화의 체결 합계 — 통화가 다른 금액은 합치지 않는다(서버 계산) */
+export interface CurrencyTradeSummary {
+  currency: Currency
+  buyAmount: number
+  sellAmount: number
+  buyCount: number
+  sellCount: number
+}
+
+export interface DayTradeSummary {
+  tradeCount: number
+  byCurrency: CurrencyTradeSummary[] // 통화 선언 순서(KRW, USD)
+}
+
 export interface DailyTransactionResult {
   items: DailyTransaction[]
+  byDate: (DayTradeSummary & { date: string })[] // 날짜 오름차순
 }
