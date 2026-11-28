@@ -3,14 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BulkRegisterForm } from './BulkRegisterForm'
 
-const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState, snapshotsState } = vi.hoisted(() => ({
+const { mutateMock, pushMock, toastSuccessMock, toastWarningMock, groupState, closingsState, previewState } = vi.hoisted(() => ({
   mutateMock: vi.fn(),
   pushMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastWarningMock: vi.fn(),
   groupState: { canShareToGroup: false },
   closingsState: { data: [] as { month: string; completed: boolean }[] },
-  snapshotsState: { data: [] as Record<string, unknown>[] },
+  previewState: { assetNodes: [] as unknown[], isPlaceholderData: false },
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
@@ -19,27 +19,26 @@ vi.mock('@entities/meta', () => ({
   useMeta: () => ({ meta: { assetClasses: [], markets: [] }, labelOf: (_category: string, code: string) => code }),
 }))
 
-// 대분류(월급, 하위 카테고리 있음) > 소분류(기본급, 리프) 2단 트리 — 대분류는 전체 토글을
+// 서버 미리보기 트리 — 대분류(월급, 하위 카테고리 있음) > 소분류(기본급, 리프) 2단. 대분류는 전체 토글을
 // 갖고 소분류(리프)는 갖지 않는다는 규칙을 함께 검증하기 위해 일부러 중첩 구조로 둔다.
-const incomeCategory = {
-  id: 'cat-income-root', type: 'INCOME' as const, name: '월급', sortOrder: 0, system: false,
-  children: [
-    { id: 'cat-income', type: 'INCOME' as const, name: '기본급', sortOrder: 0, system: false, children: [] },
-  ],
-}
+const incomePath = [{ id: 'cat-income-root', name: '월급', sortOrder: 0 }, { id: 'cat-income', name: '기본급', sortOrder: 0 }]
+const incomeItem = (id: string, memo: string, amount: number) => ({
+  id, categoryId: 'cat-income', categoryName: '기본급', categoryPath: incomePath, memo, amount,
+})
+const incomeNodes = [{
+  id: 'cat-income-root', name: '월급', sortOrder: 0, items: [],
+  children: [{ id: 'cat-income', name: '기본급', sortOrder: 0, items: [incomeItem('t1', '8월급', 3650000), incomeItem('t2', '용돈', 100000)], children: [] }],
+}]
 
 vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
   return {
     ...actual,
-    useFinanceTransactionsQuery: () => ({
-      data: [
-        { id: 't1', categoryId: 'cat-income', memo: '8월급', amount: 3650000, transactionDate: '2026-07-25' },
-        { id: 't2', categoryId: 'cat-income', memo: '용돈', amount: 100000, transactionDate: '2026-07-05' },
-      ],
+    useBulkRegisterPreviewQuery: () => ({
+      data: { asset: previewState.assetNodes, income: incomeNodes, expense: [], saving: [] },
+      isError: false,
+      isPlaceholderData: previewState.isPlaceholderData,
     }),
-    useAssetSnapshotsQuery: () => snapshotsState,
-    useFinanceCategoriesQuery: (type: string) => ({ data: type === 'INCOME' ? [incomeCategory] : [] }),
     useBulkRegisterFinanceMutation: () => ({ mutate: mutateMock, isPending: false }),
     useCanShareToGroup: () => groupState.canShareToGroup,
     useMonthlyClosingsQuery: () => closingsState,
@@ -54,7 +53,8 @@ describe('BulkRegisterForm', () => {
     toastWarningMock.mockClear()
     groupState.canShareToGroup = false
     closingsState.data = []
-    snapshotsState.data = []
+    previewState.assetNodes = []
+    previewState.isPlaceholderData = false
   })
 
   it('대상월이 기록 점검 완료된 달이면 확정 버튼을 비활성화하고 안내를 표시한다', async () => {
@@ -67,11 +67,25 @@ describe('BulkRegisterForm', () => {
     }
   })
 
+  it('소스월 전환 중(이전 소스월 미리보기 placeholder)엔 확정 버튼을 막는다', async () => {
+    previewState.isPlaceholderData = true
+    render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
+
+    await screen.findByRole('switch', { name: '기본급 8월급 3,650,000원 포함' })
+    for (const button of screen.getAllByRole('button', { name: '일괄 등록하기' })) {
+      expect(button).toBeDisabled()
+    }
+  })
+
   it('자산 행은 1줄 계좌명·기관·소유자, 2줄 시장·자산군·운용전략으로 표시한다', async () => {
-    snapshotsState.data = [{
-      id: 'a1', categoryId: 'leaf-1', rootCategoryId: 'f1000000-0000-4000-8000-000000000403', categoryName: '일반계좌',
-      entryDate: '2026-07-01', assetClass: 'EQUITY', market: 'GLOBAL', amount: 2350000, strategy: 'VR', memo: '적립',
-      accountName: '미래에셋 종합위탁', accountInstitution: '미래에셋증권', accountOwner: '홍길동',
+    previewState.assetNodes = [{
+      id: 'f1000000-0000-4000-8000-000000000403', name: '투자', sortOrder: 0, children: [],
+      items: [{
+        id: 'a1', categoryId: 'f1000000-0000-4000-8000-000000000403', categoryName: '투자',
+        categoryPath: [{ id: 'f1000000-0000-4000-8000-000000000403', name: '투자', sortOrder: 0 }],
+        assetClass: 'EQUITY', market: 'GLOBAL', amount: 2350000, strategy: 'VR', memo: '적립',
+        accountName: '미래에셋 종합위탁', accountInstitution: '미래에셋증권', accountOwner: '홍길동',
+      }],
     }]
     render(<BulkRegisterForm defaultSourceMonth="2026-07" defaultTargetMonth="2026-08" />)
 

@@ -1,7 +1,7 @@
 import type { CategoryIndexEntry } from './categoryIndex'
 
-// 자산 항목 공용 정렬 — 자산탭 목록(widgets/asset-record-list)과 일괄등록 투자 섹션
-// (bulkRegisterPreview)이 같은 순서를 쓴다.
+// 자산 항목 정렬 — 자산탭 목록(widgets/asset-record-list)이 쓴다. 일괄등록 미리보기는 서버
+// (kista-api BulkRegisterPreview)가 같은 키 순서로 정렬해 준다(자산군·시장은 enum 선언 순서).
 // 키 순서(자산탭 표 컬럼 순서와 같음): 카테고리 경로 → 소유자 → 기관 → 계좌명 → 전략 → 시장 → 자산군 → 금액 큰 순 → 메모 → id.
 // 문자열은 'ko' 비교, 빈 값(null/undefined/'')은 키마다 맨 뒤.
 

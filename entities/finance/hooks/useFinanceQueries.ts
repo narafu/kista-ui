@@ -2,17 +2,26 @@
 
 import { useQuery } from '@tanstack/react-query'
 import {
+  assetCheckQueryOptions,
+  assetCompositionQueryOptions,
   assetSnapshotListQueryOptions,
+  assetSummaryQueryOptions,
+  assetTrendQueryOptions,
   budgetListQueryOptions,
+  budgetProgressQueryOptions,
+  bulkRegisterPreviewQueryOptions,
   financeAccountListQueryOptions,
   financeCategoryListQueryOptions,
   financeGroupListQueryOptions,
+  flowSummaryQueryOptions,
+  flowTrendQueryOptions,
   monthlyClosingListQueryOptions,
   transactionListQueryOptions,
 } from '../model/queryOptions'
 import { listFinanceGroupMembers, listSystemFinanceCategories } from '../api'
 import { financeKeys } from '../model/queryKeys'
-import type { FinanceCategoryType } from '../model/types'
+import type { AssetCompositionBasis, FinanceCategoryType } from '../model/types'
+import type { Period, TrendRange } from '../lib/period'
 
 export function useAssetSnapshotsQuery() {
   return useQuery(assetSnapshotListQueryOptions())
@@ -30,8 +39,7 @@ export function useMonthlyClosingsQuery() {
   return useQuery(monthlyClosingListQueryOptions())
 }
 
-// from/to는 lib/period.ts의 windowRange(month) — 수입/소비/저축 탭이 공유하는 12개월 윈도우.
-// enabled: 연간 모드 전년대비 쿼리처럼 조건부로만 실행해야 하는 호출부를 위한 옵션(기본 true).
+// from/to는 조회 범위(from 생략 = 하한 없음). enabled: 조건부로만 실행해야 하는 호출부를 위한 옵션(기본 true).
 export function useFinanceTransactionsQuery(from: string | undefined, to: string, options?: { enabled?: boolean }) {
   return useQuery({ ...transactionListQueryOptions(from, to), enabled: options?.enabled ?? true })
 }
@@ -73,4 +81,38 @@ export function useSystemFinanceCategoriesQuery(type: FinanceCategoryType) {
     queryKey: financeKeys.systemCategories(type),
     queryFn: () => listSystemFinanceCategories(type),
   })
+}
+
+// ── 서버 집계 쿼리. 키는 전부 financeKeys.aggregatesRoot() 아래라 원본 mutation이 함께 무효화한다.
+// 수입/소비/저축 집계의 enabled: 자동 월 보정이 끝나기 전(기간 미확정)에는 조회하지 않게 한다.
+export function useAssetSummaryQuery(month?: string) {
+  return useQuery(assetSummaryQueryOptions(month))
+}
+
+export function useAssetTrendQuery(range: TrendRange, endMonth?: string) {
+  return useQuery(assetTrendQueryOptions(range, endMonth))
+}
+
+export function useAssetCompositionQuery(basis: AssetCompositionBasis, range: TrendRange, endMonth?: string) {
+  return useQuery(assetCompositionQueryOptions(basis, range, endMonth))
+}
+
+export function useAssetCheckQuery(month: string) {
+  return useQuery(assetCheckQueryOptions(month))
+}
+
+export function useFlowSummaryQuery(type: FinanceCategoryType, period: Period, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ ...flowSummaryQueryOptions(type, period), enabled })
+}
+
+export function useFlowTrendQuery(type: FinanceCategoryType, period: Period, range: TrendRange, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ ...flowTrendQueryOptions(type, period, range), enabled })
+}
+
+export function useBudgetProgressQuery(type: FinanceCategoryType, period: Period, { enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({ ...budgetProgressQueryOptions(type, period), enabled })
+}
+
+export function useBulkRegisterPreviewQuery(sourceMonth: string) {
+  return useQuery(bulkRegisterPreviewQueryOptions(sourceMonth))
 }

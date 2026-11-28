@@ -1,5 +1,5 @@
-// 수입·소비·저축 탭의 기간 계산. 월간/연간(YTD) 두 모드를 단일 12개월 윈도우 쿼리로
-// 덮기 위한 순수 함수 모음 — 설계 근거는 docs/agents/finance.md entities 절 참고.
+// 수입·소비·저축 탭의 기간 상태와 원본 거래 조회 범위. 집계(요약·추이·예산 대비)의 기간 규칙은
+// 서버(kista-api FlowPeriod)가 소유한다 — 여기는 내역 리스트·자동 월 보정·등록 폼이 쓰는 것만 남는다.
 
 export type PeriodMode = 'monthly' | 'yearly'
 
@@ -32,31 +32,22 @@ export function monthStartDate(month: string): string {
 // 이미 끝난 과거 연도면 1월~12월 전체. 연간 모드엔 mm을 바꿀 UI가 없어(연도 select만 있음)
 // period.month의 mm은 월간 탭에서 보던 달이 그대로 남아있는 값이라 신뢰할 수 없다 — 그 mm으로
 // "선택월까지"를 계산하면 과거 연도를 골라도 반쪽 합계만 나오는 버그가 된다.
-// 연간 모드 range 계산 4곳(periodRange·elapsedMonthsInYear·previousYearRange·yearsRange)이
-// 공통으로 쓰는 "선택 연도가 올해인가" 판정 — 판정 기준이 바뀌면 한 곳만 고치면 되도록 모은다.
-// 모듈 내부 전용(외부 소비처 없음) — 필요해지면 다시 export한다.
-function isCurrentYear(year: string, today: string): boolean {
-  return year === today.slice(0, 4)
-}
-
 export function periodRange({ month, mode }: Period, today: string): { from: string; to: string } {
   if (mode === 'monthly') return { from: monthStartDate(month), to: monthEndDate(month) }
   const year = month.slice(0, 4)
-  return { from: `${year}-01-01`, to: isCurrentYear(year, today) ? today : monthEndDate(`${year}-12`) }
+  return { from: `${year}-01-01`, to: year === today.slice(0, 4) ? today : monthEndDate(`${year}-12`) }
 }
 
-// 요약·전월대비·6개월추이·YTD누적·예산대비를 단일 쿼리로 덮는 12개월 윈도우.
-// 선택 월을 포함해 과거 11개월 전까지 — 연간 모드에서 YTD 범위(최대 12개월)가 항상 이 윈도우 안에 들어온다.
-export function windowRange(month: string): { from: string; to: string } {
+// 선택 월을 포함해 과거 11개월 전까지의 12개월 윈도우 — 월간 모드 원본 조회 범위(displayWindow).
+// 자동 월 보정(autoAdjustedMonth)이 "최근 12개월 중 거래가 있는 가장 최근 달"을 이 목록에서 고른다.
+function windowRange(month: string): { from: string; to: string } {
   return { from: monthStartDate(shiftMonth(month, -11)), to: monthEndDate(month) }
 }
 
-// 화면이 "지금 조회 중인 기간"으로 실제 쿼리해야 하는 범위 — 월간은 12개월 슬라이딩 윈도우
-// (6개월 추이·전월대비까지 커버), 연간은 periodRange와 동일한 정확한 범위(올해는 1월~오늘,
-// 과거 연도는 1월~12월)로 직접 조회한다. windowRange(month)는 period.month의 mm(연간 모드엔
-// 없는 개념, 월간 탭에서 보던 달이 남은 값)에 걸려 있어 연간 모드에 그대로 쓰면 과거 연도를
-// 골랐을 때 그 mm월까지만 조회되는 버그가 된다. useFinanceFlowData·FinanceRecordList 두 곳이
-// 동일한 분기를 썼던 것을 여기로 모았다.
+// 수입/소비/저축 탭의 원본 거래 조회 범위 — 월간은 12개월 슬라이딩 윈도우(자동 월 보정용), 연간은
+// periodRange와 동일한 정확한 범위(올해는 1월~오늘, 과거 연도는 1월~12월). windowRange(month)는
+// period.month의 mm(연간 모드엔 없는 개념)에 걸려 있어 연간 모드에 쓰면 안 된다. 내역 리스트는
+// 이 결과를 periodRange로 다시 잘라 쓴다.
 export function displayWindow(period: Period, today: string): { from: string; to: string } {
   return period.mode === 'yearly' ? periodRange(period, today) : windowRange(period.month)
 }
@@ -79,42 +70,6 @@ export function registerWindowUpperBound(today: string): string {
   return monthEndDate(today.slice(0, 7))
 }
 
-// 연간 모드에서 "몇 개월치 실적인지" — periodRange와 동일한 규칙: 올해면 1월~오늘 달,
-// 과거 연도면 12개월 전체.
-export function elapsedMonthsInYear(month: string, today: string): number {
-  if (isCurrentYear(month.slice(0, 4), today)) return Number(today.slice(5, 7))
-  return 12
-}
-
-// 연간 모드의 "전년대비" 비교 대상 범위 — 올해는 periodRange와 동일하게 "정확히 오늘"에 대응하는
-// 전년 동일 일자까지, 과거 연도는 전년 1월~12월 전체. 올해를 월말(monthEndDate)까지로 끊으면
-// periodRange(정확히 오늘까지)와 어긋나 전년 쪽에 최대 한 달치 거래가 더 들어가 델타가 왜곡된다
-// (오늘이 그 달 1일이면 전년은 그 달 전체, 올해는 하루 — 8월분 전체가 델타에 스며든다). 전년에
-// 없는 날짜(예: 오늘이 윤년 2/29, 전년은 평년)는 그 달 말일로 clamp한다.
-export function previousYearRange(period: Period, today: string): { from: string; to: string } {
-  const year = period.month.slice(0, 4)
-  const prevYear = Number(year) - 1
-  if (!isCurrentYear(year, today)) return { from: `${prevYear}-01-01`, to: monthEndDate(`${prevYear}-12`) }
-  const mm = today.slice(5, 7)
-  const dd = today.slice(8, 10)
-  const monthEnd = monthEndDate(`${prevYear}-${mm}`)
-  const sameDayLastYear = `${prevYear}-${mm}-${dd}`
-  return { from: `${prevYear}-01-01`, to: sameDayLastYear <= monthEnd ? sameDayLastYear : monthEnd }
-}
-
-// 연간 모드 "최근 N개년 추이" 조회 윈도우 — 선택 연도 포함 과거 (yearsLimit-1)개년 1월 1일부터,
-// to는 periodRange와 동일한 규칙(과거 연도면 12월까지, 올해면 오늘까지)이다. month의 mm은 연간
-// 모드에 없는 개념이라 신뢰할 수 없다(periodRange 주석 참고) — mm 기준으로 자르면 최근추이
-// 차트의 올해 구간이 실제보다 좁게 조회된다. windowRange(12개월)로는 커버되지 않는 별도 쿼리가
-// 필요하다(previousYearRange와 동일한 이유).
-export function yearsRange(month: string, yearsLimit: number, today: string): { from: string; to: string } {
-  const year = Number(month.slice(0, 4))
-  return {
-    from: `${year - (yearsLimit - 1)}-01-01`,
-    to: isCurrentYear(String(year), today) ? today : monthEndDate(`${year}-12`),
-  }
-}
-
 // 추이·구성비 차트의 표시 기간 — 숫자는 버킷 개수(월간=개월, 연간=년), 'all'은 기록 전체.
 export type TrendRange = number | 'all'
 
@@ -130,17 +85,3 @@ export const YEARLY_TREND_RANGE_OPTIONS: { value: TrendRange; label: string }[] 
   { value: 10, label: '10년' },
   { value: 'all', label: '전체' },
 ]
-
-// 수입·소비·저축 추이 차트의 조회 윈도우 — 요약·내역이 쓰는 displayWindow와 별개 쿼리다(기간이
-// 길어져도 요약·내역 조회는 무거워지지 않게). 'all'은 from을 비워 서버에 하한 없이 조회한다.
-// 월간 12개월은 windowRange와 같은 범위라 같은 쿼리 키로 캐시가 공유된다.
-export function trendWindow(period: Period, range: TrendRange, today: string): { from: string | undefined; to: string } {
-  if (period.mode === 'yearly') {
-    const { from, to } = yearsRange(period.month, range === 'all' ? 1 : range, today)
-    return { from: range === 'all' ? undefined : from, to }
-  }
-  return {
-    from: range === 'all' ? undefined : monthStartDate(shiftMonth(period.month, -(range - 1))),
-    to: monthEndDate(period.month),
-  }
-}

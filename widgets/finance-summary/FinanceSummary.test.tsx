@@ -1,218 +1,138 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FinanceSummary } from './FinanceSummary'
-import type { FinanceTransaction } from '@entities/finance'
+import type { FinanceCategoryType, Period } from '@entities/finance'
+
+const { useFlowSummaryQueryMock } = vi.hoisted(() => ({
+  useFlowSummaryQueryMock: vi.fn(),
+}))
+
+vi.mock('@entities/finance', async () => {
+  const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
+  return { ...actual, useFlowSummaryQuery: useFlowSummaryQueryMock }
+})
 
 vi.mock('@entities/meta', async () => {
   const { testLabelOf } = await import('@entities/meta/__fixtures__/testMeta')
   return { useMeta: () => ({ labelOf: testLabelOf }) }
 })
 
-const index = new Map([
-  ['cat-1', { type: 'EXPENSE' as const, rootId: 'cat-1', name: '식비', path: [{ id: 'cat-1', name: '식비', sortOrder: 0 }], sortOrder: 0 }],
-  ['cat-income', { type: 'INCOME' as const, rootId: 'cat-income', name: '급여', path: [{ id: 'cat-income', name: '급여', sortOrder: 0 }], sortOrder: 0 }],
-])
-
-function tx(date: string, amount: number, categoryId = 'cat-1'): FinanceTransaction {
-  return { id: date + amount + categoryId, categoryId, transactionDate: date, amount, memo: undefined } as FinanceTransaction
+// 서버 FlowSummaryResponse — 기간 규칙(전월·전년 동기간·월평균·남은 금액·수입 대비 비율)은 서버가 계산한다.
+function mockSummary(overrides: Record<string, unknown> = {}) {
+  useFlowSummaryQueryMock.mockReturnValue({
+    data: {
+      total: 30000,
+      count: 1,
+      previousTotal: null,
+      previousYearTotal: null,
+      yearlyAverage: 30000,
+      remaining: null,
+      incomeRatio: null,
+      ...overrides,
+    },
+    isLoading: false,
+    isError: false,
+  })
 }
 
-describe('FinanceSummary 월간 모드', () => {
+function renderSummary({ type = 'EXPENSE', period = { month: '2026-08', mode: 'monthly' }, isLoading = false }: {
+  type?: FinanceCategoryType
+  period?: Period
+  isLoading?: boolean
+} = {}) {
+  return render(
+    <FinanceSummary type={type} isLoading={isLoading} period={period} onPeriodChange={() => {}} today="2026-08-23" />,
+  )
+}
+
+describe('FinanceSummary 조회·상태', () => {
+  beforeEach(() => {
+    useFlowSummaryQueryMock.mockReset()
+  })
+
+  it('유형·기간으로 서버 요약을 조회하고, 부모가 기간을 확정하기 전엔 조회를 미룬다', () => {
+    mockSummary()
+    renderSummary({ isLoading: true })
+    expect(useFlowSummaryQueryMock).toHaveBeenCalledWith('EXPENSE', { month: '2026-08', mode: 'monthly' }, { enabled: false })
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+  })
+
+  it('조회 실패 시 에러 섹션을 표시한다', () => {
+    useFlowSummaryQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
+    renderSummary()
+    expect(screen.getByText('요약을 불러오지 못했습니다.')).toBeInTheDocument()
+  })
+
+  it('기간 내 거래가 없으면 빈 상태 문구를 표시한다', () => {
+    mockSummary({ total: 0, count: 0, yearlyAverage: 0 })
+    renderSummary()
+    expect(screen.getByText('표시할 거래내역이 없습니다.')).toBeInTheDocument()
+  })
+})
+
+describe('FinanceSummary 기간 선택', () => {
+  beforeEach(() => mockSummary())
+
   it('네이티브 month input 대신 연월 팝오버 트리거를 렌더한다 (데스크탑 사파리 type="month" 미지원 대응)', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+    renderSummary()
     expect(document.querySelector('input[type="month"]')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /기준 연월/ })).toHaveTextContent('2026년 8월')
   })
-})
 
-describe('FinanceSummary 연간 모드', () => {
   it('연간 모드일 때 월 캘린더 대신 연도 선택 팝오버 트리거를 렌더한다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'yearly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+    renderSummary({ period: { month: '2026-08', mode: 'yearly' } })
     expect(screen.queryByRole('button', { name: /기준 연월/ })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /기준 연도/ })).toHaveTextContent('2026년')
   })
-
-  it('연간 모드에서 전년 동기간 거래가 있으면 합계 카드에 전년대비를 함께 보여준다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[tx('2026-03-01', 30000)]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'yearly' }}
-        onPeriodChange={() => {}}
-        previousYearTransactions={[tx('2025-03-01', 10000)]}
-        today="2026-08-23"
-      />,
-    )
-    expect(screen.getByText(/전년대비/)).toBeInTheDocument()
-  })
 })
 
-describe('FinanceSummary 수입 대비 비율', () => {
-  it('EXPENSE/SAVING 탭은 같은 기간 INCOME 합계 대비 비율을 보여준다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[tx('2026-08-05', 30000, 'cat-1'), tx('2026-08-01', 100000, 'cat-income')]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+describe('FinanceSummary 비교 카드', () => {
+  it('연간 모드에서 전년 동기간 합이 오면 합계 카드에 전년대비를 함께 보여준다', () => {
+    mockSummary({ previousYearTotal: 10000 })
+    renderSummary({ period: { month: '2026-08', mode: 'yearly' } })
+    expect(screen.getByText(/전년대비/)).toBeInTheDocument()
+  })
+
+  it('수입 대비 비율(0~1)을 퍼센트로 보여준다', () => {
+    mockSummary({ incomeRatio: 0.3 })
+    renderSummary()
     expect(screen.getByText('수입 대비 비율')).toBeInTheDocument()
     expect(screen.getByText('30%')).toBeInTheDocument()
   })
 
-  it('INCOME 탭은 자기 자신 대비라 항상 100%라 카드를 보여주지 않는다', () => {
-    render(
-      <FinanceSummary
-        type="INCOME"
-        transactions={[tx('2026-08-01', 100000, 'cat-income')]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
-    expect(screen.queryByText('수입 대비 비율')).not.toBeInTheDocument()
-  })
-
-  it('같은 기간 수입이 없으면 나눗셈 0 분모를 피해 카드를 보여주지 않는다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[tx('2026-08-05', 30000, 'cat-1')]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+  it('수입 대비 비율이 없으면(수입 탭·수입 0) 카드를 보여주지 않는다', () => {
+    mockSummary({ incomeRatio: null })
+    renderSummary()
     expect(screen.queryByText('수입 대비 비율')).not.toBeInTheDocument()
   })
 })
 
-describe('FinanceSummary 월평균 카드 라벨', () => {
+describe('FinanceSummary 월평균 카드', () => {
+  it('서버가 준 선택 연도 월평균을 보여준다', () => {
+    mockSummary({ yearlyAverage: 37500 })
+    renderSummary()
+    expect(screen.getByText('올해 월평균')).toBeInTheDocument()
+    expect(screen.getByText('37,500원')).toBeInTheDocument()
+  })
+
   it('올해가 아닌 연도를 보면 "올해" 대신 그 연도로 부른다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[tx('2025-03-10', 100000)]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2025-03', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+    mockSummary()
+    renderSummary({ period: { month: '2025-03', mode: 'monthly' } })
     expect(screen.getByText('2025년 월평균')).toBeInTheDocument()
     expect(screen.queryByText('올해 월평균')).not.toBeInTheDocument()
   })
 })
 
-describe('FinanceSummary 올해 월평균 카드', () => {
-  it('월간/연간 모드 상관없이 선택 연도 1월~선택 월 합계를 경과 개월 수로 나눠 보여준다', () => {
-    const transactions = [tx('2026-01-10', 100000), tx('2026-08-10', 200000), tx('2025-12-10', 999999)]
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={transactions}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
-    // (100000 + 200000) / 8개월(1~8월) = 37500
-    expect(screen.getByText('올해 월평균')).toBeInTheDocument()
-    expect(screen.getByText('37,500원')).toBeInTheDocument()
-  })
-
-  it('월간 모드에서 오늘이 아닌 과거 월을 선택해도 그 월까지의 경과 개월로 나눈다', () => {
-    // 실제로는 windowRange(선택 월 기준 trailing 12개월)라 선택 월(3월) 이후 거래는 애초에 조회되지
-    // 않는다 — today(8월) 기준 8개월로 나누면 과소집계된 평균이 나오는 회귀를 방지하는 테스트.
-    const transactions = [tx('2026-01-10', 100000), tx('2026-02-10', 200000)]
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={transactions}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-02', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
-    // (100000 + 200000) / 2개월(1~2월) = 150000 — 8개월로 나누면 37500이 돼 값이 달라진다
-    expect(screen.getByText('150,000원')).toBeInTheDocument()
-  })
-})
-
 describe('FinanceSummary 남은 금액 카드', () => {
-  it('EXPENSE/SAVING 탭은 남은 금액 카드를 보여주지 않는다', () => {
-    render(
-      <FinanceSummary
-        type="EXPENSE"
-        transactions={[tx('2026-08-05', 30000)]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+  it('남은 금액이 없으면(수입 외 탭) 카드를 보여주지 않는다', () => {
+    mockSummary({ remaining: null })
+    renderSummary()
     expect(screen.queryByText('남은 금액')).not.toBeInTheDocument()
   })
 
   it('INCOME 탭은 남은 금액 카드를 올해 월평균 카드보다 앞에 배치한다', () => {
-    render(
-      <FinanceSummary
-        type="INCOME"
-        transactions={[tx('2026-08-01', 100000, 'cat-income')]}
-        index={index}
-        isLoading={false}
-        isError={false}
-        period={{ month: '2026-08', mode: 'monthly' }}
-        onPeriodChange={() => {}}
-        today="2026-08-23"
-      />,
-    )
+    mockSummary({ total: 100000, remaining: 70000 })
+    renderSummary({ type: 'INCOME' })
     const labels = screen.getAllByText(/^(남은 금액|올해 월평균)$/).map((el) => el.textContent)
     expect(labels).toEqual(['남은 금액', '올해 월평균'])
   })

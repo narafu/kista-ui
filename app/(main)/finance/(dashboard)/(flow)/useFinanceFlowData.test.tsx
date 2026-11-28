@@ -9,7 +9,7 @@ const { setPeriodMock, state } = vi.hoisted(() => ({
     userMonth: null as string | null,
     mode: 'monthly' as 'monthly' | 'yearly',
     transactions: [] as { transactionDate: string }[],
-    previousYearFailed: false,
+    transactionsLoading: false,
   },
 }))
 
@@ -31,13 +31,11 @@ vi.mock('@entities/finance', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@entities/finance')>()
   return {
     ...actual,
-    // enabled 옵션을 넘기는 건 전년 동기간 조회뿐이다 — previousYearFailed면 그 조회만 실패시킨다
-    useFinanceTransactionsQuery: (_from: string, _to: string, options?: { enabled?: boolean }) =>
-      options?.enabled === true && state.previousYearFailed
-        ? { data: undefined, isLoading: false, isError: true }
-        : { data: options?.enabled === false ? [] : state.transactions, isLoading: false, isError: false },
+    useFinanceTransactionsQuery: () =>
+      state.transactionsLoading
+        ? { data: undefined, isLoading: true, isError: false }
+        : { data: state.transactions, isLoading: false, isError: false },
     useFinanceCategoriesQuery: () => ({ data: [], isLoading: false }),
-    useFinanceBudgetsQuery: () => ({ data: [] }),
   }
 })
 
@@ -45,17 +43,25 @@ function seed(dates: string[]) {
   state.transactions = dates.map((transactionDate) => ({ transactionDate }))
 }
 
-describe('useFinanceFlowData 전년 동기간 조회', () => {
+describe('useFinanceFlowData 기간 확정 대기', () => {
   beforeEach(() => {
     state.userMonth = null
-    state.mode = 'yearly'
+    state.mode = 'monthly'
     state.transactions = []
-    state.previousYearFailed = true
+    state.transactionsLoading = true
   })
 
-  it('전년 조회가 실패하면 빈 배열이 아닌 undefined를 넘겨 "전년 0원" 기준 전년대비를 만들지 않는다', () => {
+  it('사용자 미선택 월간 모드에서 원본 거래 로딩 중이면 기간 미확정(집계 위젯 로딩)으로 본다', () => {
     const { result } = renderHook(() => useFinanceFlowData('INCOME'))
-    expect(result.current.previousYearTransactions).toBeUndefined()
+    expect(result.current.isPeriodPending).toBe(true)
+  })
+
+  it('사용자가 월을 골랐거나 연간 모드면 보정이 없어 기다리지 않는다', () => {
+    state.userMonth = '2026-08'
+    expect(renderHook(() => useFinanceFlowData('INCOME')).result.current.isPeriodPending).toBe(false)
+    state.userMonth = null
+    state.mode = 'yearly'
+    expect(renderHook(() => useFinanceFlowData('INCOME')).result.current.isPeriodPending).toBe(false)
   })
 })
 
@@ -65,7 +71,7 @@ describe('useFinanceFlowData 자동 월 조정', () => {
     state.userMonth = null
     state.mode = 'monthly'
     state.transactions = []
-    state.previousYearFailed = false
+    state.transactionsLoading = false
   })
 
   it('사용자 미선택 + 오늘 달에 거래 없으면 데이터 있는 최근 월을 표시하되 프로바이더는 건드리지 않는다', async () => {
@@ -76,6 +82,21 @@ describe('useFinanceFlowData 자동 월 조정', () => {
     await waitFor(() => expect(result.current.period.month).toBe('2026-08'))
     // 회귀 방어: 자동 조정이 setPeriod(프로바이더 userMonth)를 쓰면 재평가가 다시 봉인되고 탭 전환에도 남는다
     expect(setPeriodMock).not.toHaveBeenCalled()
+  })
+
+  it('보정이 필요하면 첫 커밋 렌더부터 보정된 달이다(집계 위젯이 오늘 달로 먼저 조회하지 않음)', () => {
+    seed(['2026-07-03', '2026-08-20'])
+
+    // 위젯은 isPeriodPending이 false인 렌더에서만 집계를 조회한다 — 그런 렌더가 오늘 달(2026-09)이면 안 된다.
+    const settledMonths: string[] = []
+    const { result } = renderHook(() => {
+      const data = useFinanceFlowData('INCOME')
+      if (!data.isPeriodPending) settledMonths.push(data.period.month)
+      return data
+    })
+
+    expect(result.current.period.month).toBe('2026-08')
+    expect(settledMonths).not.toContain('2026-09')
   })
 
   it('오늘 달에 거래가 생기면 조정하지 않고 오늘 달을 표시한다', async () => {

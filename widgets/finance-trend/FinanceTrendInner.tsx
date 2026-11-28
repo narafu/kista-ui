@@ -10,8 +10,8 @@ import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
-import { calcFlowTrend, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
-import type { CategoryIndex, FinanceCategory, FinanceCategoryType, FinanceTransaction, Period, TrendRange } from '@entities/finance'
+import { flowCategoryColor, sortCategoryTree, useFlowTrendQuery } from '@entities/finance'
+import type { CategoryIndex, FinanceCategory, FinanceCategoryType, Period, TrendRange } from '@entities/finance'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
@@ -22,31 +22,34 @@ const SERIES_OPTIONS: { value: 'total' | 'category'; label: string }[] = [
 
 interface Props {
   type: FinanceCategoryType
-  transactions: FinanceTransaction[]
   range: TrendRange
   categoryTree: FinanceCategory[]
   index: CategoryIndex
   period: Period
   isLoading: boolean
-  isError: boolean
-  today: string
 }
 
-export default function FinanceTrendInner({ type, transactions, range, categoryTree, index, period, isLoading, isError, today }: Props) {
+export default function FinanceTrendInner({ type, range, categoryTree, index, period, isLoading }: Props) {
   const [byCategory, setByCategory] = useState(false)
   const { maskIfHidden } = useAmountHiddenPreference()
 
-  const typeTransactions = useMemo(() => filterByType(transactions, index, type), [transactions, index, type])
+  // 월간은 월별, 연간은 연도별 버킷(range 'all'이면 가장 오래된 거래부터). byCategory는 루트별 합 배열이라
+  // 라인 dataKey가 바로 찾도록 rootId → 합계 맵으로 바꿔 둔다.
+  const trendQuery = useFlowTrendQuery(type, period, range, { enabled: !isLoading })
   const trend = useMemo(
-    () => calcFlowTrend(typeTransactions, index, period, today, range),
-    [typeTransactions, index, period, today, range],
+    () => (trendQuery.data?.points ?? []).map((point) => ({
+      period: point.period,
+      amount: point.amount,
+      byCategory: Object.fromEntries(point.byCategory.map((entry) => [entry.categoryId, entry.amount])) as Record<string, number>,
+    })),
+    [trendQuery.data],
   )
   const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
-  if (isLoading) {
+  if (isLoading || trendQuery.isLoading) {
     return <Skeleton className="min-h-[240px] sm:min-h-[280px]" />
   }
-  if (isError) {
+  if (!trendQuery.data) {
     return <SectionError message="추이를 불러오지 못했습니다." />
   }
 

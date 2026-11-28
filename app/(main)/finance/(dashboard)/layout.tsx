@@ -8,8 +8,8 @@ import { TITLE_TEMPLATE } from '@shared/lib/metadata'
 import { FinanceHeader } from './FinanceHeader'
 import { FinancePeriodProvider } from './FinancePeriodProvider'
 
-// 탭(자산/수입/소비/저축/설정) 페이지가 전부 client component라 각자 metadata를 export할 수
-// 없다(Next.js 제약) — 그룹 전체에 하나의 정적 title만 부여한다. 기존에도 client 탭 전환이라
+// 탭(자산/수입/소비/저축/설정) 페이지 본문이 client component라 각자 metadata를 export하지
+// 않는다(Next.js 제약) — 그룹 전체에 하나의 정적 title만 부여한다. 기존에도 client 탭 전환이라
 // 탭 이동 시 title이 바뀌지 않았으므로 동작 변화는 없다.
 export const metadata: Metadata = {
   // 문자열 title은 하위 탭으로 template 상속을 끊는다 — default + template 형태 유지
@@ -22,6 +22,7 @@ export default async function FinanceDashboardLayout({ children }: { children: R
   const queryClient = createQueryClient()
   if (token) {
     await Promise.all([
+      // 자산 기록 목록(AssetRecordList)용 원본 — 집계는 서버 집계 쿼리가 한다.
       queryClient.prefetchQuery(assetSnapshotListQueryOptions(token)).catch(() => undefined),
       queryClient.prefetchQuery(monthlyClosingListQueryOptions(token)).catch(() => undefined),
       // 월 마감 판정 스코프(useMonthlyClosingScopeGroupId)가 그룹 목록에서 나온다 — 프리페치 없으면

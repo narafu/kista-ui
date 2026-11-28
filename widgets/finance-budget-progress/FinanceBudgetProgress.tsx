@@ -11,20 +11,19 @@ import { fmtKrw } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { cn } from '@shared/lib/utils'
 import { useMeta } from '@entities/meta'
-import { buildBudgetProgressTree, calcBudgetProgress, calcUnbudgetedCategories, filterByType, flowCategoryColor, sortCategoryTree } from '@entities/finance'
-import type { BudgetTreeNode, CategoryIndex, FinanceBudget, FinanceCategory, FinanceTransaction, FlowType, Period } from '@entities/finance'
+import { flowCategoryColor, sortCategoryTree, useBudgetProgressQuery } from '@entities/finance'
+import type { BudgetProgressNode, CategoryIndex, FinanceCategory, FlowType, Period } from '@entities/finance'
 
 interface Props {
   type: FlowType
-  budgets: FinanceBudget[]
-  transactions: FinanceTransaction[]
+  // 행 색상(루트 카테고리 순번) 계산용 카테고리 트리·인덱스 — 예산 대비 집계 자체는 서버가 한다.
   categoryTree: FinanceCategory[]
   index: CategoryIndex
   period: Period
+  // 부모 쪽 준비 전(카테고리 로딩·기간 미확정) — 로딩으로 그리고 집계 조회도 미룬다.
   isLoading: boolean
+  // 부모 쪽 실패(카테고리 조회 실패)
   isError: boolean
-  // useFinanceFlowData.ts가 한 번만 계산해 내려주는 "오늘" — 위젯마다 todayKst()를 각자 호출하지 않는다.
-  today: string
   // 카테고리 행 클릭 — 아래 거래내역 목록을 그 카테고리(하위 포함)로 필터한다. 상태는 FlowPageView(app)가 소유.
   onCategorySelect: (categoryId: string) => void
 }
@@ -86,7 +85,7 @@ const INDENT_BY_DEPTH = ['', 'pl-4', 'pl-8', 'pl-10'] as const
 const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 interface BudgetTreeRowProps {
-  node: BudgetTreeNode
+  node: BudgetProgressNode
   orderedRootIds: string[]
   index: CategoryIndex
   onSelect: (categoryId: string) => void
@@ -120,30 +119,26 @@ function BudgetTreeRow({ node, orderedRootIds, index, onSelect, overIsGood }: Bu
   )
 }
 
-export function FinanceBudgetProgress({ type, budgets, transactions, categoryTree, index, period, isLoading, isError, today, onCategorySelect }: Props) {
+export function FinanceBudgetProgress({ type, categoryTree, index, period, isLoading, isError, onCategorySelect }: Props) {
   const { labelOf } = useMeta()
   const { maskIfHidden } = useAmountHiddenPreference()
   // 예산 미설정 카테고리 빠른 등록 대상 — 닫힘 애니메이션 동안 본문이 바뀌지 않게 닫혀도 남겨 둔다
   const [addCategoryId, setAddCategoryId] = useState<string>()
   const [addOpen, setAddOpen] = useState(false)
 
-  const typedBudgets = budgets.filter((b) => index.get(b.categoryId)?.type === type)
-  const typedTransactions = filterByType(transactions, index, type)
-  // 트리 재귀 정렬은 렌더마다 반복하기엔 비용이 있어 한 번만 계산해 calcBudgetProgress(표시 순번)와
-  // orderedRootIds(색상 매핑) 양쪽에 재사용한다.
-  const sortedCategoryTree = useMemo(() => sortCategoryTree(categoryTree), [categoryTree])
-  const progress = calcBudgetProgress(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
-  const budgetTree = buildBudgetProgressTree(progress, sortedCategoryTree)
-  const unbudgeted = calcUnbudgetedCategories(typedBudgets, typedTransactions, sortedCategoryTree, index, period, today)
-  const orderedRootIds = sortedCategoryTree.map((c) => c.id)
+  // 예산 카테고리 트리(자체 예산 노드·하위 합계 그룹 노드)와 예산 미설정 실적을 서버가 표시 순서대로 준다.
+  const progressQuery = useBudgetProgressQuery(type, period, { enabled: !isLoading })
+  const budgetTree = progressQuery.data?.nodes ?? []
+  const unbudgeted = progressQuery.data?.unbudgeted ?? []
+  const orderedRootIds = useMemo(() => sortCategoryTree(categoryTree).map((c) => c.id), [categoryTree])
 
   return (
     <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
       <SectionTitle className="pb-3">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</SectionTitle>
       <div>
-        {isLoading ? (
+        {isLoading || progressQuery.isLoading ? (
           <LoadingRow />
-        ) : isError ? (
+        ) : isError || !progressQuery.data ? (
           <SectionError message="예산 대비 실적을 불러오지 못했습니다." />
         ) : (
           <div className="space-y-4">

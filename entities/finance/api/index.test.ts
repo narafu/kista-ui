@@ -146,3 +146,46 @@ describe('setMonthlyClosing', () => {
     )
   })
 })
+
+describe('서버 집계 조회', () => {
+  beforeEach(() => {
+    clientFetchMock.mockReset()
+  })
+
+  it('기간 모드를 서버 enum으로 바꾸고 range를 생략하면(전체) 쿼리에서 뺀다', async () => {
+    clientFetchMock.mockResolvedValue({ points: [] })
+    const { getFlowTrend } = await import('./index')
+
+    await getFlowTrend({ type: 'EXPENSE', period: { month: '2026-08', mode: 'yearly' } })
+    await getFlowTrend({ type: 'EXPENSE', period: { month: '2026-08', mode: 'monthly' }, range: 12 })
+
+    expect(clientFetchMock.mock.calls[0][0]).toBe('/api/finance/transactions/trend?type=EXPENSE&mode=YEARLY&month=2026-08')
+    expect(clientFetchMock.mock.calls[1][0]).toBe('/api/finance/transactions/trend?type=EXPENSE&mode=MONTHLY&month=2026-08&range=12')
+  })
+
+  it('일괄 등록 미리보기의 null 필드를 undefined로 정규화한다(등록 요청에 null을 싣지 않게)', async () => {
+    clientFetchMock.mockResolvedValueOnce({
+      asset: [],
+      income: [{
+        id: 'root', name: '월급', sortOrder: 0, items: [],
+        children: [{
+          id: 'leaf', name: '기본급', sortOrder: 0, children: [],
+          items: [{
+            id: 't1', categoryId: 'leaf', categoryName: '기본급', categoryPath: [], memo: null, amount: 100,
+            assetClass: null, market: null, strategy: null, accountId: null, accountName: null, accountInstitution: null, accountOwner: null,
+          }],
+        }],
+      }],
+      expense: [],
+      saving: [],
+    })
+    const { getBulkRegisterPreview } = await import('./index')
+
+    const preview = await getBulkRegisterPreview('2026-07')
+
+    expect(clientFetchMock.mock.calls[0][0]).toBe('/api/finance/bulk-register/preview?sourceMonth=2026-07')
+    const item = preview.income[0].children[0].items[0]
+    expect(Object.values(item)).not.toContain(null)
+    expect(item).toMatchObject({ id: 't1', memo: undefined, amount: 100 })
+  })
+})

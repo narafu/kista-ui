@@ -19,11 +19,10 @@ import {
   ASSET_L1_CATEGORY_IDS,
   assetCategoryColor,
   assetClassColor,
-  calcMonthlyTrend,
   formatAssetL1CategoryLabel,
-  useAssetSnapshotsQuery,
+  useAssetTrendQuery,
 } from '@entities/finance'
-import type { AssetClass, TrendMode, TrendRange } from '@entities/finance'
+import type { AssetClass, TrendRange } from '@entities/finance'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 
 // 선이 여러 개(순자산·전체)일 때 범례와 바로 대응되도록 항목 앞에 선 색 점을 둔다.
@@ -52,6 +51,8 @@ function TrendTooltip({
   )
 }
 
+type TrendMode = 'netWorth' | 'category' | 'assetClass'
+
 const MODE_OPTIONS: { value: TrendMode; label: string }[] = [
   { value: 'netWorth', label: '순자산' },
   { value: 'category', label: '카테고리별' },
@@ -67,8 +68,8 @@ interface Props {
 }
 
 export default function AssetTrendInner({ month, range = 12 }: Props) {
-  const { data, isLoading, isError } = useAssetSnapshotsQuery()
-  const snapshots = useMemo(() => data ?? [], [data])
+  // 서버가 점마다 순자산·총자산·L1 카테고리별·자산군별(0 포함) 금액을 모두 준다 — 모드 전환은 재조회 없이 고른다.
+  const { data, isLoading, isError } = useAssetTrendQuery(range, month)
   const { labelOf } = useMeta()
   const { maskIfHidden } = useAmountHiddenPreference()
   const [mode, setMode] = useState<TrendMode>('netWorth')
@@ -94,24 +95,29 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
 
   const isAll = effectiveSelector === ALL_SELECTOR
 
-  // '전체'면 항목별 calcMonthlyTrend 결과를 월 기준으로 합쳐 { month, [항목]: 금액 } 행으로 만든다.
+  // '전체'면 항목별 금액을 월 기준으로 합쳐 { month, [항목]: 금액 } 행으로 만든다.
   // 모든 달이 0인 항목은 선만 늘려 범례를 어지럽히므로 뺀다.
   const { trend, seriesKeys } = useMemo(() => {
-    const monthsLimit = range === 'all' ? Infinity : range
-    if (!isAll) {
-      return { trend: calcMonthlyTrend(snapshots, mode, effectiveSelector, monthsLimit, month), seriesKeys: [] }
+    const points = data?.points ?? []
+    const amountOf = (point: (typeof points)[number], item: string | null): number =>
+      mode === 'category'
+        ? (point.byCategory.find((entry) => entry.categoryId === item)?.amount ?? 0)
+        : (point.byAssetClass.find((entry) => entry.assetClass === item)?.amount ?? 0)
+    if (mode === 'netWorth') {
+      return { trend: points.map((point) => ({ month: point.month, amount: point.netWorth, totalAssets: point.totalAssets })), seriesKeys: [] }
     }
-    const series = itemOptions
-      .map((option) => ({ option, points: calcMonthlyTrend(snapshots, mode, option, monthsLimit, month) }))
-      .filter(({ points }) => points.some((point) => point.amount !== 0))
-    const rows = (series[0]?.points ?? []).map((point, index) => ({
+    if (!isAll) {
+      return { trend: points.map((point) => ({ month: point.month, amount: amountOf(point, effectiveSelector) })), seriesKeys: [] }
+    }
+    const keys = itemOptions.filter((option) => points.some((point) => amountOf(point, option) !== 0))
+    const rows = keys.length === 0 ? [] : points.map((point) => ({
       month: point.month,
-      ...Object.fromEntries(series.map(({ option, points }) => [option, points[index].amount])),
+      ...Object.fromEntries(keys.map((option) => [option, amountOf(point, option)])),
     }))
-    return { trend: rows, seriesKeys: series.map(({ option }) => option) }
+    return { trend: rows, seriesKeys: keys }
     // itemOptions는 mode로 결정되는 모듈 상수라 mode만 의존성에 둔다
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snapshots, mode, effectiveSelector, isAll, range, month])
+  }, [data, mode, effectiveSelector, isAll])
 
   if (isLoading) {
     return <Skeleton data-testid="asset-trend-skeleton" className="min-h-[240px] sm:min-h-[280px]" />

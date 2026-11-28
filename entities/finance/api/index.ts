@@ -1,10 +1,21 @@
 import { fetchEither, jsonBody } from '@shared/lib/api-client'
 import { buildQueryString } from '@shared/lib/query-string'
+import type { components } from '@shared/lib/api-types'
+import type { Period } from '../lib/period'
 import type {
+  AssetCheck,
+  AssetClass,
+  AssetComposition,
+  AssetCompositionBasis,
   AssetSnapshot,
   AssetSnapshotRequest,
+  AssetSummary,
+  AssetTrend,
+  BudgetProgress,
   BulkFinanceRegisterRequest,
   BulkFinanceRegisterResponse,
+  BulkRegisterPreview,
+  CategoryGroupNode,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceBudget,
@@ -17,6 +28,9 @@ import type {
   FinanceGroupMember,
   FinanceTransaction,
   FinanceTransactionRequest,
+  FlowSummary,
+  FlowTrend,
+  Market,
   MonthlyClosing,
 } from '../model/types'
 
@@ -357,4 +371,108 @@ export async function respondToInvitation(
   token?: string,
 ): Promise<FinanceGroup> {
   return fetchEither<FinanceGroup>(`/api/finance/invitations/${encodeURIComponent(code)}`, jsonBody('PATCH', { status }), token)
+}
+
+// ── 서버 집계(GET 전용). 기준일은 서버 Clock(KST)이라 today를 보내지 않는다. 기간 모드는 UI의 'monthly'|'yearly'를
+// 서버 enum으로 바꿔 보낸다. range·months를 생략하면 서버가 전체 기간을 쓴다(UI의 'all').
+const FLOW_MODE = { monthly: 'MONTHLY', yearly: 'YEARLY' } as const
+
+function optionalNumber(value: number | undefined): string | undefined {
+  return value === undefined ? undefined : String(value)
+}
+
+// month 생략 = 최근 기록 월(기록이 없으면 month·current가 null).
+export async function getAssetSummary(month?: string, token?: string): Promise<AssetSummary> {
+  return fetchEither<AssetSummary>(withQuery('/api/finance/asset-snapshots/summary', { month }), { method: 'GET' }, token)
+}
+
+export async function getAssetTrend({ months, endMonth }: { months?: number; endMonth?: string }, token?: string): Promise<AssetTrend> {
+  return fetchEither<AssetTrend>(
+    withQuery('/api/finance/asset-snapshots/trend', { months: optionalNumber(months), endMonth }),
+    { method: 'GET' },
+    token,
+  )
+}
+
+export async function getAssetComposition(
+  { basis, months, endMonth }: { basis: AssetCompositionBasis; months?: number; endMonth?: string },
+  token?: string,
+): Promise<AssetComposition> {
+  return fetchEither<AssetComposition>(
+    withQuery('/api/finance/asset-snapshots/composition', { basis, months: optionalNumber(months), endMonth }),
+    { method: 'GET' },
+    token,
+  )
+}
+
+export async function getAssetCheck(month: string, token?: string): Promise<AssetCheck> {
+  return fetchEither<AssetCheck>(withQuery('/api/finance/asset-snapshots/check', { month }), { method: 'GET' }, token)
+}
+
+interface FlowAggregateParams {
+  type: FinanceCategoryType
+  period: Period
+}
+
+function flowQuery({ type, period }: FlowAggregateParams) {
+  return { type, mode: FLOW_MODE[period.mode], month: period.month }
+}
+
+export async function getFlowSummary(params: FlowAggregateParams, token?: string): Promise<FlowSummary> {
+  return fetchEither<FlowSummary>(withQuery('/api/finance/transactions/summary', flowQuery(params)), { method: 'GET' }, token)
+}
+
+// range: 버킷 수(1~120). 생략하면 가장 오래된 거래부터 전체.
+export async function getFlowTrend({ range, ...params }: FlowAggregateParams & { range?: number }, token?: string): Promise<FlowTrend> {
+  return fetchEither<FlowTrend>(
+    withQuery('/api/finance/transactions/trend', { ...flowQuery(params), range: optionalNumber(range) }),
+    { method: 'GET' },
+    token,
+  )
+}
+
+export async function getBudgetProgress(params: FlowAggregateParams, token?: string): Promise<BudgetProgress> {
+  return fetchEither<BudgetProgress>(withQuery('/api/finance/transactions/budget-progress', flowQuery(params)), { method: 'GET' }, token)
+}
+
+type PreviewNode = components['schemas']['Node']
+
+// 서버 nullable 필드를 undefined로 정규화한다 — 등록 요청(BulkFinanceRegisterRequest)에 null이 실리지 않게.
+function toGroupNode(node: PreviewNode): CategoryGroupNode {
+  return {
+    id: node.id,
+    name: node.name,
+    sortOrder: node.sortOrder,
+    items: node.items.map((item) => ({
+      id: item.id,
+      categoryId: item.categoryId,
+      categoryName: item.categoryName,
+      categoryPath: item.categoryPath,
+      memo: item.memo ?? undefined,
+      amount: item.amount,
+      assetClass: (item.assetClass ?? undefined) as AssetClass | undefined,
+      market: (item.market ?? undefined) as Market | undefined,
+      strategy: item.strategy ?? undefined,
+      accountId: item.accountId ?? undefined,
+      accountName: item.accountName ?? undefined,
+      accountInstitution: item.accountInstitution ?? undefined,
+      accountOwner: item.accountOwner ?? undefined,
+    })),
+    children: node.children.map(toGroupNode),
+  }
+}
+
+// 소스월의 자산·수입·소비·저축 기록을 카테고리 계층 그룹 트리로 받는다(정렬은 서버 — 자산군·시장은 enum 선언 순서).
+export async function getBulkRegisterPreview(sourceMonth: string, token?: string): Promise<BulkRegisterPreview> {
+  const preview = await fetchEither<components['schemas']['BulkRegisterPreviewResponse']>(
+    withQuery('/api/finance/bulk-register/preview', { sourceMonth }),
+    { method: 'GET' },
+    token,
+  )
+  return {
+    asset: preview.asset.map(toGroupNode),
+    income: preview.income.map(toGroupNode),
+    expense: preview.expense.map(toGroupNode),
+    saving: preview.saving.map(toGroupNode),
+  }
 }

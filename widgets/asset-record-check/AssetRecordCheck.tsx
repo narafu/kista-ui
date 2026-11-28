@@ -6,15 +6,10 @@ import { SectionTitle } from '@shared/ui/SectionTitle'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { SectionError } from '@shared/ui/SectionError'
 import {
-  calcDateGroups,
-  calcMissingAccounts,
-  calcMissingCategories,
   formatAssetL1CategoryLabel,
   isMonthClosed,
-  listAvailableMonths,
-  previousMonthOf,
+  useAssetCheckQuery,
   useMonthlyClosingScopeGroupId,
-  useAssetSnapshotsQuery,
   useFinanceGroupsQuery,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
@@ -33,15 +28,14 @@ function formatMonthDay(dateStr: string): string {
 
 export function AssetRecordCheck({ month }: Props) {
   const { labelOf } = useMeta()
-  const assetsQuery = useAssetSnapshotsQuery()
+  const assetCheckQuery = useAssetCheckQuery(month)
   const checksQuery = useMonthlyClosingsQuery()
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   // 그룹 목록 로딩 전엔 스코프가 개인으로 잡혀 완료 상태가 잘못 그려진다 — 함께 로딩으로 막는다.
   const groupsQuery = useFinanceGroupsQuery()
-  const snapshots = assetsQuery.data ?? []
   const monthlyClosings = checksQuery.data ?? []
 
-  if (assetsQuery.isLoading || checksQuery.isLoading || groupsQuery.isLoading) {
+  if (assetCheckQuery.isLoading || checksQuery.isLoading || groupsQuery.isLoading) {
     return (
       <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
         <div>
@@ -50,15 +44,17 @@ export function AssetRecordCheck({ month }: Props) {
       </Surface>
     )
   }
-  if ([assetsQuery, checksQuery, groupsQuery].some((query) => query.isError && !query.data)) {
+  if ([assetCheckQuery, checksQuery, groupsQuery].some((query) => query.isError && !query.data)) {
     return <SectionError message="기록 점검 정보를 불러오지 못했습니다." />
   }
 
-  const months = listAvailableMonths(snapshots)
-  const previousMonth = previousMonthOf(months, month)
-  const missingCategories = calcMissingCategories(snapshots, month)
-  const missingAccounts = calcMissingAccounts(snapshots, month, previousMonth, (code) => labelOf('assetClasses', code))
-  const dateGroups = calcDateGroups(snapshots, month)
+  const previousMonth = assetCheckQuery.data?.previousMonth ?? null
+  const missingCategories = assetCheckQuery.data?.missingCategoryIds ?? []
+  // 계좌 식별 라벨 — 계좌 미연결(전세임차보증금 등)은 '계좌 미지정'. 서버는 구조체만 주고 표시 조립은 여기서 한다.
+  const missingAccounts = (assetCheckQuery.data?.missingAccounts ?? []).map(
+    (account) => `${account.accountName ?? '계좌 미지정'} · ${account.categoryName} · ${labelOf('assetClasses', account.assetClass)}`,
+  )
+  const dateGroups = assetCheckQuery.data?.dateGroups ?? []
   const completed = isMonthClosed(monthlyClosings, month, closingScopeGroupId)
 
   return (

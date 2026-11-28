@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AssetRecordCheck } from './AssetRecordCheck'
-import type { AssetSnapshot, MonthlyClosing } from '@entities/finance'
+import type { MonthlyClosing } from '@entities/finance'
 
-const { useAssetSnapshotsQueryMock, useMonthlyClosingsQueryMock, scopeState } = vi.hoisted(() => ({
-  useAssetSnapshotsQueryMock: vi.fn(),
+const { useAssetCheckQueryMock, useMonthlyClosingsQueryMock, scopeState } = vi.hoisted(() => ({
+  useAssetCheckQueryMock: vi.fn(),
   useMonthlyClosingsQueryMock: vi.fn(),
   scopeState: { groupId: undefined as string | undefined, groupsLoading: false, groupsError: false },
 }))
@@ -13,7 +13,7 @@ vi.mock('@entities/finance', async () => {
   const actual = await vi.importActual<typeof import('@entities/finance')>('@entities/finance')
   return {
     ...actual,
-    useAssetSnapshotsQuery: useAssetSnapshotsQueryMock,
+    useAssetCheckQuery: useAssetCheckQueryMock,
     useMonthlyClosingsQuery: useMonthlyClosingsQueryMock,
     useFinanceGroupsQuery: () => ({
       data: scopeState.groupsError ? undefined : scopeState.groupId ? [{ id: scopeState.groupId }] : [],
@@ -35,20 +35,26 @@ vi.mock('@features/asset/toggle-monthly-check', () => ({
   ),
 }))
 
-const SYSTEM_INVESTMENT_CATEGORY_ID = 'f1000000-0000-4000-8000-000000000403'
+const ALL_L1 = [
+  'f1000000-0000-4000-8000-000000000403',
+  'f1000000-0000-4000-8000-000000000401',
+  'f1000000-0000-4000-8000-000000000404',
+  'f1000000-0000-4000-8000-000000000402',
+]
 
-function snapshot(overrides: Partial<AssetSnapshot>): AssetSnapshot {
+// 서버 점검 응답 — 기본은 전 카테고리 기록·전월 없음·단일 기준일.
+function check(overrides: Record<string, unknown> = {}) {
   return {
-    id: 'a1',
-    categoryId: SYSTEM_INVESTMENT_CATEGORY_ID,
-    rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID,
-    categoryName: '일반계좌',
-    accountName: '미래에셋증권',
-    entryDate: '2026-08-01',
-    assetClass: 'EQUITY',
-    market: 'GLOBAL',
-    amount: 1_000_000,
-    ...overrides,
+    data: {
+      month: '2026-08',
+      previousMonth: null,
+      missingCategoryIds: [],
+      missingAccounts: [],
+      dateGroups: [{ date: '2026-08-01', count: 4 }],
+      ...overrides,
+    },
+    isLoading: false,
+    isError: false,
   }
 }
 
@@ -58,7 +64,7 @@ function defaultClosingsMock(data: MonthlyClosing[] = []) {
 
 describe('AssetRecordCheck', () => {
   beforeEach(() => {
-    useAssetSnapshotsQueryMock.mockReset()
+    useAssetCheckQueryMock.mockReset()
     useMonthlyClosingsQueryMock.mockReset()
     scopeState.groupId = undefined
     scopeState.groupsLoading = false
@@ -66,7 +72,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('선택한 월에 기록이 없어도 크래시 없이 렌더링된다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [], isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue(check({ missingCategoryIds: ALL_L1, dateGroups: [] }))
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -75,7 +81,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('둘 중 하나라도 로딩 중이면 로딩 문구를 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
+    useAssetCheckQueryMock.mockReturnValue({ data: undefined, isLoading: true, isError: false })
     useMonthlyClosingsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: false })
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -84,7 +90,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('둘 중 하나라도 에러면 에러 섹션을 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: false })
     useMonthlyClosingsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -93,11 +99,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('이번 달 기록이 없는 카테고리를 한글 라벨로 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ rootCategoryId: SYSTEM_INVESTMENT_CATEGORY_ID, entryDate: '2026-08-01' })],
-      isLoading: false,
-      isError: false,
-    })
+    useAssetCheckQueryMock.mockReturnValue(check({ missingCategoryIds: ALL_L1.slice(1) }))
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -107,11 +109,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('전월 데이터가 없으면(previousMonth null) 전월 대비 누락 계좌 섹션을 표시하지 않는다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ entryDate: '2026-08-01' })],
-      isLoading: false,
-      isError: false,
-    })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -119,15 +117,23 @@ describe('AssetRecordCheck', () => {
     expect(screen.queryByText('전월 대비 누락 계좌')).not.toBeInTheDocument()
   })
 
+  it('계좌 미연결 누락 항목은 계좌 미지정으로 표시한다', () => {
+    useAssetCheckQueryMock.mockReturnValue(check({
+      previousMonth: '2026-07',
+      missingAccounts: [{ accountName: null, categoryName: '전세보증금', assetClass: 'REAL_ESTATE' }],
+    }))
+    defaultClosingsMock()
+
+    render(<AssetRecordCheck month="2026-08" />)
+
+    expect(screen.getByText(/^계좌 미지정 · 전세보증금 · /)).toBeInTheDocument()
+  })
+
   it('전월 계좌가 이번 달에 없으면 누락 계좌로 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [
-        snapshot({ id: 'a-prev', entryDate: '2026-07-01', accountName: '미래에셋증권', categoryName: '일반계좌', assetClass: 'EQUITY' }),
-        snapshot({ id: 'a-curr', entryDate: '2026-08-01', accountName: '삼성증권', categoryName: '연금계좌', assetClass: 'EQUITY' }),
-      ],
-      isLoading: false,
-      isError: false,
-    })
+    useAssetCheckQueryMock.mockReturnValue(check({
+      previousMonth: '2026-07',
+      missingAccounts: [{ accountName: '미래에셋증권', categoryName: '일반계좌', assetClass: 'EQUITY' }],
+    }))
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -137,14 +143,9 @@ describe('AssetRecordCheck', () => {
   })
 
   it('이번 달 기록이 여러 날짜에 걸쳐 있으면 기준일 혼재 경고를 표시한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [
-        snapshot({ id: 'a1', entryDate: '2026-08-01' }),
-        snapshot({ id: 'a2', entryDate: '2026-08-15', categoryName: '연금계좌' }),
-      ],
-      isLoading: false,
-      isError: false,
-    })
+    useAssetCheckQueryMock.mockReturnValue(check({
+      dateGroups: [{ date: '2026-08-01', count: 1 }, { date: '2026-08-15', count: 1 }],
+    }))
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -153,11 +154,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('단일 날짜만 있으면 기준일 혼재 경고를 표시하지 않는다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({
-      data: [snapshot({ entryDate: '2026-08-01' })],
-      isLoading: false,
-      isError: false,
-    })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock()
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -166,7 +163,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('해당 월의 완료 상태를 찾아 토글 버튼에 전달하고, 없으면 기본값 false를 사용한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ entryDate: '2026-08-01' })], isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock([{ month: '2026-08', completed: true }])
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -176,7 +173,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('해당 월 완료 레코드가 없으면 completed=false를 기본값으로 전달한다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({ entryDate: '2026-08-01' })], isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock([])
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -187,7 +184,7 @@ describe('AssetRecordCheck', () => {
   it('그룹 소속이면 활성 그룹 쿠키가 없어도 그룹 마감 행으로 완료를 판정한다', () => {
     // 운영 회귀: 서버는 소속 그룹 행에 마감을 저장하는데 UI가 쿠키(없음) 기준으로 개인 행을 찾아 항상 미완료로 보였다.
     scopeState.groupId = 'g1'
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock([{ month: '2026-08', completed: true, groupId: 'g1' }])
 
     render(<AssetRecordCheck month="2026-08" />)
@@ -196,7 +193,7 @@ describe('AssetRecordCheck', () => {
   })
 
   it('그룹 목록 로딩·에러 중엔 스코프를 확정할 수 없어 완료 상태를 그리지 않는다', () => {
-    useAssetSnapshotsQueryMock.mockReturnValue({ data: [snapshot({})], isLoading: false, isError: false })
+    useAssetCheckQueryMock.mockReturnValue(check())
     defaultClosingsMock([])
 
     scopeState.groupsLoading = true

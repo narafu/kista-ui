@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   useCreateAssetSnapshotMutation,
   useCreateFinanceAccountMutation,
+  useCreateFinanceBudgetMutation,
+  useCreateFinanceTransactionMutation,
+  useDeleteFinanceCategoryMutation,
+  useUpdateFinanceAccountMutation,
   useDeleteManyAssetSnapshotsMutation,
   useSetMonthlyClosingMutation,
   useUpdateAssetSnapshotMutation,
@@ -73,7 +77,7 @@ function fakeQueryClient(existingList?: unknown[]) {
 }
 
 describe('useCreateAssetSnapshotMutation', () => {
-  it('invalidates the asset snapshot list cache', async () => {
+  it('invalidates the asset snapshot list cache and the server aggregates', async () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
@@ -82,6 +86,7 @@ describe('useCreateAssetSnapshotMutation', () => {
     await mutation.onSuccess()
 
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.assetSnapshotsRoot() })
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
   })
 })
 
@@ -101,12 +106,53 @@ describe('useCreateFinanceAccountMutation', () => {
 
     await mutation.onSuccess()
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.accountsRoot() })
+    expect(queryClient.invalidateQueries).not.toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
     expect(queryClient.setQueryData).not.toHaveBeenCalled()
   })
 })
 
+describe('useCreateFinanceBudgetMutation', () => {
+  it('예산 변경은 예산 목록과 함께 서버 집계(예산 대비)를 무효화한다', async () => {
+    const queryClient = fakeQueryClient()
+    useQueryClientMock.mockReturnValue(queryClient)
+
+    const mutation = renderMutation(() => useCreateFinanceBudgetMutation())
+    await mutation.onSuccess()
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.budgetsRoot() })
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
+  })
+})
+
+describe('집계 원본 mutation의 aggregatesRoot 무효화', () => {
+  it('거래 생성은 거래 목록과 서버 집계를 무효화한다', async () => {
+    const queryClient = fakeQueryClient()
+    useQueryClientMock.mockReturnValue(queryClient)
+    await renderMutation(() => useCreateFinanceTransactionMutation()).onSuccess()
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.transactionsRoot() })
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
+  })
+
+  it('카테고리 삭제는 카테고리 트리와 서버 집계를 무효화한다', async () => {
+    const queryClient = fakeQueryClient()
+    useQueryClientMock.mockReturnValue(queryClient)
+    await renderMutation(() => useDeleteFinanceCategoryMutation()).onSuccess()
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.categoriesRoot() })
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
+  })
+
+  it('계좌 수정은 목록을 갱신하고 서버 집계(누락 계좌·미리보기의 계좌명)를 무효화한다', async () => {
+    const queryClient = fakeQueryClient([{ id: 'a1', nickname: '구' }])
+    useQueryClientMock.mockReturnValue(queryClient)
+    const saved = { id: 'a1', nickname: '신' }
+    await renderMutation(() => useUpdateFinanceAccountMutation('a1')).onSuccess(saved)
+    expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.accounts(), [saved])
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
+  })
+})
+
 describe('useUpdateAssetSnapshotMutation', () => {
-  it('upserts the updated snapshot into the list cache', async () => {
+  it('upserts the updated snapshot into the list cache and invalidates the server aggregates', async () => {
     const queryClient = fakeQueryClient([{ id: 's1', amount: 1 }])
     useQueryClientMock.mockReturnValue(queryClient)
 
@@ -116,6 +162,7 @@ describe('useUpdateAssetSnapshotMutation', () => {
     await mutation.onSuccess(saved)
 
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [saved])
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
   })
 })
 
@@ -134,6 +181,7 @@ describe('useDeleteManyAssetSnapshotsMutation', () => {
 
     await mutation.onSuccess(outcome, ['s1', 'bad'])
     expect(queryClient.setQueryData).toHaveBeenCalledWith(financeKeys.assetSnapshots(), [{ id: 'bad' }])
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: financeKeys.aggregatesRoot() })
   })
 
   it('단건 삭제 전체 실패 시 단수 문구로 에러 toast를 띄운다 (mutationFn이 reject하지 않으므로 onError는 발생하지 않는다)', async () => {

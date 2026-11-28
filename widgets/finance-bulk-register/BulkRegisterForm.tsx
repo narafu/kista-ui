@@ -17,21 +17,16 @@ import { cn } from '@shared/lib/utils'
 import { digitsOnly, formatAmountDisplay, fmtKrw, fmtYearMonthKo, todayKst } from '@shared/lib/format'
 import { useMeta } from '@entities/meta'
 import {
-  buildBulkRegisterItems,
-  buildCategoryIndex,
   isMonthClosed,
   monthEndDate,
-  monthStartDate,
   shiftMonth,
-  useMonthlyClosingScopeGroupId,
-  useAssetSnapshotsQuery,
   useBulkRegisterFinanceMutation,
+  useBulkRegisterPreviewQuery,
   useCanShareToGroup,
-  useFinanceCategoriesQuery,
-  useFinanceTransactionsQuery,
+  useMonthlyClosingScopeGroupId,
   useMonthlyClosingsQuery,
 } from '@entities/finance'
-import type { AssetSnapshot, BulkRegisterItem, CategoryGroupNode, FinanceCategory, FinanceTransaction } from '@entities/finance'
+import type { BulkRegisterItem, BulkRegisterPreview, CategoryGroupNode } from '@entities/finance'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 
 // todayKst() 사용 — new Date()의 getFullYear/getMonth는 브라우저 로컬 타임존이라
@@ -41,9 +36,7 @@ function thisMonth(): string {
 }
 
 // 조회 전·실패 시 useMemo 의존성 참조를 고정한다
-const EMPTY_TRANSACTIONS: FinanceTransaction[] = []
-const EMPTY_SNAPSHOTS: AssetSnapshot[] = []
-const EMPTY_CATEGORIES: FinanceCategory[] = []
+const EMPTY_PREVIEW: BulkRegisterPreview = { asset: [], income: [], expense: [], saving: [] }
 
 interface RowState {
   included: boolean
@@ -64,7 +57,7 @@ function flattenNodes(nodes: CategoryGroupNode[]): BulkRegisterItem[] {
 
 export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Props) {
   const router = useRouter()
-  const { meta, labelOf } = useMeta()
+  const { labelOf } = useMeta()
   const today = todayKst()
   const currentYear = Number(today.slice(0, 4))
   const [sourceMonth, setSourceMonth] = useState(defaultSourceMonth ?? shiftMonth(thisMonth(), -1))
@@ -79,48 +72,21 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
   const closingScopeGroupId = useMonthlyClosingScopeGroupId()
   const targetMonthClosed = isMonthClosed(monthlyClosings, targetMonth, closingScopeGroupId)
 
-  const transactionsQuery = useFinanceTransactionsQuery(monthStartDate(sourceMonth), monthEndDate(sourceMonth))
-  const assetSnapshotsQuery = useAssetSnapshotsQuery()
-  const assetCategoriesQuery = useFinanceCategoriesQuery('ASSET')
-  const incomeCategoriesQuery = useFinanceCategoriesQuery('INCOME')
-  const expenseCategoriesQuery = useFinanceCategoriesQuery('EXPENSE')
-  const savingCategoriesQuery = useFinanceCategoriesQuery('SAVING')
-  const transactions = transactionsQuery.data ?? EMPTY_TRANSACTIONS
-  const assetSnapshots = assetSnapshotsQuery.data ?? EMPTY_SNAPSHOTS
-  const assetCategories = assetCategoriesQuery.data ?? EMPTY_CATEGORIES
-  const incomeCategories = incomeCategoriesQuery.data ?? EMPTY_CATEGORIES
-  const expenseCategories = expenseCategoriesQuery.data ?? EMPTY_CATEGORIES
-  const savingCategories = savingCategoriesQuery.data ?? EMPTY_CATEGORIES
-  // 기본값으로 채운 빈 배열만 보면 로딩·실패가 "이 달 기록 없음"으로 보이고, 일부만 실패하면 그
-  // 섹션이 빠진 채 확정할 수 있다 — 원본 data 유무로 판정해 목록 대신 안내하고 확정을 막는다.
-  const sourceQueries = [transactionsQuery, assetSnapshotsQuery, assetCategoriesQuery, incomeCategoriesQuery, expenseCategoriesQuery, savingCategoriesQuery]
-  const loadFailed = sourceQueries.some((q) => q.isError && !q.data)
-  const loading = !loadFailed && sourceQueries.some((q) => !q.data)
-
-  // AssetSnapshot 조회 API엔 기간 파라미터가 없어(전체 목록) 소스월 접두사로 클라이언트 필터링한다.
-  const filteredSnapshots = useMemo(
-    () => assetSnapshots.filter((s) => s.entryDate.startsWith(sourceMonth)),
-    [assetSnapshots, sourceMonth],
-  )
-  const index = useMemo(
-    () => buildCategoryIndex({ ASSET: assetCategories, INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
-    [assetCategories, incomeCategories, expenseCategories, savingCategories],
-  )
-  const enumOrder = useMemo(
-    () => ({ assetClasses: meta.assetClasses.map((c) => c.code), markets: meta.markets.map((c) => c.code) }),
-    [meta.assetClasses, meta.markets],
-  )
-  const items = useMemo(
-    () => buildBulkRegisterItems({ transactions, assetSnapshots: filteredSnapshots, index, enumOrder }),
-    [transactions, filteredSnapshots, index, enumOrder],
-  )
+  // 소스월의 자산·수입·소비·저축 기록을 서버가 카테고리 계층 그룹 트리로 묶어 준다(삭제된 카테고리의 거래는 제외).
+  const previewQuery = useBulkRegisterPreviewQuery(sourceMonth)
+  const items = previewQuery.data ?? EMPTY_PREVIEW
+  // 기본값으로 채운 빈 목록만 보면 로딩·실패가 "이 달 기록 없음"으로 보인다 — 원본 data 유무로 판정해
+  // 목록 대신 안내하고 확정을 막는다.
+  const loadFailed = previewQuery.isError && !previewQuery.data
+  const loading = !loadFailed && !previewQuery.data
 
   // 소스월에 실제로 등록된 데이터만 매번 다시 조회해 만드는 목록이라, 제외 토글을 끈 항목은
   // 다음 달 미리보기에도 자동으로 다시 나타나지 않는다 — 별도로 "제외 이력"을 저장하지 않는다.
+  // 포함 여부는 서버가 주지 않는 UI 상태라 기본값은 포함(true)이다.
   const [rowStates, setRowStates] = useState<Record<string, RowState>>({})
 
   function rowState(item: BulkRegisterItem): RowState {
-    return rowStates[item.id] ?? { included: item.included, amount: item.amount }
+    return rowStates[item.id] ?? { included: true, amount: item.amount }
   }
   function updateRow(item: BulkRegisterItem, patch: Partial<RowState>) {
     setRowStates((prev) => ({ ...prev, [item.id]: { ...rowState(item), ...patch } }))
@@ -132,7 +98,7 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     setRowStates((prev) => {
       const next = { ...prev }
       for (const item of items) {
-        next[item.id] = { ...(prev[item.id] ?? { included: item.included, amount: item.amount }), included }
+        next[item.id] = { ...(prev[item.id] ?? { included: true, amount: item.amount }), included }
       }
       return next
     })
@@ -299,7 +265,8 @@ export function BulkRegisterForm({ defaultSourceMonth, defaultTargetMonth }: Pro
     )
   }
 
-  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed || loadFailed || loading
+  // 소스월을 바꾼 직후엔 이전 소스월 미리보기가 placeholder로 남아 있다 — 그 상태로 확정하면 다른 달 기록이 등록되므로 막는다.
+  const submitDisabled = mutation.isPending || includedCount === 0 || targetMonthClosed || loadFailed || loading || previewQuery.isPlaceholderData
 
   return (
     <div className="space-y-[18px]">

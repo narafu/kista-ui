@@ -1,5 +1,6 @@
 export type { AssetClass, FinanceAccountType, FinanceCategoryType, Market } from '@shared/lib/api-schema'
 import type { AssetClass, FinanceAccountType, FinanceCategoryType, Market } from '@shared/lib/api-schema'
+import type { components } from '@shared/lib/api-types'
 
 export interface AssetSnapshot {
   id: string
@@ -157,4 +158,53 @@ export interface BulkFinanceRegisterResponse {
   assetSuccessCount: number
   transactionSuccessCount: number
   failures: string[]
+}
+
+// ── 서버 집계 응답(kista-api /asset-snapshots/{summary,trend,composition,check}, /transactions/{summary,trend,
+// budget-progress}, /bulk-register/preview) — 생성 타입을 그대로 쓴다. 기준일은 서버 Clock(KST)이다.
+type Schemas = components['schemas']
+export type AssetSummary = Schemas['AssetSummaryResponse']
+export type AssetMonthlySummary = Schemas['MonthlySummary']
+export type AssetTrend = Schemas['AssetTrendResponse']
+export type AssetComposition = Schemas['AssetCompositionResponse']
+export type AssetCompositionColumn = Schemas['AssetCompositionColumn']
+export type AssetCompositionBasis = 'CATEGORY' | 'ASSET_CLASS'
+export type AssetCheck = Schemas['AssetCheckResponse']
+export type FlowSummary = Schemas['FlowSummaryResponse']
+export type FlowTrend = Schemas['FlowTrendResponse']
+export type BudgetProgress = Schemas['BudgetProgressResponse']
+export type BudgetProgressNode = Schemas['BudgetProgressNode']
+
+// 일괄 등록 미리보기 — 서버의 nullable 필드를 API 경계에서 undefined로 정규화한 형태(등록 요청에 null을 싣지 않게).
+// 포함/제외(included)는 서버가 주지 않는 UI 상태라 여기 없다.
+export interface BulkRegisterItem {
+  id: string
+  categoryId: string
+  categoryName: string
+  categoryPath: { id: string; name: string; sortOrder: number }[]
+  memo?: string
+  amount: number
+  // 자산 전용
+  assetClass?: AssetClass
+  market?: Market
+  strategy?: string
+  accountId?: string
+  accountName?: string
+  accountInstitution?: string
+  accountOwner?: string
+}
+
+export interface CategoryGroupNode {
+  id: string
+  name: string
+  sortOrder: number
+  items: BulkRegisterItem[]
+  children: CategoryGroupNode[]
+}
+
+export interface BulkRegisterPreview {
+  asset: CategoryGroupNode[]
+  income: CategoryGroupNode[]
+  expense: CategoryGroupNode[]
+  saving: CategoryGroupNode[]
 }

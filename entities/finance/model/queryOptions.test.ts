@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { financeKeys } from './queryKeys'
-import { assetSnapshotListQueryOptions, monthlyClosingListQueryOptions } from './queryOptions'
+import { keepPreviousData } from '@shared/lib/query'
+import { assetSnapshotListQueryOptions, flowSummaryQueryOptions, monthlyClosingListQueryOptions } from './queryOptions'
 
-const { listAssetSnapshotsMock, listMonthlyClosingsMock } = vi.hoisted(() => ({
+const { listAssetSnapshotsMock, listMonthlyClosingsMock, getFlowSummaryMock } = vi.hoisted(() => ({
+  getFlowSummaryMock: vi.fn(),
   listAssetSnapshotsMock: vi.fn(),
   listMonthlyClosingsMock: vi.fn(),
 }))
@@ -13,6 +15,7 @@ vi.mock('../api', () => ({
   listFinanceCategories: vi.fn(),
   listFinanceAccounts: vi.fn(),
   listFinanceGroups: vi.fn(),
+  getFlowSummary: getFlowSummaryMock,
 }))
 
 describe('finance query options', () => {
@@ -38,5 +41,19 @@ describe('finance query options', () => {
 
     expect(options.queryKey).toEqual(financeKeys.monthlyClosings())
     expect(listMonthlyClosingsMock).toHaveBeenCalledWith('server-token')
+  })
+
+  it('연간 집계는 선택 연도만 키·요청에 싣고(월간 탭에서 남은 mm 제거), 전환 중 이전 응답을 유지한다', async () => {
+    getFlowSummaryMock.mockResolvedValue({})
+    const march = flowSummaryQueryOptions('EXPENSE', { month: '2026-03', mode: 'yearly' })
+    const august = flowSummaryQueryOptions('EXPENSE', { month: '2026-08', mode: 'yearly' })
+
+    expect(march.queryKey).toEqual(august.queryKey)
+    expect(march.placeholderData).toBe(keepPreviousData)
+    await march.queryFn!({} as never)
+    expect(getFlowSummaryMock).toHaveBeenCalledWith({ type: 'EXPENSE', period: { month: '2026-01', mode: 'yearly' } })
+
+    expect(flowSummaryQueryOptions('EXPENSE', { month: '2026-03', mode: 'monthly' }).queryKey)
+      .not.toEqual(flowSummaryQueryOptions('EXPENSE', { month: '2026-08', mode: 'monthly' }).queryKey)
   })
 })

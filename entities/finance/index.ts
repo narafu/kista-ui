@@ -1,8 +1,14 @@
 // entities/finance public API
 export type {
   AssetClass,
+  AssetCompositionColumn,
+  AssetMonthlySummary,
   AssetSnapshot,
   AssetSnapshotRequest,
+  BudgetProgressNode,
+  BulkRegisterItem,
+  BulkRegisterPreview,
+  CategoryGroupNode,
   FinanceAccount,
   FinanceAccountRequest,
   FinanceAccountType,
@@ -23,12 +29,21 @@ export {
   assetSnapshotListQueryOptions,
   budgetListQueryOptions,
   financeCategoryListQueryOptions,
+  assetSummaryQueryOptions,
   financeGroupListQueryOptions,
   monthlyClosingListQueryOptions,
 } from './model/queryOptions'
 export { listAssetSnapshots } from './api'
 export {
+  useAssetCheckQuery,
+  useAssetCompositionQuery,
   useAssetSnapshotsQuery,
+  useAssetSummaryQuery,
+  useAssetTrendQuery,
+  useBudgetProgressQuery,
+  useBulkRegisterPreviewQuery,
+  useFlowSummaryQuery,
+  useFlowTrendQuery,
   useCanShareToGroup,
   useMonthlyClosingScopeGroupId,
   useFinanceAccountsQuery,
@@ -84,43 +99,17 @@ export {
   SYSTEM_LOAN_CATEGORY_ID,
   SYSTEM_REAL_ESTATE_CATEGORY_ID,
   SYSTEM_SAVINGS_CATEGORY_ID,
-  calcAssetClassBreakdown,
-  calcAssetClassComposition,
-  calcCategoryBreakdown,
-  calcCategoryComposition,
-  calcDateGroups,
-  calcMissingAccounts,
-  calcMissingCategories,
-  calcMonthlySummary,
-  calcMonthlyTrend,
   formatAssetL1CategoryLabel,
   isInvestmentCategoryId,
   isMonthClosed,
-  listAvailableMonths,
-  previousMonthOf,
-} from './lib/aggregate'
-export type {
-  CompositionColumn,
-  TrendMode,
 } from './lib/aggregate'
 export { collectSubtreeIds, getCascadeLevels, getCategoryPath, sortCategoryTree } from './lib/categoryTree'
 export { buildCategoryIndex } from './lib/categoryIndex'
 export type { FlowType } from './lib/budgetRoutes'
 export { FLOW_TYPE_LABEL, budgetListHref, flowTypeFromSlug } from './lib/budgetRoutes'
 export type { CategoryIndex, CategoryIndexEntry } from './lib/categoryIndex'
-export { buildBulkRegisterItems } from './lib/bulkRegisterPreview'
-export type { BulkRegisterItem, CategoryGroupNode } from './lib/bulkRegisterPreview'
 export { compareAssetDetail, compareCategoryPath } from './lib/assetSort'
-export { autoAdjustedMonth, displayWindow, elapsedMonthsInYear, monthEndDate, monthStartDate, periodRange, previousYearRange, registerWindowUpperBound, shiftMonth, trendWindow, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
+export { autoAdjustedMonth, displayWindow, monthEndDate, monthStartDate, periodRange, registerWindowUpperBound, shiftMonth, MONTHLY_TREND_RANGE_OPTIONS, YEARLY_TREND_RANGE_OPTIONS } from './lib/period'
 export type { Period, PeriodMode, TrendRange } from './lib/period'
-export {
-  buildBudgetProgressTree,
-  calcBudgetProgress,
-  calcFlowSummary,
-  calcFlowTrend,
-  calcUnbudgetedCategories,
-  filterByType,
-  unclassifiedTransactions,
-} from './lib/flowAggregate'
-export type { BudgetTreeNode } from './lib/flowAggregate'
+export { filterByType, unclassifiedTransactions } from './lib/flowAggregate'
 export { flowCategoryColor } from './lib/colors'

@@ -1,4 +1,4 @@
-import type { AssetClass, AssetSnapshot, MonthlyClosing } from '../model/types'
+import type { AssetClass, MonthlyClosing } from '../model/types'
 
 // finance_categories 자산(ASSET) L1은 고정 UUID 시스템 시드다(kista-api V13 시드값과 동일, 수정·삭제 불가).
 // 구 AssetCategory enum(INVESTMENT/SAVINGS/LOAN/REAL_ESTATE)의 후계 — 같은 순서를 유지해 정렬·색상
@@ -16,7 +16,7 @@ export const ASSET_L1_CATEGORY_IDS = [
 ]
 
 // L1은 시스템 카테고리라 이름 변경이 불가하다(kista-api FinanceCategory.isSystem() → 수정 403) —
-// breakdown/composition처럼 categoryName이 실려오지 않는 집계 결과를 위해 이름을 직접 들고 있는다.
+// 서버 집계(breakdown/composition/check)처럼 categoryId만 실려오는 결과를 위해 이름을 직접 들고 있는다.
 // 구 formatAssetCategoryLabel(ASSET_CATEGORY_LABEL)의 후계.
 const ASSET_L1_CATEGORY_LABEL: Record<string, string> = {
   [SYSTEM_INVESTMENT_CATEGORY_ID]: '투자',
@@ -31,13 +31,6 @@ export function formatAssetL1CategoryLabel(categoryId: string): string {
 
 // AssetClass는 서버 enum(닫힌 6값)이라 구 KNOWN_ASSET_CLASSES의 "미등록 값은 뒤에 이어붙이기" 방어가 불필요하다.
 export const ASSET_CLASS_ORDER: AssetClass[] = ['CASH', 'EQUITY', 'FIXED_INCOME', 'COMMODITY', 'CRYPTO', 'REAL_ESTATE']
-
-// 대출 판정 — kista-api AssetSnapshotController.enrich()가 rootCategoryId를 임의 depth를 거슬러 올라가
-// 진짜 트리 루트(L1)로 채우므로, L1(대출)에 직접 등록한 기록도 self로 떨어져 이 비교가 성립한다.
-// 문자열 비교 대신 이 함수를 통해서만 판정한다.
-export function isLiability(snapshot: AssetSnapshot): boolean {
-  return snapshot.rootCategoryId === SYSTEM_LOAN_CATEGORY_ID
-}
 
 // 운용전략 필드는 L1이 '투자'일 때만 의미가 있다 — 문자열 비교 대신 이 함수를 통해서만 판정한다.
 export function isInvestmentCategoryId(categoryId: string | undefined): boolean {
@@ -55,217 +48,4 @@ export function isMonthClosed(closings: MonthlyClosing[], month: string, scopeGr
       closing.month === month && (scopeGroupId ? closing.groupId === scopeGroupId : !closing.groupId),
   )
   return match?.completed ?? false
-}
-
-function sum(snapshots: AssetSnapshot[]): number {
-  return snapshots.reduce((total, snapshot) => total + snapshot.amount, 0)
-}
-
-function snapshotsInMonth(snapshots: AssetSnapshot[], month: string): AssetSnapshot[] {
-  return snapshots.filter((snapshot) => snapshot.entryDate.startsWith(month))
-}
-
-export function listAvailableMonths(snapshots: AssetSnapshot[]): string[] {
-  const months = new Set(snapshots.map((snapshot) => snapshot.entryDate.slice(0, 7)))
-  return Array.from(months).sort().reverse()
-}
-
-interface MonthlySummary {
-  netWorth: number
-  totalAssets: number
-  totalLiabilities: number
-  largestAssetClass: { assetClass: string; amount: number } | null
-  recordCount: number
-}
-
-// 순자산 = 총자산(대출 제외) - 총부채(대출) — 레퍼런스는 sum(전체)-sum(대출)로 계산해 결과가 항상 totalAssets와 같아지는 버그가 있었다.
-export function calcMonthlySummary(snapshots: AssetSnapshot[], month: string): MonthlySummary {
-  const monthSnapshots = snapshotsInMonth(snapshots, month)
-  const liabilities = monthSnapshots.filter(isLiability)
-  const nonLiabilities = monthSnapshots.filter((snapshot) => !isLiability(snapshot))
-  const totalAssets = sum(nonLiabilities)
-  const totalLiabilities = sum(liabilities)
-
-  const amountByClass = new Map<string, number>()
-  for (const snapshot of nonLiabilities) {
-    amountByClass.set(snapshot.assetClass, (amountByClass.get(snapshot.assetClass) ?? 0) + snapshot.amount)
-  }
-  const largestEntry = [...amountByClass.entries()].sort((a, b) => b[1] - a[1])[0]
-
-  return {
-    netWorth: totalAssets - totalLiabilities,
-    totalAssets,
-    totalLiabilities,
-    largestAssetClass: largestEntry ? { assetClass: largestEntry[0], amount: largestEntry[1] } : null,
-    recordCount: monthSnapshots.length,
-  }
-}
-
-interface CategoryAmount {
-  category: string // L1 카테고리 ID
-  amount: number
-}
-
-export function calcCategoryBreakdown(snapshots: AssetSnapshot[], month: string): CategoryAmount[] {
-  const monthSnapshots = snapshotsInMonth(snapshots, month)
-  return ASSET_L1_CATEGORY_IDS.map((category) => ({
-    category,
-    amount: sum(monthSnapshots.filter((snapshot) => snapshot.rootCategoryId === category)),
-  }))
-}
-
-interface AssetClassAmount {
-  assetClass: string
-  amount: number
-}
-
-export function calcAssetClassBreakdown(snapshots: AssetSnapshot[], month: string): AssetClassAmount[] {
-  const monthSnapshots = snapshotsInMonth(snapshots, month).filter((snapshot) => !isLiability(snapshot))
-  const amountByClass = new Map<string, number>()
-  for (const snapshot of monthSnapshots) {
-    amountByClass.set(snapshot.assetClass, (amountByClass.get(snapshot.assetClass) ?? 0) + snapshot.amount)
-  }
-  return ASSET_CLASS_ORDER.flatMap((assetClass) => {
-    const amount = amountByClass.get(assetClass) ?? 0
-    return amount > 0 ? [{ assetClass, amount }] : []
-  })
-}
-
-export type TrendMode = 'netWorth' | 'category' | 'assetClass'
-
-interface TrendPoint {
-  month: string
-  amount: number
-  totalAssets?: number // netWorth 모드에서만 채운다 — 순자산 차트에 총자산을 비교선으로 겹쳐 그리기 위함
-}
-
-export function calcMonthlyTrend(
-  snapshots: AssetSnapshot[],
-  mode: TrendMode,
-  selector: string | null,
-  monthsLimit = 6,
-  endMonth?: string,
-): TrendPoint[] {
-  const months = listAvailableMonths(snapshots)
-    .filter((month) => !endMonth || month <= endMonth)
-    .sort() // 오름차순
-  return months.slice(-monthsLimit).map((month) => {
-    if (mode === 'netWorth') {
-      const { netWorth, totalAssets } = calcMonthlySummary(snapshots, month)
-      return { month, amount: netWorth, totalAssets }
-    }
-    const monthSnapshots = snapshotsInMonth(snapshots, month)
-    if (mode === 'category') {
-      return { month, amount: sum(monthSnapshots.filter((snapshot) => snapshot.rootCategoryId === selector)) }
-    }
-    const nonLiabilities = monthSnapshots.filter((snapshot) => !isLiability(snapshot))
-    return { month, amount: sum(nonLiabilities.filter((snapshot) => snapshot.assetClass === selector)) }
-  })
-}
-
-export interface CompositionEntry {
-  item: string
-  amount: number
-  percent: number
-}
-
-export interface CompositionColumn {
-  month: string
-  entries: CompositionEntry[]
-  total: number
-}
-
-// 범용 구성비 계산 — 카테고리 구성비는 대출을 포함(레퍼런스와 동일하게 4개 세그먼트로 표시)해야 하므로
-// 대출 제외 여부를 matcher에 맡긴다. 자산군 구성비처럼 대출을 빼야 하는 호출부는 matcher에서 직접 걸러야 한다
-// (아래 calcCategoryComposition/calcAssetClassComposition처럼 전용 래퍼를 통해서만 호출할 것 — 직접 호출 시 대출 제외를 빠뜨리기 쉽다).
-export function calcComposition(
-  snapshots: AssetSnapshot[],
-  items: string[],
-  matcher: (snapshot: AssetSnapshot, item: string) => boolean,
-  monthsLimit = 6,
-  endMonth?: string,
-): CompositionColumn[] {
-  const months = listAvailableMonths(snapshots)
-    .filter((month) => !endMonth || month <= endMonth)
-    .slice(0, monthsLimit)
-    .reverse() // 오름차순 최근 N개월
-  return months.map((month) => {
-    const monthSnapshots = snapshotsInMonth(snapshots, month)
-    const entries = items.map((item) => ({
-      item,
-      amount: sum(monthSnapshots.filter((snapshot) => matcher(snapshot, item))),
-    }))
-    const total = entries.reduce((sumAmount, entry) => sumAmount + entry.amount, 0)
-    return {
-      month,
-      entries: entries.map((entry) => ({ ...entry, percent: total ? (entry.amount / total) * 100 : 0 })),
-      total,
-    }
-  })
-}
-
-export function calcCategoryComposition(snapshots: AssetSnapshot[], monthsLimit = 6, endMonth?: string): CompositionColumn[] {
-  return calcComposition(
-    snapshots,
-    ASSET_L1_CATEGORY_IDS,
-    (snapshot, item) => snapshot.rootCategoryId === item,
-    monthsLimit,
-    endMonth,
-  )
-}
-
-export function calcAssetClassComposition(snapshots: AssetSnapshot[], monthsLimit = 6, endMonth?: string): CompositionColumn[] {
-  return calcComposition(
-    snapshots,
-    ASSET_CLASS_ORDER,
-    (snapshot, item) => !isLiability(snapshot) && snapshot.assetClass === item,
-    monthsLimit,
-    endMonth,
-  )
-}
-
-// 계좌 식별용 — 계좌명·카테고리명·자산군 조합. 계좌 미연결(전세임차보증금 등)은 '계좌 미지정'으로 표시.
-function accountLabel(snapshot: AssetSnapshot, assetClassLabel: (code: string) => string): string {
-  return `${snapshot.accountName ?? '계좌 미지정'} · ${snapshot.categoryName} · ${assetClassLabel(snapshot.assetClass)}`
-}
-
-export function calcMissingCategories(snapshots: AssetSnapshot[], month: string): string[] {
-  const monthSnapshots = snapshotsInMonth(snapshots, month)
-  const present = new Set(monthSnapshots.map((snapshot) => snapshot.rootCategoryId))
-  return ASSET_L1_CATEGORY_IDS.filter((category) => !present.has(category))
-}
-
-// 비교는 자산군 코드로 하고 표시할 때만 라벨로 바꾼다 — 라벨이 겹치거나 메타가 늦게 와도 계좌가 합쳐지지 않게
-function accountKey(snapshot: AssetSnapshot): string {
-  return `${snapshot.accountName ?? '계좌 미지정'} · ${snapshot.categoryName} · ${snapshot.assetClass}`
-}
-
-export function calcMissingAccounts(snapshots: AssetSnapshot[], month: string, previousMonth: string | null, assetClassLabel: (code: string) => string): string[] {
-  if (!previousMonth) return []
-  const currentAccounts = new Set(snapshotsInMonth(snapshots, month).map(accountKey))
-  const missing = new Map<string, AssetSnapshot>()
-  for (const snapshot of snapshotsInMonth(snapshots, previousMonth)) {
-    const key = accountKey(snapshot)
-    if (!currentAccounts.has(key)) missing.set(key, snapshot)
-  }
-  return Array.from(missing.values(), (snapshot) => accountLabel(snapshot, assetClassLabel))
-}
-
-interface DateGroup {
-  date: string
-  count: number
-}
-
-export function calcDateGroups(snapshots: AssetSnapshot[], month: string): DateGroup[] {
-  const counts = new Map<string, number>()
-  for (const snapshot of snapshotsInMonth(snapshots, month)) {
-    counts.set(snapshot.entryDate, (counts.get(snapshot.entryDate) ?? 0) + 1)
-  }
-  return Array.from(counts.entries())
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => a.date.localeCompare(b.date))
-}
-
-export function previousMonthOf(months: string[], month: string): string | null {
-  return months.filter((candidate) => candidate < month)[0] ?? null
 }

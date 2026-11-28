@@ -10,12 +10,12 @@ import {
   assetClassColor,
   formatAssetL1CategoryLabel,
 } from '@entities/finance'
-import type { AssetClass, calcAssetClassBreakdown, calcCategoryBreakdown, calcMonthlySummary } from '@entities/finance'
+import type { AssetMonthlySummary } from '@entities/finance'
 import { KpiCard } from '@widgets/kpi-card'
 
-type Summary = ReturnType<typeof calcMonthlySummary>
-type CategoryBreakdown = ReturnType<typeof calcCategoryBreakdown>
-type AssetClassBreakdown = ReturnType<typeof calcAssetClassBreakdown>
+type Summary = AssetMonthlySummary
+type CategoryBreakdown = AssetMonthlySummary['categoryBreakdown']
+type AssetClassBreakdown = AssetMonthlySummary['assetClassBreakdown']
 type AmountValue = (display: string) => ReactNode
 type LabelOf = (category: 'assetClasses', code: string) => string
 
@@ -106,7 +106,7 @@ const ROW_BUTTON_CLASS = 'block w-full rounded-md px-1 py-0.5 text-left transiti
 
 export function CategorySection({ breakdown, delta, selectedCategoryId, onCategorySelect }: {
   breakdown: CategoryBreakdown
-  delta: (category: string, amount: number) => number | null
+  delta: (categoryId: string, amount: number) => number | null
   // 지금 자산 기록 목록을 필터 중인 카테고리 — 해당 행을 눌린 상태로 표시한다.
   selectedCategoryId: string | undefined
   // 카테고리 행 클릭 — 아래 자산 기록 목록을 그 카테고리로 필터한다. 상태는 페이지(app)가 소유.
@@ -119,19 +119,19 @@ export function CategorySection({ breakdown, delta, selectedCategoryId, onCatego
       <div className="space-y-2">
         {breakdown.map((entry) => (
           <button
-            key={entry.category}
+            key={entry.categoryId}
             type="button"
-            onClick={() => onCategorySelect(entry.category)}
-            aria-pressed={entry.category === selectedCategoryId}
-            className={cn(ROW_BUTTON_CLASS, entry.category === selectedCategoryId && 'bg-muted')}
+            onClick={() => onCategorySelect(entry.categoryId)}
+            aria-pressed={entry.categoryId === selectedCategoryId}
+            className={cn(ROW_BUTTON_CLASS, entry.categoryId === selectedCategoryId && 'bg-muted')}
           >
             <BreakdownBar
-              label={formatAssetL1CategoryLabel(entry.category)}
+              label={formatAssetL1CategoryLabel(entry.categoryId)}
               amount={entry.amount}
               percent={percentOf(entry.amount, total)}
-              delta={delta(entry.category, entry.amount)}
-              color={assetCategoryColor(entry.category)}
-              isLiability={entry.category === SYSTEM_LOAN_CATEGORY_ID}
+              delta={delta(entry.categoryId, entry.amount)}
+              color={assetCategoryColor(entry.categoryId)}
+              isLiability={entry.categoryId === SYSTEM_LOAN_CATEGORY_ID}
             />
             <span className="sr-only">내역 보기</span>
           </button>
@@ -161,7 +161,7 @@ export function AssetClassSection({ breakdown, delta, labelOf }: {
               amount={entry.amount}
               percent={percentOf(entry.amount, total)}
               delta={delta(entry.assetClass, entry.amount)}
-              color={assetClassColor(entry.assetClass as AssetClass)}
+              color={assetClassColor(entry.assetClass)}
             />
           ))}
         </div>

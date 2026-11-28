@@ -1,14 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   autoAdjustedMonth,
   buildCategoryIndex,
   displayWindow,
-  previousYearRange,
   registerWindowUpperBound,
-  trendWindow,
-  useFinanceBudgetsQuery,
   useFinanceCategoriesQuery,
   useFinanceTransactionsQuery,
 } from '@entities/finance'
@@ -23,6 +20,8 @@ export type FlowCategoryType = 'INCOME' | 'EXPENSE' | 'SAVING'
 // 수입/소비/저축 3개 서브라우트가 공유하는 조회 상태 — 월/모드(Period)는 FinancePeriodProvider가
 // (dashboard)/layout.tsx 레벨에서 들고 있어 탭(라우트) 전환 후에도 유지되고 새로고침엔 초기화된다.
 // React Query 캐시가 전역이라 쿼리 결과는 동일 키로 자동 공유되므로 이어줘야 할 건 이 period뿐이다.
+// 요약·추이·예산 대비 집계는 각 위젯이 서버 집계 쿼리로 직접 받는다 — 여기는 내역 리스트용 원본 거래·
+// 카테고리 트리(색·이름·필터)와 기간 상태만 소유한다.
 export function useFinanceFlowData(flowType: FlowCategoryType) {
   const { userMonth, mode, setPeriod, trendMonths, trendYears, setTrendMonths, setTrendYears } = useFinancePeriod()
   const today = todayKst()
@@ -37,6 +36,7 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     [userMonth, autoMonth, mode, today],
   )
 
+  // 내역 리스트·자동 월 보정용 원본 거래 범위(월간 12개월 윈도우 / 연간 선택 연도).
   const flowWindow = useMemo(() => displayWindow(period, today), [period, today])
   // FinanceRecordList에 넘기는 registerWindow(내역 등록)는 "오늘 기준" 독립 창이다 —
   // flowWindow(조회 중인 기간)에 묶으면 과거 달을 보는 중엔 오늘 날짜조차 등록할 수
@@ -50,57 +50,40 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
 
   // 자산탭(최근 기록월 기본값)과의 일관성 — 사용자가 월을 직접 안 골랐고(userMonth === null)
   // 현재 선택월에 거래가 없으면, 조회된 12개월 윈도우에서 가장 최근 기록 월로 옮긴다(autoMonth
-  // 로컬 상태로만). autoMonth 반영 후 그 달엔 거래가 있어 autoAdjustedMonth가 null을 돌려 안정된다.
-  useEffect(() => {
-    if (isTransactionsLoading || userMonth !== null || period.mode !== 'monthly') return
-    const adjusted = autoAdjustedMonth(
-      period.month,
-      transactions.map((transaction) => transaction.transactionDate),
-    )
-    if (adjusted) setAutoMonth(adjusted)
-  }, [isTransactionsLoading, userMonth, period.mode, period.month, transactions])
+  // 로컬 상태로만). effect가 아니라 렌더 중 상태 조정으로 반영한다 — React가 자식을 그리기 전에 다시
+  // 렌더하므로 집계 위젯이 보정 전 달(오늘 달)로 한 번 조회하는 일이 없다. autoMonth 반영 후 그 달엔
+  // 거래가 있어 autoAdjustedMonth가 null을 돌려 안정된다.
+  const adjustedMonth =
+    !isTransactionsLoading && userMonth === null && period.mode === 'monthly'
+      ? autoAdjustedMonth(period.month, transactions.map((transaction) => transaction.transactionDate))
+      : null
+  if (adjustedMonth !== null) setAutoMonth(adjustedMonth)
 
-  const previousYearWindow = useMemo(() => previousYearRange(period, today), [period, today])
-  // 기본값([])을 채우지 않는다 — 조회 실패를 "전년 0원"으로 오인해 "전년대비 +올해 전액"을 띄우게 된다.
-  // undefined면 calcPreviousYearTotal이 null을 돌려 전년대비 표시 자체를 숨긴다.
-  const { data: previousYearTransactions, isLoading: isPreviousYearLoading } = useFinanceTransactionsQuery(
-    previousYearWindow.from,
-    previousYearWindow.to,
-    { enabled: period.mode === 'yearly' },
-  )
-
-  // 추이 차트 전용 조회 — 기간(trendRange)을 늘려도 요약·내역 쿼리(flowWindow)는 그대로 둔다.
-  // 로딩도 isFlowLoading과 분리해 기간 변경 시 추이 카드만 스켈레톤이 된다.
+  // 추이 차트 기간 — 월간은 개월 수, 연간은 년 수. 조회는 FinanceTrend가 서버 추이 쿼리로 한다.
   const trendRange = period.mode === 'yearly' ? trendYears : trendMonths
   const setTrendRange = period.mode === 'yearly' ? setTrendYears : setTrendMonths
-  const trendRangeWindow = useMemo(() => trendWindow(period, trendRange, today), [period, trendRange, today])
-  const trendQuery = useFinanceTransactionsQuery(trendRangeWindow.from, trendRangeWindow.to)
-  const trendTransactions = useMemo(() => trendQuery.data ?? [], [trendQuery.data])
-  const isTrendLoading = trendQuery.isLoading
 
   const incomeCategoriesQuery = useFinanceCategoriesQuery('INCOME')
   const expenseCategoriesQuery = useFinanceCategoriesQuery('EXPENSE')
   const savingCategoriesQuery = useFinanceCategoriesQuery('SAVING')
-  const budgetsQuery = useFinanceBudgetsQuery()
   const incomeCategories = useMemo(() => incomeCategoriesQuery.data ?? [], [incomeCategoriesQuery.data])
   const expenseCategories = useMemo(() => expenseCategoriesQuery.data ?? [], [expenseCategoriesQuery.data])
   const savingCategories = useMemo(() => savingCategoriesQuery.data ?? [], [savingCategoriesQuery.data])
-  const budgets = budgetsQuery.data ?? []
 
   // 위젯은 기본값([])이 채워진 배열만 받아 "미수신"과 "빈 목록"을 구분할 수 없다 — 여기서 데이터 유무로 판정한다.
   // 재조회 실패는 이미 받은 데이터를 덮지 않도록, 데이터가 없을 때만 오류로 본다.
   const loadFailed = (query: { isError: boolean; data?: unknown }) => query.isError && !query.data
-  // 카테고리 조회가 실패하면 거래가 카테고리 인덱스에 매칭되지 않아 "내역 없음"으로 보인다 — 실패로 묶어 오류를 띄운다
-  const isFlowError = [transactionsQuery, incomeCategoriesQuery, expenseCategoriesQuery, savingCategoriesQuery].some(loadFailed)
-  const isTrendError = loadFailed(trendQuery)
-  const isBudgetsError = loadFailed(budgetsQuery)
-
-  const isFlowLoading =
-    isTransactionsLoading ||
-    incomeCategoriesQuery.isLoading ||
-    expenseCategoriesQuery.isLoading ||
-    savingCategoriesQuery.isLoading ||
-    (period.mode === 'yearly' && isPreviousYearLoading)
+  const categoryQueries = [incomeCategoriesQuery, expenseCategoriesQuery, savingCategoriesQuery]
+  // 카테고리 조회가 실패하면 거래가 카테고리 인덱스에 매칭되지 않아 "내역 없음"으로 보인다 — 실패로 묶어 오류를 띄운다.
+  // 예산 대비·추이 위젯도 카테고리 트리로 색·이름을 그리므로 카테고리 로딩·실패를 함께 받는다.
+  const isCategoriesError = categoryQueries.some(loadFailed)
+  const isCategoriesLoading = categoryQueries.some((query) => query.isLoading)
+  const isFlowError = loadFailed(transactionsQuery) || isCategoriesError
+  const isFlowLoading = isTransactionsLoading || isCategoriesLoading
+  // 자동 월 보정 판정 전(사용자 미선택 월간 모드에서 원본 거래 로딩 중)엔 기간이 확정되지 않았다 — 집계 위젯이
+  // 오늘 달로 먼저 조회했다가 보정된 달로 다시 조회하며 "내역 없음"을 잠깐 그리지 않도록 로딩으로 묶는다.
+  // 로딩이 끝난 렌더에서 보정이 필요하면 위의 렌더 중 setAutoMonth가 자식 렌더 전에 다시 그리므로 여기선 로딩만 본다.
+  const isPeriodPending = userMonth === null && period.mode === 'monthly' && (isTransactionsLoading || adjustedMonth !== null)
 
   const categoryIndex = useMemo(
     () => buildCategoryIndex({ INCOME: incomeCategories, EXPENSE: expenseCategories, SAVING: savingCategories }),
@@ -117,18 +100,15 @@ export function useFinanceFlowData(flowType: FlowCategoryType) {
     setPeriod,
     today,
     transactions,
-    previousYearTransactions,
-    trendTransactions,
     trendRange,
     setTrendRange,
-    isTrendLoading,
-    isTrendError,
     categoryIndex,
     categoryTree: categoryTreeByType[flowType],
-    budgets,
+    isCategoriesLoading,
+    isCategoriesError,
+    isPeriodPending,
     isFlowLoading,
     isFlowError,
-    isBudgetsError,
     registerWindow,
   }
 }

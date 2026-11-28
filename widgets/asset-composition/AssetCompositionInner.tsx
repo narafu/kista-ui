@@ -9,12 +9,10 @@ import {
   ASSET_L1_CATEGORY_IDS,
   assetCategoryColor,
   assetClassColor,
-  calcAssetClassComposition,
-  calcCategoryComposition,
   formatAssetL1CategoryLabel,
-  useAssetSnapshotsQuery,
+  useAssetCompositionQuery,
   type AssetClass,
-  type CompositionColumn,
+  type AssetCompositionColumn,
   type TrendRange,
 } from '@entities/finance'
 import { useMeta } from '@entities/meta'
@@ -38,7 +36,7 @@ function amountFromPayload(payload: unknown, item: string): number | undefined {
   return typeof value === 'number' ? value : undefined
 }
 
-function toChartRows(columns: CompositionColumn[]): Record<string, string | number>[] {
+function toChartRows(columns: AssetCompositionColumn[]): Record<string, string | number>[] {
   return columns.map((column) => {
     const row: Record<string, string | number> = { month: column.month }
     for (const entry of column.entries) {
@@ -52,7 +50,7 @@ function toChartRows(columns: CompositionColumn[]): Record<string, string | numb
 // 실제로 금액이 잡힌 자산군만 세그먼트로 노출한다. AssetClass는 서버 enum(닫힌 6값)이라
 // ASSET_CLASS_ORDER 고정 순서에서 등장한 것만 걸러내면 된다 — 자유 입력이던 시절의
 // "미등록 값 뒤에 이어붙이기" 방어는 더 이상 필요 없다.
-function collectPresentSegments(columns: CompositionColumn[]): string[] {
+function collectPresentSegments(columns: AssetCompositionColumn[]): string[] {
   const present = new Set<string>()
   for (const column of columns) {
     for (const entry of column.entries) {
@@ -64,7 +62,7 @@ function collectPresentSegments(columns: CompositionColumn[]): string[] {
 
 interface CompositionChartProps {
   title: string
-  columns: CompositionColumn[]
+  columns: AssetCompositionColumn[]
   segments: string[]
   labelFor: (item: string) => string
   colorFor: (item: string) => string
@@ -153,22 +151,21 @@ interface Props {
 }
 
 export default function AssetCompositionInner({ month, range = 12 }: Props) {
-  const { data, isLoading, isError } = useAssetSnapshotsQuery()
-  const snapshots = data ?? []
+  // 카테고리 구성비는 대출 포함, 자산군 구성비는 대출 제외 — 서버가 basis별로 나눠 계산한다. percent는 소수 2자리.
+  const categoryQuery = useAssetCompositionQuery('CATEGORY', range, month)
+  const assetClassQuery = useAssetCompositionQuery('ASSET_CLASS', range, month)
   const { labelOf } = useMeta()
 
-  if (isLoading) {
+  if (categoryQuery.isLoading || assetClassQuery.isLoading) {
     return <Skeleton data-testid="asset-composition-skeleton" className="h-[240px] sm:h-[280px]" />
   }
 
-  if (isError && !data) {
+  if ((categoryQuery.isError && !categoryQuery.data) || (assetClassQuery.isError && !assetClassQuery.data)) {
     return <SectionError message="구성비 데이터를 불러오지 못했습니다." />
   }
 
-  // 'all'은 slice 상한을 없애 기록 전체 월을 쓴다(Infinity).
-  const monthsLimit = range === 'all' ? Infinity : range
-  const categoryColumns = calcCategoryComposition(snapshots, monthsLimit, month)
-  const assetClassColumns = calcAssetClassComposition(snapshots, monthsLimit, month)
+  const categoryColumns = categoryQuery.data?.columns ?? []
+  const assetClassColumns = assetClassQuery.data?.columns ?? []
   const assetClassSegments = collectPresentSegments(assetClassColumns)
 
   return (

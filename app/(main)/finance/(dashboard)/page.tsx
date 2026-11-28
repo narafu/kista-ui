@@ -1,57 +1,20 @@
-'use client'
+import { dehydrate } from '@tanstack/react-query'
+import { getAuthToken } from '@shared/lib/auth/token'
+import { assetSummaryQueryOptions } from '@entities/finance'
+import { HydrationBoundary, createQueryClient } from '@shared/lib/query'
+import { AssetTabView } from './AssetTabView'
 
-import { useMemo, useRef, useState } from 'react'
-import { listAvailableMonths, useAssetSnapshotsQuery } from '@entities/finance'
-import { todayKst } from '@shared/lib/format'
-import { AssetOverview } from '@widgets/asset-overview'
-import { AssetTrend } from '@widgets/asset-trend'
-import { AssetComposition } from '@widgets/asset-composition'
-import { AssetRecordCheck } from '@widgets/asset-record-check'
-import { AssetRecordList } from '@widgets/asset-record-list'
-import { useFinancePeriod } from './FinancePeriodProvider'
-
-export default function FinanceInvestmentPage() {
-  const { data: snapshots = [] } = useAssetSnapshotsQuery()
-  const months = useMemo(() => listAvailableMonths(snapshots), [snapshots])
-  const today = todayKst()
-  // 선택 월은 FinancePeriodProvider가 소유해 탭 전환 후에도 유지되고 새로고침엔 초기화된다
-  // (수입/소비/저축탭과 공유). 사용자가 아직 안 골랐으면 기록이 있는 가장 최근 달로, 기록이
-  // 아예 없으면 이번 달로 기본값을 잡는다.
-  const { userMonth, setMonth, trendMonths, setTrendMonths } = useFinancePeriod()
-  const selectedMonth = userMonth ?? months[0] ?? today.slice(0, 7)
-
-  // 자산 요약의 카테고리 행 클릭 → 자산 기록 카테고리 필터. 두 위젯이 공유하는 상태라 여기(app)가 소유한다.
-  // 행이 최상위(L1) 카테고리라 경로는 그 id 하나다.
-  const [categoryPath, setCategoryPath] = useState<string[]>([])
-  // 클릭마다 목록을 다시 마운트해 이전에 걸어 둔 자산군·시장 필터를 초기화한다 — 남겨 두면 "투자 + 현금"처럼 빈 결과가 나온다.
-  const [listResetKey, setListResetKey] = useState(0)
-  const recordListRef = useRef<HTMLDivElement>(null)
-
-  function handleMonthChange(month: string) {
-    setMonth(month)
-    setCategoryPath([])
+// 자산 탭 기본 월(최근 기록 월) 요약을 프리페치한다 — 없으면 첫 렌더가 이번 달로 조회했다가 최근 기록 월로
+// 다시 조회한다. 수입/소비/저축 탭엔 필요 없어 layout이 아니라 여기서 한다.
+export default async function FinanceAssetPage() {
+  const token = await getAuthToken()
+  const queryClient = createQueryClient()
+  if (token) {
+    await queryClient.prefetchQuery(assetSummaryQueryOptions(undefined, token)).catch(() => undefined)
   }
-
-  function handleCategorySelect(categoryId: string) {
-    setCategoryPath([categoryId])
-    setListResetKey((key) => key + 1)
-    const list = recordListRef.current
-    list?.scrollIntoView({ block: 'start' })
-    // 키보드·스크린리더 사용자의 포커스가 화면 밖 클릭 행에 남지 않도록 목록으로 옮긴다
-    list?.focus({ preventScroll: true })
-  }
-
   return (
-    <div className="space-y-6">
-      <AssetOverview month={selectedMonth} months={months} onMonthChange={handleMonthChange} today={today} selectedCategoryId={categoryPath[0]} onCategorySelect={handleCategorySelect} />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <AssetTrend month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
-        <AssetComposition month={selectedMonth} range={trendMonths} onRangeChange={setTrendMonths} />
-      </div>
-      <AssetRecordCheck month={selectedMonth} />
-      <div ref={recordListRef} tabIndex={-1} className="scroll-mt-20 focus-visible:outline-none">
-        <AssetRecordList key={listResetKey} month={selectedMonth} categoryPath={categoryPath} onCategoryPathChange={setCategoryPath} />
-      </div>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <AssetTabView />
+    </HydrationBoundary>
   )
 }

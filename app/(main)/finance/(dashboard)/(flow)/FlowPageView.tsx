@@ -15,18 +15,15 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     setPeriod,
     today,
     transactions,
-    previousYearTransactions,
-    trendTransactions,
     trendRange,
     setTrendRange,
-    isTrendLoading,
-    isTrendError,
     categoryIndex,
     categoryTree,
-    budgets,
+    isCategoriesLoading,
+    isCategoriesError,
+    isPeriodPending,
     isFlowLoading,
     isFlowError,
-    isBudgetsError,
     registerWindow,
   } = useFinanceFlowData(type)
 
@@ -43,38 +40,28 @@ export function FlowPageView({ type }: { type: FlowCategoryType }) {
     <div className="space-y-6">
       <FinanceSummary
         type={type}
-        transactions={transactions}
-        index={categoryIndex}
-        isLoading={isFlowLoading}
-        isError={isFlowError}
+        isLoading={isPeriodPending}
         period={period}
         onPeriodChange={setPeriod}
-        previousYearTransactions={previousYearTransactions}
         today={today}
       />
       <FinanceBudgetProgress
         type={type}
-        budgets={budgets}
-        transactions={transactions}
         categoryTree={categoryTree}
         index={categoryIndex}
         period={period}
-        isLoading={isFlowLoading}
-        isError={isFlowError || isBudgetsError}
-        today={today}
+        isLoading={isPeriodPending || isCategoriesLoading}
+        isError={isCategoriesError}
         onCategorySelect={handleCategorySelect}
       />
       <FinanceTrend
         type={type}
-        transactions={trendTransactions}
         range={trendRange}
         onRangeChange={setTrendRange}
         categoryTree={categoryTree}
         index={categoryIndex}
         period={period}
-        isLoading={isFlowLoading || isTrendLoading}
-        isError={isTrendError}
-        today={today}
+        isLoading={isPeriodPending || isCategoriesLoading}
       />
       <div ref={recordListRef} className="scroll-mt-20">
         <FinanceRecordList
