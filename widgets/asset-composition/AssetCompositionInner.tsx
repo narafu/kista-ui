@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { fmtKrw, fmtShortYearMonth, fmtDecimal } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { SectionError } from '@shared/ui/SectionError'
+import { cn } from '@shared/lib/utils'
 import { AXIS_TICK } from '@shared/lib/chart/axisTick'
 import { TOOLTIP_CONTENT_STYLE } from '@shared/lib/chart/tooltip'
 
@@ -155,6 +156,7 @@ export default function AssetCompositionInner({ month, range = 12 }: Props) {
   const categoryQuery = useAssetCompositionQuery('CATEGORY', range, month)
   const assetClassQuery = useAssetCompositionQuery('ASSET_CLASS', range, month)
   const { labelOf } = useMeta()
+  const stale = categoryQuery.isPlaceholderData || assetClassQuery.isPlaceholderData
 
   if (categoryQuery.isLoading || assetClassQuery.isLoading) {
     return <Skeleton data-testid="asset-composition-skeleton" className="h-[240px] sm:h-[280px]" />
@@ -169,7 +171,7 @@ export default function AssetCompositionInner({ month, range = 12 }: Props) {
   const assetClassSegments = collectPresentSegments(assetClassColumns)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div aria-busy={stale} className={cn('flex flex-col gap-6 transition-opacity', stale && 'opacity-60')}>
       <CompositionChart
         title="카테고리별 구성비"
         columns={categoryColumns}

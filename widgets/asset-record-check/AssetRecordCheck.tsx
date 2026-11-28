@@ -61,46 +61,53 @@ export function AssetRecordCheck({ month }: Props) {
     <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
       <SectionTitle>기록 점검</SectionTitle>
       <div className="space-y-4">
-        <section>
-          <h3 className="text-sm font-semibold mb-1.5">미기록 카테고리</h3>
-          {missingCategories.length === 0 ? (
-            <p className="flex items-center gap-1.5 text-sm text-status-ok">
-              <CheckCircle2 className="size-4" /> 모든 카테고리 기록 완료
-            </p>
-          ) : (
-            <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
-              <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-              <span>{missingCategories.map(formatAssetL1CategoryLabel).join(', ')}</span>
-            </div>
-          )}
-        </section>
+        {/* 월 전환 중 이전 달 점검 결과를 남기면 다른 달의 미기록으로 오해한다 — 결과만 로딩으로 바꾸고, 진행 중 토글이 끊기지 않게 버튼은 남긴다 */}
+        {assetCheckQuery.isPlaceholderData ? (
+          <LoadingRow />
+        ) : (
+          <>
+            <section>
+              <h3 className="text-sm font-semibold mb-1.5">미기록 카테고리</h3>
+              {missingCategories.length === 0 ? (
+                <p className="flex items-center gap-1.5 text-sm text-status-ok">
+                  <CheckCircle2 className="size-4" /> 모든 카테고리 기록 완료
+                </p>
+              ) : (
+                <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+                  <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                  <span>{missingCategories.map(formatAssetL1CategoryLabel).join(', ')}</span>
+                </div>
+              )}
+            </section>
 
-        {previousMonth !== null && (
-          <section>
-            <h3 className="text-sm font-semibold mb-1.5">전월 대비 누락 계좌</h3>
-            {missingAccounts.length === 0 ? (
-              <p className="flex items-center gap-1.5 text-sm text-status-ok">
-                <CheckCircle2 className="size-4" /> 전월 대비 누락 계좌 없음
-              </p>
-            ) : (
-              <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
-                <AlertTriangle className="size-4 mt-0.5 shrink-0" />
-                <span>{missingAccounts.join(', ')}</span>
-              </div>
+            {previousMonth !== null && (
+              <section>
+                <h3 className="text-sm font-semibold mb-1.5">전월 대비 누락 계좌</h3>
+                {missingAccounts.length === 0 ? (
+                  <p className="flex items-center gap-1.5 text-sm text-status-ok">
+                    <CheckCircle2 className="size-4" /> 전월 대비 누락 계좌 없음
+                  </p>
+                ) : (
+                  <div className="flex items-start gap-1.5 rounded-lg border border-warn bg-warn-bg px-3 py-2 text-sm text-warn">
+                    <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                    <span>{missingAccounts.join(', ')}</span>
+                  </div>
+                )}
+              </section>
             )}
-          </section>
-        )}
 
-        {dateGroups.length > 1 && (
-          <section>
-            <h3 className="text-sm font-semibold mb-1.5">기준일 혼재 경고</h3>
-            <div className="flex items-start gap-1.5 rounded-lg border border-info bg-info-bg px-3 py-2 text-sm text-info">
-              <CalendarClock className="size-4 mt-0.5 shrink-0" />
-              <span>
-                선택한 달의 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.
-              </span>
-            </div>
-          </section>
+            {dateGroups.length > 1 && (
+              <section>
+                <h3 className="text-sm font-semibold mb-1.5">기준일 혼재 경고</h3>
+                <div className="flex items-start gap-1.5 rounded-lg border border-info bg-info-bg px-3 py-2 text-sm text-info">
+                  <CalendarClock className="size-4 mt-0.5 shrink-0" />
+                  <span>
+                    선택한 달의 기록이 여러 날짜({dateGroups.map((group) => formatMonthDay(group.date)).join(', ')})에 나뉘어 있습니다. 확인하세요.
+                  </span>
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         <div className="space-y-1.5">

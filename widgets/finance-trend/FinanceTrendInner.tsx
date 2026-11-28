@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
+import { cn } from '@shared/lib/utils'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { flowCategoryColor, sortCategoryTree, useFlowTrendQuery } from '@entities/finance'
 import type { CategoryIndex, FinanceCategory, FinanceCategoryType, Period, TrendRange } from '@entities/finance'
@@ -54,11 +55,12 @@ export default function FinanceTrendInner({ type, range, categoryTree, index, pe
   }
 
   const hasData = trend.some((point) => point.amount !== 0)
+  const stale = trendQuery.isPlaceholderData
 
   return (
     <div className="flex flex-1 flex-col gap-3">
       {!hasData ? (
-        <div className="flex flex-1 items-center justify-center">
+        <div aria-busy={stale} className={cn('flex flex-1 items-center justify-center transition-opacity', stale && 'opacity-60')}>
           <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다.</p>
         </div>
       ) : (
@@ -71,7 +73,7 @@ export default function FinanceTrendInner({ type, range, categoryTree, index, pe
               onChange={(value) => setByCategory(value === 'category')}
             />
           </div>
-          <div className="min-h-[240px] w-full flex-1 sm:min-h-[280px]">
+          <div aria-busy={stale} className={cn('min-h-[240px] w-full flex-1 transition-opacity sm:min-h-[280px]', stale && 'opacity-60')}>
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={200}>
               <LineChart data={trend} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} title={period.mode === 'yearly' ? '연도별 추이' : '월별 추이'}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

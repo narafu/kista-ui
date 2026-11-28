@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { SectionError } from '@shared/ui/SectionError'
 import { SegmentedToggle } from '@shared/ui/SegmentedToggle'
+import { cn } from '@shared/lib/utils'
 import { fmtKrw, fmtKrwAxisTick, fmtShortYearMonth } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
 import { useMeta } from '@entities/meta'
@@ -69,7 +70,7 @@ interface Props {
 
 export default function AssetTrendInner({ month, range = 12 }: Props) {
   // 서버가 점마다 순자산·총자산·L1 카테고리별·자산군별(0 포함) 금액을 모두 준다 — 모드 전환은 재조회 없이 고른다.
-  const { data, isLoading, isError } = useAssetTrendQuery(range, month)
+  const { data, isLoading, isError, isPlaceholderData } = useAssetTrendQuery(range, month)
   const { labelOf } = useMeta()
   const { maskIfHidden } = useAmountHiddenPreference()
   const [mode, setMode] = useState<TrendMode>('netWorth')
@@ -154,6 +155,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
         )}
       </div>
 
+      <div aria-busy={isPlaceholderData} className={cn('flex flex-1 flex-col transition-opacity', isPlaceholderData && 'opacity-60')}>
       {trend.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-sm text-muted-foreground">표시할 추이 데이터가 없습니다.</p>
@@ -214,6 +216,7 @@ export default function AssetTrendInner({ month, range = 12 }: Props) {
           </ResponsiveContainer>
         </div>
       )}
+      </div>
     </div>
   )
 }

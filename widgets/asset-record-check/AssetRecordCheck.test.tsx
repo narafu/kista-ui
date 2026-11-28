@@ -89,6 +89,17 @@ describe('AssetRecordCheck', () => {
     expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
   })
 
+  it('월 전환 중(placeholder) 이전 달 점검 결과 대신 로딩을 보이고 완료 토글은 남긴다', () => {
+    useAssetCheckQueryMock.mockReturnValue({ ...check({ missingCategoryIds: ALL_L1 }), isPlaceholderData: true })
+    defaultClosingsMock()
+
+    render(<AssetRecordCheck month="2026-09" />)
+
+    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(screen.queryByText('미기록 카테고리')).not.toBeInTheDocument()
+    expect(screen.getByTestId('toggle-monthly-check')).toHaveTextContent('2026-09')
+  })
+
   it('둘 중 하나라도 에러면 에러 섹션을 표시한다', () => {
     useAssetCheckQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: false })
     useMonthlyClosingsQueryMock.mockReturnValue({ data: undefined, isLoading: false, isError: true })

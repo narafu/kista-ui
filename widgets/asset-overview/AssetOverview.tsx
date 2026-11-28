@@ -3,6 +3,7 @@
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
 import { SectionError } from '@shared/ui/SectionError'
+import { cn } from '@shared/lib/utils'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { YearMonthSelect } from '@shared/ui/YearMonthSelect'
 import { maskAmount } from '@shared/lib/format'
@@ -25,7 +26,7 @@ interface Props {
 
 export function AssetOverview({ month, summaryMonth, onMonthChange, today, selectedCategoryId, onCategorySelect }: Props) {
   // 선택 월 요약과 전월(기록이 있는 직전 달) 요약을 서버가 함께 준다.
-  const { data, isLoading, isError } = useAssetSummaryQuery(summaryMonth)
+  const { data, isLoading, isError, isPlaceholderData } = useAssetSummaryQuery(summaryMonth)
   const { labelOf } = useMeta()
   const { hidden, masked } = useAmountHiddenPreference()
 
@@ -54,7 +55,7 @@ export function AssetOverview({ month, summaryMonth, onMonthChange, today, selec
         <SectionTitle>자산 요약</SectionTitle>
         <YearMonthSelect value={month} onValueChange={onMonthChange} today={today} />
       </div>
-      <div>
+      <div aria-busy={isPlaceholderData} className={cn('transition-opacity', isPlaceholderData && 'opacity-60')}>
         {isLoading ? (
           <LoadingRow />
         ) : isError && !data ? (

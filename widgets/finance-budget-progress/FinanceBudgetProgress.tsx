@@ -135,7 +135,7 @@ export function FinanceBudgetProgress({ type, categoryTree, index, period, isLoa
   return (
     <Surface size="compact" className="flex flex-col gap-4 overflow-hidden text-sm">
       <SectionTitle className="pb-3">{`${labelOf('financeCategoryTypes', type)} 예산 대비`}</SectionTitle>
-      <div>
+      <div aria-busy={progressQuery.isPlaceholderData} className={cn('transition-opacity', progressQuery.isPlaceholderData && 'opacity-60')}>
         {isLoading || progressQuery.isLoading ? (
           <LoadingRow />
         ) : isError || !progressQuery.data ? (

@@ -3,6 +3,7 @@
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
 import { SectionError } from '@shared/ui/SectionError'
+import { cn } from '@shared/lib/utils'
 import { LoadingRow } from '@shared/ui/LoadingRow'
 import { maskAmount } from '@shared/lib/format'
 import { useAmountHiddenPreference } from '@shared/lib/hooks/use-amount-hidden'
@@ -51,7 +52,7 @@ export function FinanceSummary({ type, isLoading, period, onPeriodChange, today 
         <SectionTitle>{labelOf('financeCategoryTypes', type)} 요약</SectionTitle>
         <PeriodControls period={period} onPeriodChange={onPeriodChange} today={today} />
       </div>
-      <div>
+      <div aria-busy={summaryQuery.isPlaceholderData} className={cn('transition-opacity', summaryQuery.isPlaceholderData && 'opacity-60')}>
         {isLoading || summaryQuery.isLoading ? (
           <LoadingRow />
         ) : !summary ? (
