@@ -29,8 +29,8 @@ describe('createWithdrawCapitalFormSchema', () => {
     expect(messages(createWithdrawCapitalFormSchema(15000, 'KRW'), { amount: 15001 })).toEqual(['장부 예수금 15,000원 이하로 입력하세요.'])
   })
 
-  it('장부 예수금은 센트 미만을 절사해 한도로 쓴다', () => {
-    const schema = createWithdrawCapitalFormSchema(1000.005)
+  it('서버가 내림한 장부 예수금을 한도로 쓴다', () => {
+    const schema = createWithdrawCapitalFormSchema(1000)
     expect(schema.safeParse({ amount: 1000 }).success).toBe(true)
     expect(messages(schema, { amount: 1000.01 })).toEqual(['장부 예수금 $1,000.00 이하로 입력하세요.'])
   })

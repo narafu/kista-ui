@@ -2877,6 +2877,12 @@ export interface components {
              * @example 0.5
              */
             poolLimitFloor: number;
+            /**
+             * Format: date
+             * @description 다음 리밸런싱(롤오버) 예정일 = 사이클 시작일 + 주기. 이 날 이후 첫 마감 리포트에서 교체된다(평가 종가는 이 날, 미국 휴장일이면 직전 거래일). 종가가 없으면 다음 매매일에 재시도하므로 교체 전까지 지난 날짜일 수 있다. 보관 전략·종료 사이클이면 null
+             * @example 2026-12-24
+             */
+            nextRolloverDate?: string | null;
         };
         VrConfigRequest: {
             /**

@@ -164,7 +164,7 @@ describe('DcaStrategyForm', () => {
   })
 
   it('수정: 예수금은 읽기전용이고 가용 예수금을 조회하지 않는다', () => {
-    renderForm({ ...existing([rule('a', 100)]), initialDeposit: 1700, ledgerDeposit: 700.009 }, undefined, { prices: { QLD: 91.5 } })
+    renderForm({ ...existing([rule('a', 100)]), initialDeposit: 1700, ledgerDeposit: 700 }, undefined, { prices: { QLD: 91.5 } })
     expect(screen.queryByLabelText(/^예수금/)).not.toBeInTheDocument()
     expect(screen.getByText('현재 장부 예수금')).toBeInTheDocument()
     expect(screen.getByText('$700.00')).toBeInTheDocument()

@@ -457,13 +457,13 @@ describe('ReconfigureVrForm', () => {
   })
 
   describe('인출 예수금 장부 한도', () => {
-    const withLedger: ReconfigureVrStrategy = { ...strategy, ledgerDeposit: 100.009 }
+    const withLedger: ReconfigureVrStrategy = { ...strategy, ledgerDeposit: 100 }
     const message = '장부 예수금 $100.00 이하로 입력하세요.'
     const type = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
     const submit = () => fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
-    it('장부 예수금을 센트 아래 버림으로 보여준다', () => {
-      renderForm({ ...strategy, ledgerDeposit: 100.009 })
+    it('서버가 준 장부 예수금을 그대로 보여준다', () => {
+      renderForm({ ...strategy, ledgerDeposit: 100 })
       expect(screen.getByText('현재 장부 예수금 $100.00')).toBeInTheDocument()
     })
 

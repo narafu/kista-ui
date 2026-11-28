@@ -15,7 +15,7 @@ import { orderKeys } from '@entities/order'
 import { statsKeys } from '@entities/stats'
 import { invalidateLedgerTotals } from '@entities/account'
 import { tradeKeys } from '@entities/trade'
-import { floorToCents, useInjectCapitalMutation, useWithdrawCapitalMutation } from '@entities/strategy'
+import { useInjectCapitalMutation, useWithdrawCapitalMutation } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { injectCapitalFormSchema } from './model/injectCapitalFormSchema'
 import { createWithdrawCapitalFormSchema } from './model/withdrawCapitalFormSchema'
@@ -98,7 +98,7 @@ export function CapitalForm({ kind, accountId, strategy, currency, onDone }: Pro
     // 검증을 통과했을 때만 확인 다이얼로그를 연다. 실패 시 handleSubmit이 오류 칸으로 포커스를 옮긴다
     <form onSubmit={form.handleSubmit(() => setConfirmOpen(true))} className="space-y-6">
       <div className="space-y-1 text-sm text-muted-foreground">
-        {kind === 'withdraw' && strategy.ledgerDeposit != null && <p>현재 장부 예수금 {fmtMoney(floorToCents(strategy.ledgerDeposit), currency)}</p>}
+        {kind === 'withdraw' && strategy.ledgerDeposit != null && <p>현재 장부 예수금 {fmtMoney(strategy.ledgerDeposit, currency)}</p>}
         <p>{timing}부터 반영되고, 이번 사이클 수익률에서는 {c.part}이 빠집니다. {effectCaption}</p>
       </div>
 

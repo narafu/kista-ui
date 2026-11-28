@@ -76,7 +76,7 @@ UI가 맡는 일을 원칙의 "UI 소유 목록"으로 줄인다. 영역별 목�
 
 ### 7. 날짜·금액
 
-- 다음 롤오버일은 응답 필드로 받는다. `vr-rollover.ts`를 지운다(api에 `vr.nextRolloverDate` 요청, 2026-11-28). 예정 시작 여부(`scheduled-start.ts`)는 서버에 대응 필드가 없어 남긴다(2026-11-25 api 확인, 아래 예외 대장). `dcaFormat.ts:73-93`은 실행 전 보정에서 철회했다.
+- 다음 롤오버일은 응답 필드로 받는다. `vr-rollover.ts`를 지웠다(api `739b755ff`의 `vr.nextRolloverDate`, 2026-11-28). 예정 시작 여부(`scheduled-start.ts`)는 서버에 대응 필드가 없어 남긴다(2026-11-25 api 확인, 아래 예외 대장). `dcaFormat.ts:73-93`은 실행 전 보정에서 철회했다.
 - UI의 날짜 코드는 표시 형식과 상대 표시, 그리고 화면 상태로서의 기간 선택(이번 달, 최근 30일 프리셋 → 쿼리 파라미터)만 남는다.
 - 금액을 UI에서 다시 반올림하지 않는다. 입력 자릿수 제한은 입력 마스크라 UI에 남고(06의 `AmountInput`), 자릿수 값은 메타 `amountScale`에서 받는다.
 
@@ -119,7 +119,6 @@ KIS·업비트는 삭제가 결정됐다(사용자 결정, fable-api 전달). UI
 | `strategyFormGuards`의 서버 미검증 4건 (2026-11-28 등록) | 서버가 검증하지 않는다(cross-repo T10 행): 비VR 예수금>0·PRIVACY 최소 시드(Q-35), NO_PRIVACY_BASE, VR 금액 0 | 유지 |
 | DCA 규칙 0개일 때의 `strategy-seed-preview` 호출 `getDcaAvailableCash` (2026-11-28 등록) | 검증 POST가 규칙 없으면 400이라 `derived`를 못 받는다(`DcaConfigRequest`). 값은 서버 계산이라 UI 재계산이 아니다 | 유지 |
 | 만료일 입력 `min={kstTomorrow()}` (2026-11-28 등록) | 입력 제약(네이티브 date `min`). 서버가 오늘 이하 만료일을 400으로 최종 거절 | 유지 |
-| 장부 예수금 센트 절사 `floorToCents` (2026-11-28 등록, 임시) | 서버 `ledgerDeposit`이 원값이라 표시·인출 한도용으로 절사. api에 응답 절사 요청 | api 반영 뒤 삭제(`capitalAdjustment.ts` 파일째) |
 
 목록 규약 보충(같은 회신): 페이지형에서 사용자가 고르는 정렬·필터·검색은 전부 서버 파라미터다(`sort=<필드>,<asc|desc>`, 필터는 필드명 그대로). 커서는 정렬 키를 포함한 불투명 문자열이다. 가계부 거래 목록의 유형·메모 검색·카테고리·정렬·페이지 5가지가 전부 서버로 간다. 06의 `DataList` 페이지형 모드는 정렬 헤더를 클릭하면 `sort` 파라미터를 바꾸고 첫 페이지부터 다시 받는다.
 

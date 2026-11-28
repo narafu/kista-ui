@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { fmtMoney } from '@shared/lib/format'
 import {
-  floorToCents, POOL_LIMIT_FLOOR_ZERO_MESSAGE,
+  POOL_LIMIT_FLOOR_ZERO_MESSAGE,
   VR_FLOOR_RATE as FLOOR_RATE, VR_G_MAX_BELOW_INITIAL, VR_INITIAL_RATE as INITIAL_RATE, VR_INTEGER as INTEGER, VR_NONNEGATIVE as NONNEGATIVE, VR_POSITIVE as POSITIVE,
 } from '@entities/strategy'
 
@@ -21,7 +21,6 @@ const nonnegativeAmount = () => z.number().nonnegative(NONNEGATIVE).nullable().o
 
 export function createReconfigureVrFormSchema(current?: CurrentVrRamp, ledgerDeposit?: number) {
   // 인출 한도는 현재 장부 예수금 — 서버는 같은 요청의 추가 예수금을 합치지 않는다(validateCapitalAdjustment). 모르면 서버에 맡긴다
-  const limit = ledgerDeposit == null ? undefined : floorToCents(ledgerDeposit)
   return z
   .object({
     bandWidth: z.number().positive(POSITIVE).nullable().optional(),
@@ -70,8 +69,8 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp, ledgerDep
     if (data.injectShares != null && data.injectShares > 0 && (data.injectSharePrice == null || data.injectSharePrice <= 0)) {
       ctx.addIssue({ code: 'custom', path: ['injectSharePrice'], message: '주식을 편입하려면 매수단가를 입력하세요.' })
     }
-    if (limit != null && data.withdrawDeposit != null && data.withdrawDeposit > limit) {
-      ctx.addIssue({ code: 'custom', path: ['withdrawDeposit'], message: `장부 예수금 ${fmtMoney(limit, 'USD')} 이하로 입력하세요.` })
+    if (ledgerDeposit != null && data.withdrawDeposit != null && data.withdrawDeposit > ledgerDeposit) {
+      ctx.addIssue({ code: 'custom', path: ['withdrawDeposit'], message: `장부 예수금 ${fmtMoney(ledgerDeposit, 'USD')} 이하로 입력하세요.` })
     }
   })
 }

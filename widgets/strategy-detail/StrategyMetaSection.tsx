@@ -3,7 +3,7 @@
 import { Surface } from '@shared/ui/Surface'
 import { SectionTitle } from '@shared/ui/SectionTitle'
 import { KpiCard } from '@widgets/kpi-card'
-import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel, nextVrRolloverDate } from '@entities/strategy'
+import { seedBadgeClass, isScheduledStart, scheduledStartBadgeLabel } from '@entities/strategy'
 import { useMeta } from '@entities/meta'
 import { cn, toNum } from '@shared/lib/utils'
 import { fmtDate, fmtUsd, fmtDecimal, fmtPercent } from '@shared/lib/format'
@@ -137,7 +137,7 @@ function VrGrid({ vr, startDate }: { vr: NonNullable<Strategy['vr']>; startDate:
         <KpiCard
           className="col-span-2 sm:col-span-1 xl:col-span-2"
           label="다음 사이클 시작"
-          value={startDate ? fmtDate(nextVrRolloverDate(startDate, vr.intervalWeeks)) : '미설정'}
+          value={vr.nextRolloverDate ? fmtDate(vr.nextRolloverDate) : startDate ? '-' : '미설정'}
           valueClassName={TILE_VALUE}
         />
       </div>

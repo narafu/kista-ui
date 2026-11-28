@@ -680,5 +680,5 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
 - 이미 처리(삭제 대상은 지워짐, 남은 함수는 05 대상 아님): `apiKeyExpiry.ts`(`kstTomorrow`·`isEstimatedExpiry`).
 - 서버 필드 없음 → 유지, 05 예외 대장 등록: `isScheduledStart`, `getDcaAvailableCash`(seed-preview), `strategyFormGuards` 서버 미검증 4건, 만료일 입력 `min`.
 - 사용자 결정 유지 → 대장 등록: `strategyFormGuards` 서버 중복 규칙.
-- api 요청(대기): `vr.nextRolloverDate`, `ledgerDeposit` 계좌 통화 자릿수 내림. 반영 뒤 `vr-rollover.ts`·`capitalAdjustment.ts`(`floorToCents`) 삭제. `vr-rollover`는 S7 후속 B(T6)에서 기록 없이 빠져 있던 항목이다.
+- api 반영(`739b755ff`): `vr.nextRolloverDate`, `ledgerDeposit` 계좌 통화 자릿수 내림(전에는 HALF_UP, `NO_WITHDRAWABLE_BALANCE`도 절사값 기준). ui는 `gen:types` 재생성 후 `vr-rollover.ts`·`capitalAdjustment.ts`(`floorToCents`)를 지웠다. 다음 사이클 시작은 서버 값이 null(보관·종료 사이클)이면 대시. 배포 순서: api 먼저. `vr-rollover`는 S7 후속 B(T6)에서 기록 없이 빠져 있던 항목이다.
 - 05 본문 정정: 4절 `isScheduledStart`, 7절 롤오버·시작예정, 태스크 3 대상.

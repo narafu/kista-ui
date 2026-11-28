@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { AmountInput } from '@shared/ui/AmountInput'
 import { SectionTitle } from '@shared/ui/SectionTitle'
 import { fmtMoney } from '@shared/lib/format'
-import { floorToCents, RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
+import { RecurringModeField, VrRampFields, type VrRampValues, type VrRecurringMode } from '@entities/strategy'
 import type { ReconfigureVrFormValues } from './model/reconfigureVrFormSchema'
 import type { ReconfigureVrStrategy } from './model/reconfigureVrStrategy'
 
@@ -157,7 +157,7 @@ export function WithdrawSection({ form, disabled, ledgerDeposit }: Omit<SectionP
       <section className="space-y-4 rounded-sm border border-border p-4">
         <SectionTitle>투자금 인출 (선택)</SectionTitle>
         <p className="text-xs text-muted-foreground">보유 주식·예수금 중 일부를 전략에서 빼냅니다. 비워두면 인출하지 않습니다.</p>
-        {ledgerDeposit != null && <p className="text-sm text-muted-foreground">현재 장부 예수금 {fmtMoney(floorToCents(ledgerDeposit), 'USD')}</p>}
+        {ledgerDeposit != null && <p className="text-sm text-muted-foreground">현재 장부 예수금 {fmtMoney(ledgerDeposit, 'USD')}</p>}
         <div className="space-y-2">
           <Label htmlFor="withdrawShares">인출 주식 수</Label>
           <AmountInput id="withdrawShares" unit="주" unitClassName="ml-1.5" maxDecimals={0} placeholder="0" disabled={disabled}

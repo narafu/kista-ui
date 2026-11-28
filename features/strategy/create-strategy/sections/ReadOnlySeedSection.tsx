@@ -1,5 +1,4 @@
 import { fmtUsd } from '@shared/lib/format'
-import { floorToCents } from '@entities/strategy'
 import { StrategyFieldLabel } from '../StrategyFieldLabel'
 
 interface Props {
@@ -11,8 +10,7 @@ interface Props {
 export function ReadOnlySeedSection({ type, initialDeposit, ledgerDeposit }: Props) {
   // DCA의 initialDeposit은 보유 원가를 포함한 사이클 시작금액이라 예수금이 아니다 — 장부 예수금을 보인다
   const isDca = type === 'DCA'
-  // 장부 예수금은 상세·인출 폼과 같이 센트 미만을 절사한다
-  const amount = isDca ? (ledgerDeposit == null ? undefined : floorToCents(ledgerDeposit)) : initialDeposit
+  const amount = isDca ? ledgerDeposit : initialDeposit
   return (
     <div className="py-[18px] border-b border-border">
       {/* 이 화면에서 못 고칠 뿐 투자금 추가·인출로 바꾼다 — VR은 수정 화면이 없다 */}

@@ -7,7 +7,7 @@ import { SectionTitle } from '@shared/ui/SectionTitle'
 import { KpiCard } from '@widgets/kpi-card'
 import { useManageStrategyMutations } from '@features/strategy/manage-strategy'
 import { useMeta } from '@entities/meta'
-import { dcaIndicatorLabel, floorToCents, formatDcaCondition, formatDcaSchedule, formatDcaSizing } from '@entities/strategy'
+import { dcaIndicatorLabel, formatDcaCondition, formatDcaSchedule, formatDcaSizing } from '@entities/strategy'
 import type { Strategy } from '@entities/strategy'
 import { useAccountPricesQuery } from '@entities/account'
 import { directionBadgeClass } from '@entities/trade'
@@ -78,7 +78,7 @@ function RuleField({ label, className, inline, children }: { label: string; clas
 export function DcaStrategyDetail({ accountId, broker, strategy }: Props) {
   const { push } = useRouter()
   const { labelOf } = useMeta()
-  const deposit = fmtMoneyOrDash(strategy.ledgerDeposit != null ? floorToCents(strategy.ledgerDeposit) : null, 'USD')
+  const deposit = fmtMoneyOrDash(strategy.ledgerDeposit ?? null, 'USD')
   const [closeOpen, setCloseOpen] = useState(false)
   const { dca } = strategy
   const { pause, resume, remove, archive, isPausing, isResuming, isDeleting, isArchiving } = useManageStrategyMutations({

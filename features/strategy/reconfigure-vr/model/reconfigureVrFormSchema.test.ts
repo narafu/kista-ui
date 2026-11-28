@@ -77,8 +77,8 @@ describe('reconfigureVrFormSchema', () => {
     for (const m of messages) expect(m).toMatch(/^[^a-z]*[가-힣].*(하세요|합니다)\./)
   })
 
-  it('인출 예수금은 센트 아래를 버린 장부 예수금까지만 통과하고, 장부 예수금을 모르면 검사하지 않는다', () => {
-    const limited = createReconfigureVrFormSchema(undefined, 100.009)
+  it('인출 예수금은 장부 예수금까지만 통과하고, 장부 예수금을 모르면 검사하지 않는다', () => {
+    const limited = createReconfigureVrFormSchema(undefined, 100)
     expect(limited.safeParse({ withdrawDeposit: 100 }).success).toBe(true)
     expect(limited.safeParse({ withdrawDeposit: 100.001 }).error?.issues[0].path).toEqual(['withdrawDeposit'])
     expect(schema.safeParse({ withdrawDeposit: 1e9 }).success).toBe(true)

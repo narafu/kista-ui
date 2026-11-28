@@ -10,6 +10,7 @@ export interface StrategyVrSummary {
   value: number          // 기준 V값
   bandWidth: number      // 밴드 폭 (%)
   intervalWeeks: number  // 롤오버 주기 (주)
+  nextRolloverDate?: string  // 다음 리밸런싱 예정일(서버 계산). 보관·종료 사이클이면 없음
   recurringAmount: number // 정기 입출금 (USD, 양수=입금 / 0=거치 / 음수=인출)
   poolLimit: number      // pool 한도 (현재 사이클 스냅샷 — 램프 0주차 값은 initialPoolLimitRate)
   currentPool?: number   // 최신 포지션 기준 실시간 pool(예수금). 포지션 이력 없는 극초기 상태면 null

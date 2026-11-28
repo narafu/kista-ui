@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'sonner'
 import type { Strategy } from '@entities/strategy'
+import { vrSummary } from '@entities/strategy/model/fixtures'
 import type { NextOrderPreview } from '@entities/order'
 import { StrategyDetail } from './StrategyDetail'
 
@@ -360,6 +361,7 @@ describe('StrategyDetail header card', () => {
           value: 3000,
           bandWidth: 15,
           intervalWeeks: 4,
+          nextRolloverDate: '2026-08-29',
           recurringAmount: -100,
           poolLimit: 500,
           poolLimitRate: 0.5,
@@ -381,6 +383,15 @@ describe('StrategyDetail header card', () => {
     expect(vrGrid).toHaveTextContent('2026. 8. 1.')
     expect(vrGrid).toHaveTextContent('다음 사이클 시작')
     expect(vrGrid).toHaveTextContent('2026. 8. 29.')
+  })
+
+  it('shows a dash for the next rollover when the server gives none but startDate is set', () => {
+    render(<StrategyDetail
+      accountId="account-1"
+      strategy={{ ...baseStrategy, type: 'VR', ticker: 'TQQQ', divisionCount: undefined, initialDeposit: 2000, startDate: '2026-08-01', vr: vrSummary() }}
+    />)
+
+    expect(screen.getByTestId('strategy-vr-grid')).toHaveTextContent(/다음 사이클 시작-/)
   })
 
   it('shows the saving mode amount when recurringAmount is positive', () => {

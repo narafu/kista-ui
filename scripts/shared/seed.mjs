@@ -61,10 +61,8 @@ async function resolveFromApi() {
       [(s) => s.ticker === ticker && s.status === 'ACTIVE', (s) => s.status === 'ACTIVE', () => true]
         .map((cond) => strategies.find((s) => match(s) && cond(s)))
         .find(Boolean)
-    // entities/strategy capitalAdjustment의 supportsCapitalAdjustment·canWithdrawCapital(floorToCents) 조건 — 서버도 진행 중 사이클에서만 허용한다
-    const adjustable = (s) =>
-      ['PRIVACY', 'INFINITE', 'DCA'].includes(s.type) && s.cycleInProgress &&
-      (s.ledgerDeposit == null || Math.floor(Number((s.ledgerDeposit * 100).toFixed(6))) > 0)
+    // 투자금 추가·인출을 둘 다 쓸 수 있는 전략 — 서버 allowedActions가 판정한다(진행 중 사이클·인출 가능 잔액)
+    const adjustable = (s) => s.allowedActions?.includes('WITHDRAW_CAPITAL')
     // 기본값 계좌 맵에 합친다 — 못 찾은 키가 기본 ID로 남아도 tickerOf가 그 ID의 ticker를 계속 찾도록
     const resolved = { accounts: { ...defaults.accounts, [account.id]: Object.fromEntries(strategies.map((s) => [s.id, s.ticker])) } }
     for (const [key, type, ticker] of [

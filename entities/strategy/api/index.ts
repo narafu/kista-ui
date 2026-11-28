@@ -13,6 +13,7 @@ function normalizeVrSummary(raw: unknown): StrategyVrSummary | undefined {
     value: toNum(v.value),
     bandWidth: toNum(v.bandWidth),
     intervalWeeks: Number(v.intervalWeeks),
+    nextRolloverDate: v.nextRolloverDate != null ? String(v.nextRolloverDate) : undefined,
     recurringAmount: Number(v.recurringAmount ?? 0),
     poolLimit: toNum(v.poolLimit),
     currentPool: optDec(v.currentPool),
