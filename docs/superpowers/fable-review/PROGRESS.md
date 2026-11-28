@@ -427,6 +427,12 @@ Opus가 직접 맡을 핵심 태스크만 추리면: 07-2, 04-2, 04-4, 06-1, 06-
   - e2e(`--project=setup --no-deps` → `--project=chromium --no-deps`): setup 1건 + 15건 통과. 같은 api라 A(`6b861b66`)·B(`ff00efd2`) 변경도 이 실행에 포함된다.
   - a11y-check: 첫 실행 위반 1건(출력을 필터해 내용 미기록), 재실행 위반 0건.
   - 남은 것: visual-diff(검증 POST 허용 프록시로 등록 화면 재촬영).
+- S4 3차(`b1adbb12`~`bca7b4eb`)·S4 3차 후속·S7 후속 A·B·C·T7·K1: **해소(2026-11-28, 일부는 갈음)**. ui 28커밋을 push(23:28Z)·배포한 뒤 운영(api `9ffa48504`)에서 확인했다.
+  - 운영 계정 브라우저에서 `fetch` 가드로 GET·HEAD·`*-validations` POST만 통과시켰고 차단된 쓰기는 0건이다.
+  - T7: 서버 400이 `fieldErrors`를 주고 UI가 폼에 붙인다(UI 렌더는 같은 호출에 가짜 400 주입). S7 후속 C: 등록 폼 검증 POST 200, 서버 문구 표시. A·B: 등록 폼 meta, 계좌 상세·수정, 전략 상세 정상. login은 `/api/runtime-config` 호출 0건.
+  - K1: 401+refresh 504 주입 시 로그아웃 없이 세션 유지(가짜 응답). 실제 `POST /api/auth/refresh` 1회 200. 운영에서 실제 갱신 실패는 재현하지 못했다.
+  - visual-diff(`252cc6ae` 대 `bca7b4eb`): 판정 가능한 화면은 높이 차이 1~6px 중심이고 의도 변경(모서리 20→16px, 모바일 여백 24→16px)과 맞다. `admin-accounts`·`pending`·`rejected`·`not-found`는 차이 0. `finance-settings` 모바일 −139px·`finance-new` 모바일 −24px는 여백·줄바꿈 감소로 확인했고, `reconfigure-vr` PC +19px는 이유를 확인하지 못했다. `account-new`·`account-new-toss`·`account-new-mock`·`create-strategy`·`create-strategy-vr`·`create-strategy-vr-advanced`·`create-strategy-seed-cash`·`create-strategy-seed-fill`·`benchmark-etf`·`benchmark-apt` 10개 시나리오(PC·모바일)는 비회원 대시보드로 튕겨 판정하지 못했다. 구 UI가 `/api/runtime-config`를 부르는데 로컬 api(main, `09f5c3588`에서 이 엔드포인트 삭제)에서 401이 난 것으로 추정한다(`proxy.log`의 UPSTREAM 401, 직접 재현은 안 함). 벤치마크 카드는 S4 3차(`f3b9eaf2`)가 직접 바꾼 화면이라 판정에서 빠진 것이다.
+  - 위 10개 시나리오의 visual-diff는 하지 않고 닫는다(사용자 결정, 2026-11-28). 이 화면들은 S7 후속 C 시점 e2e·실화면 확인으로 갈음한다. S7 후속 A의 볼 것(로그인 승인 안내·브로커 단계·대시보드 sma·rsi)은 운영 확인에서 보지 않았고, S7 C 시점 e2e 16건과 실화면으로 갈음했다.
 
 ### S4 3차 후속 — 카드·제목 통일 (2026-11-25, 기준 `65c9102e`)
 
