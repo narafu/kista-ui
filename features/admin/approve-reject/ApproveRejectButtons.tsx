@@ -32,7 +32,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
             type="button"
             aria-disabled={loading}
             onClick={blockWhileLoading}
-            className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
+            className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1')}
           >
             {approveMutation.isPending ? <><Spinner size={12} />승인 중…</> : '승인'}
           </button>
@@ -55,7 +55,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
             type="button"
             aria-disabled={loading}
             onClick={blockWhileLoading}
-            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
+            className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1')}
           >
             {rejectMutation.isPending ? <><Spinner size={12} />거절 중…</> : '거절'}
           </button>

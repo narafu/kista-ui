@@ -128,7 +128,7 @@ export function EditAccountForm({ account }: Props) {
               type="button"
               aria-disabled={deleteBlocked}
               onClick={blockTriggerWhile(deleteBlocked)}
-              className={cn(buttonVariants({ variant: 'destructive' }), 'w-full aria-disabled:opacity-50')}
+              className={cn(buttonVariants({ variant: 'destructive' }), 'w-full')}
             >
               계좌 삭제
             </button>

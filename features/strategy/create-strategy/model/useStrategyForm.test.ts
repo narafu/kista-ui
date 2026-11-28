@@ -1275,7 +1275,7 @@ describe('useStrategyForm 서버 검증 연결', () => {
     ['예수금 입력', (form: ReturnType<typeof useStrategyForm>) => form.setSeedUsdInput(100)],
     ['보유 수량 입력', (form: ReturnType<typeof useStrategyForm>) => form.setVrField('quantity', 1)],
     ['제출 시도', (form: ReturnType<typeof useStrategyForm>) => { form.handleSubmit(submitEvent) }],
-  ])('등록은 %s 전까지 입력값 사유와 같은 서버 거절을 숨기고 제출은 막는다', (_name, touch) => {
+  ])('등록은 %s 전까지 입력값 사유와 같은 서버 거절을 숨기고 제출은 막는다', (name, touch) => {
     seedModelState.isBelowMinSeed = true
     validationState.fieldErrors = [{ field: 'initialDeposit', detail: '서버 문장' }]
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
@@ -1290,11 +1290,11 @@ describe('useStrategyForm 서버 검증 연결', () => {
     expect(result.current.submitDisabledReason).not.toBeNull()
     expect(mockCreateMutate).not.toHaveBeenCalled()
 
-    // 같은 유형을 다시 고르면 두고, 다른 유형으로 바꾸면 다시 숨긴다
+    // 같은 유형을 다시 고르면 두고, 다른 유형으로 바꾸면 남은 입력(보유 수량)이 없을 때만 다시 숨긴다
     act(() => result.current.setType('INFINITE'))
     expect(result.current.isBelowMinSeed).toBe(true)
     act(() => result.current.setType('PRIVACY'))
-    expect(result.current.isBelowMinSeed).toBe(false)
+    expect(result.current.isBelowMinSeed).toBe(name === '보유 수량 입력')
   })
 
   it.each([['ticker', '이미 같은 종목의 전략이 있습니다.'], [null, '이 증권사에서 등록할 수 없습니다.']])('입력 전에도 입력값과 무관한 서버 거절(%s)은 보인다', (field, detail) => {

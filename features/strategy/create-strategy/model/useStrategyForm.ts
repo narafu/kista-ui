@@ -75,7 +75,7 @@ export interface UseStrategyFormReturn {
   setSeedUsdInput: (v: number | null) => void
   availableCash: number | null // 시드 미리보기의 가용 예수금 — 참고값·비율 채우기용 (모의계좌·조회 실패는 null)
   minSeed: number | null
-  isBelowMinSeed: boolean // 표시용 — 등록에서 예수금·보유 수량 입력이나 제출 전에는 false
+  isBelowMinSeed: boolean // 표시용 — 등록에서 예수금·보유 수량·적립 금액 입력이나 제출 전에는 false
   loadingBase: boolean
   isMock: boolean
 
@@ -150,7 +150,7 @@ export function useStrategyForm({
     defaultValues: buildStrategyFormDefaults(initial, defaultType, settingsOf(defaultType)),
   })
   const [resolverValidationReason, setResolverValidationReason] = useState<string | null>(null)
-  // 등록은 예수금·보유 수량을 입력하거나 제출하기 전까지 입력값 경고를 보이지 않는다(차단은 그대로). 수정은 바로 보인다
+  // 등록은 예수금·보유 수량·적립 금액을 입력하거나 제출하기 전까지 입력값 경고를 보이지 않는다(차단은 그대로). 수정은 바로 보인다
   const [touched, setTouched] = useState(false)
   const revealed = !!initial || touched
 
@@ -299,14 +299,16 @@ export function useStrategyForm({
     ...setters,
     // 예수금도 유형별 값이다 — 다른 유형으로 바꾸면 0부터 다시 입력한다(DCA 폼은 다시 마운트되며 0)
     setType: (t: string) => {
+      setters.setType(t)
       if (t !== type) {
         setSeedUsdInput(0)
-        setTouched(false)
+        // 전환 뒤에도 남는 입력은 보유 수량뿐이다(예수금·적립 금액은 0으로 돌아간다) — 남아 있으면 경고를 계속 보인다
+        setTouched((form.getValues('quantity') ?? 0) > 0)
       }
-      setters.setType(t)
     },
     setVrField: (field: keyof VrFields, value: number | null) => {
-      if (field === 'quantity') setTouched(true)
+      // 거치 선택이 금액을 0으로 되돌리는 호출은 입력이 아니다
+      if (field === 'quantity' || (field === 'recurringAmount' && form.getValues('recurringMode') !== 'HOLD')) setTouched(true)
       setters.setVrField(field, value)
     },
     type, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,

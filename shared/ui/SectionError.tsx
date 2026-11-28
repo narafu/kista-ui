@@ -47,7 +47,7 @@ function ErrorCard({ message, bare, restarting, children }: CardProps & { childr
 
 function RetryButton({ pending, onClick }: { pending: boolean; onClick: () => void }) {
   return (
-    <Button variant="outline" size="sm" className="mt-3 aria-disabled:opacity-50" aria-disabled={pending} onClick={onClick}>
+    <Button variant="outline" size="sm" className="mt-3" aria-disabled={pending} onClick={onClick}>
       다시 시도
     </Button>
   )

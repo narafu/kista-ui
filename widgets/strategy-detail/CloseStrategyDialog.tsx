@@ -47,7 +47,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
       {/* 처리 중 열기만 막는다 — 모달 트리거에 disabled를 걸면 닫은 뒤 포커스가 돌아오지 못한다 */}
       <AlertDialog open={open} onOpenChange={(next) => { if (!(next && disabled)) onOpenChange(next) }}>
         <AlertDialogTrigger
-          className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'w-full aria-disabled:opacity-50')}
+          className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'w-full')}
           aria-disabled={disabled}
           aria-describedby={captionId}
         >

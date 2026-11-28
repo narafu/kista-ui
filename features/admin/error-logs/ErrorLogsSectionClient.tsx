@@ -84,7 +84,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           trigger={
             <button
               type="button"
-              className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'ml-auto aria-disabled:opacity-50')}
+              className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), 'ml-auto')}
               aria-disabled={selectedCount === 0 || mutation.isPending}
               onClick={blockTriggerWhile(selectedCount === 0 || mutation.isPending)}
             >

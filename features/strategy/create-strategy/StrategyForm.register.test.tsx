@@ -35,7 +35,7 @@ const meta = {
   strategyTypes: [
     type('INFINITE'),
     type('VR', {
-      recurringMode: { customizable: true, allowedValues: ['HOLD'], defaultValue: 'HOLD' },
+      recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD'], defaultValue: 'HOLD' },
       bandWidth: { customizable: false, allowedValues: [15], defaultValue: 15 },
       intervalWeeks: { customizable: false, allowedValues: [2], defaultValue: 2 },
     }),
@@ -84,6 +84,28 @@ describe('전략 등록 화면의 입력값 경고', () => {
     fireEvent.change(seed(), { target: { value: '100' } })
     expect(screen.getByText('최소 투자금 $500.00 이상이 필요합니다.')).toBeInTheDocument()
     expect(screen.getByText('최소 투자금 미달')).toBeInTheDocument()
+  })
+
+  it('VR 적립 금액을 입력하면 경고를 보인다 — 방식 선택만으로는 보이지 않는다', () => {
+    renderForm()
+    selectType('VR')
+    fireEvent.click(screen.getByRole('button', { name: '거치' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ 적립' }))
+    expect(screen.queryByText(/0보다 크게 입력하세요/)).not.toBeInTheDocument()
+
+    const amount = screen.getByLabelText('적립금(+)/인출금(-)')
+    fireEvent.change(amount, { target: { value: '100' } })
+    fireEvent.change(amount, { target: { value: '' } })
+    expect(screen.getByText('적립금을 0보다 크게 입력하세요.')).toBeInTheDocument()
+  })
+
+  it('보유 수량이 남아 있으면 유형을 바꿔도 경고를 보인다', () => {
+    renderForm()
+    selectType('VR')
+    fireEvent.change(screen.getByLabelText('평단가'), { target: { value: '100' } })
+    fireEvent.change(screen.getByLabelText('수량'), { target: { value: '1' } })
+    selectType('INFINITE')
+    expect(screen.getByText('최소 투자금 $500.00 이상이 필요합니다.')).toBeInTheDocument()
   })
 
   it.each([

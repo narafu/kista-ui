@@ -29,7 +29,7 @@ export function DeleteAccountButton() {
     <>
       <ConfirmDialog
         trigger={
-          <button type="button" aria-disabled={blocked} onClick={blockTriggerWhile(blocked)} className={cn(buttonVariants({ variant: 'destructive' }), 'aria-disabled:opacity-50')}>
+          <button type="button" aria-disabled={blocked} onClick={blockTriggerWhile(blocked)} className={cn(buttonVariants({ variant: 'destructive' }))}>
             회원 탈퇴
           </button>
         }

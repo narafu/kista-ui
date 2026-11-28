@@ -29,7 +29,7 @@ export function WithdrawUserButton({ userId, nickname, isSelf = false }: Props) 
             aria-disabled={mutation.isPending}
             aria-describedby={isSelf ? `self-withdraw-${userId}` : undefined}
             onClick={blockTriggerWhile(mutation.isPending)}
-            className={cn(buttonVariants({ variant: 'destructive', size: 'xs' }), 'aria-disabled:opacity-50')}
+            className={cn(buttonVariants({ variant: 'destructive', size: 'xs' }))}
           >
             탈퇴
           </button>

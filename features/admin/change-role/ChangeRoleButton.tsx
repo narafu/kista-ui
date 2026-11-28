@@ -19,7 +19,7 @@ interface Props {
   isSelf?: boolean
 }
 
-const TRIGGER_CLASS = cn(buttonVariants({ variant: 'outline', size: 'xs' }), 'aria-disabled:opacity-50')
+const TRIGGER_CLASS = cn(buttonVariants({ variant: 'outline', size: 'xs' }))
 
 export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false }: Props) {
   const [open, setOpen] = useState(false)

@@ -40,7 +40,6 @@ function ArchivedRow({ strategy, account, open, onOpenChange, onRemove, isDeleti
           broker={account?.broker}
           onConfirm={() => onRemove(strategy)}
           disabled={isDeleting}
-          isDeleting={isDeleting}
           isArchived
           triggerAriaLabel={`${strategy.ticker} 보관 전략 삭제`}
         />

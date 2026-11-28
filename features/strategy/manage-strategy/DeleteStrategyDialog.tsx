@@ -15,7 +15,6 @@ interface Props {
   broker?: string
   onConfirm: () => void
   disabled: boolean
-  isDeleting: boolean
   // 보관된 전략이면 "보관하세요" 안내를 뺀다
   isArchived?: boolean
   // 버튼 아래 한 줄 설명 — 있으면 버튼과 함께 세로 열로 묶는다(부모는 열 배치)
@@ -24,7 +23,7 @@ interface Props {
   triggerAriaLabel?: string
 }
 
-export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onConfirm, disabled, isDeleting, isArchived, triggerAriaLabel, caption }: Props) {
+export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onConfirm, disabled, isArchived, triggerAriaLabel, caption }: Props) {
   const captionId = useId()
   const dialog = (
     <>
@@ -33,7 +32,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
         trigger={
           <button
             type="button"
-            className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), caption ? 'w-full aria-disabled:opacity-50' : 'flex-1 aria-disabled:opacity-50')}
+            className={cn(buttonVariants({ variant: 'destructive', size: 'sm' }), caption ? 'w-full' : 'flex-1')}
             aria-disabled={disabled}
             aria-label={triggerAriaLabel}
             aria-describedby={caption ? captionId : undefined}
@@ -46,7 +45,6 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
         onOpenChange={onOpenChange}
         title="전략을 삭제하시겠습니까?"
         description={`${ticker} 전략을 삭제하시겠습니까? ${isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.${isArchived ? '' : ' 통계를 남기려면 보관하세요.'}`}
-        pendingLabel={isDeleting ? '삭제 중…' : '삭제'}
         onConfirm={onConfirm}
         pending={disabled}
       />

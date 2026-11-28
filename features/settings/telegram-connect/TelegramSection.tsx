@@ -59,7 +59,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               onClick={() => setIsDisconnectOpen(true)}
               disabled={isDeleteLoading}
               focusableWhenDisabled
-              className="shrink-0 aria-disabled:opacity-50"
+              className="shrink-0"
             >
               {isDeleteLoading ? '해제 중…' : '연결 해제'}
             </Button>

@@ -3,7 +3,6 @@
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
-import { cn } from '@shared/lib/utils'
 import { Spinner } from '@shared/ui/Spinner'
 import { Button } from '@/components/ui/button'
 
@@ -30,7 +29,7 @@ export function NewAccountButton({ href = '/accounts/new', className, children =
       // focusableWhenDisabled는 aria-disabled만 걸고 클릭·키 입력을 막는다
       disabled={isPending}
       focusableWhenDisabled
-      className={cn('aria-disabled:opacity-50', className)}
+      className={className}
     >
       {isPending ? <Spinner size={14} /> : <Plus className="size-3.5" />}
       {children}
