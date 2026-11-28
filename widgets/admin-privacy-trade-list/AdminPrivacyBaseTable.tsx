@@ -261,7 +261,6 @@ export function AdminPrivacyBaseTable({ windowFrom, windowTo, sinceYearlyReset =
         description={deleteOrderTarget ? `${describeOrder(deleteOrderTarget.order, labelOf)} 주문을 삭제합니다.` : ''}
         onConfirm={handleDeleteOrder}
         pending={deleteOrderMutation.isPending}
-        pendingLabel="삭제 중..."
       />
     </>
   )

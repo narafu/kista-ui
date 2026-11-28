@@ -6,7 +6,6 @@ import type { VrFields } from './useStrategyForm'
 import type { DivisionCount, StrategyFormValues } from './strategyFormSchema'
 
 type RuntimeStrategySettings = Pick<StrategyTypeMeta, 'enabled' | 'fields'>
-type StrategyVr = NonNullable<Strategy['vr']>
 
 const VR_FIELD_KEYS = [
   'avgPrice', 'quantity', 'intervalWeeks', 'bandWidth', 'recurringAmount', 'initialValue',
@@ -14,27 +13,21 @@ const VR_FIELD_KEYS = [
   'initialPoolLimitRate', 'pGraceWeeks', 'pStepWeeks', 'poolLimitFloor',
 ] as const satisfies readonly (keyof VrFields)[]
 
-function toRecurringMode(recurringAmount?: number | null): VrRecurringMode {
-  if (!recurringAmount) return 'HOLD'
-  return recurringAmount < 0 ? 'WITHDRAW' : 'DEPOSIT'
-}
-
-function buildVrDefaults(vr?: StrategyVr) {
-  return {
-    intervalWeeks: vr?.intervalWeeks ?? 2,
-    bandWidth: vr?.bandWidth ?? 15,
-    recurringAmount: Math.abs(vr?.recurringAmount ?? 0),
-    recurringMode: toRecurringMode(vr?.recurringAmount),
-    initialValue: null,
-    initialGradient: vr?.initialGradient ?? null,
-    gGraceWeeks: vr?.gGraceWeeks ?? null,
-    gStepWeeks: vr?.gStepWeeks ?? null,
-    gMax: vr?.gMax ?? null,
-    initialPoolLimitRate: vr?.initialPoolLimitRate ?? null,
-    pGraceWeeks: vr?.pGraceWeeks ?? null,
-    pStepWeeks: vr?.pStepWeeks ?? null,
-    poolLimitFloor: vr?.poolLimitFloor ?? null,
-  }
+// VR 입력의 고정 기본값 — 관리자 운영 설정이 있으면 typeDefaultValues가 덮는다. VR은 이 폼에 수정 화면이 없다(VR 재설정)
+const VR_DEFAULTS = {
+  intervalWeeks: 2,
+  bandWidth: 15,
+  recurringAmount: 0,
+  recurringMode: 'HOLD' as VrRecurringMode,
+  initialValue: null,
+  initialGradient: null,
+  gGraceWeeks: null,
+  gStepWeeks: null,
+  gMax: null,
+  initialPoolLimitRate: null,
+  pGraceWeeks: null,
+  pStepWeeks: null,
+  poolLimitFloor: null,
 }
 
 // 유형별 등록 기본값(관리자 운영 설정) — 첫 화면과 유형 변경이 같은 값을 쓴다. 시드는 유형과 무관하게 0에서 시작한다(useSeedModel)
@@ -62,7 +55,7 @@ export function buildStrategyFormDefaults(initial: Strategy | undefined, default
     // 중간부터 시작(평단가·수량)은 등록 전용 — 수정 모드에서는 역산 불가하므로 항상 빈 값
     avgPrice: null,
     quantity: null,
-    ...buildVrDefaults(initial?.vr),
+    ...VR_DEFAULTS,
     // 시작예정일도 등록 전용 — 등록은 오늘 기본값(필수), 수정 모드에서는 항상 빈 값
     scheduledStartDate: initial ? null : todayKst(),
     ...(initial ? {} : typeDefaultValues(settings)),
@@ -108,15 +101,16 @@ export function deriveRuntimeFields(
   }
 }
 
-// basePrice/minSeed는 서버 검증의 파생값 — VR 전략은 시드 미리보기를 쓰지 않는다
+// basePrice/minSeed는 서버 검증의 파생값 — VR 전략은 기준가·최소 시드를 쓰지 않고 가용 예수금만 쓴다
 export function deriveSeedPreview(isVr: boolean, data: StrategyValidation['derived'] | undefined) {
-  if (isVr) return { basePrice: null, minSeed: null, seedUnavailableReason: null, availableCash: null }
+  // 서버 값은 증권사 주문가능액 − 다른 전략 원장이라 음수일 수 있다 — 참고값이므로 0으로 표시한다
+  const availableCash = data?.availableCash == null ? null : Math.max(0, data.availableCash)
+  if (isVr) return { basePrice: null, minSeed: null, seedUnavailableReason: null, availableCash }
   return {
     basePrice: data?.basePrice ?? null,
     minSeed: data?.minSeed ?? null,
     seedUnavailableReason: data?.skipReason ?? null,
-    // 서버 값은 증권사 주문가능액 − 다른 전략 원장이라 음수일 수 있다 — 참고값이므로 0으로 표시한다
-    availableCash: data?.availableCash == null ? null : Math.max(0, data.availableCash),
+    availableCash,
   }
 }
 

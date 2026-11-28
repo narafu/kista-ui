@@ -103,7 +103,6 @@ export function SuggestionListEditor({ id, label, values, onChange, disabled }: 
           description="추천 목록에서만 빠지며, 이미 등록된 자산 기록은 바뀌지 않습니다."
           onConfirm={deleteValue}
           pending={Boolean(disabled)}
-          pendingLabel="삭제 중..."
         />
       )}
     </div>

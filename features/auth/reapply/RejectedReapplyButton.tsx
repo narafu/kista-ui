@@ -54,7 +54,7 @@ export function RejectedReapplyButton({ reapplyAvailableAt }: { reapplyAvailable
         disabled={cooldownMinutes > 0 || isLoading}
       >
         {isLoading ? (
-          <><Spinner size={18} />재신청 중...</>
+          <><Spinner size={18} />재신청 중…</>
         ) : (cooldownMinutes > 0 ? formatCooldown(cooldownMinutes) : '승인 재신청')}
       </Button>
       <div className="text-sm text-muted-foreground mt-2.5 text-center">

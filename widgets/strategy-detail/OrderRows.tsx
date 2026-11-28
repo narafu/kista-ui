@@ -97,7 +97,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
               </span>
               {hasCancel && o.id && (
                 <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
-                  {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
+                  {cancelPending && cancellingId === o.id ? '취소 중…' : '취소'}
                 </Button>
               )}
             </div>
@@ -142,7 +142,7 @@ export function OrderRows({ orders, onCancelOne, cancellingId, cancelPending }: 
                 <TableDataCell>
                   {o.id && (
                     <Button variant="destructive" size="xs" onClick={() => onCancelOne(o.id!)} disabled={cancelPending}>
-                      {cancelPending && cancellingId === o.id ? '취소 중...' : '취소'}
+                      {cancelPending && cancellingId === o.id ? '취소 중…' : '취소'}
                     </Button>
                   )}
                 </TableDataCell>

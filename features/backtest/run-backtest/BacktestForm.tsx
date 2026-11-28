@@ -247,7 +247,7 @@ export function BacktestForm({ form }: Props) {
             {form.isLoading ? (
               <>
                 <Spinner size={14} />
-                실행 중...
+                실행 중…
               </>
             ) : '실행'}
           </Button>

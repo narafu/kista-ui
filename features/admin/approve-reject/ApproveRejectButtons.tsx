@@ -34,7 +34,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
             onClick={blockWhileLoading}
             className={cn(buttonVariants({ variant: 'default', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
           >
-            {approveMutation.isPending ? <><Spinner size={12} />승인 중...</> : '승인'}
+            {approveMutation.isPending ? <><Spinner size={12} />승인 중…</> : '승인'}
           </button>
         }
         open={openDialog === 'approve'}
@@ -57,7 +57,7 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
             onClick={blockWhileLoading}
             className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-1 aria-disabled:opacity-50')}
           >
-            {rejectMutation.isPending ? <><Spinner size={12} />거절 중...</> : '거절'}
+            {rejectMutation.isPending ? <><Spinner size={12} />거절 중…</> : '거절'}
           </button>
         }
         open={openDialog === 'reject'}

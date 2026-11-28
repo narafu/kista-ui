@@ -159,7 +159,7 @@ export function AdminTradeFilterPanel({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm font-medium">현재 전략 상태: {labelOf('strategyStatuses', selectedStrategy.status)}</p>
             <Button type="button" variant="outline" size="sm" onClick={onStrategyStatusToggle} disabled={strategyStatusPending}>
-              {strategyStatusPending ? '처리 중...' : nextStrategyActionLabel}
+              {strategyStatusPending ? '처리 중…' : nextStrategyActionLabel}
             </Button>
           </div>
         </div>

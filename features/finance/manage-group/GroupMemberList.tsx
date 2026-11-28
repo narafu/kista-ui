@@ -71,7 +71,7 @@ export function GroupMemberList({ groupId, members, isOwner, myUserId }: Props) 
         title={`${kickTarget ? memberLabel(kickTarget) : ''}님을 추방하시겠습니까?`}
         description="추방된 멤버는 이 그룹의 데이터에 더 이상 접근할 수 없습니다. 기존 데이터는 삭제되지 않고 남은 멤버가 계속 볼 수 있습니다."
         confirmLabel="추방"
-        pendingLabel="처리 중..."
+        pendingLabel="처리 중…"
         onConfirm={handleConfirmKick}
         pending={mutation.isPending}
       />

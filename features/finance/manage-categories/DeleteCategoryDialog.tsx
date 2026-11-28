@@ -21,7 +21,6 @@ export function DeleteCategoryDialog({ open, onOpenChange, categoryName, subtree
       onOpenChange={onOpenChange}
       title={`${categoryName} 카테고리를 삭제하시겠습니까?`}
       description={`${childCount > 0 ? `하위 ${childCount}개 카테고리가 함께 삭제됩니다. ` : ''}이 카테고리를 사용한 과거 기록은 유지됩니다.`}
-      pendingLabel="삭제 중..."
       onConfirm={onConfirm}
       pending={isPending}
     />

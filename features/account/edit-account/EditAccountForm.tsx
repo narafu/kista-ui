@@ -145,7 +145,7 @@ export function EditAccountForm({ account }: Props) {
           }
           typeToConfirm={account.nickname}
           confirmLabel="영구 삭제"
-          pendingLabel="삭제 중..."
+          pendingLabel="삭제 중…"
           onConfirm={handleDelete}
           pending={deleteBlocked}
         />

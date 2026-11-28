@@ -168,7 +168,7 @@ describe('EditAccountForm', () => {
     await userEvent.click(deleteButton)
 
     await waitFor(() => expect(toast.success).toHaveBeenCalledWith('계좌를 삭제했습니다'))
-    await waitFor(() => expect(screen.getByRole('button', { name: '삭제 중...' })).toBeDisabled())
+    await waitFor(() => expect(screen.getByRole('button', { name: '삭제 중…' })).toBeDisabled())
     expect(useRouter().push).not.toHaveBeenCalledWith('/accounts')
     expect(requests.filter((r) => r.method === 'DELETE')).toHaveLength(1)
   })

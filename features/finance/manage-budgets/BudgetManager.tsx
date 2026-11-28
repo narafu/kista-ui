@@ -249,7 +249,6 @@ export function BudgetManager({ type }: Props) {
           description="삭제한 예산은 복구할 수 없습니다."
           onConfirm={handleDelete}
           pending={deleteMutation.isPending}
-          pendingLabel="삭제 중..."
         />
       )}
     </div>

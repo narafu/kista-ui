@@ -61,7 +61,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
               focusableWhenDisabled
               className="shrink-0 aria-disabled:opacity-50"
             >
-              {isDeleteLoading ? '해제 중...' : '연결 해제'}
+              {isDeleteLoading ? '해제 중…' : '연결 해제'}
             </Button>
           </div>
           <ConfirmDialog
@@ -72,7 +72,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
             onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: () => setIsDisconnectOpen(false) })}
             pending={isDeleteLoading}
             confirmLabel="연결 해제"
-            pendingLabel="해제 중..."
+            pendingLabel="해제 중…"
           />
         </div>
       )}
@@ -81,7 +81,7 @@ export function TelegramSection({ hasTelegram, telegramBotUsername, currentChann
       {!hasTelegram && (
         <form onSubmit={form.submit} className="flex flex-col gap-3">
           <FormField control={form.control} name="botToken" id="bot-token" label="Bot Token" className="space-y-1">
-            {(f) => <Input {...f} placeholder="123456:ABC-DEF..." className="h-10 text-sm" disabled={form.isPending} maxLength={512} />}
+            {(f) => <Input {...f} placeholder="123456:ABC-DEF…" className="h-10 text-sm" disabled={form.isPending} maxLength={512} />}
           </FormField>
           <FormField control={form.control} name="chatId" id="chat-id" label="Chat ID" className="space-y-1">
             {(f) => <Input {...f} placeholder="-100123456789" className="h-10 text-sm" disabled={form.isPending} maxLength={50} />}

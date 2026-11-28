@@ -46,7 +46,7 @@ export function DeleteStrategyDialog({ open, onOpenChange, ticker, broker, onCon
         onOpenChange={onOpenChange}
         title="전략을 삭제하시겠습니까?"
         description={`${ticker} 전략을 삭제하시겠습니까? ${isMockBroker(broker) ? '' : '증권사에 접수된 '}미체결 주문을 먼저 취소하고, 전략과 사이클 기록을 더 이상 볼 수 없습니다. 통계에서도 이 전략의 성과가 사라집니다.${isArchived ? '' : ' 통계를 남기려면 보관하세요.'}`}
-        pendingLabel={isDeleting ? '삭제 중...' : '삭제'}
+        pendingLabel={isDeleting ? '삭제 중…' : '삭제'}
         onConfirm={onConfirm}
         pending={disabled}
       />

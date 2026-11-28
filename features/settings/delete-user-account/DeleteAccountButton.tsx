@@ -39,7 +39,7 @@ export function DeleteAccountButton() {
         title={<span className="text-destructive">정말 탈퇴하시겠습니까?</span>}
         description="모든 계좌, 거래 내역, 설정이 즉시 삭제되며 복구할 수 없습니다."
         confirmLabel="탈퇴 확인"
-        pendingLabel="처리 중..."
+        pendingLabel="처리 중…"
         onConfirm={handleDelete}
         pending={blocked}
       />

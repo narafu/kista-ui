@@ -45,7 +45,7 @@ export function WithdrawUserButton({ userId, nickname, isSelf = false }: Props) 
           </>
         }
         confirmLabel="탈퇴 처리"
-        pendingLabel="처리 중..."
+        pendingLabel="처리 중…"
         mutation={mutation}
         variables={userId}
         onSuccess={() => toast.success(`${nickname} 님을 탈퇴 처리했습니다`)}

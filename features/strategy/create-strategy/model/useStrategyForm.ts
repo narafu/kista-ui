@@ -10,7 +10,7 @@ import { useAccountPricesQuery, type BrokerCode, type PriceMap } from '@entities
 import type { StrategyFieldSettings } from '@entities/meta'
 import { useStrategyFormData } from './useStrategyFormData'
 import { isBelowMinSeed as belowMinSeed, useSeedModel } from './useSeedModel'
-import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabled, computeVrAssets, SERVER_FIELD_SLOT, type SeedCheck, type SubmitDisabled, type SubmitReasonField } from './strategyFormGuards'
+import { isInvalidBootstrap, isInvalidScheduledStart, isInvalidVr, isRuntimeValueInvalid, computeCannotSubmit, computeSubmitDisabled, computeVrAssets, INPUT_VALUE_SERVER_FIELDS, SERVER_FIELD_SLOT, type SeedCheck, type SubmitDisabled, type SubmitReasonField } from './strategyFormGuards'
 import { buildStrategyPayload } from './buildStrategyPayload'
 import { buildStrategyFormDefaults, createFormSetters, deriveRuntimeFields, deriveSeedPreview, toCycleSeedType, watchVrFields } from './strategyFormHelpers'
 import { useInitializing, useLoadFailToast, useStrategyMutations } from './useStrategyFormEffects'
@@ -75,7 +75,7 @@ export interface UseStrategyFormReturn {
   setSeedUsdInput: (v: number | null) => void
   availableCash: number | null // 시드 미리보기의 가용 예수금 — 참고값·비율 채우기용 (모의계좌·조회 실패는 null)
   minSeed: number | null
-  isBelowMinSeed: boolean
+  isBelowMinSeed: boolean // 표시용 — 등록에서 예수금·보유 수량 입력이나 제출 전에는 false
   loadingBase: boolean
   isMock: boolean
 
@@ -150,6 +150,9 @@ export function useStrategyForm({
     defaultValues: buildStrategyFormDefaults(initial, defaultType, settingsOf(defaultType)),
   })
   const [resolverValidationReason, setResolverValidationReason] = useState<string | null>(null)
+  // 등록은 예수금·보유 수량을 입력하거나 제출하기 전까지 입력값 경고를 보이지 않는다(차단은 그대로). 수정은 바로 보인다
+  const [touched, setTouched] = useState(false)
+  const revealed = !!initial || touched
 
   useEffect(() => {
     const subscription = form.watch(() => setResolverValidationReason(null))
@@ -226,7 +229,7 @@ export function useStrategyForm({
     ? 'ok'
     : validation.isError || validation.data ? 'failed' : 'loading'
 
-  const vrAssets = computeVrAssets({ initial, vrFields, seedUsd, recurringMode })
+  const vrAssets = computeVrAssets({ vrFields, seedUsd, recurringMode })
 
   const invalidBootstrap = isInvalidBootstrap({ initial, avgPrice, quantity })
   const invalidScheduledStart = isInvalidScheduledStart({ initial, scheduledStartDate })
@@ -245,13 +248,14 @@ export function useStrategyForm({
     isBelowMinSeed, isVr, isInvalidSeed, seedCheck,
   })
 
-  const preSubmitDisabled = computeSubmitDisabled({
+  const guardInput = {
     initial, canEditSeed, runtimeConfigUnavailable,
     isInvalidScheduledStart: invalidScheduledStart,
     isVr, vrFields, recurringMode, vrAssets, rampDefaults,
     isRuntimeValueInvalid: runtimeValueInvalid,
     seedUnavailableReason: judgesSeed ? seedUnavailableReason : null, isBelowMinSeed, minSeed, isInvalidSeed, seedCheck,
-  })
+  }
+  const preSubmitDisabled = computeSubmitDisabled(guardInput)
 
   // 서버 거절은 로컬 규칙이 모두 통과한 뒤에 보인다(로컬이 즉시·구체적). 지금 입력의 결과만 쓴다 — 검증 중·실패면 막지 않고 제출에서 서버가 다시 거른다
   const serverError = validation.current?.fieldErrors[0]
@@ -261,9 +265,14 @@ export function useStrategyForm({
     : null
   const submitDisabled = preSubmitDisabled ?? serverDisabled
 
-  const submitDisabledReason = submitDisabled?.message ?? resolverValidationReason
+  const untouchedLocal = revealed ? null : computeSubmitDisabled({ ...guardInput, revealInputReasons: false })
+  // VR 자산 거절은 서버가 필드를 주지 않아, 같은 로컬 사유를 숨기는 중인지로 가린다
+  const hidesServer = INPUT_VALUE_SERVER_FIELDS.includes(serverError?.field ?? '')
+    || (isVr && !serverError?.field && preSubmitDisabled !== null)
+  const shownDisabled = revealed ? submitDisabled : untouchedLocal ?? (hidesServer ? null : serverDisabled)
+  const submitDisabledReason = shownDisabled?.message ?? resolverValidationReason
   // 특정 입력칸의 사유면 그 칸 아래에 표시한다(하단은 여러 칸에 걸친 사유·resolver 사유만)
-  const submitDisabledField = submitDisabled?.field ?? null
+  const submitDisabledField = shownDisabled?.field ?? null
   // 사유가 있으면 막는다 — NO_PRIVACY_BASE처럼 cannotSubmit이 보지 않는 사유도 있다(서버도 거절하지 않는다, Q-35)
   const blocked = cannotSubmit || submitDisabled !== null
 
@@ -272,6 +281,7 @@ export function useStrategyForm({
   // 제출 버튼은 진행 중·잠금일 때만 비활성 — 막힌 제출은 사유를 남기고 false를 돌려준다
   function handleSubmit(e: React.FormEvent): boolean {
     e.preventDefault()
+    setTouched(true)
     if (blocked) {
       // 사유 문장 없이 막는 조합(비VR 허용값 밖 등)도 무엇이 문제인지 남긴다
       if (!submitDisabled) setResolverValidationReason('입력값을 다시 확인하세요.')
@@ -289,12 +299,24 @@ export function useStrategyForm({
     ...setters,
     // 예수금도 유형별 값이다 — 다른 유형으로 바꾸면 0부터 다시 입력한다(DCA 폼은 다시 마운트되며 0)
     setType: (t: string) => {
-      if (t !== type) setSeedUsdInput(0)
+      if (t !== type) {
+        setSeedUsdInput(0)
+        setTouched(false)
+      }
       setters.setType(t)
+    },
+    setVrField: (field: keyof VrFields, value: number | null) => {
+      if (field === 'quantity') setTouched(true)
+      setters.setVrField(field, value)
     },
     type, usesDivisionCount, requiresPrivacyBase, canEditSeed, seedUnavailableReason,
     ticker, availableTickers, defaultTicker, basePrice, prices,
-    seedUsdInput, setSeedUsdInput, availableCash, minSeed, isBelowMinSeed, loadingBase,
+    seedUsdInput,
+    setSeedUsdInput: (v: number | null) => {
+      setTouched(true)
+      setSeedUsdInput(v)
+    },
+    availableCash, minSeed, isBelowMinSeed: revealed && isBelowMinSeed, loadingBase,
     isMock,
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,

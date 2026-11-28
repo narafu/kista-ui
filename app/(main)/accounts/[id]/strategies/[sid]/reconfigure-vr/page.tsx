@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { PageHeader } from '@widgets/page-header'
-import { findStrategy } from '@entities/strategy'
+import { actionState, findStrategy } from '@entities/strategy'
 import { ReconfigureVrForm, hasVr } from '@features/strategy/reconfigure-vr'
 import { requirePageToken } from '@shared/lib/auth/token'
 
@@ -20,6 +20,10 @@ export default async function ReconfigureVrPage({ params }: Props) {
   const strategy = await findStrategy(id, sid, token)
   if (!strategy || !hasVr(strategy)) {
     return notFound()
+  }
+  // 보관 등 서버가 재설정을 허용하지 않는 전략은 직접 진입해도 상세로 보낸다
+  if (actionState(strategy, 'RESET_VR').kind !== 'allowed') {
+    redirect(`/accounts/${id}/strategies/${sid}`)
   }
 
   return (

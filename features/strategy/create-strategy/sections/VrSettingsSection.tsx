@@ -14,9 +14,6 @@ interface Props {
   recurringMode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW'
   setRecurringMode: (mode: 'DEPOSIT' | 'HOLD' | 'WITHDRAW') => void
   loading: boolean
-  isEdit: boolean
-  // 수정 모드 읽기전용 표시 전용 — 평단가·수량 역산 불가라 저장된 V값을 그대로 보여준다
-  initialVrValue: number
   // 램프 파라미터 미입력 시 서버로 전송될 실제값 — placeholder에 표시
   vrRampDefaults: {
     initialGradient: number
@@ -78,8 +75,7 @@ function VrAdvancedSettings({
   )
 }
 
-export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, isEdit, initialVrValue, vrRampDefaults, settings, recurringError }: Props) {
-  const disabled = loading || isEdit
+export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, vrRampDefaults, settings, recurringError }: Props) {
   const id = useId()
   const recurringErrorId = recurringError ? `${id}-recurring-error` : undefined
 
@@ -88,27 +84,13 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
       <StrategyFieldLabel>밸류 리밸런싱 설정</StrategyFieldLabel>
 
       <div className="grid grid-cols-1 gap-y-5">
-        {isEdit && (
-          <div>
-            <Label htmlFor={`${id}-initialVrValue`} className={VR_FIELD_LABEL_CLASS}>초기 V값</Label>
-            <AmountInput
-              id={`${id}-initialVrValue`}
-              value={initialVrValue}
-              onChange={() => {}}
-              unit="USD"
-              disabled={disabled}
-              unitClassName="ml-2"
-            />
-          </div>
-        )}
-
         <div>
           <RecurringModeField
             mode={recurringMode}
             setMode={setRecurringMode}
             amount={fields.recurringAmount}
             setAmount={(value) => setField('recurringAmount', value)}
-            disabled={disabled}
+            disabled={loading}
             setting={settings.recurringMode}
             errorId={recurringErrorId}
           />
@@ -116,9 +98,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         </div>
       </div>
 
-      {!isEdit && (
-        <VrAdvancedSettings fields={fields} setField={setField} disabled={disabled} vrRampDefaults={vrRampDefaults} settings={settings} />
-      )}
+      <VrAdvancedSettings fields={fields} setField={setField} disabled={loading} vrRampDefaults={vrRampDefaults} settings={settings} />
     </div>
   )
 }

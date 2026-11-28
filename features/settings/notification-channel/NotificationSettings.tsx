@@ -113,7 +113,7 @@ export function NotificationSettings({ currentChannel, hasTelegram }: Props) {
             {pendingChannel === c.value ? (
               <div className="flex items-center gap-1.5">
                 <Spinner size={12} className="shrink-0" />
-                <div className="font-medium text-sm">적용 중...</div>
+                <div className="font-medium text-sm">적용 중…</div>
               </div>
             ) : (
               <>

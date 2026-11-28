@@ -135,6 +135,44 @@ describe('StrategyDetailContent', () => {
     expect(screen.getByRole('button', { name: '투자금 추가' })).toBeEnabled()
   })
 
+  it('VR은 RESET_VR이 allowed면 재설정 링크를 보이고 수정은 숨긴다', () => {
+    setup({ type: 'VR', allowedActions: ['RESET_VR'] })
+    expect(screen.getByRole('link', { name: 'VR 재설정' })).toHaveAttribute('href', '/accounts/account-1/strategies/strategy-1/reconfigure-vr')
+    expect(screen.queryByRole('link', { name: '수정' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '수정' })).not.toBeInTheDocument()
+  })
+
+  it('보관된 VR은 재설정이 비활성 버튼이고 사유가 설명으로 연결된다', () => {
+    setup({ type: 'VR', allowedActions: [], blockedActions: [{ action: 'RESET_VR', reasonCode: 'ARCHIVED' }] })
+    expect(screen.queryByRole('link', { name: 'VR 재설정' })).not.toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'VR 재설정' })
+    expect(button).toHaveAttribute('aria-disabled', 'true')
+    expect(button).toHaveAccessibleDescription('보관된 전략')
+  })
+
+  it('보관된 무한매수는 수정까지 막고 같은 사유는 한 번만 보인다', () => {
+    setup({
+      allowedActions: [],
+      blockedActions: (['INJECT_CAPITAL', 'WITHDRAW_CAPITAL', 'EDIT_SEED'] as const).map((action) => ({ action, reasonCode: 'ARCHIVED' })),
+    })
+    expect(screen.queryByRole('link', { name: '수정' })).not.toBeInTheDocument()
+    for (const name of ['투자금 추가', '투자금 인출', '수정']) {
+      expect(screen.getByRole('button', { name })).toHaveAccessibleDescription('보관된 전략')
+    }
+    expect(screen.getAllByText('보관된 전략')).toHaveLength(1)
+  })
+
+  it('보유가 있어 시드 수정이 막혀도 무한매수의 수정 링크는 남는다', () => {
+    setup({ allowedActions: [], blockedActions: [{ action: 'EDIT_SEED', reasonCode: 'HAS_HOLDINGS' }] })
+    expect(screen.getByRole('link', { name: '수정' })).toBeInTheDocument()
+  })
+
+  it('DCA의 수정은 EDIT_DCA_CONFIG 판정을 따른다', () => {
+    setup({ type: 'DCA', allowedActions: [], blockedActions: [{ action: 'EDIT_DCA_CONFIG', reasonCode: 'ARCHIVED' }] })
+    expect(screen.queryByRole('link', { name: '수정' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '수정' })).toHaveAccessibleDescription('보관된 전략')
+  })
+
   it.each([
     ['투자금 추가', '진행 중인 사이클에 예수금을 추가합니다.', '추가 예수금'],
     ['투자금 인출', '진행 중인 사이클에서 예수금을 인출합니다.', '인출 예수금'],

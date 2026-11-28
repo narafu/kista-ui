@@ -62,7 +62,7 @@ function GroupSection({ groupId, myUserId }: GroupSectionProps) {
             onClick={() => leaveDialog.request(true)}
             disabled={leaveMutation.isPending}
           >
-            {leaveMutation.isPending ? '처리 중...' : '그룹 탈퇴'}
+            {leaveMutation.isPending ? '처리 중…' : '그룹 탈퇴'}
           </Button>
         )}
       </div>

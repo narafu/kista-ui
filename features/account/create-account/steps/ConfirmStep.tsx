@@ -78,7 +78,7 @@ export function ConfirmStep({ data, onBack }: Props) {
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-sm text-muted-foreground">API Key</span>
               <span className="text-sm font-semibold">
-                {data.apiKey ? `${data.apiKey.slice(0, 6)}...` : '-'}
+                {data.apiKey ? `${data.apiKey.slice(0, 6)}…` : '-'}
               </span>
             </div>
             {expiresOn && (
@@ -103,7 +103,7 @@ export function ConfirmStep({ data, onBack }: Props) {
           {isPending ? (
             <>
               <Spinner size={16} />
-              연결 중...
+              연결 중…
             </>
           ) : '계좌 연결'}
         </Button>

@@ -19,14 +19,13 @@ export interface VrAssets {
 }
 
 export function computeVrAssets(input: {
-  initial?: Strategy
   vrFields: VrFields
   seedUsd: number | null
   recurringMode: VrRecurringMode
 }): VrAssets {
-  const { initial, vrFields: { avgPrice, quantity, initialValue, recurringAmount, intervalWeeks }, seedUsd, recurringMode } = input
-  const estimatedStockValue = initial ? initial.vr?.value ?? 0 : (avgPrice ?? 0) * (quantity ?? 0)
-  const vrValue = !initial && initialValue !== null && initialValue > 0 ? initialValue : estimatedStockValue
+  const { vrFields: { avgPrice, quantity, initialValue, recurringAmount, intervalWeeks }, seedUsd, recurringMode } = input
+  const estimatedStockValue = (avgPrice ?? 0) * (quantity ?? 0)
+  const vrValue = initialValue !== null && initialValue > 0 ? initialValue : estimatedStockValue
   const normalizedRecurringAmount = signedRecurringAmount(recurringMode, recurringAmount)
   return {
     recurringMagnitude: Math.abs(recurringAmount ?? 0),
@@ -164,6 +163,9 @@ export const SERVER_FIELD_SLOT: Record<string, SubmitReasonField> = {
   recurringAmount: 'recurring',
 }
 
+// 등록 입력 전에는 보이지 않는 서버 거절 — 입력값(예수금·보유·적립금) 지적만. 종목 중복·증권사 제한 등은 바로 보인다
+export const INPUT_VALUE_SERVER_FIELDS = ['initialDeposit', 'initialHoldings', 'initialAvgPrice', 'recurringAmount']
+
 const reason = (message: string, field: SubmitReasonField | null = null): SubmitDisabled => ({ message, field })
 
 // submitDisabledReason의 사전 사유(resolver 거부 사유는 호출부에서 ?? 로 이어붙임).
@@ -184,10 +186,13 @@ export function computeSubmitDisabled(input: {
   minSeed: number | null
   isInvalidSeed: boolean
   seedCheck: SeedCheck
+  // false면 아직 입력하지 않은 값(예수금·보유·적립 금액)에서 나온 사유를 건너뛰고 다음 사유(잠금 등)를 돌려준다 — 표시 전용
+  revealInputReasons?: boolean
 }): SubmitDisabled | null {
   const {
     initial, canEditSeed, runtimeConfigUnavailable, isInvalidScheduledStart, isVr, vrFields, recurringMode,
     vrAssets, rampDefaults, isRuntimeValueInvalid, seedUnavailableReason, isBelowMinSeed, minSeed, isInvalidSeed, seedCheck,
+    revealInputReasons = true,
   } = input
   const { avgPrice, quantity, intervalWeeks, bandWidth, recurringAmount, gStepWeeks, gMax, poolLimitFloor, pStepWeeks } = vrFields
   const { recurringMagnitude, normalizedRecurringAmount, initialAssets, evaluatedAssets, requiredWithdrawalAssets } = vrAssets
@@ -218,16 +223,13 @@ export function computeSubmitDisabled(input: {
           if (recurringAmount !== null && !Number.isInteger(recurringAmount)) {
             return reason('적립금(+)/인출금(-)은 정수여야 합니다.', 'recurring')
           }
-          if (recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
+          if (revealInputReasons && recurringMode !== 'HOLD' && recurringMagnitude <= 0) {
             return reason(recurringMode === 'DEPOSIT' ? '적립금을 0보다 크게 입력하세요.' : '인출금을 0보다 크게 입력하세요.', 'recurring')
           }
-          if (normalizedRecurringAmount <= 0 && initialAssets <= 0) {
-            // 등록 모드는 평단가·수량 입력 필드가 있어 "수량"으로 안내, 수정 모드는 해당 입력이 없어 읽기전용 "초기 V값" 문구 유지
-            return reason(initial
-              ? '거치식/인출식은 초기 V값 또는 예수금이 0보다 커야 합니다.'
-              : '거치식/인출식은 수량 또는 예수금이 0보다 커야 합니다.')
+          if (revealInputReasons && normalizedRecurringAmount <= 0 && initialAssets <= 0) {
+            return reason('거치식/인출식은 수량 또는 예수금이 0보다 커야 합니다.')
           }
-          if (normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
+          if (revealInputReasons && normalizedRecurringAmount < 0 && evaluatedAssets < requiredWithdrawalAssets) {
             return reason(`인출식은 초기 자산이 $${fmtUsd(requiredWithdrawalAssets)} 이상이어야 합니다.`)
           }
           const rampReason = vrRampInvalidReason({
@@ -240,8 +242,8 @@ export function computeSubmitDisabled(input: {
         })()
       : (() => {
           if (seedUnavailableReason === 'NO_PRIVACY_BASE') return reason(`P 매매표가 없어 ${initial ? '수정' : '등록'}할 수 없습니다.`)
-          if (isBelowMinSeed && minSeed !== null) return reason(`최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`)
-          if (isInvalidSeed) return reason('예수금은 0보다 커야 합니다.')
+          if (revealInputReasons && isBelowMinSeed && minSeed !== null) return reason(`최소 투자금 $${fmtUsd(minSeed)} 이상이 필요합니다.`)
+          if (revealInputReasons && isInvalidSeed) return reason('예수금은 0보다 커야 합니다.')
           if (seedCheck === 'loading') return reason('최소 투자금을 확인하는 중입니다.')
           if (seedCheck === 'failed') return reason('최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.')
           return null

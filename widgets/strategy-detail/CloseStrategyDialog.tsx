@@ -85,7 +85,7 @@ export function CloseStrategyDialog({ open, onOpenChange, ticker, broker, hasHol
           <AlertDialogFooter>
             <AlertDialogCancel disabled={disabled}>취소</AlertDialogCancel>
             <AlertDialogAction variant={isDelete ? 'destructive' : 'default'} onClick={isDelete ? onDelete : onArchive} disabled={disabled}>
-              {isDelete ? (isDeleting ? '삭제 중...' : '삭제') : isArchiving ? '보관 중...' : '보관'}
+              {isDelete ? (isDeleting ? '삭제 중…' : '삭제') : isArchiving ? '보관 중…' : '보관'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

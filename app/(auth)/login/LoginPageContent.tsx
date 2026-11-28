@@ -98,7 +98,7 @@ export function LoginPageContent({ approvalRequired }: { approvalRequired: boole
         {isLoading ? (
           <>
             <Spinner size={20} />
-            카카오 연결 중...
+            카카오 연결 중…
           </>
         ) : (
           <>

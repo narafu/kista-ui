@@ -326,7 +326,7 @@ function AdminSettingsFormContent({ settings }: { settings: RuntimeConfig }) {
           <RotateCcw /> 변경 취소
         </Button>
         <Button type="submit" disabled={!isDirty || form.isPending || !dca}>
-          <Save /> {form.isPending ? '저장 중...' : '변경 저장'}
+          <Save /> {form.isPending ? '저장 중…' : '변경 저장'}
         </Button>
       </div>
     </form>

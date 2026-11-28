@@ -105,7 +105,7 @@ export function ConnectionTest({ keyLabel, secretLabel, disabled, isPending, isS
       >
         {isPending ? (
           <>
-            <Spinner size={16} /> 연결 확인 중...
+            <Spinner size={16} /> 연결 확인 중…
           </>
         ) : (
           '연결 테스트'

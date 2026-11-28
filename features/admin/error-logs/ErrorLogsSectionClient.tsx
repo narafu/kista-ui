@@ -88,7 +88,7 @@ export function ErrorLogsSectionClient({ logs }: Props) {
               aria-disabled={selectedCount === 0 || mutation.isPending}
               onClick={blockTriggerWhile(selectedCount === 0 || mutation.isPending)}
             >
-              {mutation.isPending ? '삭제 중...' : selectedLabel}
+              {mutation.isPending ? '삭제 중…' : selectedLabel}
             </button>
           }
           open={open}
@@ -96,7 +96,6 @@ export function ErrorLogsSectionClient({ logs }: Props) {
           title="선택한 오류 로그를 삭제하시겠습니까?"
           description={`현재 페이지에서 선택한 오류 로그 ${selectedCount}건을 삭제합니다.`}
           pending={mutation.isPending}
-          pendingLabel="삭제 중..."
           onConfirm={handleDelete}
         />
       </div>

@@ -176,6 +176,8 @@ describe('useStrategyForm submit policy', () => {
     act(() => result.current.setType('VR'))
     expect(result.current.recurringMode).toBe(mode)
     expect(result.current.cannotSubmit).toBe(true)
+    expect(result.current.submitDisabledReason).toBeNull()
+    await act(async () => { result.current.handleSubmit({ preventDefault() {} } as React.FormEvent) })
     expect(result.current.submitDisabledReason).toContain('금을 0보다 크게 입력하세요')
 
     act(() => result.current.setVrField('recurringAmount', 250))
@@ -1265,7 +1267,52 @@ describe('useStrategyForm 서버 검증 연결', () => {
     validationState.fieldErrors = [{ field: 'initialDeposit', detail: '서버 문장' }]
     seedModelState.isBelowMinSeed = true
     const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setSeedUsdInput(100))
     expect(result.current.submitDisabledReason).toBe('최소 투자금 $500.00 이상이 필요합니다.')
+  })
+
+  it.each([
+    ['예수금 입력', (form: ReturnType<typeof useStrategyForm>) => form.setSeedUsdInput(100)],
+    ['보유 수량 입력', (form: ReturnType<typeof useStrategyForm>) => form.setVrField('quantity', 1)],
+    ['제출 시도', (form: ReturnType<typeof useStrategyForm>) => { form.handleSubmit(submitEvent) }],
+  ])('등록은 %s 전까지 입력값 사유와 같은 서버 거절을 숨기고 제출은 막는다', (_name, touch) => {
+    seedModelState.isBelowMinSeed = true
+    validationState.fieldErrors = [{ field: 'initialDeposit', detail: '서버 문장' }]
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBeNull()
+    expect(result.current.isBelowMinSeed).toBe(false)
+    expect(result.current.cannotSubmit).toBe(true)
+    act(() => result.current.setVrField('avgPrice', 10))
+    expect(result.current.isBelowMinSeed).toBe(false)
+
+    act(() => touch(result.current))
+    expect(result.current.isBelowMinSeed).toBe(true)
+    expect(result.current.submitDisabledReason).not.toBeNull()
+    expect(mockCreateMutate).not.toHaveBeenCalled()
+
+    // 같은 유형을 다시 고르면 두고, 다른 유형으로 바꾸면 다시 숨긴다
+    act(() => result.current.setType('INFINITE'))
+    expect(result.current.isBelowMinSeed).toBe(true)
+    act(() => result.current.setType('PRIVACY'))
+    expect(result.current.isBelowMinSeed).toBe(false)
+  })
+
+  it.each([['ticker', '이미 같은 종목의 전략이 있습니다.'], [null, '이 증권사에서 등록할 수 없습니다.']])('입력 전에도 입력값과 무관한 서버 거절(%s)은 보인다', (field, detail) => {
+    seedModelState.isInvalidSeed = true
+    validationState.fieldErrors = [{ field, detail }]
+    const { result } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    expect(result.current.submitDisabledReason).toBe(detail)
+  })
+
+  it('VR 입력 전에는 필드 없는 자산 거절을 숨기고 종목 거절은 보인다', () => {
+    seedModelState.seedUsd = 0
+    validationState.fieldErrors = [{ field: null, detail: 'VR 자산 거절' }]
+    const { result, rerender } = renderHook(() => useStrategyForm({ accountId: 'account-1' }))
+    act(() => result.current.setType('VR'))
+    expect(result.current.submitDisabledReason).toBeNull()
+    validationState.fieldErrors = [{ field: 'ticker', detail: '종목 거절' }]
+    rerender()
+    expect(result.current.submitDisabledReason).toBe('종목 거절')
   })
 
   it('검증 응답을 기다리는 중이거나 실패해도 제출한다 — 지난 입력의 거절로 막지 않는다', async () => {

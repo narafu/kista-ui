@@ -54,7 +54,7 @@ export function StrategyDetail({ accountId, broker, strategy }: Props) {
     }
   }
 
-  const toggleLabel = toggleLoading ? '처리 중...' : strategy.status === 'ACTIVE' ? '일시중지' : '재개'
+  const toggleLabel = toggleLoading ? '처리 중…' : strategy.status === 'ACTIVE' ? '일시중지' : '재개'
 
   return (
     <div className="space-y-4">

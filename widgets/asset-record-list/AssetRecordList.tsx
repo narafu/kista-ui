@@ -267,7 +267,6 @@ export function AssetRecordList({ month, categoryPath, onCategoryPathChange }: P
         description="삭제한 기록은 복구할 수 없습니다."
         onConfirm={confirmDelete}
         pending={deleteManyMutation.isPending}
-        pendingLabel="삭제 중..."
       />
     </div>
   )

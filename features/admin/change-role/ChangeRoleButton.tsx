@@ -46,7 +46,7 @@ export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false
         trigger={
           <button type="button" aria-disabled={mutation.isPending} onClick={blockTriggerWhile(mutation.isPending)} className={TRIGGER_CLASS}>
             {mutation.isPending ? (
-              <><Spinner size={11} />변경 중...</>
+              <><Spinner size={11} />변경 중…</>
             ) : `→ ${newRoleLabel}`}
           </button>
         }

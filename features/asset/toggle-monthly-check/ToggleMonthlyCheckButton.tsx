@@ -41,7 +41,7 @@ export function ToggleMonthlyCheckButton({ month, completed }: Props) {
       )}
     >
       {completed ? <CheckCircle2 className="size-4" /> : <Circle className="size-4" />}
-      {mutation.isPending ? '저장 중...' : completed ? '기록 점검 완료됨' : '기록 점검 완료로 표시'}
+      {mutation.isPending ? '저장 중…' : completed ? '기록 점검 완료됨' : '기록 점검 완료로 표시'}
     </button>
   )
 }

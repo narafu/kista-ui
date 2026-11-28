@@ -145,8 +145,6 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           recurringMode={form.recurringMode}
           setRecurringMode={form.setRecurringMode}
           loading={form.loading}
-          isEdit={!!initial}
-          initialVrValue={initial?.vr?.value ?? 0}
           vrRampDefaults={form.vrRampDefaults}
           settings={form.vrSettings}
           recurringError={fieldError('recurring')}

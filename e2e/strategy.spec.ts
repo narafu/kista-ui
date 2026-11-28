@@ -72,6 +72,7 @@ test.describe('전략 (USER)', () => {
     test.skip(!hasSeed('vr'), 'MOCK 계좌에 VR 시드 전략 없음 — kista-api scripts/dev-seed/seed.sh 확인')
     await page.goto(`/accounts/${seed.vr.accountId}/strategies/${seed.vr.strategyId}`)
     await expect(page.getByRole('link', { name: 'VR 재설정' })).toBeVisible()
+    await expect(page.getByRole('link', { name: '수정', exact: true })).toHaveCount(0)
     await expect(page.getByRole('button', { name: '투자금 추가' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: '투자금 인출' })).toHaveCount(0)
   })

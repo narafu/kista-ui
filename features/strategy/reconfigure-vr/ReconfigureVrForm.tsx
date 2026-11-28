@@ -162,7 +162,6 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
         onCancel={handleDone}
         isPending={disabled}
         label="재설정"
-        pendingLabel="재설정 중..."
         submitVariant="destructive"
         className="pt-2"
       />
@@ -173,7 +172,7 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
         title="VR 전략을 재설정하시겠습니까?"
         description="진행 중인 사이클이 즉시 종료되고 새 사이클이 시작됩니다. 오늘 접수된 미체결 주문은 모두 취소됩니다. 이 작업은 되돌릴 수 없습니다."
         confirmLabel="재설정 확정"
-        pendingLabel={mutation.isPending ? '재설정 중...' : '재설정 확정'}
+        pendingLabel="재설정 중…"
         onConfirm={handleConfirm}
         pending={disabled}
       />

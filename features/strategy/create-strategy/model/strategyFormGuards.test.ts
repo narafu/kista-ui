@@ -34,8 +34,8 @@ function derive(fields: VrFields, recurringMode: VrRecurringMode, seedUsd: numbe
 }
 
 describe('computeVrAssets', () => {
-  const assets = (fields: Partial<VrFields>, recurringMode: VrRecurringMode = 'HOLD', seedUsd: number | null = 0, initial?: never) =>
-    computeVrAssets({ initial, vrFields: vrFields(fields), seedUsd, recurringMode })
+  const assets = (fields: Partial<VrFields>, recurringMode: VrRecurringMode = 'HOLD', seedUsd: number | null = 0) =>
+    computeVrAssets({ vrFields: vrFields(fields), seedUsd, recurringMode })
 
   it('초기 V 입력(>0)은 게이트 자산에만 쓰고 인출식 최소 자산은 평단가 추정치만 쓴다(우회 방지)', () => {
     expect(assets({ initialValue: 3000 }, 'HOLD', 2000).initialAssets).toBe(5000)
@@ -43,12 +43,6 @@ describe('computeVrAssets', () => {
     const d = assets({ initialValue: 999999, avgPrice: 1, quantity: 100 }, 'WITHDRAW', 0)
     expect(d.initialAssets).toBe(999999)
     expect(d.evaluatedAssets).toBe(100)
-  })
-  it('수정은 저장된 V값을 쓴다', () => {
-    const initial = { id: 's', vr: { value: 4200 } } as never
-    const d = assets({ avgPrice: 999, quantity: 999 }, 'HOLD', 100, initial)
-    expect(d.initialAssets).toBe(4300)
-    expect(d.evaluatedAssets).toBe(4300)
   })
   it('적립 방향으로 부호를 정하고 인출식 필요 자산은 |금액|×100×(4/주기), 주기가 없으면 0', () => {
     expect(assets({ recurringAmount: 250 }, 'HOLD').normalizedRecurringAmount).toBe(0)
@@ -219,6 +213,21 @@ describe('computeSubmitDisabled messages', () => {
     })
     expect(result?.message).toContain('인출식은 초기 자산이')
     expect(result?.field).toBeNull()
+  })
+
+  it('입력 전(revealInputReasons=false)에는 예수금·VR 자산 사유를 건너뛰고 잠금 사유는 남긴다', () => {
+    const base = { ...create, isVr: false, vrFields: vrFields(), recurringMode: 'HOLD' as const, ...derive(vrFields(), 'HOLD', 0), isBelowMinSeed: true, isInvalidSeed: true, revealInputReasons: false }
+    expect(computeSubmitDisabled(base)).toBeNull()
+    expect(computeSubmitDisabled({ ...base, seedCheck: 'failed' })?.message).toBe('최소 투자금을 확인하지 못했습니다. 다시 시도해주세요.')
+    expect(computeSubmitDisabled({ ...base, seedUnavailableReason: 'NO_PRIVACY_BASE' })?.message).toBe('P 매매표가 없어 등록할 수 없습니다.')
+    const f = vrFields({ intervalWeeks: 4, bandWidth: 15 })
+    const vr = { ...base, isVr: true, vrFields: f, ...derive(f, 'HOLD', 0) }
+    expect(computeSubmitDisabled(vr)).toBeNull()
+    // 관리자 기본 방향이 적립·인출이면 진입 직후 금액이 0이다
+    expect(computeSubmitDisabled({ ...vr, recurringMode: 'DEPOSIT', ...derive(f, 'DEPOSIT', 0) })).toBeNull()
+    const wd = vrFields({ intervalWeeks: 4, bandWidth: 15, recurringAmount: 100 })
+    expect(computeSubmitDisabled({ ...vr, vrFields: wd, recurringMode: 'WITHDRAW', ...derive(wd, 'WITHDRAW', 0) })).toBeNull()
+    expect(computeSubmitDisabled({ ...vr, isRuntimeValueInvalid: true })?.message).toBe('현재 허용되지 않는 설정이 선택되었습니다.')
   })
 
   it('PRIVACY 최소 시드를 판정할 서버 값이 없으면 대기·실패 사유로 막는다(서버가 검증하지 않는 규칙)', () => {

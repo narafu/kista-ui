@@ -70,7 +70,7 @@ function ExecutedBody({ placedOrders, orders, unplacedDirections, warnings, onCa
       <div className="flex items-center justify-between px-6 py-3 border-b border-border">
         <p className="text-base uppercase tracking-widest font-semibold text-info">{executedHeaderLabel(placedOrders)}</p>
         <Button variant="destructive" size="sm" onClick={onCancelAll} disabled={cancelAllPending}>
-          {cancelAllPending ? '취소 중...' : '전체 취소'}
+          {cancelAllPending ? '취소 중…' : '전체 취소'}
         </Button>
       </div>
       <OrderRows

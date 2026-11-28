@@ -15,8 +15,6 @@ describe('VrSettingsSection', () => {
     recurringMode: 'HOLD' as const,
     setRecurringMode: vi.fn(),
     loading: false,
-    isEdit: false,
-    initialVrValue: 0,
     vrRampDefaults: { initialGradient: 10, gMax: 10, initialPoolLimitRate: 0.5, poolLimitFloor: 0.5 },
     settings: {
       recurringMode: { customizable: true, allowedValues: ['DEPOSIT', 'HOLD', 'WITHDRAW'], defaultValue: 'HOLD' },
@@ -166,45 +164,6 @@ describe('VrSettingsSection', () => {
       expect(screen.getByRole('button', { name: '- 인출' })).toBeDisabled()
     })
 
-    it('shows read-only initial V value and disables recurring inputs when isEdit is true', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-          isEdit={true}
-          initialVrValue={3000}
-        />,
-      )
-
-      const initialValueInput = getInputByLabelText('초기 V값') as HTMLInputElement
-      const recurringInput = getInputByLabelText('적립금(+)/인출금(-)') as HTMLInputElement
-      const depositButton = screen.getByRole('button', { name: '+ 적립' }) as HTMLButtonElement
-      const holdButton = screen.getByRole('button', { name: '거치' }) as HTMLButtonElement
-      const withdrawalButton = screen.getByRole('button', { name: '- 인출' }) as HTMLButtonElement
-
-      expect(initialValueInput.value).toBe('3000')
-      expect(initialValueInput.disabled).toBe(true)
-      expect(recurringInput.disabled).toBe(true)
-      expect(depositButton.disabled).toBe(true)
-      expect(holdButton.disabled).toBe(true)
-      expect(withdrawalButton.disabled).toBe(true)
-
-      expect(screen.queryByRole('button', { name: '2주' })).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: '15%' })).not.toBeInTheDocument()
-    })
-
-    it('does not render the read-only initial V value input in create mode', () => {
-      render(
-        <VrSettingsSection
-          fields={baseFields}
-          {...baseProps}
-          isEdit={false}
-        />,
-      )
-
-      expect(screen.queryByText('초기 V값')).not.toBeInTheDocument()
-    })
-
     it('disables all inputs when loading is true', () => {
       render(
         <VrSettingsSection
@@ -288,30 +247,20 @@ describe('VrSettingsSection', () => {
   })
 
   describe('advanced ramp settings (registration only)', () => {
-    it('renders the collapsible advanced section in create mode', () => {
-      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+    it('renders the collapsible advanced section', () => {
+      render(<VrSettingsSection fields={baseFields} {...baseProps} />)
       expect(screen.getByText('고급 설정')).toBeInTheDocument()
     })
 
-    it('does not render the advanced section in edit mode', () => {
-      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
-      expect(screen.queryByText('고급 설정')).not.toBeInTheDocument()
-    })
-
     it('renders and updates the explicit initial V input', () => {
-      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      render(<VrSettingsSection fields={baseFields} {...baseProps} />)
       const input = getInputByLabelText('초기 V')
       fireEvent.change(input, { target: { value: '5000' } })
       expect(mockSetField).toHaveBeenCalledWith('initialValue', 5000)
     })
 
-    it('does not render the explicit initial V input in edit mode', () => {
-      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={true} initialVrValue={3000} />)
-      expect(screen.queryByText('초기 V')).not.toBeInTheDocument()
-    })
-
     it('updates a ramp field through setField', () => {
-      render(<VrSettingsSection fields={baseFields} {...baseProps} isEdit={false} />)
+      render(<VrSettingsSection fields={baseFields} {...baseProps} />)
       const input = getInputByLabelText('초기 gradient(G)')
       fireEvent.change(input, { target: { value: '10' } })
       expect(mockSetField).toHaveBeenCalledWith('initialGradient', 10)
@@ -322,7 +271,6 @@ describe('VrSettingsSection', () => {
         <VrSettingsSection
           fields={{ ...baseFields, gStepWeeks: 26, gMax: 20, gGraceWeeks: 52 }}
           {...baseProps}
-          isEdit={false}
         />,
       )
 
@@ -338,7 +286,6 @@ describe('VrSettingsSection', () => {
         <VrSettingsSection
           fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
           {...baseProps}
-          isEdit={false}
         />,
       )
 
@@ -351,7 +298,6 @@ describe('VrSettingsSection', () => {
         <VrSettingsSection
           fields={{ ...baseFields, gStepWeeks: 0, gMax: 0, gGraceWeeks: 0 }}
           {...baseProps}
-          isEdit={false}
         />,
       )
 

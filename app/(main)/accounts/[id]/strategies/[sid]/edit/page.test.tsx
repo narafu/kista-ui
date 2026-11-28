@@ -31,4 +31,16 @@ describe('EditStrategyPage', () => {
     )
     expect(seeded?.state.data).toMatchObject({ id: 'strategy-1', ticker: 'TQQQ', currentHoldings: 2 })
   })
+
+  it('VR 전략은 VR 재설정 화면으로 보낸다', async () => {
+    vi.stubEnv('TRADING_API_BASE_URL', 'http://api.test')
+    mockApi({
+      'GET /api/accounts/{id}': { id: 'account-1', nickname: 'main', accountNoMasked: '1-***', broker: 'TOSS' },
+      'GET /api/accounts/{accountId}/trading-cycles': [{ id: 'strategy-1', accountId: 'account-1', ticker: 'TQQQ', type: 'VR', status: 'ACTIVE' }],
+    } as never)
+
+    await expect(EditStrategyPage({ params: Promise.resolve({ id: 'account-1', sid: 'strategy-1' }) })).rejects.toMatchObject({
+      digest: expect.stringContaining('/accounts/account-1/strategies/strategy-1/reconfigure-vr'),
+    })
+  })
 })

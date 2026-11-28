@@ -34,7 +34,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
           onClick={() => setIsDisconnectOpen(true)}
           disabled={isDeleteLoading}
         >
-          {isDeleteLoading ? '해제 중...' : '연결 해제'}
+          {isDeleteLoading ? '해제 중…' : '연결 해제'}
         </Button>
         <ConfirmDialog
           open={isDisconnectOpen}
@@ -44,7 +44,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
           onConfirm={() => deleteMutation.mutate(undefined, { onSuccess: () => setIsDisconnectOpen(false) })}
           pending={isDeleteLoading}
           confirmLabel="연결 해제"
-          pendingLabel="해제 중..."
+          pendingLabel="해제 중…"
         />
       </div>
     )
@@ -54,7 +54,7 @@ export function PendingTelegramConnect({ hasTelegram, currentChannel }: Props) {
     return (
       <form onSubmit={form.submit} className="flex flex-col gap-3">
         <FormField control={form.control} name="botToken" id="pending-botToken" label="Bot Token" className="space-y-2 text-left">
-          {(f) => <Input {...f} placeholder="123456:ABC-DEF..." className="h-12" disabled={form.isPending} maxLength={512} />}
+          {(f) => <Input {...f} placeholder="123456:ABC-DEF…" className="h-12" disabled={form.isPending} maxLength={512} />}
         </FormField>
         <FormField control={form.control} name="chatId" id="pending-chatId" label="Chat ID" className="space-y-2 text-left">
           {(f) => <Input {...f} placeholder="-100123456789" className="h-12" disabled={form.isPending} maxLength={50} />}

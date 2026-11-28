@@ -110,7 +110,7 @@ export function InviteDialog({ groupId }: Props) {
               disabled={mutation.isPending}
               onClick={() => mutation.mutate(Number(expiresInHours), { onSuccess: setInvitation })}
             >
-              {mutation.isPending ? '발급 중...' : '발급하기'}
+              {mutation.isPending ? '발급 중…' : '발급하기'}
             </Button>
           </div>
         )}

@@ -13,7 +13,7 @@ const handlers = () => ({
 })
 
 async function fillAndSubmit(button: string) {
-  await userEvent.type(screen.getByPlaceholderText('123456:ABC-DEF...'), ' 123456:ABC ')
+  await userEvent.type(screen.getByPlaceholderText('123456:ABC-DEF…'), ' 123456:ABC ')
   await userEvent.type(screen.getByPlaceholderText('-100123456789'), ' -100123456789 ')
   await userEvent.click(screen.getByRole('button', { name: button }))
 }
@@ -39,7 +39,7 @@ describe('TelegramSection', () => {
     await waitFor(() => expect(requests).toHaveLength(1))
     expect(requests[0]).toMatchObject({ method: 'PUT', path: '/api/settings/telegram', body: { botToken: '123456:ABC', chatId: '-100123456789' } })
     // 입력은 연결 뒤 비운다
-    await waitFor(() => expect(screen.getByPlaceholderText('123456:ABC-DEF...')).toHaveValue(''))
+    await waitFor(() => expect(screen.getByPlaceholderText('123456:ABC-DEF…')).toHaveValue(''))
   })
 
   it.each<[NotificationChannel, string | null]>([['NONE', 'TELEGRAM'], ['FCM', 'ALL'], ['TELEGRAM', null], ['ALL', null]])(
@@ -91,9 +91,9 @@ describe('PendingTelegramConnect', () => {
     expect(await screen.findByText('Bot Token을 입력하세요')).toBeInTheDocument()
     expect(requests).toHaveLength(0)
 
-    await userEvent.type(screen.getByPlaceholderText('123456:ABC-DEF...'), 'x')
+    await userEvent.type(screen.getByPlaceholderText('123456:ABC-DEF…'), 'x')
     await userEvent.click(screen.getByRole('button', { name: '취소' }))
     await userEvent.click(screen.getByRole('button', { name: '텔레그램 봇 연결하기' }))
-    expect(screen.getByPlaceholderText('123456:ABC-DEF...')).toHaveValue('')
+    expect(screen.getByPlaceholderText('123456:ABC-DEF…')).toHaveValue('')
   })
 })

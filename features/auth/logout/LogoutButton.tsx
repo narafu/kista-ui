@@ -30,7 +30,7 @@ export function LogoutButton({ className, children, 'aria-label': ariaLabel }: P
       aria-label={ariaLabel}
       className={className ?? buttonVariants({ variant: 'outline', size: 'sm' })}
     >
-      {children ?? (isLoading ? '로그아웃 중...' : '로그아웃')}
+      {children ?? (isLoading ? '로그아웃 중…' : '로그아웃')}
     </button>
   )
 }

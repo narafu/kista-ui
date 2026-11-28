@@ -13,11 +13,10 @@ export function ReadOnlySeedSection({ type, initialDeposit, ledgerDeposit }: Pro
   const isDca = type === 'DCA'
   // 장부 예수금은 상세·인출 폼과 같이 센트 미만을 절사한다
   const amount = isDca ? (ledgerDeposit == null ? undefined : floorToCents(ledgerDeposit)) : initialDeposit
-  // 이 화면에서 못 고칠 뿐 바꾸는 길은 유형마다 있다(StrategyAction.supports)
-  const hint = type === 'VR' ? '예수금은 VR 재설정으로 바꿉니다' : '예수금은 투자금 추가·인출로 바꿉니다'
   return (
     <div className="py-[18px] border-b border-border">
-      <StrategyFieldLabel hint={hint}>
+      {/* 이 화면에서 못 고칠 뿐 투자금 추가·인출로 바꾼다 — VR은 수정 화면이 없다 */}
+      <StrategyFieldLabel hint="예수금은 투자금 추가·인출로 바꿉니다">
         예수금
       </StrategyFieldLabel>
 

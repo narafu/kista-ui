@@ -42,7 +42,7 @@ export function ReapplyButton({ reapplyAvailableAt }: { reapplyAvailableAt?: str
         onClick={handleReapply}
         disabled={isLoading}
       >
-        {isLoading ? '신청 중...' : cooldownMinutes > 0 ? `${cooldownMinutes}분 후 재신청 가능` : '승인 재신청'}
+        {isLoading ? '신청 중…' : cooldownMinutes > 0 ? `${cooldownMinutes}분 후 재신청 가능` : '승인 재신청'}
       </Button>
     </div>
   )
