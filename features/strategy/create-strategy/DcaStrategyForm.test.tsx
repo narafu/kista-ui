@@ -172,7 +172,7 @@ describe('DcaStrategyForm', () => {
     expect(screen.getByText('$91.50')).toBeInTheDocument()
     expect(screen.getByText('예수금은 투자금 추가·인출로 바꿉니다')).toBeInTheDocument()
     expect(cashPreview.enabled).not.toContain(true)
-    expect(seedPreview.calls.every((c) => (c[2] as { enabled?: boolean }).enabled === false)).toBe(true)
+    expect(seedPreview.calls.some((c) => (c[2] as { enabled: (body: unknown) => boolean }).enabled(c[1]))).toBe(false)
   })
 
   it('등록: 매도 규칙이 있고 수량이 비면 보유 0 캡션, 매수만이면 없다', async () => {

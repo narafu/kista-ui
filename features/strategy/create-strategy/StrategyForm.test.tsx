@@ -57,7 +57,7 @@ vi.mock('./sections/VrSettingsSection', () => ({
 vi.mock('./sections/InitialHoldingsSection', () => ({
   InitialHoldingsSection: (props: unknown) => {
     initialHoldingsSectionMock(props)
-    return <div data-testid="initial-holdings-section">initial-holdings-section{(props as { error?: string }).error}</div>
+    return <div data-testid="initial-holdings-section">initial-holdings-section{(props as { error?: string }).error}{(props as { errors?: { avgPrice?: string; quantity?: string } }).errors?.avgPrice}{(props as { errors?: { avgPrice?: string; quantity?: string } }).errors?.quantity}</div>
   },
 }))
 
@@ -105,6 +105,7 @@ const baseFormState = {
   enabledStrategyTypes: ['INFINITE', 'VR'],
   runtimeConfigUnavailable: false,
   isVr: false,
+  vrErrors: {},
   vrFields: {
     avgPrice: null,
     quantity: null,
@@ -350,6 +351,19 @@ describe('StrategyForm VR settings section', () => {
 
     expect(screen.getAllByText('적립금을 0보다 크게 입력하세요.')).toHaveLength(1)
     expect(screen.getByTestId('vr-settings-section')).toHaveTextContent('적립금을 0보다 크게 입력하세요.')
+  })
+
+  it('보유 칸의 스키마 오류는 그 칸 아래에 그려진다(하단 일반 문구를 숨기는 근거)', () => {
+    useStrategyFormMock.mockReturnValue({
+      ...baseFormState,
+      vrErrors: { avgPrice: '0 이상으로 입력하세요.', quantity: '정수로 입력하세요.' },
+    })
+
+    render(<StrategyForm accountId="account-1" />)
+
+    const section = screen.getByTestId('initial-holdings-section')
+    expect(section).toHaveTextContent('0 이상으로 입력하세요.')
+    expect(section).toHaveTextContent('정수로 입력하세요.')
   })
 
   it.each([

@@ -62,7 +62,6 @@ export function ChangeRoleButton({ userId, nickname, currentRole, isSelf = false
           </>
         }
         confirmLabel="변경"
-        pendingLabel="변경"
         mutation={mutation}
         variables={{ userId, role: newRole }}
         onSuccess={() => toast.success(`${nickname} 님의 역할을 ${newRoleLabel}로 변경했습니다`)}

@@ -21,7 +21,6 @@ export function LeaveGroupDialog({ open, onOpenChange, isPending, onConfirm }: P
       title="그룹에서 탈퇴하시겠습니까?"
       description="탈퇴하면 이 그룹에 공유한 데이터를 더 이상 볼 수 없습니다. 데이터 자체는 삭제되지 않고 남은 멤버가 계속 볼 수 있습니다."
       confirmLabel="탈퇴"
-      pendingLabel="탈퇴"
       onConfirm={onConfirm}
       pending={isPending}
     />

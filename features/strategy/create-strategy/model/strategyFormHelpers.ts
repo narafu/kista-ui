@@ -14,11 +14,7 @@ const VR_FIELD_KEYS = [
 ] as const satisfies readonly (keyof VrFields)[]
 
 // VR 입력의 고정 기본값 — 관리자 운영 설정이 있으면 typeDefaultValues가 덮는다. VR은 이 폼에 수정 화면이 없다(VR 재설정)
-const VR_DEFAULTS = {
-  intervalWeeks: 2,
-  bandWidth: 15,
-  recurringAmount: 0,
-  recurringMode: 'HOLD' as VrRecurringMode,
+const VR_ADVANCED_DEFAULTS = {
   initialValue: null,
   initialGradient: null,
   gGraceWeeks: null,
@@ -28,6 +24,14 @@ const VR_DEFAULTS = {
   pGraceWeeks: null,
   pStepWeeks: null,
   poolLimitFloor: null,
+}
+
+const VR_DEFAULTS = {
+  intervalWeeks: 2,
+  bandWidth: 15,
+  recurringAmount: 0,
+  recurringMode: 'HOLD' as VrRecurringMode,
+  ...VR_ADVANCED_DEFAULTS,
 }
 
 // 유형별 등록 기본값(관리자 운영 설정) — 첫 화면과 유형 변경이 같은 값을 쓴다. 시드는 유형과 무관하게 0에서 시작한다(useSeedModel)
@@ -124,10 +128,14 @@ export function createFormSetters(form: UseFormReturn<StrategyFormValues>, setti
   return {
     // 유형을 바꾸면 그 유형의 기본값으로 다시 채운다(사용자가 고른 종목·분할 수·VR 값은 버린다)
     setType: (t: string) => {
+      const changed = t !== form.getValues('type')
       form.setValue('type', t)
-      for (const [key, value] of Object.entries(typeDefaultValues(settingsOf(t)))) {
+      // 유형이 바뀌면 VR 고급 설정도 비운다 — 스키마가 유형과 무관하게 검사해, 남으면 보이지 않는 칸 때문에 제출이 막힌다
+      for (const [key, value] of Object.entries({ ...(changed ? VR_ADVANCED_DEFAULTS : {}), ...typeDefaultValues(settingsOf(t)) })) {
         form.setValue(key as keyof StrategyFormValues, value)
       }
+      // 보유(avgPrice·quantity)는 전환 뒤에도 남으므로 그 오류는 두고, VR 전용 칸의 오류만 비운다
+      if (changed) form.clearErrors(Object.keys(VR_DEFAULTS) as (keyof StrategyFormValues)[])
     },
     handleTickerChange: (code: string) => { form.setValue('ticker', code) },
     setAutoStart: (v: boolean) => { form.setValue('autoStart', v) },
@@ -136,6 +144,8 @@ export function createFormSetters(form: UseFormReturn<StrategyFormValues>, setti
     // VR 필드 개별 setter
     setVrField: (field: keyof VrFields, value: number | null) => {
       form.setValue(field, field === 'recurringAmount' && value !== null ? Math.abs(value) : value)
+      // 이미 뜬 칸 오류만 다시 검사한다(제출 전에 새로 띄우지 않는다)
+      if (form.getFieldState(field).error) void form.trigger(field)
     },
     setRecurringMode: (mode: VrRecurringMode) => {
       form.setValue('recurringMode', mode)

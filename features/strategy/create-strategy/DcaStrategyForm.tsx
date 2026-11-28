@@ -100,7 +100,7 @@ export function DcaStrategyForm({ accountId, initial, availableTickers, defaultT
   const validation = useStrategyValidationQuery(
     { kind: 'create', accountId },
     createBody,
-    { enabled: createBody !== null && !!ticker && formValues.rules.length > 0, keepWhile: (a, b) => a?.ticker === b?.ticker },
+    { enabled: (body) => !!body?.ticker && !!body.dca?.rules.length, keepWhile: (a, b) => a?.ticker === b?.ticker },
   )
   // 가용 예수금(계좌 미배정 금액, 계좌 통화) — 다른 전략처럼 참고값·비율 채우기용이고 초과해도 막지 않는다. 등록만 조회.
   // 검증 파생값이 있으면 그 값, 없으면(규칙 추가 전 등) 시드 미리보기

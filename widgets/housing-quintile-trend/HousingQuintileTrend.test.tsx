@@ -29,7 +29,7 @@ vi.mock('recharts', () => ({
   CartesianGrid: () => null,
 }))
 
-const SERIES: HousingBenchmarkSeries = { points: [] }
+const SERIES: HousingBenchmarkSeries = { points: [], quintileCagr: {} }
 const REGIONS: HousingBenchmarkRegionsList = {
   regions: [
     { code: '1100000000', name: '서울' },

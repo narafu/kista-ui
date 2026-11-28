@@ -44,7 +44,6 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         title="가입을 승인하시겠습니까?"
         description={`${nickname} 님을 승인합니다. 승인 즉시 서비스 이용이 시작됩니다.`}
         confirmLabel="승인"
-        pendingLabel="승인"
         mutation={approveMutation}
         variables={userId}
         onSuccess={() => toast.success(`${nickname} 님을 승인했습니다`)}
@@ -66,7 +65,6 @@ export function ApproveRejectButtons({ userId, nickname }: Props) {
         title="가입을 거절하시겠습니까?"
         description={`${nickname} 님의 가입 신청을 거절합니다.`}
         confirmLabel="거절"
-        pendingLabel="거절"
         mutation={rejectMutation}
         variables={userId}
         onSuccess={() => toast.success(`${nickname} 님의 가입을 거절했습니다`)}

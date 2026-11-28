@@ -289,7 +289,7 @@ export interface paths {
         get?: never;
         /**
          * 계좌 API 키 수정
-         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(추정 또는 입력값)을 갱신. 모의계좌는 불가.
+         * @description 새 앱 키·시크릿으로 증권사 연결을 검증한 뒤 저장하고 키 만료일(교체 시점 + 1년 또는 입력값)을 갱신. 모의계좌는 불가.
          */
         put: operations["updateCredentials"];
         post?: never;
@@ -1811,6 +1811,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/finance/transactions/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 거래 추이
+         * @description 월간은 월별, 연간은 연도별 합계와 루트 카테고리별 합계. range 생략 시 가장 오래된 거래부터 전체.
+         */
+        get: operations["trend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/transactions/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 거래 기간 요약
+         * @description 수입·소비·저축 한 유형의 합계·건수·전월/전년 비교·월평균. 기준일은 서버 KST 오늘입니다.
+         */
+        get: operations["summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/transactions/budget-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 예산 대비 실적
+         * @description 예산 카테고리 트리(소계 포함)와 예산 없는 실적 카테고리.
+         */
+        get: operations["budgetProgress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/finance/monthly-closings": {
         parameters: {
             query?: never;
@@ -1857,6 +1917,106 @@ export interface paths {
         };
         /** 그룹 멤버 목록 조회 */
         get: operations["listMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/bulk-register/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 가계부 일괄 등록 미리보기
+         * @description 소스월의 자산·수입·소비·저축 기록을 카테고리 계층 그룹 트리로 묶어 반환합니다.
+         */
+        get: operations["preview_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/asset-snapshots/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 자산 추이
+         * @description 기록 월 중 endMonth 이하의 최근 months개를 월 오름차순으로 반환합니다.
+         */
+        get: operations["trend_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/asset-snapshots/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 자산 월 요약
+         * @description month 생략 시 가장 최근 기록 월. 직전 기록 월 요약(previous)을 함께 반환합니다.
+         */
+        get: operations["summary_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/asset-snapshots/composition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 자산 구성비
+         * @description basis=CATEGORY(대출 포함 L1) 또는 ASSET_CLASS(대출 제외 자산군)
+         */
+        get: operations["composition"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/finance/asset-snapshots/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 월별 기록 점검
+         * @description 누락 L1 카테고리·전월 대비 누락 계좌·기준일별 건수를 반환합니다.
+         */
+        get: operations["check"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3333,7 +3493,7 @@ export interface components {
             broker?: "TOSS" | "MOCK" | "MERITZ" | null;
             /**
              * Format: date
-             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년(유효기간 1년)
              * @example 2027-11-10
              */
             apiKeyExpiresOn?: string | null;
@@ -3371,7 +3531,7 @@ export interface components {
             currency: string;
             /**
              * Format: date-time
-             * @description 거래소 API 키 만료 시각 (토스·메리츠는 추정(+1년)·사용자 입력, 그 외 null)
+             * @description 증권사 API 키 만료 시각 (토스·메리츠는 +1년·사용자 입력, 그 외 null)
              */
             apiKeyExpiresAt?: string | null;
             /** @description API 키 만료 판정 (KST 날짜 기준 — 남은 일수 0 이하 EXPIRED, 30일 이내 EXPIRING, 만료일 없음 NONE) */
@@ -3404,7 +3564,7 @@ export interface components {
             secretKey: string;
             /**
              * Format: date
-             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년 추정
+             * @description API 키 만료일(KST, 선택) — 토스·메리츠만, 비우면 등록·교체 시점 + 1년(유효기간 1년)
              * @example 2027-11-10
              */
             apiKeyExpiresOn?: string | null;
@@ -3883,6 +4043,12 @@ export interface components {
             holdings: number;
             /** @description 계획 주문 명세 목록 */
             orders: components["schemas"]["AdminPrivacyBaseOrderLine"][];
+            /** @description 추정 현금 (USD) = 사이클 시작금액 + 사이클 실현손익 − 평단가×보유수량. 보유 중인데 평단가가 없으면 null */
+            cash?: number | null;
+            /** @description 직전 발표 대비 사이클 시작금액이 달라진 날(새 사이클 경계). 목록 조회에서만 값이 있고 단건 응답은 null */
+            cycleBoundary?: boolean | null;
+            /** @description 종목 이력 기준 연초 재설정일(그 해 첫 사이클 경계이면서 시작금액 1만 달러). 목록 조회에서만 값이 있고 단건 응답은 null */
+            yearlyReset?: boolean | null;
         };
         PrivacyOrderAddRequest: {
             /** @enum {string} */
@@ -4079,7 +4245,7 @@ export interface components {
         NextOrdersResponse: {
             /**
              * Format: date
-             * @description 다음 매매 예정일 (KST 기준)
+             * @description 다음 매매 예정일 (KST 기준) — 다음 거래일이 휴장이면 그다음 개장일
              */
             tradeDate: string;
             /** @description INFINITE 전략 포지션 스냅샷 (PRIVACY 전략 또는 skip 시 null) */
@@ -4087,7 +4253,7 @@ export interface components {
             /** @description 생성 예정 주문 목록 */
             orders: components["schemas"]["NextOrderItem"][];
             /**
-             * @description 주문 생성 skip 사유 (정상이면 null, MARKET_CLOSED=다음 거래일 휴장)
+             * @description 주문 생성 skip 사유 (정상이면 null, MARKET_CLOSED=다음 거래일부터 개장일을 찾지 못함 — 시장 캘린더 미적재)
              * @example NO_PRIVACY_BASE
              * @enum {string|null}
              */
@@ -4104,6 +4270,8 @@ export interface components {
             accountHoldingsCheck?: components["schemas"]["AccountHoldingsCheckSummary"] | null;
             /** @description 서버 판정 경고 목록 (원장 부족·계좌 예수금 부족/부분 부족·보유 수량 부족·방향별 미접수 순, 없으면 빈 목록) — ledgerCheck·accountCashCheck·accountHoldingsCheck와 주문 목록에서 파생 */
             warnings: components["schemas"]["NextOrderWarning"][];
+            /** @description true면 다음 거래일(KST)이 휴장이라 tradeDate를 그다음 개장일로 넘겨 계산한 예상 주문 */
+            marketClosedToday: boolean;
         };
         PositionSnapshot: {
             /**
@@ -4228,7 +4396,7 @@ export interface components {
              */
             ticker?: string | null;
             /**
-             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA는 투자금을 점유하지 않아 deposit이 항상 0
+             * @description 전략 유형 (전략 삭제 등으로 알 수 없으면 null) — DCA도 원장 예수금 기준이다(원장 전환 전 행과 전환 전 등록 후 투자금 추가가 없는 사이클은 deposit 0)
              * @example INFINITE
              */
             strategyType?: string | null;
@@ -4281,6 +4449,8 @@ export interface components {
             totalUnrealizedPnl: number;
             activePrincipal: number;
             byType: components["schemas"]["TypeStats"][];
+            /** Format: int32 */
+            totalActiveCycleCount: number;
             availableCurrencies: ("KRW" | "USD" | "JPY")[];
         };
         TypeStats: {
@@ -4360,6 +4530,13 @@ export interface components {
             investmentMaxDrawdown: number;
             benchmarkMaxDrawdown: number;
         };
+        HousingBenchmarkQuintileCagr: {
+            firstQuintile?: number | null;
+            secondQuintile?: number | null;
+            thirdQuintile?: number | null;
+            fourthQuintile?: number | null;
+            fifthQuintile?: number | null;
+        };
         HousingBenchmarkSeriesPoint: {
             /** Format: date */
             baseMonth: string;
@@ -4373,6 +4550,7 @@ export interface components {
             points: components["schemas"]["HousingBenchmarkSeriesPoint"][];
             /** Format: date */
             sourceUpdatedDate?: string | null;
+            quintileCagr: components["schemas"]["HousingBenchmarkQuintileCagr"];
         };
         HousingBenchmarkRegionItem: {
             code: string;
@@ -4390,6 +4568,7 @@ export interface components {
             points: components["schemas"]["HousingPriceIndexSeriesPoint"][];
             /** Format: date */
             sourceUpdatedDate?: string | null;
+            cagr?: number | null;
         };
         EtfPriceSeriesPoint: {
             /** Format: date */
@@ -4398,6 +4577,7 @@ export interface components {
         };
         EtfPriceSeriesResponse: {
             points: components["schemas"]["EtfPriceSeriesPoint"][];
+            cagr?: number | null;
         };
         EquityCurvePoint: {
             /** Format: date */
@@ -4701,6 +4881,125 @@ export interface components {
             /** @description RSI(14, Wilder) — 해당 캔들 포함 최근 250개 종가 창 기준 (부족 시 null). 이 응답의 RAW 종가로 DCA 판정과 같은 코드(DcaIndicators)로 계산 — 분할·배당 조정 종가를 쓰는 DCA 판정값과 다를 수 있음 */
             rsi14?: number | null;
         };
+        FlowTrendPoint: {
+            /**
+             * @description 월간 yyyy-MM, 연간 yyyy
+             * @example 2026-08
+             */
+            period: string;
+            /**
+             * Format: int64
+             * @description 버킷 합계 (원화 정수)
+             * @example 1500000
+             */
+            amount: number;
+            /** @description 루트(L1) 카테고리별 합계 — 금액 있는 루트만, 정렬순서 순 */
+            byCategory: components["schemas"]["FlowTrendRootAmount"][];
+        };
+        FlowTrendResponse: {
+            /** @description 오래된 순 추이 점 */
+            points: components["schemas"]["FlowTrendPoint"][];
+        };
+        FlowTrendRootAmount: {
+            /**
+             * Format: uuid
+             * @description 루트 카테고리 ID
+             */
+            categoryId: string;
+            /**
+             * Format: int64
+             * @description 합계 (원화 정수)
+             */
+            amount: number;
+        };
+        FlowSummaryResponse: {
+            /**
+             * Format: int64
+             * @description 기간 내 합계 (원화 정수)
+             * @example 3500000
+             */
+            total: number;
+            /**
+             * Format: int32
+             * @description 기간 내 거래 건수
+             * @example 12
+             */
+            count: number;
+            /**
+             * Format: int64
+             * @description 전월 전체 합 (월간 모드만)
+             */
+            previousTotal?: number | null;
+            /**
+             * Format: int64
+             * @description 전년 동기간 합 (연간 모드만)
+             */
+            previousYearTotal?: number | null;
+            /**
+             * Format: int64
+             * @description 선택 연도 월평균 (원화 정수, 반올림)
+             * @example 3200000
+             */
+            yearlyAverage: number;
+            /**
+             * Format: int64
+             * @description 수입 - 소비 - 저축 (수입 유형만)
+             */
+            remaining?: number | null;
+            /**
+             * @description 같은 기간 수입 대비 비율 0~1, scale 4 (수입 외 유형이고 수입 합계가 0보다 클 때만)
+             * @example 0.4521
+             */
+            incomeRatio?: number | null;
+        };
+        BudgetProgressNode: {
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /**
+             * Format: int32
+             * @description 루트 0
+             */
+            depth: number;
+            /** @description true면 자체 예산 없는 하위 합계 노드 */
+            isGroup: boolean;
+            /**
+             * Format: uuid
+             * @description 자체 예산 ID (isGroup=false일 때만)
+             */
+            budgetId?: string | null;
+            /**
+             * Format: int64
+             * @description 월 할당액 x 유효 개월 수
+             */
+            allocated: number;
+            /** Format: int64 */
+            actual: number;
+            /**
+             * Format: int64
+             * @description allocated - actual, 음수면 초과
+             */
+            remaining: number;
+            /**
+             * @description actual/allocated 0~, scale 4 (allocated 0이면 0)
+             * @example 0.8333
+             */
+            usageRatio: number;
+            children: components["schemas"]["BudgetProgressNode"][];
+        };
+        BudgetProgressResponse: {
+            /** @description 예산 카테고리 트리 */
+            nodes: components["schemas"]["BudgetProgressNode"][];
+            /** @description 예산에 덮이지 않은 실적 카테고리 (카테고리 표시 순서) */
+            unbudgeted: components["schemas"]["BudgetProgressUnbudgeted"][];
+        };
+        BudgetProgressUnbudgeted: {
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /** Format: int64 */
+            amount: number;
+        };
         FinanceGroupMemberResponse: {
             /**
              * Format: uuid
@@ -4715,9 +5014,152 @@ export interface components {
              */
             role: string;
         };
+        BulkRegisterPreviewResponse: {
+            asset: components["schemas"]["Node"][];
+            income: components["schemas"]["Node"][];
+            expense: components["schemas"]["Node"][];
+            saving: components["schemas"]["Node"][];
+        };
+        Item: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            categoryPath: components["schemas"]["PathSegment"][];
+            memo?: string | null;
+            /** Format: int64 */
+            amount: number;
+            assetClass?: string | null;
+            market?: string | null;
+            strategy?: string | null;
+            /** Format: uuid */
+            accountId?: string | null;
+            accountName?: string | null;
+            accountInstitution?: string | null;
+            accountOwner?: string | null;
+        };
+        Node: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            sortOrder: number;
+            items: components["schemas"]["Item"][];
+            children: components["schemas"]["Node"][];
+        };
+        PathSegment: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: int32 */
+            sortOrder: number;
+        };
+        AssetClassAmount: {
+            /** @enum {string} */
+            assetClass: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
+            /** Format: int64 */
+            amount: number;
+        };
+        AssetTrendPoint: {
+            month: string;
+            /** Format: int64 */
+            netWorth: number;
+            /** Format: int64 */
+            totalAssets: number;
+            byCategory: components["schemas"]["CategoryAmount"][];
+            byAssetClass: components["schemas"]["AssetClassAmount"][];
+        };
+        AssetTrendResponse: {
+            points: components["schemas"]["AssetTrendPoint"][];
+        };
+        CategoryAmount: {
+            /** Format: uuid */
+            categoryId: string;
+            /** Format: int64 */
+            amount: number;
+        };
+        AssetSummaryResponse: {
+            month?: string | null;
+            availableMonths: string[];
+            current?: components["schemas"]["MonthlySummary"] | null;
+            previous?: components["schemas"]["MonthlySummary"] | null;
+        };
+        MonthlySummary: {
+            month: string;
+            /** Format: int64 */
+            netWorth: number;
+            /** Format: int64 */
+            totalAssets: number;
+            /** Format: int64 */
+            totalLiabilities: number;
+            largestAssetClass?: components["schemas"]["AssetClassAmount"] | null;
+            /** Format: int32 */
+            recordCount: number;
+            categoryBreakdown: components["schemas"]["CategoryAmount"][];
+            assetClassBreakdown: components["schemas"]["AssetClassAmount"][];
+        };
+        AssetCompositionColumn: {
+            month: string;
+            /** Format: int64 */
+            total: number;
+            entries: components["schemas"]["AssetCompositionEntry"][];
+        };
+        AssetCompositionEntry: {
+            item: string;
+            /** Format: int64 */
+            amount: number;
+            percent: number;
+        };
+        AssetCompositionResponse: {
+            columns: components["schemas"]["AssetCompositionColumn"][];
+        };
+        AssetCheckResponse: {
+            month: string;
+            previousMonth?: string | null;
+            missingCategoryIds: string[];
+            missingAccounts: components["schemas"]["MissingAccount"][];
+            dateGroups: components["schemas"]["DateGroup"][];
+        };
+        DateGroup: {
+            /** Format: date */
+            date: string;
+            /** Format: int64 */
+            count: number;
+        };
+        MissingAccount: {
+            accountName?: string | null;
+            categoryName: string;
+            /** @enum {string} */
+            assetClass: "CASH" | "EQUITY" | "FIXED_INCOME" | "COMMODITY" | "CRYPTO" | "REAL_ESTATE";
+        };
+        CurrencyDto: {
+            /** @enum {string} */
+            currency: "KRW" | "USD" | "JPY";
+            /** @description 매수 금액 합계 (통화 자릿수) */
+            buyAmount: number;
+            /** @description 매도 금액 합계 (통화 자릿수) */
+            sellAmount: number;
+            /** Format: int32 */
+            buyCount: number;
+            /** Format: int32 */
+            sellCount: number;
+        };
         DailyTransactionResponse: {
             /** @description 일별 체결 내역 목록 */
             items: components["schemas"]["ItemDto"][];
+            /** @description 날짜별(통화별) 체결 합계 — 날짜 오름차순, 통화 선언 순서(KRW, USD) */
+            byDate: components["schemas"]["DayDto"][];
+        };
+        DayDto: {
+            /** @description 매매일 (KST 기준) */
+            date: string;
+            /**
+             * Format: int32
+             * @description 그날 전체 체결 건수
+             */
+            tradeCount: number;
+            byCurrency: components["schemas"]["CurrencyDto"][];
         };
         ItemDto: {
             /** @description 매매일 (KST 기준) */
@@ -8568,6 +9010,106 @@ export interface operations {
             };
         };
     };
+    trend: {
+        parameters: {
+            query: {
+                type: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+                mode: "MONTHLY" | "YEARLY";
+                month: string;
+                range?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FlowTrendResponse"];
+                };
+            };
+            /** @description 잘못된 파라미터(type=ASSET, range<1 등) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FlowTrendResponse"];
+                };
+            };
+        };
+    };
+    summary: {
+        parameters: {
+            query: {
+                type: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+                mode: "MONTHLY" | "YEARLY";
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FlowSummaryResponse"];
+                };
+            };
+            /** @description 잘못된 파라미터(type=ASSET 등) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["FlowSummaryResponse"];
+                };
+            };
+        };
+    };
+    budgetProgress: {
+        parameters: {
+            query: {
+                type: "INCOME" | "EXPENSE" | "SAVING" | "ASSET";
+                mode: "MONTHLY" | "YEARLY";
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BudgetProgressResponse"];
+                };
+            };
+            /** @description 잘못된 파라미터(type=ASSET 등) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BudgetProgressResponse"];
+                };
+            };
+        };
+    };
     list_8: {
         parameters: {
             query?: never;
@@ -8636,6 +9178,150 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["FinanceGroupMemberResponse"][];
+                };
+            };
+        };
+    };
+    preview_1: {
+        parameters: {
+            query: {
+                /**
+                 * @description 복사 원본 월 (yyyy-MM)
+                 * @example 2026-07
+                 */
+                sourceMonth: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["BulkRegisterPreviewResponse"];
+                };
+            };
+        };
+    };
+    trend_1: {
+        parameters: {
+            query?: {
+                months?: number;
+                endMonth?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetTrendResponse"];
+                };
+            };
+            /** @description months가 1 미만 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetTrendResponse"];
+                };
+            };
+        };
+    };
+    summary_1: {
+        parameters: {
+            query?: {
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetSummaryResponse"];
+                };
+            };
+        };
+    };
+    composition: {
+        parameters: {
+            query: {
+                basis: "CATEGORY" | "ASSET_CLASS";
+                months?: number;
+                endMonth?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetCompositionResponse"];
+                };
+            };
+            /** @description 잘못된 basis 또는 months */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetCompositionResponse"];
+                };
+            };
+        };
+    };
+    check: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 조회 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetCheckResponse"];
+                };
+            };
+            /** @description month 누락 또는 형식 오류 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["AssetCheckResponse"];
                 };
             };
         };

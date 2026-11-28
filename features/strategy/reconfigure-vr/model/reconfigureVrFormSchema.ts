@@ -1,6 +1,9 @@
 import { z } from 'zod'
 import { fmtMoney } from '@shared/lib/format'
-import { floorToCents, POOL_LIMIT_FLOOR_ZERO_MESSAGE } from '@entities/strategy'
+import {
+  floorToCents, POOL_LIMIT_FLOOR_ZERO_MESSAGE,
+  VR_FLOOR_RATE as FLOOR_RATE, VR_G_MAX_BELOW_INITIAL, VR_INITIAL_RATE as INITIAL_RATE, VR_INTEGER as INTEGER, VR_NONNEGATIVE as NONNEGATIVE, VR_POSITIVE as POSITIVE,
+} from '@entities/strategy'
 
 // 서버는 빈 필드를 현재 값으로 이어받으므로 교차검증은 "입력값 ?? 현재값"(유효값)으로 계산한다
 type CurrentVrRamp = {
@@ -11,11 +14,6 @@ type CurrentVrRamp = {
   pStepWeeks: number
   poolLimitFloor: number
 }
-
-// 칸 아래에 그대로 보이는 문구 — zod 기본 영문이 새지 않게 모든 검사에 붙인다. 비율은 화면 단위(%)로 적는다
-const POSITIVE = '0보다 크게 입력하세요.'
-const NONNEGATIVE = '0 이상으로 입력하세요.'
-const INTEGER = '올바른 정수를 입력하세요.'
 
 const positiveInt = () => z.number().int(INTEGER).positive(POSITIVE).nullable().optional()
 const nonnegativeInt = () => z.number().int(INTEGER).nonnegative(NONNEGATIVE).nullable().optional()
@@ -35,11 +33,11 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp, ledgerDep
     gGraceWeeks: nonnegativeInt(),
     gStepWeeks: nonnegativeInt(),
     gMax: nonnegativeInt(),
-    initialPoolLimitRate: z.number().positive('0 초과 100 이하로 입력하세요.').max(1, '0 초과 100 이하로 입력하세요.').nullable().optional(),
+    initialPoolLimitRate: z.number().positive(INITIAL_RATE).max(1, INITIAL_RATE).nullable().optional(),
     pGraceWeeks: nonnegativeInt(),
     // pStepWeeks=0은 poolLimitRate 램프 비활성화(하한/유예 무관) — nonnegative로 0 허용, "0이 아니면 하한>0 필수"는 아래 superRefine에서 검증
     pStepWeeks: nonnegativeInt(),
-    poolLimitFloor: z.number().nonnegative('0~100 사이로 입력하세요.').max(1, '0~100 사이로 입력하세요.').nullable().optional(),
+    poolLimitFloor: z.number().nonnegative(FLOOR_RATE).max(1, FLOOR_RATE).nullable().optional(),
     injectShares: nonnegativeInt(),
     injectSharePrice: z.number().positive(POSITIVE).nullable().optional(),
     injectDeposit: nonnegativeAmount(),
@@ -54,7 +52,7 @@ export function createReconfigureVrFormSchema(current?: CurrentVrRamp, ledgerDep
     const pStepWeeks = data.pStepWeeks ?? current?.pStepWeeks
     const poolLimitFloor = data.poolLimitFloor ?? current?.poolLimitFloor
     if (gStepWeeks !== 0 && gMax != null && initialGradient != null && gMax < initialGradient) {
-      ctx.addIssue({ code: 'custom', path: ['gMax'], message: 'gradient 상한은 초기값 이상이어야 합니다.' })
+      ctx.addIssue({ code: 'custom', path: ['gMax'], message: VR_G_MAX_BELOW_INITIAL })
     }
     if (poolLimitFloor != null && initialPoolLimitRate != null && poolLimitFloor > initialPoolLimitRate) {
       ctx.addIssue({ code: 'custom', path: ['poolLimitFloor'], message: 'poolLimitRate 하한은 초기값 이하여야 합니다.' })

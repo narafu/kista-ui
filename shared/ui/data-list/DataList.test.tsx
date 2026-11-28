@@ -3,19 +3,18 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { DataList, useDataListSort, type DataListColumn } from './DataList'
 
-interface Row { id: string; name: string; day: string; value: number | null; secret?: boolean }
+interface Row { id: string; name: string; day: string; value: number | null }
 
 const columns: DataListColumn<Row>[] = [
   { key: 'name', header: '이름', cell: (r) => r.name, mobile: 'title', sortBy: (r) => r.name },
   { key: 'state', header: '상태', cell: () => '정상', mobile: 'badge' },
   { key: 'value', header: '값', cell: (r) => r.value ?? '-', numeric: true, sortBy: (r) => r.value },
   { key: 'pcOnly', header: 'PC전용', cell: () => 'pc', mobile: 'hidden' },
-  { key: 'secret', header: '비밀', cell: (r) => (r.secret ? '-' : '공개'), mobileHiddenWhen: (r) => !!r.secret },
 ]
 
 const rows: Row[] = [
   { id: '1', name: '나', day: '07-01', value: 2 },
-  { id: '2', name: '가', day: '07-01', value: null, secret: true },
+  { id: '2', name: '가', day: '07-01', value: null },
   { id: '3', name: '다', day: '06-30', value: 3 },
 ]
 
@@ -88,9 +87,9 @@ describe('DataList', () => {
     expect(screen.getByRole('region', { name: '목록 표' })).toHaveAttribute('tabindex', '0')
   })
 
-  it('모바일 카드는 역할대로 그리고 hidden과 행별 숨김 항목을 뺀다', () => {
+  it('모바일 카드는 역할대로 그리고 hidden 항목을 뺀다', () => {
     render(<DataList {...base} rows={rows} />)
-    const [shown, secret] = within(screen.getByRole('list', { name: '목록' })).getAllByRole('listitem')
+    const [shown] = within(screen.getByRole('list', { name: '목록' })).getAllByRole('listitem')
 
     expect(within(shown).getByText('나')).toBeInTheDocument()
     expect(within(shown).getByText('정상')).toBeInTheDocument()
@@ -98,8 +97,6 @@ describe('DataList', () => {
     expect(within(shown).queryByText('상태')).not.toBeInTheDocument()
     expect(within(shown).getByText('값')).toBeInTheDocument()
     expect(within(shown).queryByText('PC전용')).not.toBeInTheDocument()
-    expect(within(shown).getByText('비밀')).toBeInTheDocument()
-    expect(within(secret).queryByText('비밀')).not.toBeInTheDocument()
   })
 
   it('titleBadge는 모바일 제목만 배지로 그리고 PC 셀은 그대로 둔다', () => {

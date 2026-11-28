@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRouter } from 'next/navigation'
 import { describe, expect, it, vi } from 'vitest'
@@ -59,6 +59,9 @@ function renderForm(target: ReconfigureVrStrategy = strategy, validation: ApiHan
 
 // 보낸 PUT 바디 — JSON을 거치므로 undefined 필드는 없다
 const submitted = () => requests.find((r) => r.method === 'PUT')?.body as Record<string, unknown> | undefined
+// 막힌 제출의 판정이 끝났다는 신호 — onSubmit이 첫 오류 칸으로 포커스를 옮긴다. 칸 오류 문구는 입력 즉시 떠서 신호가 못 된다
+// 전체 스위트 부하에서 1초 기본 대기를 넘긴 적이 있어 여유를 둔다
+const blockedAt = (label: string) => waitFor(() => expect(screen.getByLabelText(label)).toHaveFocus(), { timeout: 4000 })
 const submittedAfterSend = async () => {
   await waitFor(() => expect(submitted()).toBeDefined())
   return submitted() as Record<string, unknown>
@@ -135,10 +138,9 @@ describe('ReconfigureVrForm', () => {
     renderForm(strategy, { fieldErrors: [{ field: 'withdrawShares', detail: '보유 수량보다 많이 인출할 수 없습니다.' }], warnings: [], derived: {} })
     expect(await screen.findByText('보유 수량보다 많이 인출할 수 없습니다.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    // onSubmit은 비동기 검증(form.trigger) 뒤에 다이얼로그를 연다 — 그 판정이 끝날 때까지 기다린 뒤 확인한다
-    await act(() => new Promise((r) => setTimeout(r, 50)))
+    // onSubmit은 비동기 검증(form.trigger) 뒤에 판정한다 — 거절이면 사유로 포커스를 옮기므로 그때까지 기다린 뒤 확인한다
+    await waitFor(() => expect(screen.getByText('보유 수량보다 많이 인출할 수 없습니다.')).toHaveFocus())
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
-    expect(screen.getByText('보유 수량보다 많이 인출할 수 없습니다.')).toHaveFocus()
     expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
       bandWidth: 15, intervalWeeks: 4, recurringAmount: -100,
       initialGradient: 10, gGraceWeeks: 52, gStepWeeks: 26, gMax: 20,
@@ -214,7 +216,8 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '' } })
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
-    expect(await screen.findByText('인출금을 0보다 크게 입력하세요.')).toBeInTheDocument()
+    await blockedAt('적립금(+)/인출금(-)')
+    expect(screen.getByText('인출금을 0보다 크게 입력하세요.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '재설정 확정' })).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('적립금(+)/인출금(-)'), { target: { value: '50' } })
@@ -246,9 +249,8 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('gradient 상한'), { target: { value: '5' } }) // initialGradient=10보다 작음
     fireEvent.click(screen.getByRole('button', { name: '재설정' }))
 
-    // form.trigger()가 실제로 끝났다는 확실한 신호 — 인라인 에러 메시지가 뜰 때까지 기다린다
-    await screen.findByText('gradient 상한은 초기값 이상이어야 합니다.')
-    await waitFor(() => expect(screen.getByLabelText('gradient 상한')).toHaveFocus())
+    await blockedAt('gradient 상한')
+    expect(screen.getByText('gradient 상한은 초기값 이상이어야 합니다.')).toBeInTheDocument()
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(submitted()).toBeUndefined()
@@ -312,8 +314,10 @@ describe('ReconfigureVrForm', () => {
     await user.type(input, '-50')
     expect(input.value).toBe('-50')
 
-    fireEvent.click(screen.getByRole('button', { name: '재설정' }))
-    await screen.findByText('0 이상으로 입력하세요.')
+    // user.click은 포커스를 버튼으로 옮긴다 — 입력 칸의 포커스는 막힌 제출이 되돌린 것이다
+    await user.click(screen.getByRole('button', { name: '재설정' }))
+    await blockedAt('추가 예수금')
+    expect(screen.getByText('0 이상으로 입력하세요.')).toBeInTheDocument()
 
     expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     expect(submitted()).toBeUndefined()
@@ -420,7 +424,9 @@ describe('ReconfigureVrForm', () => {
     const shares = screen.getByLabelText('편입 주식 수')
     fireEvent.change(shares, { target: { value: '1' } })
     fireEvent.change(shares, { target: { value: '10' } })
-    await act(() => new Promise((r) => setTimeout(r, 50)))
+    // 뒤에 시작한 검증의 오류가 보이면 앞선 주식 수 검증도 끝났다
+    fireEvent.change(screen.getByLabelText('추가 예수금'), { target: { value: '-1' } })
+    await screen.findByText('0 이상으로 입력하세요.')
 
     expect(screen.getByLabelText('매수단가')).not.toHaveAttribute('aria-invalid')
   })
@@ -435,7 +441,9 @@ describe('ReconfigureVrForm', () => {
     fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '5' } })
     await waitFor(() => expect(screen.getByLabelText('매수단가')).not.toHaveAttribute('aria-invalid'))
     fireEvent.change(screen.getByLabelText('매수단가'), { target: { value: '' } })
-    await act(() => new Promise((r) => setTimeout(r, 50)))
+    // 뒤에 시작한 검증의 오류가 보이면 앞선 매수단가 검증도 끝났다
+    fireEvent.change(screen.getByLabelText('추가 예수금'), { target: { value: '-1' } })
+    await screen.findByText('0 이상으로 입력하세요.')
     expect(screen.getByLabelText('매수단가')).toBeInTheDocument()
   })
 
@@ -480,7 +488,8 @@ describe('ReconfigureVrForm', () => {
       type('인출 예수금', '120')
       submit()
 
-      expect(await screen.findByText(message)).toBeInTheDocument()
+      await blockedAt('인출 예수금')
+      expect(screen.getByText(message)).toBeInTheDocument()
       expect(screen.queryByText('VR 전략을 재설정하시겠습니까?')).not.toBeInTheDocument()
     })
 

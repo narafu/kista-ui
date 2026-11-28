@@ -8,6 +8,7 @@ export { isScheduledStart, scheduledStartBadgeLabel } from './model/scheduled-st
 export { floorToCents } from './model/capitalAdjustment'
 export { actionState } from './model/actionState'
 export { nextVrRolloverDate } from './model/vr-rollover'
+export { VR_FLOOR_RATE, VR_G_MAX_BELOW_INITIAL, VR_INITIAL_RATE, VR_INTEGER, VR_NONNEGATIVE, VR_POSITIVE } from './model/vrFieldMessages'
 export { POOL_LIMIT_FLOOR_ZERO_MESSAGE, vrRampInvalidReason } from './model/poolLimitRamp'
 export {
   findStrategy,

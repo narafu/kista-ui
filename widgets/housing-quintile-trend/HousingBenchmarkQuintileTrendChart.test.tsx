@@ -53,6 +53,7 @@ const SERIES: HousingBenchmarkSeries = {
     },
   ],
   sourceUpdatedDate: '2026-07-01',
+  quintileCagr: {},
 }
 
 const REGIONS: HousingBenchmarkRegionsList = {
@@ -111,7 +112,7 @@ describe('HousingBenchmarkQuintileTrendChart', () => {
   })
 
   it('points가 비어있으면 EmptyState를 표시한다', () => {
-    mockSeriesQuery({ points: [], sourceUpdatedDate: '2026-07-01' })
+    mockSeriesQuery({ points: [], sourceUpdatedDate: '2026-07-01', quintileCagr: {} })
     render(<HousingBenchmarkQuintileTrendChart enabled />)
 
     expect(screen.getByText('표시할 서울 아파트 시세 데이터가 없습니다.')).toBeInTheDocument()

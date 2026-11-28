@@ -28,12 +28,15 @@ interface Props {
   }
   // 제출 불가 사유를 적립금 입력 아래에 표시
   recurringError?: string
+  // 고급 설정 칸의 스키마 거절 문구
+  errors?: Partial<Record<keyof VrFields, string>>
 }
 
 function VrAdvancedSettings({
-  fields, setField, disabled, vrRampDefaults, settings,
-}: Pick<Props, 'fields' | 'setField' | 'vrRampDefaults' | 'settings'> & { disabled: boolean }) {
+  fields, setField, disabled, vrRampDefaults, settings, errors,
+}: Pick<Props, 'fields' | 'setField' | 'vrRampDefaults' | 'settings' | 'errors'> & { disabled: boolean }) {
   const id = useId()
+  const initialValueErrorId = errors?.initialValue ? `${id}-initialValue-error` : undefined
   return (
     <details className="mt-4 group">
       <summary className="cursor-pointer select-none text-sm font-bold text-muted-foreground list-none [&::-webkit-details-marker]:hidden flex items-center gap-1.5">
@@ -50,7 +53,9 @@ function VrAdvancedSettings({
             unit="USD"
             disabled={disabled}
             currency="USD"
+            errorId={initialValueErrorId}
           />
+          {errors?.initialValue && <p id={initialValueErrorId} role="alert" className="mt-1 text-sm text-status-error">{errors.initialValue}</p>}
         </div>
         <OptionChoiceGroup
           label="밴드 폭"
@@ -70,12 +75,12 @@ function VrAdvancedSettings({
           onSelect={(option) => setField('intervalWeeks', option)}
         />
       </div>
-      <VrRampFields fields={fields} setField={setField} disabled={disabled} rampDefaults={vrRampDefaults} />
+      <VrRampFields fields={fields} setField={setField} disabled={disabled} rampDefaults={vrRampDefaults} errors={errors} />
     </details>
   )
 }
 
-export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, vrRampDefaults, settings, recurringError }: Props) {
+export function VrSettingsSection({ fields, setField, recurringMode, setRecurringMode, loading, vrRampDefaults, settings, recurringError, errors }: Props) {
   const id = useId()
   const recurringErrorId = recurringError ? `${id}-recurring-error` : undefined
 
@@ -98,7 +103,7 @@ export function VrSettingsSection({ fields, setField, recurringMode, setRecurrin
         </div>
       </div>
 
-      <VrAdvancedSettings fields={fields} setField={setField} disabled={loading} vrRampDefaults={vrRampDefaults} settings={settings} />
+      <VrAdvancedSettings fields={fields} setField={setField} disabled={loading} vrRampDefaults={vrRampDefaults} settings={settings} errors={errors} />
     </div>
   )
 }

@@ -22,8 +22,6 @@ export interface DataListColumn<T> {
   className?: string | ((row: T) => string | false | undefined)
   /** 모바일 카드 안 위치. `titleBadge`는 제목 자리에 브랜드 배지로 그린다. 생략하면 라벨-값 항목 */
   mobile?: 'title' | 'titleBadge' | 'badge' | 'hidden'
-  /** 이 행의 모바일 카드에서만 항목을 뺀다. PC 셀은 `cell`이 그대로 그린다 */
-  mobileHiddenWhen?: (row: T) => boolean
   /** 전량형 목록의 정렬 값. null·undefined 행은 방향과 무관하게 맨 아래 */
   sortBy?: (row: T) => string | number | null | undefined
 }
@@ -94,7 +92,7 @@ function columnClass<T>(column: DataListColumn<T>, row: T) {
 }
 
 function MobileCard<T>({ row, columns, grouped }: { row: T; columns: DataListColumn<T>[]; grouped: boolean }) {
-  const visible = columns.filter((c) => c.mobile !== 'hidden' && !c.mobileHiddenWhen?.(row))
+  const visible = columns.filter((c) => c.mobile !== 'hidden')
   const titles = visible.filter((c) => c.mobile === 'title' || c.mobile === 'titleBadge')
   const badges = visible.filter((c) => c.mobile === 'badge')
   const fields = visible.filter((c) => !c.mobile)

@@ -127,4 +127,36 @@ describe('전략 등록 화면의 입력값 경고', () => {
     fireEvent.click(screen.getByRole('button', { name: '100%' }))
     expect(seed()).toHaveValue('1000')
   })
+
+  it('스키마만 거르는 VR 고급 설정 값은 칸 오류를 붙이고, 접힌 설정을 펼쳐 그 칸으로 포커스한다', async () => {
+    renderForm()
+    selectType('VR')
+    fireEvent.change(seed(), { target: { value: '1000' } })
+    const gradient = screen.getByLabelText('초기 gradient(G)')
+    const grace = screen.getByLabelText('poolLimitRate 유예')
+    fireEvent.change(gradient, { target: { value: '0' } })
+    fireEvent.change(grace, { target: { value: '-1' } })
+    const details = gradient.closest('details')!
+    expect(details).not.toHaveAttribute('open')
+    expect(gradient).not.toHaveAttribute('aria-invalid')
+
+    fireEvent.click(submit())
+    await waitFor(() => expect(gradient).toHaveFocus())
+    expect(details).toHaveAttribute('open')
+    expect(gradient).toHaveAccessibleDescription('0보다 크게 입력하세요.')
+    expect(grace).toHaveAccessibleDescription(/0 이상으로 입력하세요\./)
+    expect(createMutate).not.toHaveBeenCalled()
+
+    // 접어도 입력만으로는 다시 펼치지 않고, 고친 칸의 오류는 바로 사라진다
+    details.open = false
+    fireEvent.change(gradient, { target: { value: '10' } })
+    await waitFor(() => expect(gradient).not.toHaveAttribute('aria-invalid'))
+    expect(details).not.toHaveAttribute('open')
+
+    // 유형을 바꾸면 남은 값이 보이지 않는 칸에서 제출을 막지 않는다
+    selectType('INFINITE')
+    fireEvent.change(seed(), { target: { value: '600' } })
+    fireEvent.click(submit())
+    await waitFor(() => expect(createMutate).toHaveBeenCalled())
+  })
 })

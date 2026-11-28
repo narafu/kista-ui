@@ -69,6 +69,14 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
 
   const [confirmOpen, setConfirmOpen] = useState(false)
 
+  function focusFirstInvalid(formEl: HTMLFormElement, framesLeft = 5) {
+    requestAnimationFrame(() => {
+      const invalid = formEl.querySelector<HTMLElement>('[aria-invalid="true"]')
+      if (invalid) invalid.focus()
+      else if (framesLeft > 0) focusFirstInvalid(formEl, framesLeft - 1)
+    })
+  }
+
   const schema = useMemo(
     () => createReconfigureVrFormSchema({
       initialGradient: vr.initialGradient,
@@ -130,7 +138,8 @@ export function ReconfigureVrForm({ accountId, strategy }: Props) {
     const formEl = e.currentTarget
     const valid = await form.trigger()
     // 오류 칸의 aria-invalid는 렌더 뒤에 붙는다 — 다음 프레임에 첫 칸을 찾는다
-    if (!valid) requestAnimationFrame(() => formEl.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+    // 부하로 첫 프레임이 렌더 커밋보다 빠를 수 있어 몇 프레임 더 찾는다
+    if (!valid) focusFirstInvalid(formEl)
     else if (serverError) serverErrorRef.current?.focus()
     else setConfirmOpen(true)
   }

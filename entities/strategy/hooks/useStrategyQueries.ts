@@ -84,10 +84,11 @@ export const STRATEGY_VALIDATION_DEBOUNCE_MS = 400
 // data는 표시용 — keepWhile(이전 바디, 지금 바디)이 참이면 새 응답 전까지 이전 결과를 유지해 깜빡임을 막는다.
 // 벤더 일시 오류(429·503)만 1회 재시도한다. 404(사용자 복제본 없음)·네트워크 오류는 isError로 둔다.
 // 같은 바디의 재조회가 실패해도 받아 둔 결과는 그 입력의 결과로 남는다(거절이 입력 변화 없이 풀리지 않게)
+// enabled를 함수로 주면 디바운스된(실제로 보낼) 바디로 판정한다 — 지금 입력으로 판정하면 디바운스 대기 중에 이전 바디가 나간다
 export function useStrategyValidationQuery<TBody>(
   target: StrategyValidationTarget,
   body: TBody,
-  options: { enabled: boolean; keepWhile?: (prev: TBody, next: TBody) => boolean },
+  options: { enabled: boolean | ((body: TBody) => boolean); keepWhile?: (prev: TBody, next: TBody) => boolean },
 ) {
   const json = JSON.stringify(body)
   const debounced = useDebouncedValue(json, STRATEGY_VALIDATION_DEBOUNCE_MS)
@@ -95,7 +96,7 @@ export function useStrategyValidationQuery<TBody>(
   const query = useQuery<StrategyValidation>({
     queryKey: strategyKeys.validation(targetKey, debounced),
     queryFn: () => validateStrategy(target, JSON.parse(debounced)),
-    enabled: options.enabled,
+    enabled: typeof options.enabled === 'function' ? options.enabled(JSON.parse(debounced)) : options.enabled,
     retry: (count, err) => count < 1 && err instanceof ApiError && (err.status === 429 || err.status === 503),
     placeholderData: (prev, prevQuery) => {
       const prevBody = prevQuery?.queryKey[3]

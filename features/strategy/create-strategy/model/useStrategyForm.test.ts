@@ -105,6 +105,7 @@ vi.mock('@entities/strategy', async () => ({
   ...(await import('@entities/strategy/model/vrRamp')),
   ...(await import('@entities/strategy/model/poolLimitRamp')),
   ...(await import('@entities/strategy/model/actionState')),
+  ...(await import('@entities/strategy/model/vrFieldMessages')),
   useCreateStrategyMutation: (_accountId: string, onSuccess?: (saved?: { todayOpenBatchMissed?: boolean }) => void) => {
     createSuccessHandler = onSuccess
     return {
@@ -681,7 +682,7 @@ describe('useStrategyForm submit policy', () => {
     })
   })
 
-  it('shows a validation reason when the resolver rejects an otherwise unblocked submit', async () => {
+  it('omits the generic reason when every resolver error is drawn under its field', async () => {
     seedModelState.seedUsd = 2000
 
     const { result } = renderHook(() =>
@@ -703,9 +704,8 @@ describe('useStrategyForm submit policy', () => {
       result.current.handleSubmit({ preventDefault() {} } as React.FormEvent)
     })
 
-    await waitFor(() => {
-      expect(result.current.submitDisabledReason).toBe('입력값을 다시 확인하세요.')
-    })
+    await waitFor(() => expect(result.current.vrErrors.gStepWeeks).toBeTruthy())
+    expect(result.current.submitDisabledReason).toBeNull()
     expect(mockCreateMutate).not.toHaveBeenCalled()
   })
 

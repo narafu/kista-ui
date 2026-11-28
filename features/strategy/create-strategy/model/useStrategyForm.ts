@@ -51,6 +51,12 @@ export interface VrRampDefaults {
 
 // 현재가 조회의 서버 상한(종목 수) — 넘으면 400
 const MAX_PRICE_TICKERS = 10
+// 오류가 칸 아래에 그려지는 입력 — 보유(등록만)·초기 V·램프(VR만). 간격·밴드·적립 금액은 칸 오류 자리가 없다
+const HOLDINGS_KEYS = ['avgPrice', 'quantity']
+const VR_INLINE_ERROR_KEYS = [
+  'initialValue', 'initialGradient', 'gGraceWeeks', 'gStepWeeks', 'gMax',
+  'initialPoolLimitRate', 'pGraceWeeks', 'pStepWeeks', 'poolLimitFloor',
+]
 
 // 검증 결과를 유지해도 되는 범위 — 시드 미리보기(최소 시드·기준가)는 유형·종목·분할 수로만 바뀐다
 const sameSeedScope = (a: StrategyRequest, b: StrategyRequest) =>
@@ -95,6 +101,8 @@ export interface UseStrategyFormReturn {
   // VR 전략 전용
   isVr: boolean
   vrFields: VrFields
+  // 제출에서 스키마가 거절한 칸의 문구 — 제출 전에는 비어 있다
+  vrErrors: Partial<Record<keyof VrFields, string>>
   setVrField: (field: keyof VrFields, value: number | null) => void
   recurringMode: VrRecurringMode
   setRecurringMode: (mode: VrRecurringMode) => void
@@ -124,8 +132,8 @@ export interface UseStrategyFormReturn {
   warnings: StrategyValidation['warnings']
   // 검증 호출 실패 — 막지 않고 안내만(PRIVACY 최소 시드 확인 실패는 seedCheck가 따로 막는다)
   validationUnavailable: boolean
-  // 제출했으면 true, 막혔으면 false(호출부가 사유로 포커스를 옮긴다)
-  handleSubmit: (e: React.FormEvent) => boolean
+  // 제출했으면 true, 막혔으면 false(호출부가 사유로 포커스를 옮긴다). 스키마 거절은 비동기라 true를 돌려준 뒤 onInvalid로 알린다
+  handleSubmit: (e: React.FormEvent, onInvalid?: () => void) => boolean
 }
 
 export function useStrategyForm({
@@ -168,6 +176,11 @@ export function useStrategyForm({
   const canEditSeed = !!initial && actionState(initial, 'EDIT_SEED').kind === 'allowed'
 
   const vrFields = watchVrFields(form)
+  // 렌더에서 errors를 읽어야 react-hook-form이 오류 변화에 다시 그린다
+  const { errors } = form.formState
+  const vrErrors: UseStrategyFormReturn['vrErrors'] = Object.fromEntries(
+    Object.keys(vrFields).map((key) => [key, errors[key as keyof VrFields]?.message]),
+  )
   const {
     avgPrice, quantity, intervalWeeks, bandWidth,
   } = vrFields
@@ -279,7 +292,7 @@ export function useStrategyForm({
   const setters = createFormSetters(form, settingsOf)
 
   // 제출 버튼은 진행 중·잠금일 때만 비활성 — 막힌 제출은 사유를 남기고 false를 돌려준다
-  function handleSubmit(e: React.FormEvent): boolean {
+  function handleSubmit(e: React.FormEvent, onInvalid?: () => void): boolean {
     e.preventDefault()
     setTouched(true)
     if (blocked) {
@@ -289,8 +302,11 @@ export function useStrategyForm({
     }
     form.handleSubmit(() => {
       submit(payload)
-    }, () => {
-      setResolverValidationReason('입력값을 다시 확인하세요.')
+    }, (invalid) => {
+      // 오류가 전부 칸 아래에 그려지면 하단 일반 문구는 중복이다 — 그려질 칸이 없는 오류가 있을 때만 남긴다
+      const drawn = (key: string) => (!initial && HOLDINGS_KEYS.includes(key)) || (isVr && VR_INLINE_ERROR_KEYS.includes(key))
+      if (!Object.keys(invalid).every(drawn)) setResolverValidationReason('입력값을 다시 확인하세요.')
+      onInvalid?.()
     })(e)
     return true
   }
@@ -323,7 +339,7 @@ export function useStrategyForm({
     autoStart, seedMode,
     divisionCount, divisionCountSettings, tickerCustomizable,
     enabledStrategyTypes, brokerRestrictionNotes, runtimeConfigUnavailable,
-    isVr, vrFields, recurringMode,
+    isVr, vrFields, vrErrors, recurringMode,
     vrRampDefaults: rampDefaults,
     vrSettings,
     scheduledStartDate,

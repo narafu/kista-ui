@@ -86,8 +86,14 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
   return (
     <form onSubmit={(e) => {
       const formEl = e.currentTarget
-      // 막힌 제출은 사유로 포커스를 옮긴다 — 사유는 렌더 뒤에 생길 수 있어 다음 프레임에 찾는다
-      if (!form.handleSubmit(e)) requestAnimationFrame(() => formEl.querySelector<HTMLElement>('[aria-invalid="true"], [data-submit-reason]')?.focus())
+      // 막힌 제출은 사유로 포커스를 옮긴다 — 사유는 렌더 뒤에 생길 수 있어 다음 프레임에 찾는다. 접힌 고급 설정 안의 칸이면 펼친다
+      const focusReason = () => requestAnimationFrame(() => {
+        const target = formEl.querySelector<HTMLElement>('[aria-invalid="true"], [data-submit-reason]')
+        const details = target?.closest('details')
+        if (details) details.open = true
+        target?.focus()
+      })
+      if (!form.handleSubmit(e, focusReason)) focusReason()
     }}>
       <StrategyTypeSection
         initial={initial}
@@ -126,6 +132,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           setField={form.setVrField}
           loading={form.loading}
           error={fieldError('holdings')}
+          errors={{ avgPrice: form.vrErrors.avgPrice, quantity: form.vrErrors.quantity }}
         />
       )}
 
@@ -148,6 +155,7 @@ export function StrategyForm({ accountId, broker, initial, onSuccess, onCancel }
           vrRampDefaults={form.vrRampDefaults}
           settings={form.vrSettings}
           recurringError={fieldError('recurring')}
+          errors={form.vrErrors}
         />
       )}
 
