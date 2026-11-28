@@ -3,7 +3,7 @@
 공통 기준: `../kista-api/docs/superpowers/fable-review/CHARTER.md`. 새 세션은 CHARTER → 이 파일 → `guides/00-roadmap.md`(실행 순서, Fable 없이 실행하는 규칙) → 실행할 지침서의 맨 끝 "실행 전 보정" 절 → 본문 순으로 읽는다. `findings/`는 지침서가 인용하는 근거다. **실행 순서와 규칙은 로드맵이 기준이다. 아래 실행 기록은 그때의 사실이고 규칙이 아니다.**
 
 추가 기준(사용자 지시, fable-api 경유):
-- `kista-api/docs/superpowers/fable-review/ui-api-principles.md` — 기본값은 API, UI는 화면 상태·표시·상호작용만.
+- `kista-api/docs/agents/ui-api-contract.md` — 기본값은 API, UI는 화면 상태·표시·상호작용만.
 - `kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md` — 서버 쪽 규약(required 정확화, BigDecimal number, 목록은 전량형 `{items}` / 커서 페이지형 둘, 메타 통합, 상태 플래그, `fieldErrors`, 검증 전용 엔드포인트).
 - UI 세션은 UI 코드철학 + UI/UX 관점. context7 MCP 적극 활용, 필요하면 Playwright CLI.
 

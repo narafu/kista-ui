@@ -2,7 +2,7 @@
 
 > **실행 세션은 먼저 맨 끝의 "실행 전 보정" 절과 `00-roadmap.md` 4절(공통 규칙)을 읽는다.** 본문과 다르면 그쪽이 우선한다. (2026-11-14)
 
-기준 문서: `kista-api/docs/superpowers/fable-review/ui-api-principles.md`(사용자 지시로 정한 공통 원칙), 서버 쪽 규약 `kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md`.
+기준 문서: `kista-api/docs/agents/ui-api-contract.md`(사용자 지시로 정한 공통 원칙), 서버 쪽 규약 `kista-api/docs/superpowers/fable-review/guides/10-ui-contract.md`.
 근거 측정: `findings/j-ui-api-principle-violations.md`(위반 전수), `findings/b-type-duplication.md` 4·6절.
 
 원칙 요약: 어느 쪽에서 해도 되는 일은 API가 한다. UI는 화면 상태, 표시 형식, 상호작용, 레이아웃 문구, 전량형 목록 안의 즉시 정렬·필터만 맡는다. 판정 질문은 "두 번째 클라이언트가 생기면 이 로직을 다시 구현해야 하는가"이다.
